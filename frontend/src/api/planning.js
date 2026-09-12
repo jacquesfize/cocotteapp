@@ -11,3 +11,7 @@ export function createMealPlanEntry(payload) {
 export function deleteMealPlanEntry(id) {
   return client.delete(`meal-plan-entries/${id}/`)
 }
+
+export function getNutritionSummary(params = {}) {
+  return client.get('meal-plan-entries/nutrition_summary/', { params }).then((r) => r.data)
+}

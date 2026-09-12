@@ -1,126 +1,176 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import RecipePicker from '../components/RecipePicker.vue'
-import { createMealPlanEntry, deleteMealPlanEntry, listMealPlanEntries } from '../api/planning'
+import MealSlot from '../components/MealSlot.vue'
+import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
+import { addDays, startOfWeek, toISODate } from '../utils/dates'
+import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
 
-const { t } = useI18n()
+const { locale } = useI18n()
 const router = useRouter()
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
 
+const weekOffset = ref(0)
 const entries = ref([])
-const selectedIds = ref([])
-const error = ref('')
+const deficiencies = ref([])
+const isLoading = ref(false)
 
-const newEntry = ref({ recipe: null, date: '', meal_type: 'dinner', servings: 2 })
+const weekDays = computed(() => {
+  const start = addDays(startOfWeek(new Date()), weekOffset.value * 7)
+  return Array.from({ length: 7 }, (_, i) => addDays(start, i))
+})
+
+function dayLabel(date) {
+  return date.toLocaleDateString(locale.value, { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function entriesFor(date, mealType) {
+  const iso = toISODate(date)
+  return entries.value.filter((e) => e.date === iso && e.meal_type === mealType)
+}
 
 async function load() {
-  const data = await listMealPlanEntries()
-  entries.value = data.results
-  selectedIds.value = selectedIds.value.filter((id) => entries.value.some((entry) => entry.id === id))
+  isLoading.value = true
+  try {
+    const params = {
+      date_after: toISODate(weekDays.value[0]),
+      date_before: toISODate(weekDays.value[6]),
+    }
+    const [entriesData, summary] = await Promise.all([
+      listMealPlanEntries(params),
+      getNutritionSummary(params),
+    ])
+    entries.value = entriesData
+    deficiencies.value = summary.deficiencies
+  } finally {
+    isLoading.value = false
+  }
 }
 
+watch(weekOffset, load)
 onMounted(load)
 
-async function handleAdd() {
-  error.value = ''
-  if (!newEntry.value.recipe) {
-    error.value = t('planning.chooseRecipe')
-    return
-  }
-  try {
-    await createMealPlanEntry({
-      recipe: newEntry.value.recipe.id,
-      date: newEntry.value.date,
-      meal_type: newEntry.value.meal_type,
-      servings: newEntry.value.servings,
-    })
-    newEntry.value = { recipe: null, date: '', meal_type: 'dinner', servings: 2 }
-    await load()
-  } catch {
-    error.value = t('planning.addError')
-  }
-}
-
-async function handleRemove(id) {
-  await deleteMealPlanEntry(id)
-  await load()
-}
-
 async function handleGenerateShoppingList() {
-  if (!selectedIds.value.length) return
-  const shoppingList = await createShoppingList(selectedIds.value)
+  if (!entries.value.length) return
+  const shoppingList = await createShoppingList(entries.value.map((e) => e.id))
   router.push({ name: 'shopping-list-detail', params: { id: shoppingList.id } })
 }
+
+const rangeLabel = computed(() => {
+  const fmt = (d) => d.toLocaleDateString(locale.value, { day: 'numeric', month: 'short' })
+  return `${fmt(weekDays.value[0])} – ${fmt(weekDays.value[6])}`
+})
 </script>
 
 <template>
   <div>
     <h1>{{ $t('planning.title') }}</h1>
 
-    <div class="card">
-      <h2>{{ $t('planning.planRecipe') }}</h2>
-      <form class="row" style="align-items: flex-end" @submit.prevent="handleAdd">
-        <div class="field" style="flex: 1; min-width: 220px">
-          <label for="plan-recipe">{{ $t('planning.recipe') }}</label>
-          <RecipePicker id="plan-recipe" v-model="newEntry.recipe" />
-        </div>
-        <div class="field">
-          <label for="plan-new-date">{{ $t('planning.date') }}</label>
-          <input id="plan-new-date" v-model="newEntry.date" type="date" required />
-        </div>
-        <div class="field">
-          <label for="plan-new-meal">{{ $t('planning.meal') }}</label>
-          <select id="plan-new-meal" v-model="newEntry.meal_type">
-            <option v-for="type in MEAL_TYPES" :key="type" :value="type">{{ $t(`mealType.${type}`) }}</option>
-          </select>
-        </div>
-        <div class="field" style="width: 90px">
-          <label for="plan-new-servings">{{ $t('planning.servings') }}</label>
-          <input id="plan-new-servings" v-model.number="newEntry.servings" type="number" min="1" />
-        </div>
-        <button type="submit">{{ $t('planning.add') }}</button>
-      </form>
-      <p v-if="error" class="error">{{ error }}</p>
+    <div class="week-nav">
+      <button class="secondary" type="button" :aria-label="'‹'" @click="weekOffset -= 1">‹</button>
+      <div class="week-range">
+        <strong>{{ rangeLabel }}</strong>
+        <button v-if="weekOffset !== 0" class="today-btn secondary" type="button" @click="weekOffset = 0">
+          {{ $t('planning.today') }}
+        </button>
+      </div>
+      <button class="secondary" type="button" :aria-label="'›'" @click="weekOffset += 1">›</button>
     </div>
 
-    <div class="row page-header">
-      <h2 style="margin: 0">{{ $t('planning.plannedMeals') }}</h2>
-      <button :disabled="!selectedIds.length" @click="handleGenerateShoppingList">
-        {{ $t('planning.generateShoppingList', { n: selectedIds.length }) }}
+    <div v-if="deficiencies.length" class="card deficiency-banner">
+      <strong>{{ $t('nutrition.weeklyAlertTitle') }}</strong>
+      <ul>
+        <li v-for="d in deficiencies" :key="d.nutrient">
+          {{ $t(NUTRIENT_LABEL_KEYS[d.nutrient] || d.nutrient) }} : {{ d.amount.toFixed(1) }} /
+          {{ d.minimum.toFixed(1) }} {{ d.unit }}
+        </li>
+      </ul>
+    </div>
+
+    <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
+
+    <div class="week-grid">
+      <div v-for="date in weekDays" :key="toISODate(date)" class="card day-col">
+        <h3>{{ dayLabel(date) }}</h3>
+        <MealSlot
+          v-for="mealType in MEAL_TYPES"
+          :key="mealType"
+          :date="toISODate(date)"
+          :meal-type="mealType"
+          :entries="entriesFor(date, mealType)"
+          @changed="load"
+        />
+      </div>
+    </div>
+
+    <div class="week-footer">
+      <button :disabled="!entries.length" @click="handleGenerateShoppingList">
+        {{ $t('planning.generateShoppingList', { n: entries.length }) }}
       </button>
-    </div>
-
-    <p v-if="!entries.length" class="muted">{{ $t('planning.noEntries') }}</p>
-    <div v-for="entry in entries" :key="entry.id" class="card entry-row">
-      <label class="row" style="align-items: center; gap: 0.75rem">
-        <input v-model="selectedIds" type="checkbox" :value="entry.id" style="width: auto" />
-        <div>
-          <strong>{{ entry.date }}</strong> · {{ $t(`mealType.${entry.meal_type}`) }} ·
-          {{ entry.recipe_title || entry.recipe }} · {{ entry.servings }} {{ $t('planning.servingsUnit') }}
-        </div>
-      </label>
-      <button class="secondary" @click="handleRemove(entry.id)">{{ $t('planning.remove') }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.page-header {
-  justify-content: space-between;
+.week-nav {
+  display: flex;
   align-items: center;
-  margin: 1rem 0;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.entry-row {
+.week-nav > button {
+  min-height: 2.25rem;
+  padding: 0.3rem 0.9rem;
+}
+
+.week-range {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 0.75rem;
+}
+
+.today-btn {
+  min-height: auto;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.deficiency-banner {
+  border: 1.5px solid var(--color-primary-soft);
+  margin-bottom: 1rem;
+}
+
+.deficiency-banner ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+}
+
+.day-col h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.week-footer {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 900px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

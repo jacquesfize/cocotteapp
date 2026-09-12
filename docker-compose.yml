@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: recettes
+      POSTGRES_DB: cocotte
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:

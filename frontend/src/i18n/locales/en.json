@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "🍲 Recipes"
+    "title": "Cocotte"
   },
   "nav": {
     "recipes": "Recipes",
@@ -122,7 +122,23 @@
     "generateShoppingList": "Generate shopping list ({n})",
     "noEntries": "No meal planned yet.",
     "remove": "Remove",
-    "servingsUnit": "servings"
+    "servingsUnit": "servings",
+    "today": "Today"
+  },
+  "nutrition": {
+    "title": "Nutrition facts",
+    "perServing": "Per serving",
+    "calories": "Calories",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "fiber": "Fiber",
+    "iron": "Iron",
+    "b12": "Vitamin B12",
+    "calcium": "Calcium",
+    "omega3": "Omega-3",
+    "zinc": "Zinc",
+    "weeklyAlertTitle": "Possibly insufficient intake this week"
   },
   "random": {
     "title": "Random recipe",

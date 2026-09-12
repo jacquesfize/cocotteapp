@@ -1,9 +1,10 @@
-# App de gestion de recettes
+# Cocotte
 
 Application de gestion de recettes : recherche par ingrédients/saison/régime/temps, tirage
-d'une recette au hasard, planification dans un agenda, génération de listes de courses, import
-manuel ou depuis une URL. Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et
-responsive (mobile-first, navigation par barre d'onglets en bas d'écran).
+d'une recette au hasard, menu de la semaine avec suivi nutritionnel (utile pour une transition
+vegan), génération de listes de courses, import manuel ou depuis une URL. Backend Django/DRF,
+frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first, navigation par barre
+d'onglets en bas d'écran).
 
 ## Lancer en local (Docker)
 
@@ -34,6 +35,14 @@ Tests :
 ```bash
 cd backend
 uv run pytest
+```
+
+Après la première migration, peupler les seuils nutritionnels de référence (utilisés pour
+détecter les carences en protéines/fer/B12/calcium/oméga-3/zinc selon le régime et le niveau
+d'activité) :
+
+```bash
+uv run python manage.py seed_nutrient_requirements
 ```
 
 ## Frontend — lancer en local (sans Docker)
@@ -70,14 +79,16 @@ npm run test:e2e
 - `backend/apps/accounts/` : utilisateurs (régime alimentaire, niveau d'activité), auth JWT.
 - `backend/apps/ingredients/` : ingrédients, valeurs nutritionnelles, saisonnalité.
 - `backend/apps/recipes/` : recettes, ingrédients de recette, étapes, tags, parseur Cooklang.
-- `backend/apps/nutrition/` : calcul des apports nutritionnels et détection de carences.
-- `backend/apps/planning/` : agenda / planning de repas.
+- `backend/apps/nutrition/` : calcul des apports nutritionnels, détection de carences, commande
+  `seed_nutrient_requirements`.
+- `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel hebdomadaire.
 - `backend/apps/shopping/` : génération et export de listes de courses.
 - `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery).
 - `frontend/src/api/` : client axios + modules par ressource.
 - `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
 - `frontend/src/views/` : pages (connexion, recettes, agenda, listes de courses).
-- `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée).
+- `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée),
+  `MealSlot` (case repas de la grille semaine), `NutritionCard`.
 - `frontend/src/i18n/` : configuration vue-i18n + fichiers de traduction (`locales/fr.json`, `locales/en.json`).
 
 ## Internationalisation
@@ -95,6 +106,14 @@ en haut à une barre d'onglets fixée en bas d'écran (Recettes / Au hasard / Ag
 compte (langue, déconnexion) restant accessible via le bouton rond en haut à droite sur toutes les
 tailles d'écran. Testé sur viewport 390×844 (iPhone 12) sans débordement horizontal — voir
 `frontend/tests/e2e/i18n-and-responsive.spec.js`.
+
+## Nutrition
+
+Chaque recette affiche ses valeurs nutritionnelles par portion (calories, macronutriments, fer,
+B12, calcium, oméga-3, zinc). La vue Agenda calcule en plus la moyenne journalière sur la semaine
+affichée et alerte si un apport tombe sous le seuil de référence pour le régime et le niveau
+d'activité du compte — pensé pour repérer les manques typiques d'une transition vers un régime
+végétarien/végan (fer, B12, zinc en particulier).
 
 ## Design
 

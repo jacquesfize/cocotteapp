@@ -1,4 +1,5 @@
 <script setup>
+import NutritionCard from './NutritionCard.vue'
 import { formatDuration } from '../utils/format'
 
 defineProps({
@@ -33,5 +34,7 @@ defineProps({
         </ol>
       </div>
     </div>
+
+    <NutritionCard :recipe-id="recipe.id" style="margin-top: 1rem" />
   </div>
 </template>

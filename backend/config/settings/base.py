@@ -66,7 +66,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
-    "default": env.db("DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/recettes"),
+    "default": env.db("DATABASE_URL", default="postgres://postgres:postgres@localhost:5432/cocotte"),
 }
 
 AUTH_USER_MODEL = "accounts.User"

@@ -27,14 +27,15 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await expect(page.getByText(ingredientName)).toBeVisible()
 
   await page.getByRole('link', { name: 'Agenda' }).click()
-  await page.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
-  await page.getByText(recipeTitle).click()
-  const today = new Date().toISOString().slice(0, 10)
-  await page.locator('input[type="date"]').fill(today)
-  await page.getByRole('button', { name: 'Ajouter' }).click()
+  await expect(page.locator('.day-col').first()).toBeVisible()
 
-  await expect(page.getByText(recipeTitle).last()).toBeVisible()
-  await page.locator('.entry-row input[type="checkbox"]').first().check()
+  const dinnerSlot = page.locator('.day-col').first().locator('.meal-slot').filter({ hasText: 'Dîner' })
+  await dinnerSlot.getByRole('button', { name: '+' }).click()
+  await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
+  await dinnerSlot.locator('.suggestions').getByText(recipeTitle).click()
+  await dinnerSlot.getByRole('button', { name: 'Ajouter' }).click()
+
+  await expect(dinnerSlot.getByText(recipeTitle)).toBeVisible()
   await page.getByRole('button', { name: /Générer la liste de courses/ }).click()
 
   await expect(page).toHaveURL(/\/shopping-lists\/\d+$/)

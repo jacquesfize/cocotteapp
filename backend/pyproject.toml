@@ -1,7 +1,7 @@
 [project]
-name = "recettes-backend"
+name = "cocotte-backend"
 version = "0.1.0"
-description = "API Django/DRF pour la gestion de recettes"
+description = "API Django/DRF de Cocotte, l'app de gestion de recettes"
 requires-python = ">=3.11"
 dependencies = [
     "django==5.0.9",

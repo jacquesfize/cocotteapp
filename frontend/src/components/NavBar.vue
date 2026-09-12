@@ -58,7 +58,23 @@ onBeforeUnmount(() => {
 <template>
   <header class="navbar">
     <div class="container navbar-inner">
-      <RouterLink to="/recipes" class="brand">{{ $t('app.title') }}</RouterLink>
+      <RouterLink to="/recipes" class="brand">
+        <span class="brand-badge">
+          <svg viewBox="0 0 100 100" fill="none">
+            <path d="M40,22 C37,17 42,14 39,8" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity="0.85" />
+            <path d="M58,22 C55,17 60,14 57,8" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity="0.85" />
+            <rect x="8" y="50" width="12" height="9" rx="4.5" fill="#fff" />
+            <rect x="80" y="50" width="12" height="9" rx="4.5" fill="#fff" />
+            <path
+              d="M22,48 C22,42 27,38 34,38 L66,38 C73,38 78,42 78,48 L78,66 C78,75 66,82 50,82 C34,82 22,75 22,66 Z"
+              fill="#fff"
+            />
+            <rect x="16" y="33" width="68" height="9" rx="4.5" fill="#fff" />
+            <circle cx="50" cy="28" r="6" fill="#fff" />
+          </svg>
+        </span>
+        <span class="brand-name">{{ $t('app.title') }}</span>
+      </RouterLink>
 
       <nav v-if="authStore.isAuthenticated" class="top-links">
         <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
@@ -153,10 +169,29 @@ onBeforeUnmount(() => {
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 800;
   text-decoration: none;
   color: var(--color-text);
   white-space: nowrap;
+}
+
+.brand-badge {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-badge svg {
+  width: 65%;
+  height: 65%;
 }
 
 .top-links {

@@ -90,3 +90,21 @@ def test_random_recipe_404_when_no_match():
     response = client.get("/api/recipes/random/?diet_type=vegan")
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_recipe_nutrition_action_returns_per_serving_values():
+    from decimal import Decimal
+
+    from apps.recipes.factories import RecipeIngredientFactory
+
+    ingredient = IngredientFactory(protein_g=Decimal("10"), calories_kcal=Decimal("100"))
+    recipe = RecipeFactory(servings=2)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("200"), unit="g")
+
+    client = APIClient()
+    response = client.get(f"/api/recipes/{recipe.id}/nutrition/")
+
+    assert response.status_code == 200
+    assert response.data["totals"]["protein_g"] == 20.0
+    assert response.data["per_serving"]["protein_g"] == 10.0
