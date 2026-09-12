@@ -63,7 +63,13 @@ class Ingredient(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            base_slug = slugify(self.name)
+            slug = base_slug
+            suffix = 1
+            while Ingredient.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                suffix += 1
+                slug = f"{base_slug}-{suffix}"
+            self.slug = slug
         super().save(*args, **kwargs)
 
     def is_in_season(self, month=None):

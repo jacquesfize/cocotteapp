@@ -45,6 +45,20 @@ d'activité) :
 uv run python manage.py seed_nutrient_requirements
 ```
 
+Peupler aussi une bibliothèque d'ingrédients courants avec de vraies valeurs nutritionnelles et
+une saisonnalité réaliste (légumes, fruits, légumineuses, céréales, noix/graines, laitier et
+alternatives végétales, viande/poisson, matières grasses, condiments — dont des sources clés pour
+un régime végan comme le tofu, le tempeh, les graines de lin/chia et la levure maltée enrichie en
+B12) :
+
+```bash
+uv run python manage.py seed_common_ingredients
+```
+
+Les deux commandes sont idempotentes (rejouables sans dupliquer les données) et fusionnent avec
+un ingrédient déjà créé à la volée sous une casse différente (ex. "tomate" créé depuis
+l'application est enrichi plutôt que dupliqué en "Tomate").
+
 ## Frontend — lancer en local (sans Docker)
 
 Le frontend consomme l'API DRF via un proxy Vite (`/api` → `http://localhost:8000`), donc le

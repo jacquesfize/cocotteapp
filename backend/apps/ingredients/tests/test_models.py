@@ -20,3 +20,14 @@ def test_ingredient_out_of_season():
     ingredient = IngredientFactory(available_months=[6, 7, 8])
     assert ingredient.is_in_season(month=1) is False
     assert ingredient.is_in_season(month=7) is True
+
+
+@pytest.mark.django_db
+def test_ingredient_slug_collision_gets_a_suffix():
+    # "Tomate" et "tomate" produisent le même slugify() : le second ne doit pas
+    # provoquer d'erreur d'intégrité mais obtenir un slug distinct.
+    first = IngredientFactory(name="Tomate")
+    second = IngredientFactory(name="tomate ")
+
+    assert first.slug == "tomate"
+    assert second.slug == "tomate-2"
