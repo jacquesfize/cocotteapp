@@ -1,0 +1,45 @@
+[project]
+name = "recettes-backend"
+version = "0.1.0"
+description = "API Django/DRF pour la gestion de recettes"
+requires-python = ">=3.11"
+dependencies = [
+    "django==5.0.9",
+    "djangorestframework==3.15.2",
+    "djangorestframework-simplejwt==5.3.1",
+    "django-filter==24.3",
+    "django-cors-headers==4.4.0",
+    "django-environ==0.11.2",
+    "psycopg[binary]==3.2.3",
+    "celery==5.4.0",
+    "redis==5.0.8",
+    "recipe-scrapers==15.12.0",
+    "pillow==10.4.0",
+]
+
+[project.optional-dependencies]
+prod = [
+    "gunicorn==23.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.3",
+    "pytest-django==4.9.0",
+    "factory-boy==3.3.1",
+    "pytest-cov==5.0.0",
+    "ruff==0.6.9",
+    "black==24.8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--reuse-db"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"

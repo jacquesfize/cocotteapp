@@ -14,21 +14,23 @@ L'API est disponible sur `http://localhost:8000/api/`, l'admin sur `http://local
 
 ## Lancer en local (sans Docker)
 
+Le projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python
+(`pyproject.toml` + `uv.lock`, pas de `requirements.txt`).
+
 ```bash
 cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements/dev.txt
+uv sync --group dev
 cp .env.example .env  # adapter DATABASE_URL à votre Postgres local
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
+uv run python manage.py runserver
 ```
 
 ## Tests
 
 ```bash
 cd backend
-pytest
+uv run pytest
 ```
 
 ## Structure
