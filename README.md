@@ -1,8 +1,9 @@
 # App de gestion de recettes
 
-Application de gestion de recettes : recherche par ingrédients/saison/régime/temps,
-planification dans un agenda, génération de listes de courses, import manuel ou depuis une URL.
-Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first).
+Application de gestion de recettes : recherche par ingrédients/saison/régime/temps, tirage
+d'une recette au hasard, planification dans un agenda, génération de listes de courses, import
+manuel ou depuis une URL. Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et
+responsive (mobile-first, navigation par barre d'onglets en bas d'écran).
 
 ## Lancer en local (Docker)
 
@@ -89,5 +90,15 @@ créer `frontend/src/i18n/locales/<code>.json` (copier `fr.json` comme base), l'
 ## Responsive
 
 L'interface est pensée mobile-first (layout en `flex-wrap`, aucune largeur fixe supérieure à un
-écran de téléphone, cibles tactiles ≥ 40px). Testé sur viewport 390×844 (iPhone 12) sans
-débordement horizontal — voir `frontend/tests/e2e/i18n-and-responsive.spec.js`.
+écran de téléphone, cibles tactiles ≥ 40px). Sous 600px, la navigation passe d'une barre de liens
+en haut à une barre d'onglets fixée en bas d'écran (Recettes / Au hasard / Agenda / Courses), le
+compte (langue, déconnexion) restant accessible via le bouton rond en haut à droite sur toutes les
+tailles d'écran. Testé sur viewport 390×844 (iPhone 12) sans débordement horizontal — voir
+`frontend/tests/e2e/i18n-and-responsive.spec.js`.
+
+## Design
+
+Palette chaude (rouge-orangé) et composants inspirés du design iOS récent / d'applications comme
+Alan : cartes blanches à coins très arrondis et ombre douce, boutons en pilule, champs de saisie
+remplis sans bordure visible. Les tokens de couleur/rayon/ombre sont centralisés dans
+`frontend/src/assets/base.css` (`--color-primary`, `--shadow-card`, etc.).

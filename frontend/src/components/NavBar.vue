@@ -10,7 +10,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const isMenuOpen = ref(false)
-const navbarEl = ref(null)
+const accountEl = ref(null)
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -32,7 +32,7 @@ function handleLocaleChange(event) {
 }
 
 function handleOutsideClick(event) {
-  if (isMenuOpen.value && navbarEl.value && !navbarEl.value.contains(event.target)) {
+  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(event.target)) {
     closeMenu()
   }
 }
@@ -56,43 +56,85 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <header ref="navbarEl" class="navbar">
+  <header class="navbar">
     <div class="container navbar-inner">
-      <RouterLink to="/recipes" class="brand" @click="closeMenu">{{ $t('app.title') }}</RouterLink>
+      <RouterLink to="/recipes" class="brand">{{ $t('app.title') }}</RouterLink>
 
-      <button
-        class="burger"
-        type="button"
-        :aria-expanded="isMenuOpen"
-        aria-controls="nav-panel"
-        :aria-label="t('nav.menu')"
-        @click="toggleMenu"
-      >
-        <span class="burger-bar" />
-        <span class="burger-bar" />
-        <span class="burger-bar" />
-      </button>
+      <nav v-if="authStore.isAuthenticated" class="top-links">
+        <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
+        <RouterLink to="/recipes/random">{{ $t('nav.random') }}</RouterLink>
+        <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
+        <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
+      </nav>
+      <nav v-else class="top-links">
+        <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
+        <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
+      </nav>
 
-      <div id="nav-panel" class="nav-actions" :class="{ 'is-open': isMenuOpen }">
-        <nav v-if="authStore.isAuthenticated" class="links" @click="closeMenu">
-          <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
-          <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
-          <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
-          <span class="muted">{{ authStore.user?.username }}</span>
-          <button class="secondary" @click="handleLogout">{{ $t('nav.logout') }}</button>
-        </nav>
-        <nav v-else class="links" @click="closeMenu">
-          <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
-          <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
-        </nav>
-        <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
-          <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
-            {{ locale.label }}
-          </option>
-        </select>
+      <div ref="accountEl" class="account">
+        <button
+          class="account-button"
+          type="button"
+          :aria-expanded="isMenuOpen"
+          aria-controls="account-panel"
+          :aria-label="t('nav.account')"
+          @click="toggleMenu"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="8.5" r="3.5" />
+            <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
+          </svg>
+        </button>
+
+        <div id="account-panel" class="account-panel" :class="{ 'is-open': isMenuOpen }">
+          <p v-if="authStore.user" class="account-username">{{ authStore.user.username }}</p>
+          <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
+            <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
+              {{ locale.label }}
+            </option>
+          </select>
+          <button v-if="authStore.isAuthenticated" class="secondary" @click="handleLogout">
+            {{ $t('nav.logout') }}
+          </button>
+        </div>
       </div>
     </div>
   </header>
+
+  <nav v-if="authStore.isAuthenticated" class="tabbar" :aria-label="t('nav.menu')">
+    <RouterLink to="/recipes" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5.5c2-1 4.5-1 6.5 0v13c-2-1-4.5-1-6.5 0v-13Z" />
+        <path d="M20 5.5c-2-1-4.5-1-6.5 0v13c2-1 4.5-1 6.5 0v-13Z" />
+      </svg>
+      <span>{{ $t('nav.recipes') }}</span>
+    </RouterLink>
+    <RouterLink to="/recipes/random" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
+        <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none" />
+        <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ $t('nav.random') }}</span>
+    </RouterLink>
+    <RouterLink to="/planning" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="5.5" width="16" height="15" rx="3" />
+        <path d="M4 10h16" />
+        <path d="M8 3.5v3M16 3.5v3" />
+      </svg>
+      <span>{{ $t('nav.planning') }}</span>
+    </RouterLink>
+    <RouterLink to="/shopping-lists" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.5 4.5h2l2.2 11a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.6l1.3-6.9H6.2" />
+        <circle cx="10" cy="20" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="17" cy="20" r="1.3" fill="currentColor" stroke="none" />
+      </svg>
+      <span>{{ $t('nav.shopping') }}</span>
+    </RouterLink>
+  </nav>
 </template>
 
 <style scoped>
@@ -102,109 +144,138 @@ onBeforeUnmount(() => {
 }
 
 .navbar-inner {
-  position: relative;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .brand {
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
   color: var(--color-text);
   white-space: nowrap;
 }
 
-.burger {
-  display: none;
-}
-
-.nav-actions {
+.top-links {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: center;
 }
 
-.links {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.links a {
+.top-links a {
   text-decoration: none;
-}
-
-.links a.router-link-active {
+  color: var(--color-text);
   font-weight: 600;
 }
 
-.locale-select {
-  padding: 0.35rem 0.5rem;
+.top-links a.router-link-active {
+  color: var(--color-primary);
+}
+
+.account {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.account-button {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border-radius: 999px;
+  width: 2.75rem;
+  height: 2.75rem;
   min-height: auto;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.account-button:hover {
+  background: var(--color-primary-soft);
+}
+
+.account-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 30;
+}
+
+.account-panel.is-open {
+  display: flex;
+}
+
+.account-username {
+  margin: 0;
+  font-weight: 700;
+}
+
+.locale-select {
+  min-height: auto;
+  padding: 0.4rem 0.6rem;
+}
+
+.tabbar {
+  display: none;
 }
 
 @media (max-width: 600px) {
-  .navbar-inner {
-    flex-wrap: nowrap;
-  }
-
-  .burger {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-
-  .burger-bar {
-    display: block;
-    width: 18px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--color-text);
-  }
-
-  .nav-actions {
+  .top-links {
     display: none;
-    position: absolute;
-    top: 100%;
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
     left: 0;
     right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-    padding: 1rem;
+    bottom: 0;
+    z-index: 20;
     background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--color-border);
+    padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
+    justify-content: space-around;
   }
 
-  .nav-actions.is-open {
+  .tab-item {
     display: flex;
-  }
-
-  .links {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    color: var(--color-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.3rem 0.5rem;
+    border-radius: 12px;
+    flex: 1;
   }
 
-  .locale-select {
-    align-self: flex-start;
+  .tab-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tab-item.router-link-active {
+    color: var(--color-primary);
   }
 }
 </style>

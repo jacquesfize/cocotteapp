@@ -4,12 +4,14 @@
   },
   "nav": {
     "recipes": "Recettes",
+    "random": "Au hasard",
     "planning": "Agenda",
     "shopping": "Courses",
     "logout": "Déconnexion",
     "login": "Connexion",
     "register": "Inscription",
-    "menu": "Menu"
+    "menu": "Menu",
+    "account": "Compte"
   },
   "common": {
     "loading": "Chargement...",
@@ -121,6 +123,11 @@
     "noEntries": "Aucun repas planifié pour l'instant.",
     "remove": "Retirer",
     "servingsUnit": "portions"
+  },
+  "random": {
+    "title": "Recette au hasard",
+    "another": "🎲 Une autre",
+    "noResult": "Aucune recette ne correspond à ces critères."
   },
   "shopping": {
     "title": "Listes de courses",

@@ -56,3 +56,37 @@ def test_anonymous_cannot_create_recipe():
     client = APIClient()
     response = client.post("/api/recipes/", {"title": "Test"}, format="json")
     assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_random_recipe_returns_one_of_the_existing_recipes():
+    recipes = RecipeFactory.create_batch(5)
+    ids = {r.id for r in recipes}
+
+    client = APIClient()
+    response = client.get("/api/recipes/random/")
+
+    assert response.status_code == 200
+    assert response.data["id"] in ids
+
+
+@pytest.mark.django_db
+def test_random_recipe_respects_filters():
+    RecipeFactory(diet_type="vegan")
+    RecipeFactory(diet_type="omnivore")
+
+    client = APIClient()
+    response = client.get("/api/recipes/random/?diet_type=vegan")
+
+    assert response.status_code == 200
+    assert response.data["diet_type"] == "vegan"
+
+
+@pytest.mark.django_db
+def test_random_recipe_404_when_no_match():
+    RecipeFactory(diet_type="omnivore")
+
+    client = APIClient()
+    response = client.get("/api/recipes/random/?diet_type=vegan")
+
+    assert response.status_code == 404

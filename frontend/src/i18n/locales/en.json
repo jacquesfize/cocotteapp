@@ -4,12 +4,14 @@
   },
   "nav": {
     "recipes": "Recipes",
+    "random": "Surprise me",
     "planning": "Planner",
     "shopping": "Shopping",
     "logout": "Log out",
     "login": "Log in",
     "register": "Sign up",
-    "menu": "Menu"
+    "menu": "Menu",
+    "account": "Account"
   },
   "common": {
     "loading": "Loading...",
@@ -121,6 +123,11 @@
     "noEntries": "No meal planned yet.",
     "remove": "Remove",
     "servingsUnit": "servings"
+  },
+  "random": {
+    "title": "Random recipe",
+    "another": "🎲 Another one",
+    "noResult": "No recipe matches these criteria."
   },
   "shopping": {
     "title": "Shopping lists",

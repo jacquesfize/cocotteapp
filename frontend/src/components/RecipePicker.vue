@@ -71,22 +71,23 @@ function closeSoon() {
   top: 100%;
   left: 0;
   right: 0;
-  margin: 0.25rem 0 0;
-  padding: 0.25rem 0;
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
   list-style: none;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
   max-height: 220px;
   overflow-y: auto;
 }
 
 .suggestions li {
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .suggestions li:hover {
-  background: var(--color-bg);
+  background: var(--color-surface-muted);
 }
 </style>

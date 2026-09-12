@@ -26,6 +26,11 @@ const routes = [
     component: () => import('../views/RecipeFormView.vue'),
   },
   {
+    path: '/recipes/random',
+    name: 'recipe-random',
+    component: () => import('../views/RandomRecipeView.vue'),
+  },
+  {
     path: '/recipes/:id',
     name: 'recipe-detail',
     component: () => import('../views/RecipeDetailView.vue'),
