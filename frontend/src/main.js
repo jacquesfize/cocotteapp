@@ -1,3 +1,4 @@
+import '@fontsource-variable/inter'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
