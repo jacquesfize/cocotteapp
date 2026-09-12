@@ -8,7 +8,8 @@
     "shopping": "Shopping",
     "logout": "Log out",
     "login": "Log in",
-    "register": "Sign up"
+    "register": "Sign up",
+    "menu": "Menu"
   },
   "common": {
     "loading": "Loading...",

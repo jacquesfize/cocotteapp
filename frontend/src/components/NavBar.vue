@@ -1,34 +1,87 @@
 <script setup>
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { i18n, setLocale, SUPPORTED_LOCALES } from '../i18n'
 import { useAuthStore } from '../stores/auth'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 
+const isMenuOpen = ref(false)
+const navbarEl = ref(null)
+
+function toggleMenu() {
+  isMenuOpen.value = !isMenuOpen.value
+}
+
+function closeMenu() {
+  isMenuOpen.value = false
+}
+
 function handleLogout() {
+  closeMenu()
   authStore.logout()
   router.push({ name: 'login' })
 }
 
 function handleLocaleChange(event) {
   setLocale(event.target.value)
+  closeMenu()
 }
+
+function handleOutsideClick(event) {
+  if (isMenuOpen.value && navbarEl.value && !navbarEl.value.contains(event.target)) {
+    closeMenu()
+  }
+}
+
+function handleKeydown(event) {
+  if (event.key === 'Escape') closeMenu()
+}
+
+const stopRouterWatch = router.afterEach(() => closeMenu())
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+  document.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+  document.removeEventListener('keydown', handleKeydown)
+  stopRouterWatch()
+})
 </script>
 
 <template>
-  <header class="navbar">
+  <header ref="navbarEl" class="navbar">
     <div class="container navbar-inner">
-      <RouterLink to="/recipes" class="brand">{{ $t('app.title') }}</RouterLink>
-      <div class="nav-actions">
-        <nav v-if="authStore.isAuthenticated" class="links">
+      <RouterLink to="/recipes" class="brand" @click="closeMenu">{{ $t('app.title') }}</RouterLink>
+
+      <button
+        class="burger"
+        type="button"
+        :aria-expanded="isMenuOpen"
+        aria-controls="nav-panel"
+        :aria-label="t('nav.menu')"
+        @click="toggleMenu"
+      >
+        <span class="burger-bar" />
+        <span class="burger-bar" />
+        <span class="burger-bar" />
+      </button>
+
+      <div id="nav-panel" class="nav-actions" :class="{ 'is-open': isMenuOpen }">
+        <nav v-if="authStore.isAuthenticated" class="links" @click="closeMenu">
           <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
           <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
           <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
           <span class="muted">{{ authStore.user?.username }}</span>
           <button class="secondary" @click="handleLogout">{{ $t('nav.logout') }}</button>
         </nav>
-        <nav v-else class="links">
+        <nav v-else class="links" @click="closeMenu">
           <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
           <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
         </nav>
@@ -49,6 +102,7 @@ function handleLocaleChange(event) {
 }
 
 .navbar-inner {
+  position: relative;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
   display: flex;
@@ -63,6 +117,10 @@ function handleLocaleChange(event) {
   text-decoration: none;
   color: var(--color-text);
   white-space: nowrap;
+}
+
+.burger {
+  display: none;
 }
 
 .nav-actions {
@@ -94,24 +152,59 @@ function handleLocaleChange(event) {
 
 @media (max-width: 600px) {
   .navbar-inner {
+    flex-wrap: nowrap;
+  }
+
+  .burger {
+    display: inline-flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.6rem;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .burger-bar {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-text);
   }
 
   .nav-actions {
-    justify-content: space-between;
-    gap: 0.6rem;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+
+  .nav-actions.is-open {
+    display: flex;
   }
 
   .links {
-    gap: 0.6rem;
-    font-size: 0.9rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
-  .links button {
-    padding: 0.4rem 0.7rem;
-    min-height: auto;
+  .locale-select {
+    align-self: flex-start;
   }
 }
 </style>
