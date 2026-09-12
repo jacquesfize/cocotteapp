@@ -4,6 +4,8 @@ from .models import MealPlanEntry
 
 
 class MealPlanEntrySerializer(serializers.ModelSerializer):
+    recipe_title = serializers.ReadOnlyField(source="recipe.title")
+
     class Meta:
         model = MealPlanEntry
-        fields = ["id", "recipe", "date", "meal_type", "servings"]
+        fields = ["id", "recipe", "recipe_title", "date", "meal_type", "servings"]

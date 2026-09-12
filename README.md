@@ -1,7 +1,8 @@
 # App de gestion de recettes
 
-Backend Django/DRF pour la gestion de recettes : recherche par ingrédients/saison/régime/temps,
+Application de gestion de recettes : recherche par ingrédients/saison/régime/temps,
 planification dans un agenda, génération de listes de courses, import manuel ou depuis une URL.
+Backend Django/DRF, frontend Vue 3.
 
 ## Lancer en local (Docker)
 
@@ -10,9 +11,10 @@ cp backend/.env.example backend/.env
 docker compose up --build
 ```
 
-L'API est disponible sur `http://localhost:8000/api/`, l'admin sur `http://localhost:8000/admin/`.
+- API : `http://localhost:8000/api/`, admin : `http://localhost:8000/admin/`
+- Frontend : `http://localhost:5173/`
 
-## Lancer en local (sans Docker)
+## Backend — lancer en local (sans Docker)
 
 Le projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python
 (`pyproject.toml` + `uv.lock`, pas de `requirements.txt`).
@@ -26,11 +28,39 @@ uv run python manage.py createsuperuser
 uv run python manage.py runserver
 ```
 
-## Tests
+Tests :
 
 ```bash
 cd backend
 uv run pytest
+```
+
+## Frontend — lancer en local (sans Docker)
+
+Le frontend consomme l'API DRF via un proxy Vite (`/api` → `http://localhost:8000`), donc le
+backend doit tourner en parallèle.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Ouvrir `http://localhost:5173/`.
+
+Tests unitaires (Vitest) :
+
+```bash
+cd frontend
+npm run test:unit
+```
+
+Tests end-to-end (Playwright) — nécessite le backend ET le frontend démarrés :
+
+```bash
+cd frontend
+npx playwright install  # une seule fois
+npm run test:e2e
 ```
 
 ## Structure
@@ -43,3 +73,7 @@ uv run pytest
 - `backend/apps/planning/` : agenda / planning de repas.
 - `backend/apps/shopping/` : génération et export de listes de courses.
 - `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery).
+- `frontend/src/api/` : client axios + modules par ressource.
+- `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
+- `frontend/src/views/` : pages (connexion, recettes, agenda, listes de courses).
+- `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée).
