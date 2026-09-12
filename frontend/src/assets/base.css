@@ -44,7 +44,8 @@ button {
   background: var(--color-primary);
   color: #fff;
   border-radius: 6px;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
+  min-height: 2.5rem;
 }
 
 button:hover {
@@ -74,6 +75,15 @@ textarea {
   padding: 0.45rem 0.6rem;
   background: var(--color-surface);
   color: var(--color-text);
+  min-height: 2.5rem;
+}
+
+textarea {
+  min-height: unset;
+}
+
+input[type='checkbox'] {
+  min-height: auto;
 }
 
 .card {

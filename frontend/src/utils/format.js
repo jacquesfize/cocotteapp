@@ -1,21 +1,10 @@
+import { i18n } from '../i18n'
+
 export function formatDuration(minutes) {
-  if (!minutes) return '0 min'
+  if (!minutes) return i18n.global.t('duration.minutes', { n: 0 })
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
-  if (hours === 0) return `${rest} min`
-  if (rest === 0) return `${hours} h`
-  return `${hours} h ${rest} min`
-}
-
-export const DIET_LABELS = {
-  omnivore: 'Omnivore',
-  vegetarian: 'Végétarien',
-  vegan: 'Végan',
-}
-
-export const MEAL_TYPE_LABELS = {
-  breakfast: 'Petit-déjeuner',
-  lunch: 'Déjeuner',
-  dinner: 'Dîner',
-  snack: 'Collation',
+  if (hours === 0) return i18n.global.t('duration.minutes', { n: rest })
+  if (rest === 0) return i18n.global.t('duration.hours', { n: hours })
+  return i18n.global.t('duration.hoursMinutes', { h: hours, m: rest })
 }

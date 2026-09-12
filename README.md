@@ -2,7 +2,7 @@
 
 Application de gestion de recettes : recherche par ingrédients/saison/régime/temps,
 planification dans un agenda, génération de listes de courses, import manuel ou depuis une URL.
-Backend Django/DRF, frontend Vue 3.
+Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first).
 
 ## Lancer en local (Docker)
 
@@ -77,3 +77,17 @@ npm run test:e2e
 - `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
 - `frontend/src/views/` : pages (connexion, recettes, agenda, listes de courses).
 - `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée).
+- `frontend/src/i18n/` : configuration vue-i18n + fichiers de traduction (`locales/fr.json`, `locales/en.json`).
+
+## Internationalisation
+
+L'interface est traduite via [vue-i18n](https://vue-i18n.intlify.dev/). Le sélecteur de langue est
+dans la barre de navigation ; le choix est mémorisé dans `localStorage`. Pour ajouter une langue :
+créer `frontend/src/i18n/locales/<code>.json` (copier `fr.json` comme base), l'enregistrer dans
+`frontend/src/i18n/index.js` (`messages` et `SUPPORTED_LOCALES`).
+
+## Responsive
+
+L'interface est pensée mobile-first (layout en `flex-wrap`, aucune largeur fixe supérieure à un
+écran de téléphone, cibles tactiles ≥ 40px). Testé sur viewport 390×844 (iPhone 12) sans
+débordement horizontal — voir `frontend/tests/e2e/i18n-and-responsive.spec.js`.

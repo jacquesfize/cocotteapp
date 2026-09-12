@@ -19,15 +19,13 @@ async function handleDelete(id) {
 
 <template>
   <div>
-    <h1>Listes de courses</h1>
-    <p v-if="!shoppingLists.length" class="muted">
-      Aucune liste pour l'instant. Générez-en une depuis l'agenda.
-    </p>
+    <h1>{{ $t('shopping.title') }}</h1>
+    <p v-if="!shoppingLists.length" class="muted">{{ $t('shopping.noLists') }}</p>
     <div v-for="list in shoppingLists" :key="list.id" class="card list-row">
       <RouterLink :to="{ name: 'shopping-list-detail', params: { id: list.id } }">
         {{ list.name }} — {{ new Date(list.created_at).toLocaleDateString() }}
       </RouterLink>
-      <button class="secondary" @click="handleDelete(list.id)">Supprimer</button>
+      <button class="secondary" @click="handleDelete(list.id)">{{ $t('shopping.delete') }}</button>
     </div>
   </div>
 </template>
@@ -35,8 +33,10 @@ async function handleDelete(id) {
 <style scoped>
 .list-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 </style>

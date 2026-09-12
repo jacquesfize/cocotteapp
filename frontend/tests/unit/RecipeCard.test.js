@@ -1,17 +1,23 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import RecipeCard from '../../src/components/RecipeCard.vue'
+import { i18n } from '../../src/i18n'
 
 function mountCard(recipe) {
   return mount(RecipeCard, {
     props: { recipe },
     global: {
+      plugins: [i18n],
       stubs: {
         RouterLink: { template: '<a><slot /></a>' },
       },
     },
   })
 }
+
+beforeEach(() => {
+  i18n.global.locale.value = 'fr'
+})
 
 describe('RecipeCard', () => {
   it('renders the title, diet type and total time', () => {

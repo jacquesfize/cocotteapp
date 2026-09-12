@@ -1,12 +1,15 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import RecipePicker from '../components/RecipePicker.vue'
 import { createMealPlanEntry, deleteMealPlanEntry, listMealPlanEntries } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
-import { MEAL_TYPE_LABELS } from '../utils/format'
 
+const { t } = useI18n()
 const router = useRouter()
+
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
 
 const entries = ref([])
 const selectedIds = ref([])
@@ -25,7 +28,7 @@ onMounted(load)
 async function handleAdd() {
   error.value = ''
   if (!newEntry.value.recipe) {
-    error.value = 'Choisissez une recette.'
+    error.value = t('planning.chooseRecipe')
     return
   }
   try {
@@ -38,7 +41,7 @@ async function handleAdd() {
     newEntry.value = { recipe: null, date: '', meal_type: 'dinner', servings: 2 }
     await load()
   } catch {
-    error.value = "Impossible d'ajouter cette entrée (date déjà planifiée pour cette recette et ce repas ?)."
+    error.value = t('planning.addError')
   }
 }
 
@@ -56,60 +59,68 @@ async function handleGenerateShoppingList() {
 
 <template>
   <div>
-    <h1>Agenda</h1>
+    <h1>{{ $t('planning.title') }}</h1>
 
     <div class="card">
-      <h2>Planifier une recette</h2>
+      <h2>{{ $t('planning.planRecipe') }}</h2>
       <form class="row" style="align-items: flex-end" @submit.prevent="handleAdd">
         <div class="field" style="flex: 1; min-width: 220px">
-          <label for="plan-recipe">Recette</label>
+          <label for="plan-recipe">{{ $t('planning.recipe') }}</label>
           <RecipePicker id="plan-recipe" v-model="newEntry.recipe" />
         </div>
         <div class="field">
-          <label for="plan-new-date">Date</label>
+          <label for="plan-new-date">{{ $t('planning.date') }}</label>
           <input id="plan-new-date" v-model="newEntry.date" type="date" required />
         </div>
         <div class="field">
-          <label for="plan-new-meal">Repas</label>
+          <label for="plan-new-meal">{{ $t('planning.meal') }}</label>
           <select id="plan-new-meal" v-model="newEntry.meal_type">
-            <option v-for="(label, value) in MEAL_TYPE_LABELS" :key="value" :value="value">{{ label }}</option>
+            <option v-for="type in MEAL_TYPES" :key="type" :value="type">{{ $t(`mealType.${type}`) }}</option>
           </select>
         </div>
         <div class="field" style="width: 90px">
-          <label for="plan-new-servings">Portions</label>
+          <label for="plan-new-servings">{{ $t('planning.servings') }}</label>
           <input id="plan-new-servings" v-model.number="newEntry.servings" type="number" min="1" />
         </div>
-        <button type="submit">Ajouter</button>
+        <button type="submit">{{ $t('planning.add') }}</button>
       </form>
       <p v-if="error" class="error">{{ error }}</p>
     </div>
 
-    <div class="row" style="justify-content: space-between; align-items: center; margin: 1rem 0">
-      <h2 style="margin: 0">Repas planifiés</h2>
+    <div class="row page-header">
+      <h2 style="margin: 0">{{ $t('planning.plannedMeals') }}</h2>
       <button :disabled="!selectedIds.length" @click="handleGenerateShoppingList">
-        Générer la liste de courses ({{ selectedIds.length }})
+        {{ $t('planning.generateShoppingList', { n: selectedIds.length }) }}
       </button>
     </div>
 
-    <p v-if="!entries.length" class="muted">Aucun repas planifié pour l'instant.</p>
+    <p v-if="!entries.length" class="muted">{{ $t('planning.noEntries') }}</p>
     <div v-for="entry in entries" :key="entry.id" class="card entry-row">
       <label class="row" style="align-items: center; gap: 0.75rem">
         <input v-model="selectedIds" type="checkbox" :value="entry.id" style="width: auto" />
         <div>
-          <strong>{{ entry.date }}</strong> · {{ MEAL_TYPE_LABELS[entry.meal_type] }} ·
-          {{ entry.recipe_title || entry.recipe }} · {{ entry.servings }} portions
+          <strong>{{ entry.date }}</strong> · {{ $t(`mealType.${entry.meal_type}`) }} ·
+          {{ entry.recipe_title || entry.recipe }} · {{ entry.servings }} {{ $t('planning.servingsUnit') }}
         </div>
       </label>
-      <button class="secondary" @click="handleRemove(entry.id)">Retirer</button>
+      <button class="secondary" @click="handleRemove(entry.id)">{{ $t('planning.remove') }}</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.entry-row {
-  display: flex;
+.page-header {
   justify-content: space-between;
   align-items: center;
+  margin: 1rem 0;
+}
+
+.entry-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 </style>

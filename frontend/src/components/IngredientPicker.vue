@@ -1,6 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { createIngredient, listIngredients } from '../api/ingredients'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Object, default: null },
@@ -52,7 +55,7 @@ const exactMatch = () => suggestions.value.some((i) => i.name.toLowerCase() === 
       :id="id"
       v-model="query"
       type="text"
-      placeholder="Rechercher un ingrédient..."
+      :placeholder="t('ingredientPicker.placeholder')"
       @focus="isOpen = true"
       @blur="closeSoon"
     />
@@ -61,7 +64,7 @@ const exactMatch = () => suggestions.value.some((i) => i.name.toLowerCase() === 
         {{ ingredient.name }}
       </li>
       <li v-if="!exactMatch()" class="create" @mousedown.prevent="createAndSelect">
-        + Créer « {{ query }} »
+        {{ t('ingredientPicker.create', { name: query }) }}
       </li>
     </ul>
   </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { formatDuration, DIET_LABELS } from '../utils/format'
+import { formatDuration } from '../utils/format'
 
 defineProps({
   recipe: { type: Object, required: true },
@@ -9,7 +9,9 @@ defineProps({
 <template>
   <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="recipe-card card">
     <h3>{{ recipe.title }}</h3>
-    <p class="muted">{{ DIET_LABELS[recipe.diet_type] }} · {{ formatDuration(recipe.total_time_minutes) }}</p>
+    <p class="muted">
+      {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
+    </p>
     <p v-if="recipe.description" class="description">{{ recipe.description }}</p>
   </RouterLink>
 </template>

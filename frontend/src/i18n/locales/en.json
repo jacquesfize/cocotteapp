@@ -1,0 +1,131 @@
+{
+  "app": {
+    "title": "🍲 Recipes"
+  },
+  "nav": {
+    "recipes": "Recipes",
+    "planning": "Planner",
+    "shopping": "Shopping",
+    "logout": "Log out",
+    "login": "Log in",
+    "register": "Sign up"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "remove": "Remove",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add"
+  },
+  "diet": {
+    "omnivore": "Omnivore",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan"
+  },
+  "activityLevel": {
+    "sedentary": "Sedentary",
+    "moderate": "Moderate",
+    "athlete": "Athlete"
+  },
+  "mealType": {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack"
+  },
+  "duration": {
+    "minutes": "{n} min",
+    "hours": "{n} h",
+    "hoursMinutes": "{h} h {m} min"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "username": "Username",
+    "password": "Password",
+    "loginButton": "Log in",
+    "noAccount": "No account yet?",
+    "signUp": "Sign up",
+    "invalidCredentials": "Invalid credentials.",
+    "registerTitle": "Sign up",
+    "email": "Email",
+    "dietType": "Diet",
+    "activityLevel": "Activity level",
+    "registerButton": "Create my account",
+    "registerError": "Could not create the account."
+  },
+  "recipes": {
+    "title": "Recipes",
+    "newRecipe": "+ New recipe",
+    "importFromUrl": "Import from a URL",
+    "importButton": "Import",
+    "importSuccess": "Import started, the recipe will appear shortly.",
+    "importError": "Import failed.",
+    "search": "Search",
+    "searchPlaceholder": "Title, description...",
+    "dietFilter": "Diet",
+    "allDiets": "All",
+    "ingredientsFilter": "Ingredients (comma-separated)",
+    "ingredientsPlaceholder": "tomato, onion",
+    "maxPrepTime": "Max prep time (min)",
+    "maxCookTime": "Max cook time (min)",
+    "inSeasonOnly": "In-season ingredients only",
+    "noResults": "No recipe matches these criteria.",
+    "prep": "prep",
+    "cook": "cook",
+    "servings": "servings",
+    "ingredients": "Ingredients",
+    "steps": "Steps",
+    "addToPlanning": "Add to planner",
+    "date": "Date",
+    "meal": "Meal",
+    "addedToPlanning": "Added to the planner.",
+    "addToPlanningError": "Could not add this recipe (date already used?).",
+    "deleteConfirm": "Delete this recipe?",
+    "saveError": "Could not save the recipe.",
+    "newTitle": "New recipe",
+    "editTitle": "Edit recipe",
+    "formTitle": "Title",
+    "description": "Description",
+    "prepTime": "Prep time (min)",
+    "cookTime": "Cook time (min)",
+    "diet": "Diet",
+    "ingredient": "Ingredient",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "addIngredient": "+ Add an ingredient",
+    "step": "Step {n}",
+    "addStep": "+ Add a step",
+    "missingIngredient": "Select an ingredient for each row (or remove the row)."
+  },
+  "ingredientPicker": {
+    "placeholder": "Search an ingredient...",
+    "create": "+ Create \"{name}\""
+  },
+  "recipePicker": {
+    "placeholder": "Search a recipe..."
+  },
+  "planning": {
+    "title": "Planner",
+    "planRecipe": "Plan a recipe",
+    "recipe": "Recipe",
+    "date": "Date",
+    "meal": "Meal",
+    "servings": "Servings",
+    "add": "Add",
+    "chooseRecipe": "Choose a recipe.",
+    "addError": "Could not add this entry (date already planned for this recipe and meal?).",
+    "plannedMeals": "Planned meals",
+    "generateShoppingList": "Generate shopping list ({n})",
+    "noEntries": "No meal planned yet.",
+    "remove": "Remove",
+    "servingsUnit": "servings"
+  },
+  "shopping": {
+    "title": "Shopping lists",
+    "noLists": "No list yet. Generate one from the planner.",
+    "delete": "Delete",
+    "export": "Export as .txt",
+    "checkOwned": "Check off the ingredients you already have."
+  }
+}

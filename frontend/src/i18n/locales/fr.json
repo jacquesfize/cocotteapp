@@ -1,0 +1,131 @@
+{
+  "app": {
+    "title": "🍲 Recettes"
+  },
+  "nav": {
+    "recipes": "Recettes",
+    "planning": "Agenda",
+    "shopping": "Courses",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "register": "Inscription"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "remove": "Retirer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter"
+  },
+  "diet": {
+    "omnivore": "Omnivore",
+    "vegetarian": "Végétarien",
+    "vegan": "Végan"
+  },
+  "activityLevel": {
+    "sedentary": "Sédentaire",
+    "moderate": "Modéré",
+    "athlete": "Sportif"
+  },
+  "mealType": {
+    "breakfast": "Petit-déjeuner",
+    "lunch": "Déjeuner",
+    "dinner": "Dîner",
+    "snack": "Collation"
+  },
+  "duration": {
+    "minutes": "{n} min",
+    "hours": "{n} h",
+    "hoursMinutes": "{h} h {m} min"
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "loginButton": "Se connecter",
+    "noAccount": "Pas encore de compte ?",
+    "signUp": "S'inscrire",
+    "invalidCredentials": "Identifiants invalides.",
+    "registerTitle": "Inscription",
+    "email": "Email",
+    "dietType": "Régime alimentaire",
+    "activityLevel": "Niveau d'activité",
+    "registerButton": "Créer mon compte",
+    "registerError": "Impossible de créer le compte."
+  },
+  "recipes": {
+    "title": "Recettes",
+    "newRecipe": "+ Nouvelle recette",
+    "importFromUrl": "Importer depuis une URL",
+    "importButton": "Importer",
+    "importSuccess": "Import lancé, la recette apparaîtra dans quelques instants.",
+    "importError": "Échec de l'import.",
+    "search": "Recherche",
+    "searchPlaceholder": "Titre, description...",
+    "dietFilter": "Régime",
+    "allDiets": "Tous",
+    "ingredientsFilter": "Ingrédients (séparés par une virgule)",
+    "ingredientsPlaceholder": "tomate, oignon",
+    "maxPrepTime": "Prépa max (min)",
+    "maxCookTime": "Cuisson max (min)",
+    "inSeasonOnly": "Ingrédients de saison uniquement",
+    "noResults": "Aucune recette ne correspond à ces critères.",
+    "prep": "prépa",
+    "cook": "cuisson",
+    "servings": "portions",
+    "ingredients": "Ingrédients",
+    "steps": "Étapes",
+    "addToPlanning": "Ajouter à l'agenda",
+    "date": "Date",
+    "meal": "Repas",
+    "addedToPlanning": "Ajoutée à l'agenda.",
+    "addToPlanningError": "Impossible d'ajouter cette recette (date déjà utilisée ?).",
+    "deleteConfirm": "Supprimer cette recette ?",
+    "saveError": "Impossible d'enregistrer la recette.",
+    "newTitle": "Nouvelle recette",
+    "editTitle": "Modifier la recette",
+    "formTitle": "Titre",
+    "description": "Description",
+    "prepTime": "Prépa (min)",
+    "cookTime": "Cuisson (min)",
+    "diet": "Régime",
+    "ingredient": "Ingrédient",
+    "quantity": "Quantité",
+    "unit": "Unité",
+    "addIngredient": "+ Ajouter un ingrédient",
+    "step": "Étape {n}",
+    "addStep": "+ Ajouter une étape",
+    "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne)."
+  },
+  "ingredientPicker": {
+    "placeholder": "Rechercher un ingrédient...",
+    "create": "+ Créer « {name} »"
+  },
+  "recipePicker": {
+    "placeholder": "Rechercher une recette..."
+  },
+  "planning": {
+    "title": "Agenda",
+    "planRecipe": "Planifier une recette",
+    "recipe": "Recette",
+    "date": "Date",
+    "meal": "Repas",
+    "servings": "Portions",
+    "add": "Ajouter",
+    "chooseRecipe": "Choisissez une recette.",
+    "addError": "Impossible d'ajouter cette entrée (date déjà planifiée pour cette recette et ce repas ?).",
+    "plannedMeals": "Repas planifiés",
+    "generateShoppingList": "Générer la liste de courses ({n})",
+    "noEntries": "Aucun repas planifié pour l'instant.",
+    "remove": "Retirer",
+    "servingsUnit": "portions"
+  },
+  "shopping": {
+    "title": "Listes de courses",
+    "noLists": "Aucune liste pour l'instant. Générez-en une depuis l'agenda.",
+    "delete": "Supprimer",
+    "export": "Exporter en .txt",
+    "checkOwned": "Cochez les ingrédients que vous avez déjà."
+  }
+}

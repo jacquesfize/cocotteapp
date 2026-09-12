@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
@@ -19,7 +21,7 @@ async function handleSubmit() {
     await authStore.login(username.value, password.value)
     router.push(route.query.redirect || { name: 'recipes' })
   } catch {
-    error.value = 'Identifiants invalides.'
+    error.value = t('auth.invalidCredentials')
   } finally {
     isSubmitting.value = false
   }
@@ -27,22 +29,29 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="card" style="max-width: 360px; margin: 2rem auto">
-    <h1>Connexion</h1>
+  <div class="card auth-card">
+    <h1>{{ $t('auth.loginTitle') }}</h1>
     <form @submit.prevent="handleSubmit">
       <div class="field">
-        <label for="username">Nom d'utilisateur</label>
+        <label for="username">{{ $t('auth.username') }}</label>
         <input id="username" v-model="username" required autocomplete="username" />
       </div>
       <div class="field">
-        <label for="password">Mot de passe</label>
+        <label for="password">{{ $t('auth.password') }}</label>
         <input id="password" v-model="password" type="password" required autocomplete="current-password" />
       </div>
       <p v-if="error" class="error">{{ error }}</p>
-      <button type="submit" :disabled="isSubmitting">Se connecter</button>
+      <button type="submit" :disabled="isSubmitting">{{ $t('auth.loginButton') }}</button>
     </form>
     <p class="muted">
-      Pas encore de compte ? <RouterLink to="/register">S'inscrire</RouterLink>
+      {{ $t('auth.noAccount') }} <RouterLink to="/register">{{ $t('auth.signUp') }}</RouterLink>
     </p>
   </div>
 </template>
+
+<style scoped>
+.auth-card {
+  max-width: 360px;
+  margin: 2rem auto;
+}
+</style>

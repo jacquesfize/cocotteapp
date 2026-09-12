@@ -1,6 +1,9 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { listRecipes } from '../api/recipes'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: Object, default: null },
@@ -45,7 +48,7 @@ function closeSoon() {
       :id="id"
       v-model="query"
       type="text"
-      placeholder="Rechercher une recette..."
+      :placeholder="t('recipePicker.placeholder')"
       @focus="isOpen = true"
       @blur="closeSoon"
     />

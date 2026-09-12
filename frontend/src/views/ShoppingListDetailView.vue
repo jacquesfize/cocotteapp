@@ -33,11 +33,11 @@ async function handleExport() {
 
 <template>
   <div v-if="shoppingList">
-    <div class="row" style="justify-content: space-between; align-items: center">
+    <div class="row page-header">
       <h1>{{ shoppingList.name }}</h1>
-      <button @click="handleExport">Exporter en .txt</button>
+      <button @click="handleExport">{{ $t('shopping.export') }}</button>
     </div>
-    <p class="muted">Cochez les ingrédients que vous avez déjà.</p>
+    <p class="muted">{{ $t('shopping.checkOwned') }}</p>
 
     <div class="card">
       <div v-for="item in shoppingList.items" :key="item.id" class="item-row">
@@ -59,6 +59,11 @@ async function handleExport() {
 </template>
 
 <style scoped>
+.page-header {
+  justify-content: space-between;
+  align-items: center;
+}
+
 .item-row {
   padding: 0.35rem 0;
 }

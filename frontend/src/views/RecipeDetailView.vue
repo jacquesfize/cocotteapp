@@ -1,13 +1,15 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { deleteRecipe, getRecipe } from '../api/recipes'
 import { createMealPlanEntry } from '../api/planning'
-import { DIET_LABELS, formatDuration } from '../utils/format'
+import { formatDuration } from '../utils/format'
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
 })
+const { t } = useI18n()
 const router = useRouter()
 
 const recipe = ref(null)
@@ -22,7 +24,7 @@ async function load() {
 onMounted(load)
 
 async function handleDelete() {
-  if (!confirm('Supprimer cette recette ?')) return
+  if (!confirm(t('recipes.deleteConfirm'))) return
   await deleteRecipe(props.id)
   router.push({ name: 'recipes' })
 }
@@ -36,34 +38,35 @@ async function handleAddToPlan() {
       meal_type: planForm.value.meal_type,
       servings: planForm.value.servings,
     })
-    planMessage.value = "Ajoutée à l'agenda."
+    planMessage.value = t('recipes.addedToPlanning')
   } catch {
-    planMessage.value = "Impossible d'ajouter cette recette (date déjà utilisée ?)."
+    planMessage.value = t('recipes.addToPlanningError')
   }
 }
 </script>
 
 <template>
   <div v-if="recipe">
-    <div class="row" style="justify-content: space-between; align-items: center">
+    <div class="row page-header">
       <h1>{{ recipe.title }}</h1>
       <div class="row">
         <RouterLink :to="{ name: 'recipe-edit', params: { id: recipe.id } }">
-          <button class="secondary">Modifier</button>
+          <button class="secondary">{{ $t('common.edit') }}</button>
         </RouterLink>
-        <button class="danger" @click="handleDelete">Supprimer</button>
+        <button class="danger" @click="handleDelete">{{ $t('common.delete') }}</button>
       </div>
     </div>
 
     <p class="muted">
-      {{ DIET_LABELS[recipe.diet_type] }} · {{ recipe.servings }} portions · prépa
-      {{ formatDuration(recipe.prep_time_minutes) }} · cuisson {{ formatDuration(recipe.cook_time_minutes) }}
+      {{ $t(`diet.${recipe.diet_type}`) }} · {{ recipe.servings }} {{ $t('recipes.servings') }} ·
+      {{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }} · {{ $t('recipes.cook') }}
+      {{ formatDuration(recipe.cook_time_minutes) }}
     </p>
     <p v-if="recipe.description">{{ recipe.description }}</p>
 
     <div class="row" style="align-items: flex-start">
       <div class="card" style="flex: 1; min-width: 260px">
-        <h2>Ingrédients</h2>
+        <h2>{{ $t('recipes.ingredients') }}</h2>
         <ul>
           <li v-for="item in recipe.ingredients" :key="item.id">
             {{ item.quantity }} {{ item.unit }} — {{ item.ingredient.name }}
@@ -73,7 +76,7 @@ async function handleAddToPlan() {
       </div>
 
       <div class="card" style="flex: 2; min-width: 260px">
-        <h2>Étapes</h2>
+        <h2>{{ $t('recipes.steps') }}</h2>
         <ol>
           <li v-for="step in recipe.steps" :key="step.id">{{ step.instruction }}</li>
         </ol>
@@ -81,28 +84,35 @@ async function handleAddToPlan() {
     </div>
 
     <div class="card" style="margin-top: 1rem">
-      <h2>Ajouter à l'agenda</h2>
+      <h2>{{ $t('recipes.addToPlanning') }}</h2>
       <form class="row" style="align-items: flex-end" @submit.prevent="handleAddToPlan">
         <div class="field">
-          <label for="plan-date">Date</label>
+          <label for="plan-date">{{ $t('recipes.date') }}</label>
           <input id="plan-date" v-model="planForm.date" type="date" required />
         </div>
         <div class="field">
-          <label for="plan-meal">Repas</label>
+          <label for="plan-meal">{{ $t('recipes.meal') }}</label>
           <select id="plan-meal" v-model="planForm.meal_type">
-            <option value="breakfast">Petit-déjeuner</option>
-            <option value="lunch">Déjeuner</option>
-            <option value="dinner">Dîner</option>
-            <option value="snack">Collation</option>
+            <option value="breakfast">{{ $t('mealType.breakfast') }}</option>
+            <option value="lunch">{{ $t('mealType.lunch') }}</option>
+            <option value="dinner">{{ $t('mealType.dinner') }}</option>
+            <option value="snack">{{ $t('mealType.snack') }}</option>
           </select>
         </div>
         <div class="field">
-          <label for="plan-servings">Portions</label>
+          <label for="plan-servings">{{ $t('planning.servings') }}</label>
           <input id="plan-servings" v-model.number="planForm.servings" type="number" min="1" />
         </div>
-        <button type="submit">Ajouter</button>
+        <button type="submit">{{ $t('common.add') }}</button>
       </form>
       <p v-if="planMessage" class="muted">{{ planMessage }}</p>
     </div>
   </div>
 </template>
+
+<style scoped>
+.page-header {
+  justify-content: space-between;
+  align-items: center;
+}
+</style>

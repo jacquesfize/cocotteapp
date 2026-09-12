@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import IngredientPicker from '../components/IngredientPicker.vue'
 import { createRecipe, getRecipe, updateRecipe } from '../api/recipes'
@@ -7,6 +8,7 @@ import { createRecipe, getRecipe, updateRecipe } from '../api/recipes'
 const props = defineProps({
   id: { type: [String, Number], default: null },
 })
+const { t } = useI18n()
 const router = useRouter()
 const isEditing = Boolean(props.id)
 
@@ -75,7 +77,7 @@ async function handleSubmit() {
   error.value = ''
   const missingIngredient = ingredientRows.value.some((row) => !row.ingredient)
   if (missingIngredient) {
-    error.value = 'Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne).'
+    error.value = t('recipes.missingIngredient')
     return
   }
 
@@ -98,7 +100,7 @@ async function handleSubmit() {
     const recipe = isEditing ? await updateRecipe(props.id, payload) : await createRecipe(payload)
     router.push({ name: 'recipe-detail', params: { id: recipe.id } })
   } catch {
-    error.value = "Impossible d'enregistrer la recette."
+    error.value = t('recipes.saveError')
   } finally {
     isSubmitting.value = false
   }
@@ -107,78 +109,82 @@ async function handleSubmit() {
 
 <template>
   <div>
-    <h1>{{ isEditing ? 'Modifier la recette' : 'Nouvelle recette' }}</h1>
+    <h1>{{ isEditing ? $t('recipes.editTitle') : $t('recipes.newTitle') }}</h1>
     <form @submit.prevent="handleSubmit">
       <div class="card">
         <div class="field">
-          <label for="title">Titre</label>
+          <label for="title">{{ $t('recipes.formTitle') }}</label>
           <input id="title" v-model="form.title" required />
         </div>
         <div class="field">
-          <label for="description">Description</label>
+          <label for="description">{{ $t('recipes.description') }}</label>
           <textarea id="description" v-model="form.description" rows="3" />
         </div>
         <div class="row">
           <div class="field">
-            <label for="servings">Portions</label>
+            <label for="servings">{{ $t('planning.servings') }}</label>
             <input id="servings" v-model.number="form.servings" type="number" min="1" required />
           </div>
           <div class="field">
-            <label for="prep">Prépa (min)</label>
+            <label for="prep">{{ $t('recipes.prepTime') }}</label>
             <input id="prep" v-model.number="form.prep_time_minutes" type="number" min="0" required />
           </div>
           <div class="field">
-            <label for="cook">Cuisson (min)</label>
+            <label for="cook">{{ $t('recipes.cookTime') }}</label>
             <input id="cook" v-model.number="form.cook_time_minutes" type="number" min="0" required />
           </div>
           <div class="field">
-            <label for="diet_type">Régime</label>
+            <label for="diet_type">{{ $t('recipes.diet') }}</label>
             <select id="diet_type" v-model="form.diet_type">
-              <option value="omnivore">Omnivore</option>
-              <option value="vegetarian">Végétarien</option>
-              <option value="vegan">Végan</option>
+              <option value="omnivore">{{ $t('diet.omnivore') }}</option>
+              <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
+              <option value="vegan">{{ $t('diet.vegan') }}</option>
             </select>
           </div>
         </div>
       </div>
 
       <div class="card" style="margin-top: 1rem">
-        <h2>Ingrédients</h2>
+        <h2>{{ $t('recipes.ingredients') }}</h2>
         <div v-for="(row, index) in ingredientRows" :key="index" class="row" style="align-items: flex-end">
           <div class="field" style="flex: 2; min-width: 220px">
-            <label :for="`ingredient-${index}`">Ingrédient</label>
+            <label :for="`ingredient-${index}`">{{ $t('recipes.ingredient') }}</label>
             <IngredientPicker :id="`ingredient-${index}`" v-model="row.ingredient" />
           </div>
           <div class="field" style="width: 100px">
-            <label :for="`quantity-${index}`">Quantité</label>
+            <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
             <input :id="`quantity-${index}`" v-model="row.quantity" type="number" step="0.01" min="0" required />
           </div>
           <div class="field" style="width: 110px">
-            <label :for="`unit-${index}`">Unité</label>
+            <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
             <select :id="`unit-${index}`" v-model="row.unit">
               <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
             </select>
           </div>
-          <button type="button" class="secondary" @click="removeIngredientRow(index)">Retirer</button>
+          <button type="button" class="secondary" @click="removeIngredientRow(index)">
+            {{ $t('common.remove') }}
+          </button>
         </div>
-        <button type="button" class="secondary" @click="addIngredientRow">+ Ajouter un ingrédient</button>
+        <button type="button" class="secondary" @click="addIngredientRow">{{ $t('recipes.addIngredient') }}</button>
       </div>
 
       <div class="card" style="margin-top: 1rem">
-        <h2>Étapes</h2>
+        <h2>{{ $t('recipes.steps') }}</h2>
         <div v-for="(step, index) in stepRows" :key="index" class="row" style="align-items: flex-end">
           <div class="field" style="flex: 1">
-            <label :for="`step-${index}`">Étape {{ index + 1 }}</label>
+            <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
             <textarea :id="`step-${index}`" v-model="step.instruction" rows="2" />
           </div>
-          <button type="button" class="secondary" @click="removeStepRow(index)">Retirer</button>
+          <button type="button" class="secondary" @click="removeStepRow(index)">
+            {{ $t('common.remove') }}
+          </button>
         </div>
-        <button type="button" class="secondary" @click="addStepRow">+ Ajouter une étape</button>
+        <button type="button" class="secondary" @click="addStepRow">{{ $t('recipes.addStep') }}</button>
       </div>
 
       <p v-if="error" class="error">{{ error }}</p>
       <div class="row" style="margin-top: 1rem">
-        <button type="submit" :disabled="isSubmitting">Enregistrer</button>
+        <button type="submit" :disabled="isSubmitting">{{ $t('common.save') }}</button>
       </div>
     </form>
   </div>
