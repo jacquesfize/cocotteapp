@@ -127,7 +127,14 @@
     "sourceUrl": "Source (link to the original recipe)",
     "videoUrl": "Video (YouTube link)",
     "source": "Source",
-    "downloadPdf": "Download as PDF"
+    "downloadPdf": "Download as PDF",
+    "modeManual": "Manual entry",
+    "modeCooklang": "Paste Cooklang",
+    "cooklangText": "Cooklang text",
+    "cooklangHint": "Use the \\@ingredient{'{'}quantity%unit{'}'} syntax, e.g. \\@olive_oil{'{'}2%tbsp{'}'}.",
+    "cooklangPlaceholder": "Fry the \\@onion{'{'}1%piece{'}'} in \\@olive_oil{'{'}2%tbsp{'}'}...",
+    "cooklangImportButton": "Import",
+    "cooklangImportError": "Failed to import the Cooklang text."
   },
   "home": {
     "title": "Cocotte",
