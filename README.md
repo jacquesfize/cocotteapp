@@ -216,6 +216,15 @@ toutes ses données (profil, recettes, agenda, listes de courses) dans une archi
 (`GET /api/auth/me/export/`), ou supprimer définitivement son compte. La suppression est
 irréversible et cascade sur tout ce que le compte a créé — recettes comprises.
 
+En cas de mot de passe oublié, « Mot de passe oublié ? » sur la page de connexion mène à
+`/forgot-password` : l'utilisateur saisit son email et reçoit (si un compte y est associé — le
+message affiché est le même dans les deux cas, pour ne pas laisser deviner quels emails sont
+enregistrés) un lien vers `/reset-password/<uid>/<token>` où choisir un nouveau mot de passe. Le
+lien utilise le mécanisme de token à usage unique de Django (`PasswordResetTokenGenerator`) : il
+expire automatiquement dès que le mot de passe change. En développement, `EMAIL_BACKEND` pointe
+par défaut sur la console (le lien s'affiche dans les logs du serveur Django au lieu d'être
+vraiment envoyé) ; voir `.env.example`/`.env.prod.example` pour configurer un vrai serveur SMTP.
+
 ## Administration
 
 Les comptes marqués « staff » ont accès à une page `/admin/users` (lien « Admin » dans la barre

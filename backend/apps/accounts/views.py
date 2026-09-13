@@ -2,9 +2,14 @@ import json
 import zipfile
 from io import BytesIO
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.utils import timezone
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import filters, generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -18,7 +23,14 @@ from apps.recipes.serializers import RecipeSerializer
 from apps.shopping.models import ShoppingList
 from apps.shopping.serializers import ShoppingListSerializer
 
-from .serializers import AdminUserSerializer, ChangePasswordSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    AdminUserSerializer,
+    ChangePasswordSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -32,6 +44,59 @@ class MeView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+
+        user = get_user_model().objects.filter(email__iexact=email).first()
+        if user is not None:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}"
+            send_mail(
+                subject="Réinitialisation de votre mot de passe Cocotte",
+                message=(
+                    "Vous avez demandé la réinitialisation de votre mot de passe Cocotte.\n\n"
+                    f"Cliquez sur ce lien pour choisir un nouveau mot de passe :\n{reset_url}\n\n"
+                    "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email."
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+            )
+        # Toujours la même réponse, que l'email corresponde à un compte ou non,
+        # pour ne pas laisser deviner quels emails sont enregistrés.
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(data["uid"]))
+            user = get_user_model().objects.get(pk=user_id)
+        except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+            user = None
+
+        if user is None or not default_token_generator.check_token(user, data["token"]):
+            return Response(
+                {"detail": "Ce lien de réinitialisation est invalide ou a expiré."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(data["new_password"])
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ChangePasswordView(APIView):

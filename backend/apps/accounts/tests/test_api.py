@@ -1,11 +1,19 @@
+import re
 import zipfile
 from io import BytesIO
 
 import pytest
+from django.core import mail
 from rest_framework.test import APIClient
 
 from apps.accounts.factories import UserFactory
 from apps.recipes.factories import RecipeFactory
+
+
+def _extract_reset_link(email_body):
+    match = re.search(r"http\S+/reset-password/(\S+)/(\S+)", email_body)
+    assert match, f"No reset link found in email body: {email_body!r}"
+    return match.group(1), match.group(2)
 
 
 @pytest.mark.django_db
@@ -185,3 +193,101 @@ def test_admin_cannot_deactivate_or_delete_their_own_account_via_admin_api():
 
     admin.refresh_from_db()
     assert admin.is_active is True
+
+
+@pytest.mark.django_db
+def test_registering_with_an_email_already_in_use_is_rejected():
+    UserFactory(email="taken@example.com")
+    client = APIClient()
+
+    response = client.post(
+        "/api/auth/register/",
+        {"username": "someone", "password": "s3cret-pass", "email": "taken@example.com"},
+    )
+
+    assert response.status_code == 400
+    assert "email" in response.data
+
+
+@pytest.mark.django_db
+def test_password_reset_request_sends_an_email_for_an_existing_account():
+    user = UserFactory(email="bob@example.com")
+
+    response = APIClient().post("/api/auth/password-reset/", {"email": "bob@example.com"})
+
+    assert response.status_code == 204
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [user.email]
+    uid, token = _extract_reset_link(mail.outbox[0].body)
+    assert uid and token
+
+
+@pytest.mark.django_db
+def test_password_reset_request_does_not_leak_whether_an_email_is_registered():
+    response = APIClient().post("/api/auth/password-reset/", {"email": "nobody@example.com"})
+
+    assert response.status_code == 204
+    assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_with_valid_token_changes_the_password():
+    user = UserFactory(email="carol@example.com")
+    APIClient().post("/api/auth/password-reset/", {"email": "carol@example.com"})
+    uid, token = _extract_reset_link(mail.outbox[0].body)
+
+    response = APIClient().post(
+        "/api/auth/password-reset/confirm/",
+        {"uid": uid, "token": token, "new_password": "a-brand-new-pass"},
+    )
+
+    assert response.status_code == 204
+    login_response = APIClient().post(
+        "/api/auth/token/", {"username": user.username, "password": "a-brand-new-pass"}
+    )
+    assert login_response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_rejects_an_invalid_token():
+    user = UserFactory(email="dave@example.com")
+    APIClient().post("/api/auth/password-reset/", {"email": "dave@example.com"})
+    uid, _token = _extract_reset_link(mail.outbox[0].body)
+
+    response = APIClient().post(
+        "/api/auth/password-reset/confirm/",
+        {"uid": uid, "token": "not-a-valid-token", "new_password": "a-brand-new-pass"},
+    )
+
+    assert response.status_code == 400
+    user.refresh_from_db()
+    assert user.check_password("password123")
+
+
+@pytest.mark.django_db
+def test_password_reset_token_cannot_be_reused_after_the_password_changed():
+    UserFactory(email="erin@example.com")
+    APIClient().post("/api/auth/password-reset/", {"email": "erin@example.com"})
+    uid, token = _extract_reset_link(mail.outbox[0].body)
+
+    first_use = APIClient().post(
+        "/api/auth/password-reset/confirm/",
+        {"uid": uid, "token": token, "new_password": "first-new-pass"},
+    )
+    assert first_use.status_code == 204
+
+    second_use = APIClient().post(
+        "/api/auth/password-reset/confirm/",
+        {"uid": uid, "token": token, "new_password": "second-new-pass"},
+    )
+    assert second_use.status_code == 400
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_rejects_a_malformed_uid():
+    response = APIClient().post(
+        "/api/auth/password-reset/confirm/",
+        {"uid": "not-base64!!", "token": "whatever", "new_password": "a-brand-new-pass"},
+    )
+
+    assert response.status_code == 400

@@ -34,3 +34,11 @@ export function changePassword(payload) {
 export function exportMyData() {
   return client.get('auth/me/export/', { responseType: 'blob' }).then((r) => r.data)
 }
+
+export function requestPasswordReset(email) {
+  return axios.post(`${AUTH_BASE}password-reset/`, { email }).then((r) => r.data)
+}
+
+export function confirmPasswordReset(payload) {
+  return axios.post(`${AUTH_BASE}password-reset/confirm/`, payload).then((r) => r.data)
+}

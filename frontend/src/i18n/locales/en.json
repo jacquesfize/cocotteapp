@@ -62,7 +62,17 @@
     "dietType": "Diet",
     "activityLevel": "Activity level",
     "registerButton": "Create my account",
-    "registerError": "Could not create the account."
+    "registerError": "Could not create the account.",
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordTitle": "Forgot password",
+    "forgotPasswordDescription": "Enter your email: if an account is linked to it, you'll receive a link to choose a new password.",
+    "forgotPasswordButton": "Send the link",
+    "forgotPasswordSent": "If an account is linked to this email, a reset link was just sent to it.",
+    "backToLogin": "Back to log in",
+    "resetPasswordTitle": "Choose a new password",
+    "resetPasswordButton": "Set the new password",
+    "resetPasswordError": "This reset link is invalid or has expired.",
+    "resetPasswordSuccess": "Password changed, you can now log in."
   },
   "recipes": {
     "title": "Recipes",

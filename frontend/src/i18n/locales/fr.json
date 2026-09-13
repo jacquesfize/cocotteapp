@@ -62,7 +62,17 @@
     "dietType": "Régime alimentaire",
     "activityLevel": "Niveau d'activité",
     "registerButton": "Créer mon compte",
-    "registerError": "Impossible de créer le compte."
+    "registerError": "Impossible de créer le compte.",
+    "forgotPassword": "Mot de passe oublié ?",
+    "forgotPasswordTitle": "Mot de passe oublié",
+    "forgotPasswordDescription": "Indiquez votre email : si un compte y est associé, vous recevrez un lien pour choisir un nouveau mot de passe.",
+    "forgotPasswordButton": "Envoyer le lien",
+    "forgotPasswordSent": "Si un compte est associé à cet email, un lien de réinitialisation vient de lui être envoyé.",
+    "backToLogin": "Retour à la connexion",
+    "resetPasswordTitle": "Choisir un nouveau mot de passe",
+    "resetPasswordButton": "Valider le nouveau mot de passe",
+    "resetPasswordError": "Ce lien de réinitialisation est invalide ou a expiré.",
+    "resetPasswordSuccess": "Mot de passe modifié, vous pouvez vous connecter."
   },
   "recipes": {
     "title": "Recettes",

@@ -15,6 +15,7 @@ class ActivityLevel(models.TextChoices):
 
 
 class User(AbstractUser):
+    email = models.EmailField("email address", unique=True)
     diet_type = models.CharField(max_length=20, choices=DietType.choices, default=DietType.OMNIVORE)
     activity_level = models.CharField(
         max_length=20, choices=ActivityLevel.choices, default=ActivityLevel.MODERATE

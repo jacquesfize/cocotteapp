@@ -31,6 +31,7 @@ async function handleSubmit() {
 <template>
   <div class="card auth-card">
     <h1>{{ $t('auth.loginTitle') }}</h1>
+    <p v-if="route.query.resetDone === 'true'" class="muted">{{ $t('auth.resetPasswordSuccess') }}</p>
     <form @submit.prevent="handleSubmit">
       <div class="field">
         <label for="username">{{ $t('auth.username') }}</label>
@@ -43,6 +44,9 @@ async function handleSubmit() {
       <p v-if="error" class="error">{{ error }}</p>
       <button type="submit" :disabled="isSubmitting">{{ $t('auth.loginButton') }}</button>
     </form>
+    <p class="muted">
+      <RouterLink to="/forgot-password">{{ $t('auth.forgotPassword') }}</RouterLink>
+    </p>
     <p class="muted">
       {{ $t('auth.noAccount') }} <RouterLink to="/register">{{ $t('auth.signUp') }}</RouterLink>
     </p>

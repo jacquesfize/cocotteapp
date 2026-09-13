@@ -111,3 +111,17 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+
+# En dev par défaut, les emails (dont les liens de réinitialisation de mot de passe)
+# s'affichent dans la console au lieu d'être vraiment envoyés.
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Cocotte <noreply@cocotte.app>")
+
+# Sert à construire le lien de réinitialisation de mot de passe envoyé par email
+# (le frontend et l'API vivent sur des origines différentes en dev).
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
