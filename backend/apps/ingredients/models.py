@@ -42,6 +42,13 @@ class Ingredient(models.Model):
         default=list,
         help_text="Mois (1-12) de pleine saison. Vide = disponible toute l'année.",
     )
+    translations = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Noms de l\'ingrédient dans d\'autres langues, ex. {"en": "garlic", '
+        '"de": "Knoblauch", "es": "ajo"} — utilisé pour rapprocher les ingrédients importés '
+        "depuis une recette non francophone.",
+    )
 
     # Valeurs nutritionnelles pour 100g / 100ml de produit.
     calories_kcal = models.DecimalField(max_digits=6, decimal_places=1, default=0)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Leaf, Link2, Plus, X } from '@lucide/vue'
+import { Link2, Plus, X } from '@lucide/vue'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
@@ -135,9 +135,6 @@ async function handleImport() {
     <div class="row page-header">
       <h1>{{ $t('recipes.title') }}</h1>
       <div class="row">
-        <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">
-          <button class="secondary"><Leaf :size="16" />{{ $t('recipes.seasonalShortcut') }}</button>
-        </RouterLink>
         <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
           <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
         </RouterLink>

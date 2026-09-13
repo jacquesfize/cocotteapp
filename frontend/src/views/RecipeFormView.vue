@@ -151,6 +151,15 @@ function removeIngredientRow(index: number) {
   ingredientRows.value.splice(index, 1)
 }
 
+// L'unité "piece" ne se compte qu'en entier (pas de "1.5 pièce") : on arrondit toute
+// quantité déjà saisie lorsqu'on bascule sur cette unité.
+function onUnitChange(row: IngredientRow) {
+  if (row.unit !== 'piece') return
+  const numeric = Number(row.quantity)
+  if (!Number.isFinite(numeric)) return
+  row.quantity = Math.round(numeric)
+}
+
 function addStepRow() {
   stepRows.value.push({ instruction: '', order: stepRows.value.length + 1 })
 }
@@ -291,11 +300,18 @@ async function handleSubmit() {
           </div>
           <div class="field" style="width: 100px">
             <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
-            <input :id="`quantity-${index}`" v-model="row.quantity" type="number" step="0.01" min="0" required />
+            <input
+              :id="`quantity-${index}`"
+              v-model="row.quantity"
+              type="number"
+              :step="row.unit === 'piece' ? 1 : 0.01"
+              min="0"
+              required
+            />
           </div>
           <div class="field" style="width: 110px">
             <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
-            <select :id="`unit-${index}`" v-model="row.unit">
+            <select :id="`unit-${index}`" v-model="row.unit" @change="onUnitChange(row)">
               <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
             </select>
           </div>

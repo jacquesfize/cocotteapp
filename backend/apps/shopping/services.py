@@ -1,5 +1,8 @@
+import math
 from collections import defaultdict
 from decimal import Decimal
+
+from apps.ingredients.models import Unit
 
 from .models import ShoppingList, ShoppingListItem
 
@@ -17,11 +20,22 @@ def build_shopping_list(user, meal_plan_entries, name="Liste de courses"):
     shopping_list.meal_plan_entries.set(meal_plan_entries)
 
     items = [
-        ShoppingListItem(shopping_list=shopping_list, ingredient_id=ingredient_id, unit=unit, quantity=quantity)
+        ShoppingListItem(
+            shopping_list=shopping_list,
+            ingredient_id=ingredient_id,
+            unit=unit,
+            quantity=_round_up_if_piece(quantity, unit),
+        )
         for (ingredient_id, unit), quantity in aggregated.items()
     ]
     ShoppingListItem.objects.bulk_create(items)
     return shopping_list
+
+
+def _round_up_if_piece(quantity, unit):
+    if unit != Unit.PIECE:
+        return quantity
+    return Decimal(math.ceil(quantity))
 
 
 def mark_owned(shopping_list, owned_ingredient_ids):

@@ -91,7 +91,6 @@
     "maxPrepTime": "Max prep time (min)",
     "maxCookTime": "Max cook time (min)",
     "inSeasonOnly": "In-season ingredients only",
-    "seasonalShortcut": "In season now",
     "noResults": "No recipe matches these criteria.",
     "prep": "prep",
     "cook": "cook",

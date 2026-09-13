@@ -1,7 +1,9 @@
-from decimal import Decimal
+import difflib
 
-from apps.ingredients.models import Ingredient, Unit
+from apps.ingredients.models import Ingredient
 from apps.recipes.models import Recipe, RecipeIngredient, RecipeStep, SourceType
+
+from .ingredient_parsing import parse_ingredient_line
 
 
 def scrape_url(url: str) -> dict:
@@ -57,10 +59,35 @@ def create_recipe_from_url(user, url: str) -> Recipe:
     for order, instruction in enumerate(filter(None, data["instructions"]), start=1):
         RecipeStep.objects.create(recipe=recipe, order=order, instruction=instruction.strip())
 
-    # Les recettes scrapées ne fournissent que des lignes de texte libre :
-    # on crée un ingrédient "brut" par ligne, à affiner manuellement ensuite.
+    # Les recettes scrapées ne fournissent que des lignes de texte libre : on les parse pour en
+    # extraire quantité/unité/nom, puis on rapproche le nom du catalogue existant plutôt que de
+    # créer un nouvel ingrédient à chaque import (à affiner manuellement ensuite si besoin).
     for raw_line in data["ingredients"]:
-        ingredient, _ = Ingredient.objects.get_or_create(name=raw_line.strip().lower())
-        RecipeIngredient.objects.create(recipe=recipe, ingredient=ingredient, quantity=Decimal("1"), unit=Unit.PIECE)
+        parsed = parse_ingredient_line(raw_line)
+        ingredient = _match_or_create_ingredient(parsed.name)
+        RecipeIngredient.objects.create(
+            recipe=recipe, ingredient=ingredient, quantity=parsed.quantity, unit=parsed.unit
+        )
 
     return recipe
+
+
+def _match_or_create_ingredient(name: str) -> Ingredient:
+    # Table nom-normalisé -> Ingredient couvrant le nom français canonique et toutes ses
+    # traductions (`Ingredient.translations`), pour rapprocher un ingrédient importé quelle que
+    # soit la langue de la recette source (ex. "garlic" -> Ail via translations={"en": "garlic"}).
+    catalog: dict[str, Ingredient] = {}
+    for ingredient in Ingredient.objects.all():
+        catalog[ingredient.name.strip().lower()] = ingredient
+        for translated_name in ingredient.translations.values():
+            if translated_name:
+                catalog[translated_name.strip().lower()] = ingredient
+
+    if name in catalog:
+        return catalog[name]
+
+    close_matches = difflib.get_close_matches(name, catalog.keys(), n=1, cutoff=0.8)
+    if close_matches:
+        return catalog[close_matches[0]]
+
+    return Ingredient.objects.create(name=name)
