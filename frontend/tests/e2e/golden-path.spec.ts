@@ -14,6 +14,15 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
 
   await expect(page).toHaveURL(/\/recipes$/)
 
+  // L'import depuis une URL reste replié par défaut (gain de place sur mobile) et
+  // s'ouvre au clic sur le bouton "Importer" à côté de "Nouvelle recette".
+  const importToggle = page.locator('.page-header').getByRole('button', { name: 'Importer' })
+  await expect(page.getByLabel(/Importer depuis une URL/)).toHaveCount(0)
+  await importToggle.click()
+  await expect(page.getByLabel(/Importer depuis une URL/)).toBeVisible()
+  await importToggle.click()
+  await expect(page.getByLabel(/Importer depuis une URL/)).toHaveCount(0)
+
   await page.getByRole('link', { name: 'Nouvelle recette' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
