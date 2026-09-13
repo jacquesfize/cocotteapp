@@ -7,6 +7,7 @@ import {
   register as registerRequest,
   updateMe,
 } from '../api/auth'
+import { clearPrivateOfflineData } from '../offline/sync'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -61,6 +62,9 @@ export const useAuthStore = defineStore('auth', {
       this.refreshToken = null
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
+      // Sur un appareil partagé, les données d'un compte ne doivent pas rester
+      // consultables hors ligne une fois que son utilisateur s'est déconnecté.
+      clearPrivateOfflineData().catch(() => {})
     },
 
     _setTokens(access, refresh) {

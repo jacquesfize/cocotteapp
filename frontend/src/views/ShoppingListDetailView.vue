@@ -1,7 +1,8 @@
 <script setup>
-import { Download } from '@lucide/vue'
-import { onMounted, ref } from 'vue'
+import { CloudOff, Download } from '@lucide/vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
+import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
 
 const props = defineProps({
@@ -12,13 +13,38 @@ const shoppingList = ref(null)
 
 async function load() {
   shoppingList.value = await getShoppingList(props.id)
+  for (const item of shoppingList.value.items) {
+    item.pendingSync = !item.is_owned && (await isMarkOwnedQueued(props.id, item.ingredient.id))
+  }
 }
 
-onMounted(load)
+function handleQueueFlushed() {
+  load()
+}
+
+onMounted(() => {
+  load()
+  window.addEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
+})
 
 async function toggleOwned(item) {
-  await markOwned(props.id, [item.ingredient.id])
+  // Optimiste : on coche tout de suite, la case reste cochée même si la requête part
+  // en file d'attente (pratique au supermarché avec un réseau capricieux).
   item.is_owned = true
+  try {
+    await markOwned(props.id, [item.ingredient.id])
+  } catch (error) {
+    if (!isNetworkError(error)) {
+      item.is_owned = false
+      return
+    }
+    await queueMarkOwned(props.id, [item.ingredient.id])
+    item.pendingSync = true
+  }
 }
 
 async function handleExport() {
@@ -49,6 +75,9 @@ async function handleExport() {
           <span :class="{ owned: item.is_owned }">
             {{ item.quantity }} {{ item.unit }} — {{ item.ingredient.name }}
           </span>
+          <span v-if="item.pendingSync" class="pending-sync" :title="$t('offline.pendingSync')">
+            <CloudOff :size="14" />
+          </span>
         </label>
       </div>
     </div>
@@ -67,6 +96,11 @@ async function handleExport() {
 
 .owned {
   text-decoration: line-through;
+  color: var(--color-muted);
+}
+
+.pending-sync {
+  display: inline-flex;
   color: var(--color-muted);
 }
 </style>

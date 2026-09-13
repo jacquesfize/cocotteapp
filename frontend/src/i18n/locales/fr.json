@@ -229,5 +229,9 @@
     "deleteUser": "Supprimer cet utilisateur",
     "deleteUserConfirm": "Supprimer définitivement le compte « {username} » et toutes ses données ?",
     "thisIsYou": "C'est vous — gérez votre propre compte depuis « Mon compte »."
+  },
+  "offline": {
+    "banner": "Vous êtes hors ligne — vous consultez la dernière version enregistrée.",
+    "pendingSync": "En attente de connexion pour synchroniser"
   }
 }
