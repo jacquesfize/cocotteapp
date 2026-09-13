@@ -19,6 +19,16 @@ const suggestions = ref<Ingredient[]>([])
 const isOpen = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
+// `query` n'est initialisé qu'une fois à partir de `modelValue` : si le parent remplace la
+// valeur après coup (ex. RecipeFormView qui charge la recette de manière asynchrone en mode
+// édition), il faut resynchroniser l'affichage nous-mêmes.
+watch(
+  () => props.modelValue,
+  (value) => {
+    query.value = value?.name ?? ''
+  },
+)
+
 watch(query, (value) => {
   clearTimeout(debounceTimer)
   if (!value) {
