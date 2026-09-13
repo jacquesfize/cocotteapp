@@ -19,6 +19,15 @@ const suggestions = ref<Recipe[]>([])
 const isOpen = ref(false)
 let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
+// Même précaution que IngredientPicker.vue : resynchronise l'affichage si le parent
+// remplace `modelValue` après le montage (ex. rechargement asynchrone d'un formulaire).
+watch(
+  () => props.modelValue,
+  (value) => {
+    query.value = value?.title ?? ''
+  },
+)
+
 watch(query, (value) => {
   clearTimeout(debounceTimer)
   if (!value) {
