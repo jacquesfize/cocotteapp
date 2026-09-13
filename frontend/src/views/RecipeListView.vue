@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Leaf, Link2, Plus } from '@lucide/vue'
-import { onMounted, ref, watch } from 'vue'
+import { Leaf, Link2, Plus, X } from '@lucide/vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
@@ -93,6 +93,15 @@ onMounted(load)
 
 const importUrl = ref('')
 const importMessage = ref('')
+const showImportForm = ref(false)
+const importUrlInput = ref<HTMLInputElement | null>(null)
+
+function toggleImportForm() {
+  showImportForm.value = !showImportForm.value
+  if (showImportForm.value) {
+    nextTick(() => importUrlInput.value?.focus())
+  }
+}
 
 async function handleImport() {
   importMessage.value = ''
@@ -117,14 +126,31 @@ async function handleImport() {
         <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
           <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
         </RouterLink>
+        <button
+          v-if="authStore.isAuthenticated"
+          class="secondary"
+          type="button"
+          :aria-expanded="showImportForm"
+          aria-controls="import-form"
+          @click="toggleImportForm"
+        >
+          <component :is="showImportForm ? X : Link2" :size="16" />{{ $t('recipes.importButton') }}
+        </button>
       </div>
     </div>
 
-    <div v-if="authStore.isAuthenticated" class="card" style="margin-bottom: 1rem">
+    <div v-if="authStore.isAuthenticated && showImportForm" id="import-form" class="card" style="margin-bottom: 1rem">
       <form class="row" style="align-items: flex-end" @submit.prevent="handleImport">
         <div class="field" style="flex: 1; min-width: 220px">
           <label for="import-url">{{ $t('recipes.importFromUrl') }}</label>
-          <input id="import-url" v-model="importUrl" type="url" placeholder="https://..." required />
+          <input
+            id="import-url"
+            ref="importUrlInput"
+            v-model="importUrl"
+            type="url"
+            placeholder="https://..."
+            required
+          />
         </div>
         <button type="submit"><Link2 :size="16" />{{ $t('recipes.importButton') }}</button>
       </form>
