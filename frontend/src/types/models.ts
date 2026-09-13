@@ -2,6 +2,7 @@ export type DietType = 'omnivore' | 'vegetarian' | 'vegan'
 export type ActivityLevel = 'sedentary' | 'moderate' | 'athlete'
 export type Unit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'tbsp' | 'tsp' | 'pinch'
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
+export type PlanningPermission = 'read' | 'write'
 export type IngredientCategory =
   | 'vegetable'
   | 'fruit'
@@ -73,6 +74,11 @@ export interface ThematicPage {
   order: number
 }
 
+export interface AdminThematicPage extends ThematicPage {
+  is_active: boolean
+  created_at: string
+}
+
 export interface RecipeIngredient {
   id: number
   ingredient: Ingredient
@@ -94,6 +100,21 @@ export interface RecipeVersion {
   title: string
   version_label: string
   author: string
+}
+
+export interface RecipeComment {
+  id: number
+  recipe: number
+  author_name: string
+  username: string | null
+  body: string
+  is_hidden?: boolean
+  created_at: string
+}
+
+export interface RecipeCommentInput {
+  author_name?: string
+  body: string
 }
 
 export interface Recipe {
@@ -195,6 +216,23 @@ export interface MealPlanEntry {
   date: string
   meal_type: MealType
   servings: number
+}
+
+export interface PlanningShare {
+  id: number
+  shared_with_username: string
+  shared_with_email: string
+  permission: PlanningPermission
+  created_at: string
+}
+
+export interface PlanningShareReceived {
+  id: number
+  owner: number
+  owner_username: string
+  owner_email: string
+  permission: PlanningPermission
+  created_at: string
 }
 
 export interface ShoppingListItem {

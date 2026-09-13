@@ -5,7 +5,13 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../components/CooklangStepInput.vue'
 import IngredientPicker from '../components/IngredientPicker.vue'
-import { createRecipe, getRecipe, updateRecipe, uploadRecipeImage } from '../api/recipes'
+import {
+  createRecipe,
+  getRecipe,
+  importRecipeFromCooklang,
+  updateRecipe,
+  uploadRecipeImage,
+} from '../api/recipes'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
 
@@ -15,6 +21,32 @@ const props = defineProps<{
 const { t } = useI18n()
 const router = useRouter()
 const isEditing = Boolean(props.id)
+
+// Nouvelle recette uniquement : saisie manuelle (formulaire habituel) ou collage direct
+// de markup Cooklang, parsé côté serveur pour pré-remplir ingrédients/étapes. La recette
+// créée est ensuite ouverte en édition pour vérifier/corriger le résultat de l'auto-parsing
+// (unités par défaut, quantités non reconnues).
+const creationMode = ref<'manual' | 'cooklang'>('manual')
+const cooklangForm = ref({ title: '', servings: 4, raw_cooklang: '' })
+const cooklangError = ref('')
+const isImportingCooklang = ref(false)
+
+async function handleCooklangSubmit() {
+  cooklangError.value = ''
+  isImportingCooklang.value = true
+  try {
+    const recipe = await importRecipeFromCooklang({
+      title: cooklangForm.value.title,
+      servings: cooklangForm.value.servings,
+      raw_cooklang: cooklangForm.value.raw_cooklang,
+    })
+    router.push({ name: 'recipe-edit', params: { id: recipe.id } })
+  } catch {
+    cooklangError.value = t('recipes.cooklangImportError')
+  } finally {
+    isImportingCooklang.value = false
+  }
+}
 
 const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
   title: '',
@@ -168,7 +200,55 @@ async function handleSubmit() {
 <template>
   <div>
     <h1>{{ isEditing ? $t('recipes.editTitle') : $t('recipes.newTitle') }}</h1>
-    <form @submit.prevent="handleSubmit">
+
+    <div v-if="!isEditing" class="row mode-toggle" role="tablist">
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="creationMode === 'manual'"
+        :class="creationMode === 'manual' ? '' : 'secondary'"
+        @click="creationMode = 'manual'"
+      >
+        {{ $t('recipes.modeManual') }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        :aria-selected="creationMode === 'cooklang'"
+        :class="creationMode === 'cooklang' ? '' : 'secondary'"
+        @click="creationMode = 'cooklang'"
+      >
+        {{ $t('recipes.modeCooklang') }}
+      </button>
+    </div>
+
+    <form v-if="!isEditing && creationMode === 'cooklang'" class="card" @submit.prevent="handleCooklangSubmit">
+      <div class="field">
+        <label for="cooklang-title">{{ $t('recipes.formTitle') }}</label>
+        <input id="cooklang-title" v-model="cooklangForm.title" required />
+      </div>
+      <div class="field" style="width: 140px">
+        <label for="cooklang-servings">{{ $t('planning.servings') }}</label>
+        <input id="cooklang-servings" v-model.number="cooklangForm.servings" type="number" min="1" required />
+      </div>
+      <div class="field">
+        <label for="cooklang-text">{{ $t('recipes.cooklangText') }}</label>
+        <p class="muted cooklang-hint">{{ $t('recipes.cooklangHint') }}</p>
+        <textarea
+          id="cooklang-text"
+          v-model="cooklangForm.raw_cooklang"
+          rows="10"
+          required
+          :placeholder="$t('recipes.cooklangPlaceholder')"
+        />
+      </div>
+      <p v-if="cooklangError" class="error">{{ cooklangError }}</p>
+      <div class="row" style="margin-top: 1rem">
+        <button type="submit" :disabled="isImportingCooklang">{{ $t('recipes.cooklangImportButton') }}</button>
+      </div>
+    </form>
+
+    <form v-else @submit.prevent="handleSubmit">
       <div class="card">
         <div class="field">
           <label for="title">{{ $t('recipes.formTitle') }}</label>
@@ -298,6 +378,15 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.mode-toggle {
+  margin-bottom: 1rem;
+}
+
+.cooklang-hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+
 .current-image {
   max-width: 220px;
   max-height: 140px;

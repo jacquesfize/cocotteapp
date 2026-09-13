@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
+import RecipeComments from '../components/RecipeComments.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -27,6 +28,7 @@ const forking = ref(false)
 const isOwner = computed(
   () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
+const canModerateComments = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
 
 async function load() {
   recipe.value = await getRecipe(props.id)
@@ -118,6 +120,8 @@ async function handleFork() {
         </li>
       </ul>
     </div>
+
+    <RecipeComments :key="recipe.id" :recipe-id="recipe.id" :can-moderate="canModerateComments" />
   </div>
 </template>
 

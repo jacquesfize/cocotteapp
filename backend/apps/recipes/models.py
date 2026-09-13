@@ -148,3 +148,28 @@ class RecipeStep(models.Model):
 
     def __str__(self):
         return f"{self.recipe.title} - étape {self.order}"
+
+
+class RecipeComment(models.Model):
+    """A comment left on a recipe. No account is required to post: `author_name` is a free-text
+    display name, and `user` is only stamped automatically when the poster happens to be
+    authenticated (purely informational, never required)."""
+
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="comments")
+    author_name = models.CharField(max_length=80)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="recipe_comments",
+    )
+    body = models.TextField()
+    is_hidden = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.author_name} - {self.recipe.title}"

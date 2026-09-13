@@ -3,7 +3,7 @@ import factory
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 
-from .models import Recipe, RecipeIngredient
+from .models import Recipe, RecipeComment, RecipeIngredient
 
 
 class RecipeFactory(factory.django.DjangoModelFactory):
@@ -25,3 +25,12 @@ class RecipeIngredientFactory(factory.django.DjangoModelFactory):
     ingredient = factory.SubFactory(IngredientFactory)
     quantity = 100
     unit = "g"
+
+
+class RecipeCommentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RecipeComment
+
+    recipe = factory.SubFactory(RecipeFactory)
+    author_name = factory.Sequence(lambda n: f"Invité {n}")
+    body = factory.Sequence(lambda n: f"Super recette #{n} !")
