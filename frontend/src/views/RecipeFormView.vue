@@ -100,6 +100,21 @@ function addIngredientRow() {
   })
 }
 
+// Une mention "@ingrédient" dans une étape peut désigner un ingrédient qui existe déjà en
+// base mais pas encore dans cette recette : on l'ajoute alors automatiquement à la liste
+// (voir CooklangStepInput.vue), pour éviter à l'utilisateur de le rechercher deux fois.
+function handleMentionIngredient(ingredient: Ingredient) {
+  const alreadyAdded = ingredientRows.value.some((row) => row.ingredient?.id === ingredient.id)
+  if (alreadyAdded) return
+  ingredientRows.value.push({
+    ingredient,
+    quantity: '',
+    unit: ingredient.default_unit,
+    group_name: '',
+    order: ingredientRows.value.length + 1,
+  })
+}
+
 function removeIngredientRow(index: number) {
   ingredientRows.value.splice(index, 1)
 }
@@ -227,6 +242,7 @@ async function handleSubmit() {
               :id="`step-${index}`"
               v-model="step.instruction"
               :ingredient-names="knownIngredientNames"
+              @add-ingredient="handleMentionIngredient"
             />
           </div>
           <button

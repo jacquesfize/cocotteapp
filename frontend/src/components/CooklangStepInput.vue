@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { TriangleAlert } from '@lucide/vue'
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import IngredientEditModal from './IngredientEditModal.vue'
+import { listIngredients } from '../api/ingredients'
 import { findOrphanMentions, toMentionToken } from '../utils/cooklangMentions'
+import type { Ingredient } from '../types/models'
 
 const { t } = useI18n()
 
@@ -13,19 +16,40 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: string]
+  'add-ingredient': [ingredient: Ingredient]
 }>()
 
 const textareaEl = ref<HTMLTextAreaElement | null>(null)
 const isOpen = ref(false)
 const mentionStart = ref<number | null>(null)
 const mentionQuery = ref('')
+const dbSuggestions = ref<Ingredient[]>([])
+const showCreateModal = ref(false)
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
-const suggestions = computed(() => {
-  const query = mentionQuery.value.replace(/_/g, ' ').toLowerCase()
-  return props.ingredientNames.filter((name) => name.toLowerCase().includes(query))
-})
+// Ce qui suit le "@" tel que l'utilisateur le tape (underscores compris), converti en nom
+// lisible pour la recherche et l'affichage — ex. "creme_fraiche" -> "creme fraiche".
+const mentionQueryDisplay = computed(() => mentionQuery.value.replace(/_/g, ' '))
+
+const exactMatch = computed(() =>
+  dbSuggestions.value.some((i) => i.name.toLowerCase() === mentionQueryDisplay.value.toLowerCase()),
+)
 
 const orphanMentions = computed(() => findOrphanMentions(props.modelValue, props.ingredientNames))
+
+watch(mentionQuery, (value) => {
+  clearTimeout(debounceTimer)
+  if (!value) {
+    dbSuggestions.value = []
+    isOpen.value = false
+    return
+  }
+  debounceTimer = setTimeout(async () => {
+    const data = await listIngredients({ search: value.replace(/_/g, ' ') })
+    dbSuggestions.value = data.results
+    isOpen.value = true
+  }, 250)
+})
 
 function detectMention(text: string, cursor: number) {
   const upToCursor = text.slice(0, cursor)
@@ -44,26 +68,49 @@ function handleInput(event: Event) {
   if (mention) {
     mentionStart.value = mention.start
     mentionQuery.value = mention.query
-    isOpen.value = true
   } else {
     isOpen.value = false
   }
 }
 
-function selectSuggestion(name: string) {
-  if (mentionStart.value === null || !textareaEl.value) return
-  const text = props.modelValue
-  const cursor = textareaEl.value.selectionStart
+// Remplace la mention en cours de saisie (de "@" jusqu'au curseur) par le token complet,
+// sans dépendre de la position du curseur au moment de l'appel (le focus a pu bouger
+// entre-temps, ex. le temps de remplir la modale de création d'ingrédient).
+function insertToken(name: string) {
+  if (mentionStart.value === null) return
+  const start = mentionStart.value
+  const end = start + 1 + mentionQuery.value.length
   const token = `${toMentionToken(name)} `
-  const next = text.slice(0, mentionStart.value) + token + text.slice(cursor)
+  const next = props.modelValue.slice(0, start) + token + props.modelValue.slice(end)
   emit('update:modelValue', next)
   isOpen.value = false
 
-  const caret = mentionStart.value + token.length
+  const caret = start + token.length
   nextTick(() => {
     textareaEl.value?.focus()
     textareaEl.value?.setSelectionRange(caret, caret)
   })
+}
+
+function selectSuggestion(ingredient: Ingredient) {
+  insertToken(ingredient.name)
+  const alreadyInRecipe = props.ingredientNames.some(
+    (name) => name.toLowerCase() === ingredient.name.toLowerCase(),
+  )
+  if (!alreadyInRecipe) {
+    emit('add-ingredient', ingredient)
+  }
+}
+
+function openCreateModal() {
+  isOpen.value = false
+  showCreateModal.value = true
+}
+
+function handleIngredientCreated(ingredient: Ingredient) {
+  showCreateModal.value = false
+  insertToken(ingredient.name)
+  emit('add-ingredient', ingredient)
 }
 
 function closeSoon() {
@@ -84,15 +131,29 @@ function closeSoon() {
       @input="handleInput"
       @blur="closeSoon"
     />
-    <ul v-if="isOpen && suggestions.length" class="suggestions">
-      <li v-for="name in suggestions" :key="name" @mousedown.prevent="selectSuggestion(name)">
-        {{ name }}
+    <ul v-if="isOpen" class="suggestions">
+      <li
+        v-for="ingredient in dbSuggestions"
+        :key="ingredient.id"
+        @mousedown.prevent="selectSuggestion(ingredient)"
+      >
+        {{ ingredient.name }}
+      </li>
+      <li v-if="!exactMatch" class="create" @mousedown.prevent="openCreateModal">
+        {{ t('ingredientPicker.create', { name: mentionQueryDisplay }) }}
       </li>
     </ul>
     <p v-for="mention in orphanMentions" :key="mention.start" class="mention-warning">
       <TriangleAlert :size="14" />
       {{ t('recipes.mentionOrphan', { name: mention.displayName }) }}
     </p>
+
+    <IngredientEditModal
+      v-if="showCreateModal"
+      :initial-name="mentionQueryDisplay"
+      @created="handleIngredientCreated"
+      @close="showCreateModal = false"
+    />
   </div>
 </template>
 
@@ -125,6 +186,11 @@ function closeSoon() {
 
 .suggestions li:hover {
   background: var(--color-surface-muted);
+}
+
+.suggestions li.create {
+  color: var(--color-primary-dark);
+  font-weight: 600;
 }
 
 .mention-warning {

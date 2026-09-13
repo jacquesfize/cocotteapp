@@ -296,12 +296,21 @@ Le texte d'une étape peut référencer un ingrédient de la recette avec la syn
 `@huile_olive{2%cs}`, affiché ensuite « huile olive »).
 
 Dans l'éditeur (`frontend/src/components/CooklangStepInput.vue`), taper `@` ouvre une
-auto-complétion parmi les ingrédients déjà ajoutés à la recette ; si le texte mentionne un
-ingrédient absent de la liste (faute de frappe, ou oublié), un avertissement s'affiche sous
-l'étape concernée. En lecture (`RecipeSummary.vue`), chaque mention reconnue devient un lien qui
-pointe vers l'ingrédient correspondant dans la liste ci-contre ; une mention orpheline s'affiche
-en texte normal. Le parsing (`frontend/src/utils/cooklangMentions.ts`) est purement côté client :
-le texte de l'étape stocké en base reste le texte brut tel que saisi, `@` compris.
+auto-complétion qui interroge la base d'ingrédients (pas seulement ceux déjà dans la recette) :
+
+- Choisir un ingrédient déjà présent dans la recette insère simplement la mention.
+- Choisir un ingrédient qui existe en base mais n'est pas encore dans la liste de la recette
+  l'y ajoute automatiquement (avec son unité par défaut), en plus d'insérer la mention.
+- Si rien ne correspond exactement, une option « + Créer « nom » » ouvre une modale
+  (`IngredientEditModal.vue` — nom, catégorie, unité par défaut, valeurs nutritionnelles) ;
+  l'ingrédient créé est à son tour ajouté à la recette et la mention insérée.
+
+Si le texte mentionne malgré tout un ingrédient absent de la liste (mention tapée à la main,
+faute de frappe), un avertissement s'affiche sous l'étape concernée. En lecture
+(`RecipeSummary.vue`), chaque mention reconnue devient un lien qui pointe vers l'ingrédient
+correspondant dans la liste ci-contre ; une mention orpheline s'affiche en texte normal. Le
+parsing (`frontend/src/utils/cooklangMentions.ts`) est purement côté client : le texte de
+l'étape stocké en base reste le texte brut tel que saisi, `@` compris.
 
 ## Page d'accueil & pages thématiques
 
