@@ -1,5 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { i18n } from '../../src/i18n'
 
 vi.mock('../../src/api/recipes', () => ({
@@ -14,10 +16,22 @@ import { listThematicPages } from '../../src/api/thematicPages'
 import HomeView from '../../src/views/HomeView.vue'
 import type { Recipe } from '../../src/types/models'
 
-function mountHome() {
+async function mountHome() {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', name: 'home', component: HomeView },
+      { path: '/recipes', name: 'recipes', component: { template: '<div />' } },
+      { path: '/recipes/random', name: 'recipe-random', component: { template: '<div />' } },
+      { path: '/recipes/new', name: 'recipe-new', component: { template: '<div />' } },
+    ],
+  })
+  router.push('/')
+  await router.isReady()
+
   return mount(HomeView, {
     global: {
-      plugins: [i18n],
+      plugins: [i18n, router],
       stubs: {
         RouterLink: { props: ['to'], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' },
         RecipeCard: { props: ['recipe'], template: '<div class="stub-recipe-card">{{ recipe.title }}</div>' },
@@ -38,6 +52,7 @@ function recipe(id: number): Recipe {
 
 beforeEach(() => {
   i18n.global.locale.value = 'fr'
+  setActivePinia(createPinia())
   vi.clearAllMocks()
 })
 
@@ -61,7 +76,7 @@ describe('HomeView', () => {
       },
     ])
 
-    const wrapper = mountHome()
+    const wrapper = await mountHome()
     await flushPromises()
 
     expect(wrapper.findAll('.stub-recipe-card')).toHaveLength(6)
@@ -78,7 +93,7 @@ describe('HomeView', () => {
     vi.mocked(listRecipes).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
     vi.mocked(listThematicPages).mockResolvedValue([])
 
-    const wrapper = mountHome()
+    const wrapper = await mountHome()
     await flushPromises()
 
     expect(wrapper.find('.stub-recipe-card').exists()).toBe(false)
