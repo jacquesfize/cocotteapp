@@ -13,7 +13,7 @@ test('draws a random recipe, can reroll, and can add it to the planner', async (
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: '+ Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
@@ -26,7 +26,7 @@ test('draws a random recipe, can reroll, and can add it to the planner', async (
   await expect(page.locator('h1')).toHaveText('Recette au hasard')
   await expect(page.locator('h2').first()).toBeVisible()
 
-  await page.getByRole('button', { name: '🎲 Une autre' }).click()
+  await page.getByRole('button', { name: 'Une autre' }).click()
   await expect(page.locator('h2').first()).toBeVisible()
 
   const today = new Date().toISOString().slice(0, 10)

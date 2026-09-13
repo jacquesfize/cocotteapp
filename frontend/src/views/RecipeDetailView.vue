@@ -1,4 +1,5 @@
 <script setup>
+import { Pencil, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -45,9 +46,9 @@ async function handleDelete() {
       <h1>{{ recipe.title }}</h1>
       <div v-if="isOwner" class="row">
         <RouterLink :to="{ name: 'recipe-edit', params: { id: recipe.id } }">
-          <button class="secondary">{{ $t('common.edit') }}</button>
+          <button class="secondary"><Pencil :size="16" />{{ $t('common.edit') }}</button>
         </RouterLink>
-        <button class="danger" @click="handleDelete">{{ $t('common.delete') }}</button>
+        <button class="danger" @click="handleDelete"><Trash2 :size="16" />{{ $t('common.delete') }}</button>
       </div>
     </div>
     <p v-if="deleteError" class="error">{{ deleteError }}</p>

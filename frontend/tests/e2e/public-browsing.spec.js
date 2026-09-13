@@ -16,7 +16,7 @@ test('anonymous visitors can browse the homepage, the recipe list and a recipe p
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: '+ Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
@@ -38,7 +38,7 @@ test('anonymous visitors can browse the homepage, the recipe list and a recipe p
   await page.goto('/recipes')
   await expect(page).toHaveURL('/recipes')
   await expect(page.getByRole('link', { name: new RegExp(recipeTitle) })).toBeVisible()
-  await expect(page.getByRole('link', { name: '+ Nouvelle recette' })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: 'Nouvelle recette' })).toHaveCount(0)
   await expect(page.getByLabel(/Importer depuis une URL/)).toHaveCount(0)
 
   // Recipe detail, without login: viewable, but not editable, and no "add to planner" form.

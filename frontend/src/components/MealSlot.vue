@@ -1,4 +1,5 @@
 <script setup>
+import { Plus, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RecipePicker from './RecipePicker.vue'
@@ -69,18 +70,28 @@ async function handleRemove(entryId) {
           :aria-label="$t('planning.remove')"
           @click="handleRemove(entry.id)"
         >
-          ×
+          <X :size="14" />
         </button>
       </li>
     </ul>
 
-    <button v-if="!isAdding" type="button" class="add-btn secondary" @click="openForm">+</button>
+    <button
+      v-if="!isAdding"
+      type="button"
+      class="add-btn secondary"
+      :aria-label="$t('planning.addEntry')"
+      @click="openForm"
+    >
+      <Plus :size="14" />
+    </button>
     <form v-else class="add-form" @submit.prevent="handleAdd">
       <RecipePicker v-model="newRecipe" />
       <div class="row" style="align-items: center; gap: 0.4rem">
         <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
         <button type="submit">{{ $t('common.add') }}</button>
-        <button type="button" class="secondary" @click="closeForm">✕</button>
+        <button type="button" class="secondary icon-btn" :aria-label="$t('common.cancel')" @click="closeForm">
+          <X :size="14" />
+        </button>
       </div>
       <p v-if="error" class="error" style="margin: 0">{{ error }}</p>
     </form>
@@ -151,8 +162,9 @@ async function handleRemove(entryId) {
 
 .add-btn {
   align-self: flex-start;
+  width: 1.9rem;
   min-height: 1.9rem;
-  padding: 0.1rem 0.75rem;
+  padding: 0;
 }
 
 .add-form {

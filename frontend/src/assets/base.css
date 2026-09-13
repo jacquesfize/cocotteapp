@@ -83,7 +83,23 @@ button {
   padding: 0.65rem 1.25rem;
   min-height: 2.75rem;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
   transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+button svg {
+  flex-shrink: 0;
+}
+
+/* Bouton rond ne portant qu'une icône (listes d'items, navigation compacte) : garde une
+   cible tactile carrée d'au moins 40px sans le padding horizontal des boutons pilule. */
+button.icon-btn {
+  padding: 0;
+  width: 2.5rem;
+  min-height: 2.5rem;
 }
 
 button:active {

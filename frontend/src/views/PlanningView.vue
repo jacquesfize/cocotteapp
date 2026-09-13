@@ -1,4 +1,5 @@
 <script setup>
+import { ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -80,14 +81,28 @@ const rangeLabel = computed(() => {
     <h1>{{ $t('planning.title') }}</h1>
 
     <div class="week-nav">
-      <button class="secondary" type="button" :aria-label="'‹'" @click="weekOffset -= 1">‹</button>
+      <button
+        class="secondary icon-btn"
+        type="button"
+        :aria-label="$t('planning.previousWeek')"
+        @click="weekOffset -= 1"
+      >
+        <ChevronLeft :size="18" />
+      </button>
       <div class="week-range">
         <strong>{{ rangeLabel }}</strong>
         <button v-if="weekOffset !== 0" class="today-btn secondary" type="button" @click="weekOffset = 0">
           {{ $t('planning.today') }}
         </button>
       </div>
-      <button class="secondary" type="button" :aria-label="'›'" @click="weekOffset += 1">›</button>
+      <button
+        class="secondary icon-btn"
+        type="button"
+        :aria-label="$t('planning.nextWeek')"
+        @click="weekOffset += 1"
+      >
+        <ChevronRight :size="18" />
+      </button>
     </div>
 
     <div v-if="deficiencies.length" class="card deficiency-banner">
@@ -117,9 +132,11 @@ const rangeLabel = computed(() => {
     </div>
 
     <div class="week-footer">
-      <button class="secondary" @click="handleDownloadWeekPdf">{{ $t('planning.downloadWeekPdf') }}</button>
+      <button class="secondary" @click="handleDownloadWeekPdf">
+        <Download :size="16" />{{ $t('planning.downloadWeekPdf') }}
+      </button>
       <button :disabled="!entries.length" @click="handleGenerateShoppingList">
-        {{ $t('planning.generateShoppingList', { n: entries.length }) }}
+        <ShoppingCart :size="16" />{{ $t('planning.generateShoppingList', { n: entries.length }) }}
       </button>
     </div>
   </div>
@@ -132,11 +149,6 @@ const rangeLabel = computed(() => {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
-}
-
-.week-nav > button {
-  min-height: 2.25rem;
-  padding: 0.3rem 0.9rem;
 }
 
 .week-range {

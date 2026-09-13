@@ -1,4 +1,5 @@
 <script setup>
+import { Download } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { downloadBlob } from '../utils/download'
@@ -31,7 +32,7 @@ async function handleExport() {
   <div v-if="shoppingList">
     <div class="row page-header">
       <h1>{{ shoppingList.name }}</h1>
-      <button @click="handleExport">{{ $t('shopping.export') }}</button>
+      <button @click="handleExport"><Download :size="16" />{{ $t('shopping.export') }}</button>
     </div>
     <p class="muted">{{ $t('shopping.checkOwned') }}</p>
 

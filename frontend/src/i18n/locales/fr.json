@@ -20,7 +20,8 @@
     "remove": "Retirer",
     "delete": "Supprimer",
     "edit": "Modifier",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "cancel": "Annuler"
   },
   "diet": {
     "omnivore": "Omnivore",
@@ -60,7 +61,7 @@
   },
   "recipes": {
     "title": "Recettes",
-    "newRecipe": "+ Nouvelle recette",
+    "newRecipe": "Nouvelle recette",
     "importFromUrl": "Importer depuis une URL",
     "importButton": "Importer",
     "importSuccess": "Import lancé, la recette apparaîtra dans quelques instants.",
@@ -74,7 +75,7 @@
     "maxPrepTime": "Prépa max (min)",
     "maxCookTime": "Cuisson max (min)",
     "inSeasonOnly": "Ingrédients de saison uniquement",
-    "seasonalShortcut": "🌱 Produits de saison",
+    "seasonalShortcut": "Produits de saison",
     "noResults": "Aucune recette ne correspond à ces critères.",
     "prep": "prépa",
     "cook": "cuisson",
@@ -99,9 +100,9 @@
     "ingredient": "Ingrédient",
     "quantity": "Quantité",
     "unit": "Unité",
-    "addIngredient": "+ Ajouter un ingrédient",
+    "addIngredient": "Ajouter un ingrédient",
     "step": "Étape {n}",
-    "addStep": "+ Ajouter une étape",
+    "addStep": "Ajouter une étape",
     "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne).",
     "media": "Média & source",
     "imageUrl": "URL de l'image",
@@ -135,6 +136,7 @@
     "meal": "Repas",
     "servings": "Portions",
     "add": "Ajouter",
+    "addEntry": "Ajouter un repas",
     "chooseRecipe": "Choisissez une recette.",
     "addError": "Impossible d'ajouter cette entrée (date déjà planifiée pour cette recette et ce repas ?).",
     "plannedMeals": "Repas planifiés",
@@ -143,7 +145,9 @@
     "noEntries": "Aucun repas planifié pour l'instant.",
     "remove": "Retirer",
     "servingsUnit": "portions",
-    "today": "Aujourd'hui"
+    "today": "Aujourd'hui",
+    "previousWeek": "Semaine précédente",
+    "nextWeek": "Semaine suivante"
   },
   "nutrition": {
     "title": "Valeurs nutritionnelles",
@@ -162,7 +166,7 @@
   },
   "random": {
     "title": "Recette au hasard",
-    "another": "🎲 Une autre",
+    "another": "Une autre",
     "noResult": "Aucune recette ne correspond à ces critères."
   },
   "shopping": {

@@ -1,4 +1,5 @@
 <script setup>
+import { Leaf, Link2, Plus } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -90,10 +91,10 @@ async function handleImport() {
       <h1>{{ $t('recipes.title') }}</h1>
       <div class="row">
         <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">
-          <button class="secondary">{{ $t('recipes.seasonalShortcut') }}</button>
+          <button class="secondary"><Leaf :size="16" />{{ $t('recipes.seasonalShortcut') }}</button>
         </RouterLink>
         <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
-          <button>{{ $t('recipes.newRecipe') }}</button>
+          <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
         </RouterLink>
       </div>
     </div>
@@ -104,7 +105,7 @@ async function handleImport() {
           <label for="import-url">{{ $t('recipes.importFromUrl') }}</label>
           <input id="import-url" v-model="importUrl" type="url" placeholder="https://..." required />
         </div>
-        <button type="submit">{{ $t('recipes.importButton') }}</button>
+        <button type="submit"><Link2 :size="16" />{{ $t('recipes.importButton') }}</button>
       </form>
       <p v-if="importMessage" class="muted">{{ importMessage }}</p>
     </div>

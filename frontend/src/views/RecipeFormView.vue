@@ -1,4 +1,5 @@
 <script setup>
+import { Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -177,11 +178,18 @@ async function handleSubmit() {
               <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
             </select>
           </div>
-          <button type="button" class="secondary" @click="removeIngredientRow(index)">
-            {{ $t('common.remove') }}
+          <button
+            type="button"
+            class="secondary icon-btn"
+            :aria-label="$t('common.remove')"
+            @click="removeIngredientRow(index)"
+          >
+            <Trash2 :size="16" />
           </button>
         </div>
-        <button type="button" class="secondary" @click="addIngredientRow">{{ $t('recipes.addIngredient') }}</button>
+        <button type="button" class="secondary" @click="addIngredientRow">
+          <Plus :size="16" />{{ $t('recipes.addIngredient') }}
+        </button>
       </div>
 
       <div class="card" style="margin-top: 1rem">
@@ -191,11 +199,18 @@ async function handleSubmit() {
             <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
             <textarea :id="`step-${index}`" v-model="step.instruction" rows="2" />
           </div>
-          <button type="button" class="secondary" @click="removeStepRow(index)">
-            {{ $t('common.remove') }}
+          <button
+            type="button"
+            class="secondary icon-btn"
+            :aria-label="$t('common.remove')"
+            @click="removeStepRow(index)"
+          >
+            <Trash2 :size="16" />
           </button>
         </div>
-        <button type="button" class="secondary" @click="addStepRow">{{ $t('recipes.addStep') }}</button>
+        <button type="button" class="secondary" @click="addStepRow">
+          <Plus :size="16" />{{ $t('recipes.addStep') }}
+        </button>
       </div>
 
       <div class="card" style="margin-top: 1rem">

@@ -20,7 +20,8 @@
     "remove": "Remove",
     "delete": "Delete",
     "edit": "Edit",
-    "add": "Add"
+    "add": "Add",
+    "cancel": "Cancel"
   },
   "diet": {
     "omnivore": "Omnivore",
@@ -60,7 +61,7 @@
   },
   "recipes": {
     "title": "Recipes",
-    "newRecipe": "+ New recipe",
+    "newRecipe": "New recipe",
     "importFromUrl": "Import from a URL",
     "importButton": "Import",
     "importSuccess": "Import started, the recipe will appear shortly.",
@@ -74,7 +75,7 @@
     "maxPrepTime": "Max prep time (min)",
     "maxCookTime": "Max cook time (min)",
     "inSeasonOnly": "In-season ingredients only",
-    "seasonalShortcut": "🌱 In season now",
+    "seasonalShortcut": "In season now",
     "noResults": "No recipe matches these criteria.",
     "prep": "prep",
     "cook": "cook",
@@ -99,9 +100,9 @@
     "ingredient": "Ingredient",
     "quantity": "Quantity",
     "unit": "Unit",
-    "addIngredient": "+ Add an ingredient",
+    "addIngredient": "Add an ingredient",
     "step": "Step {n}",
-    "addStep": "+ Add a step",
+    "addStep": "Add a step",
     "missingIngredient": "Select an ingredient for each row (or remove the row).",
     "media": "Media & source",
     "imageUrl": "Image URL",
@@ -135,6 +136,7 @@
     "meal": "Meal",
     "servings": "Servings",
     "add": "Add",
+    "addEntry": "Add a meal",
     "chooseRecipe": "Choose a recipe.",
     "addError": "Could not add this entry (date already planned for this recipe and meal?).",
     "plannedMeals": "Planned meals",
@@ -143,7 +145,9 @@
     "noEntries": "No meal planned yet.",
     "remove": "Remove",
     "servingsUnit": "servings",
-    "today": "Today"
+    "today": "Today",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week"
   },
   "nutrition": {
     "title": "Nutrition facts",
@@ -162,7 +166,7 @@
   },
   "random": {
     "title": "Random recipe",
-    "another": "🎲 Another one",
+    "another": "Another one",
     "noResult": "No recipe matches these criteria."
   },
   "shopping": {

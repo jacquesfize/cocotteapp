@@ -1,4 +1,5 @@
 <script setup>
+import { Download } from '@lucide/vue'
 import NutritionCard from './NutritionCard.vue'
 import { downloadRecipePdf } from '../api/recipes'
 import { downloadBlob } from '../utils/download'
@@ -22,7 +23,7 @@ async function handleDownloadPdf() {
         {{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }} · {{ $t('recipes.cook') }}
         {{ formatDuration(recipe.cook_time_minutes) }}
       </p>
-      <button class="secondary" @click="handleDownloadPdf">{{ $t('recipes.downloadPdf') }}</button>
+      <button class="secondary" @click="handleDownloadPdf"><Download :size="16" />{{ $t('recipes.downloadPdf') }}</button>
     </div>
 
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">

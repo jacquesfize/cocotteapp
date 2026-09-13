@@ -1,4 +1,5 @@
 <script setup>
+import { Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 
@@ -25,7 +26,13 @@ async function handleDelete(id) {
       <RouterLink :to="{ name: 'shopping-list-detail', params: { id: list.id } }">
         {{ list.name }} — {{ new Date(list.created_at).toLocaleDateString() }}
       </RouterLink>
-      <button class="secondary" @click="handleDelete(list.id)">{{ $t('shopping.delete') }}</button>
+      <button
+        class="danger icon-btn"
+        :aria-label="$t('shopping.delete')"
+        @click="handleDelete(list.id)"
+      >
+        <Trash2 :size="16" />
+      </button>
     </div>
   </div>
 </template>

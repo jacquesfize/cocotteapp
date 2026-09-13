@@ -1,8 +1,12 @@
 <script setup>
+import { Dices } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { getRandomRecipe } from '../api/recipes'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
 
 const recipe = ref(null)
 const isLoading = ref(false)
@@ -33,7 +37,7 @@ onMounted(draw)
   <div>
     <div class="row page-header">
       <h1>{{ $t('random.title') }}</h1>
-      <button :disabled="isLoading" @click="draw">{{ $t('random.another') }}</button>
+      <button :disabled="isLoading" @click="draw"><Dices :size="16" />{{ $t('random.another') }}</button>
     </div>
 
     <div class="card filters">
@@ -62,7 +66,7 @@ onMounted(draw)
         <h2>{{ recipe.title }}</h2>
       </RouterLink>
       <RecipeSummary :recipe="recipe" />
-      <AddToPlanForm :key="recipe.id" :recipe="recipe" />
+      <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
     </template>
   </div>
 </template>

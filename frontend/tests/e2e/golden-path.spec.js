@@ -14,7 +14,7 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
 
   await expect(page).toHaveURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: '+ Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
@@ -30,7 +30,7 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await expect(page.locator('.day-col').first()).toBeVisible()
 
   const dinnerSlot = page.locator('.day-col').first().locator('.meal-slot').filter({ hasText: 'Dîner' })
-  await dinnerSlot.getByRole('button', { name: '+' }).click()
+  await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
   await dinnerSlot.locator('.suggestions').getByText(recipeTitle).click()
   await dinnerSlot.getByRole('button', { name: 'Ajouter' }).click()
