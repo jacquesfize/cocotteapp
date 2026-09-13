@@ -265,6 +265,9 @@
     "reset": "Reset",
     "finished": "Done!",
     "seconds": "{n}s",
-    "minutesSeconds": "{m}m {s}s"
+    "minutesSeconds": "{m}m {s}s",
+    "notificationTitle": "Timer done!",
+    "notificationBody": "Your {duration} timer is done.",
+    "notificationBodyNamed": "\"{label}\" ({duration}) is done."
   }
 }

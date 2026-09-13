@@ -265,6 +265,9 @@
     "reset": "Réinitialiser",
     "finished": "Terminé !",
     "seconds": "{n} s",
-    "minutesSeconds": "{m} min {s} s"
+    "minutesSeconds": "{m} min {s} s",
+    "notificationTitle": "Minuteur terminé !",
+    "notificationBody": "Votre minuteur de {duration} est terminé.",
+    "notificationBodyNamed": "« {label} » ({duration}) est terminé."
   }
 }

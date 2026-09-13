@@ -51,15 +51,25 @@ function tick() {
     stopInterval()
     phase.value = 'finished'
     playChime()
+    notifyFinished()
     return
   }
   remainingSeconds.value -= 1
+}
+
+// Demandée au clic sur "démarrer" (geste utilisateur requis par les navigateurs) plutôt qu'au
+// montage : ne redemande rien si déjà accordée/refusée, le navigateur ne réaffiche de toute
+// façon pas la boîte de dialogue une fois la décision prise.
+function ensureNotificationPermission() {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'default') return
+  Notification.requestPermission().catch(() => {})
 }
 
 function start() {
   stopInterval()
   phase.value = 'running'
   intervalId = setInterval(tick, 1000)
+  ensureNotificationPermission()
 }
 
 function pause() {
@@ -96,6 +106,46 @@ function playChime() {
     })
   } catch {
     // Web Audio indisponible ou bloqué par le navigateur : l'état visuel "terminé" suffit.
+  }
+}
+
+// Chrome Android (et d'autres navigateurs mobiles) refuse `new Notification()` en dehors
+// d'un service worker ("Illegal constructor") : on passe donc par le service worker de la
+// PWA (enregistré au démarrage dans main.ts) quand il est disponible, avec un court délai
+// au cas où il ne serait pas encore actif, et on ne se rabat sur le constructeur classique
+// que s'il n'y en a pas.
+async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return null
+  try {
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+    ])
+    return registration
+  } catch {
+    return null
+  }
+}
+
+async function notifyFinished() {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+
+  const title = t('timer.notificationTitle')
+  const body = props.label
+    ? t('timer.notificationBodyNamed', { label: props.label, duration: durationLabel.value })
+    : t('timer.notificationBody', { duration: durationLabel.value })
+  const options: NotificationOptions = { body, icon: '/pwa-192.png', badge: '/pwa-192.png' }
+
+  try {
+    const registration = await getServiceWorkerRegistration()
+    if (registration) {
+      await registration.showNotification(title, options)
+    } else {
+      new Notification(title, options)
+    }
+  } catch {
+    // Notification bloquée ou non supportée malgré la permission accordée : le carillon et
+    // le badge visuel "Terminé !" restent le repli.
   }
 }
 

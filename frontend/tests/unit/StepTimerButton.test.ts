@@ -97,3 +97,89 @@ describe('StepTimerButton', () => {
     expect(wrapper.find('button').text()).toContain('2 min')
   })
 })
+
+describe('StepTimerButton browser notifications', () => {
+  let requestPermission: ReturnType<typeof vi.fn>
+  let showNotification: ReturnType<typeof vi.fn>
+  let notificationCtor: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    requestPermission = vi.fn().mockResolvedValue('granted')
+    showNotification = vi.fn().mockResolvedValue(undefined)
+    notificationCtor = vi.fn()
+
+    class FakeNotification {
+      static permission: NotificationPermission = 'default'
+      static requestPermission = requestPermission
+      constructor(...args: unknown[]) {
+        notificationCtor(...args)
+      }
+    }
+    vi.stubGlobal('Notification', FakeNotification)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    // @ts-expect-error nettoyage du stub de test, la propriété n'existe pas nativement en jsdom
+    delete navigator.serviceWorker
+  })
+
+  async function finishTimer(wrapper: ReturnType<typeof mountTimer>, seconds: number) {
+    await wrapper.find('button').trigger('click')
+    await vi.advanceTimersByTimeAsync(seconds * 1000)
+    await vi.advanceTimersByTimeAsync(0)
+    await Promise.resolve()
+    await Promise.resolve()
+  }
+
+  it('requests permission on start when not yet decided', async () => {
+    const wrapper = mountTimer(5)
+    await wrapper.find('button').trigger('click')
+
+    expect(requestPermission).toHaveBeenCalled()
+  })
+
+  it('does not re-request permission once already granted or denied', async () => {
+    ;(globalThis.Notification as unknown as { permission: NotificationPermission }).permission = 'granted'
+    const wrapper = mountTimer(5)
+    await wrapper.find('button').trigger('click')
+
+    expect(requestPermission).not.toHaveBeenCalled()
+  })
+
+  it('shows a notification through the PWA service worker when one is available', async () => {
+    ;(globalThis.Notification as unknown as { permission: NotificationPermission }).permission = 'granted'
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: { ready: Promise.resolve({ showNotification }) },
+      configurable: true,
+    })
+
+    const wrapper = mountTimer(2, 'repos')
+    await finishTimer(wrapper, 2)
+
+    expect(showNotification).toHaveBeenCalledWith(
+      'Minuteur terminé !',
+      expect.objectContaining({ body: expect.stringContaining('repos') }),
+    )
+    expect(notificationCtor).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the Notification constructor when there is no service worker', async () => {
+    ;(globalThis.Notification as unknown as { permission: NotificationPermission }).permission = 'granted'
+
+    const wrapper = mountTimer(2)
+    await finishTimer(wrapper, 2)
+
+    expect(notificationCtor).toHaveBeenCalled()
+  })
+
+  it('does not notify when permission is denied', async () => {
+    ;(globalThis.Notification as unknown as { permission: NotificationPermission }).permission = 'denied'
+
+    const wrapper = mountTimer(2)
+    await finishTimer(wrapper, 2)
+
+    expect(showNotification).not.toHaveBeenCalled()
+    expect(notificationCtor).not.toHaveBeenCalled()
+  })
+})
