@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Cocotte{% endblock %}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 1.6cm 1.8cm;
+    @bottom-center {
+      content: "Cocotte — cocotte.app";
+      font-size: 8pt;
+      color: #8a8078;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'DejaVu Sans', 'Helvetica', 'Arial', sans-serif;
+    color: #241f1d;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .brand {
+    color: #ff6a3d;
+    font-weight: bold;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6pt;
+  }
+  h1 {
+    font-size: 20pt;
+    margin: 0 0 4pt;
+  }
+  h2 {
+    font-size: 13pt;
+    margin: 16pt 0 6pt;
+    border-bottom: 1pt solid #ede2db;
+    padding-bottom: 4pt;
+  }
+  .meta {
+    color: #8a8078;
+    font-size: 9.5pt;
+    margin: 0 0 10pt;
+  }
+  ul, ol {
+    padding-left: 16pt;
+    margin: 0;
+  }
+  li {
+    margin-bottom: 4pt;
+  }
+  .recipe-image {
+    max-width: 100%;
+    max-height: 6.5cm;
+    object-fit: cover;
+    border-radius: 8pt;
+    margin: 4pt 0 10pt;
+  }
+  .columns {
+    display: flex;
+    gap: 18pt;
+  }
+  .columns > div {
+    flex: 1;
+  }
+  .recipe-block {
+    page-break-inside: avoid;
+  }
+  .recipe-block + .recipe-block {
+    page-break-before: always;
+  }
+  table.week-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin-bottom: 8pt;
+  }
+  table.week-grid th, table.week-grid td {
+    border: 1pt solid #ede2db;
+    padding: 5pt 6pt;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.week-grid th {
+    background: #fff1ea;
+    text-transform: capitalize;
+  }
+</style>
+</head>
+<body>
+<div class="brand">🍲 Cocotte</div>
+{% block content %}{% endblock %}
+</body>
+</html>

@@ -91,3 +91,34 @@ def test_nutrition_summary_flags_deficiencies():
     assert response.data["daily_average"]["protein_g"] == 10.0
     deficient_nutrients = [d["nutrient"] for d in response.data["deficiencies"]]
     assert "protein_g" in deficient_nutrients
+
+
+@pytest.mark.django_db
+def test_week_pdf_download_returns_pdf():
+    user = UserFactory()
+    recipe = RecipeFactory(title="Curry de saison")
+    MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-05", meal_type="dinner")
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get(
+        "/api/meal-plan-entries/week-pdf/?date_after=2026-01-05&date_before=2026-01-11"
+    )
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
+    assert response.content.startswith(b"%PDF")
+
+
+@pytest.mark.django_db
+def test_week_pdf_download_works_with_no_entries():
+    user = UserFactory()
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get(
+        "/api/meal-plan-entries/week-pdf/?date_after=2026-01-05&date_before=2026-01-11"
+    )
+
+    assert response.status_code == 200
+    assert response.content.startswith(b"%PDF")

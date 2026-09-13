@@ -4,6 +4,7 @@ from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 
 from .models import Recipe, RecipeIngredient, RecipeStep, Tag
+from .youtube import extract_youtube_id
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -34,6 +35,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     steps = RecipeStepSerializer(many=True, required=False)
     tags = TagSerializer(many=True, read_only=True)
     author = serializers.ReadOnlyField(source="author.username")
+    author_id = serializers.ReadOnlyField(source="author.id")
+    youtube_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -43,6 +46,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "slug",
             "description",
             "author",
+            "author_id",
             "servings",
             "prep_time_minutes",
             "cook_time_minutes",
@@ -50,7 +54,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             "diet_type",
             "source_type",
             "source_url",
+            "video_url",
+            "youtube_id",
             "image",
+            "image_url",
             "is_public",
             "tags",
             "ingredients",
@@ -59,6 +66,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["slug", "total_time_minutes"]
+
+    def get_youtube_id(self, obj):
+        return extract_youtube_id(obj.video_url)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", [])

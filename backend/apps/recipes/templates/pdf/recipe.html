@@ -1,0 +1,41 @@
+{% extends "pdf/base.html" %}
+
+{% block title %}{{ recipe.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ recipe.title }}</h1>
+<p class="meta">
+  {{ recipe.get_diet_type_display }} · {{ recipe.servings }} portions ·
+  prépa {{ recipe.prep_time_minutes }} min · cuisson {{ recipe.cook_time_minutes }} min
+</p>
+
+{% if image_src %}<img class="recipe-image" src="{{ image_src }}" alt="">{% endif %}
+
+{% if recipe.description %}<p>{{ recipe.description }}</p>{% endif %}
+
+<div class="columns">
+  <div>
+    <h2>Ingrédients</h2>
+    <ul>
+      {% for item in recipe.recipe_ingredients.all %}
+      <li>{{ item.quantity }} {{ item.unit }} — {{ item.ingredient.name }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div style="flex: 2;">
+    <h2>Étapes</h2>
+    <ol>
+      {% for step in recipe.steps.all %}
+      <li>{{ step.instruction }}</li>
+      {% endfor %}
+    </ol>
+  </div>
+</div>
+
+{% if recipe.source_url or recipe.video_url %}
+<p class="meta">
+  {% if recipe.source_url %}Source : {{ recipe.source_url }}{% endif %}
+  {% if recipe.video_url %}{% if recipe.source_url %} · {% endif %}Vidéo : {{ recipe.video_url }}{% endif %}
+</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "pdf/base.html" %}
+
+{% block title %}Menu de la semaine{% endblock %}
+
+{% block content %}
+<h1>Menu de la semaine</h1>
+<p class="meta">{{ start|date:"j F Y" }} – {{ end|date:"j F Y" }}</p>
+
+<table class="week-grid">
+  <thead>
+    <tr>
+      <th>Jour</th>
+      {% for label in meal_labels %}<th>{{ label }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for day in grid %}
+    <tr>
+      <td><strong>{{ day.date|date:"D j N" }}</strong></td>
+      {% for cell in day.cells %}
+      <td>
+        {% for entry in cell %}{{ entry.recipe.title }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% for item in recipes %}
+<div class="recipe-block">
+  <h1>{{ item.recipe.title }}</h1>
+  <p class="meta">
+    {{ item.recipe.get_diet_type_display }} · {{ item.recipe.servings }} portions ·
+    prépa {{ item.recipe.prep_time_minutes }} min · cuisson {{ item.recipe.cook_time_minutes }} min
+  </p>
+  {% if item.image_src %}<img class="recipe-image" src="{{ item.image_src }}" alt="">{% endif %}
+  <div class="columns">
+    <div>
+      <h2>Ingrédients</h2>
+      <ul>
+        {% for ri in item.recipe.recipe_ingredients.all %}
+        <li>{{ ri.quantity }} {{ ri.unit }} — {{ ri.ingredient.name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div style="flex: 2;">
+      <h2>Étapes</h2>
+      <ol>
+        {% for step in item.recipe.steps.all %}
+        <li>{{ step.instruction }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
