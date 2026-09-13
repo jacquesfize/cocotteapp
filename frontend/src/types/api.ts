@@ -1,4 +1,4 @@
-import type { ActivityLevel, DietType, MealType } from './models'
+import type { ActivityLevel, DietType, MealType, PlanningPermission } from './models'
 
 export interface Paginated<T> {
   count: number
@@ -27,6 +27,12 @@ export interface MealPlanEntryListParams {
   date_after?: string
   date_before?: string
   meal_type?: MealType
+  owner?: number | string
+}
+
+export interface PlanningSharePayload {
+  email: string
+  permission: PlanningPermission
 }
 
 export interface AdminUserListParams {

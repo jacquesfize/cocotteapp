@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Download, Save, Trash2 } from '@lucide/vue'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { changePassword, exportMyData } from '../api/auth'
+import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
 import { useAuthStore } from '../stores/auth'
 import { downloadBlob } from '../utils/download'
-import type { ActivityLevel, DietType } from '../types/models'
+import type { ActivityLevel, DietType, PlanningPermission, PlanningShare } from '../types/models'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -83,6 +84,40 @@ async function handleExport() {
   } finally {
     isExporting.value = false
   }
+}
+
+const shares = ref<PlanningShare[]>([])
+const shareForm = ref<{ email: string; permission: PlanningPermission }>({ email: '', permission: 'read' })
+const shareMessage = ref('')
+const shareError = ref('')
+const isSharing = ref(false)
+
+async function loadShares() {
+  shares.value = await listPlanningShares()
+}
+
+onMounted(loadShares)
+
+async function handleShareSubmit() {
+  shareMessage.value = ''
+  shareError.value = ''
+  isSharing.value = true
+  try {
+    await createOrUpdatePlanningShare({ email: shareForm.value.email, permission: shareForm.value.permission })
+    shareMessage.value = t('account.shareSuccess')
+    shareForm.value.email = ''
+    await loadShares()
+  } catch {
+    shareError.value = t('account.shareError')
+  } finally {
+    isSharing.value = false
+  }
+}
+
+async function handleRevokeShare(share: PlanningShare) {
+  if (!confirm(t('account.shareRevokeConfirm'))) return
+  await deletePlanningShare(share.id)
+  await loadShares()
 }
 
 const deleteError = ref('')
@@ -191,6 +226,47 @@ async function handleDeleteAccount() {
       </button>
     </div>
 
+    <div class="card" style="margin-bottom: 1rem">
+      <h2>{{ $t('account.shareTitle') }}</h2>
+      <p class="muted">{{ $t('account.shareDescription') }}</p>
+      <form @submit.prevent="handleShareSubmit">
+        <div class="row">
+          <div class="field" style="flex: 1; min-width: 200px">
+            <label for="share-email">{{ $t('account.shareEmailLabel') }}</label>
+            <input id="share-email" v-model="shareForm.email" type="email" required />
+          </div>
+          <div class="field">
+            <label for="share-permission">{{ $t('account.sharePermissionLabel') }}</label>
+            <select id="share-permission" v-model="shareForm.permission">
+              <option value="read">{{ $t('account.sharePermissionRead') }}</option>
+              <option value="write">{{ $t('account.sharePermissionWrite') }}</option>
+            </select>
+          </div>
+        </div>
+        <p v-if="shareMessage" class="muted">{{ shareMessage }}</p>
+        <p v-if="shareError" class="error">{{ shareError }}</p>
+        <button type="submit" :disabled="isSharing">{{ $t('account.shareButton') }}</button>
+      </form>
+
+      <h3 style="margin-top: 1.25rem">{{ $t('account.shareListTitle') }}</h3>
+      <p v-if="!shares.length" class="muted">{{ $t('account.shareListEmpty') }}</p>
+      <ul v-else class="share-list">
+        <li v-for="share in shares" :key="share.id">
+          <span>
+            {{ share.shared_with_username }} ({{ share.shared_with_email }}) —
+            {{
+              share.permission === 'read'
+                ? $t('account.sharePermissionRead')
+                : $t('account.sharePermissionWrite')
+            }}
+          </span>
+          <button type="button" class="secondary" @click="handleRevokeShare(share)">
+            {{ $t('account.shareRevoke') }}
+          </button>
+        </li>
+      </ul>
+    </div>
+
     <div class="card danger-zone">
       <h2>{{ $t('account.dangerZoneTitle') }}</h2>
       <p class="muted">{{ $t('account.deleteAccountDescription') }}</p>
@@ -205,5 +281,22 @@ async function handleDeleteAccount() {
 <style scoped>
 .danger-zone {
   border: 1.5px solid var(--color-danger-soft);
+}
+
+.share-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 </style>
