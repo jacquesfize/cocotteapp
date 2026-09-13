@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
 <template>
   <header class="navbar">
     <div class="container navbar-inner">
-      <RouterLink to="/recipes" class="brand">
+      <RouterLink to="/" class="brand">
         <span class="brand-badge">
           <svg viewBox="0 0 100 100" fill="none">
             <path d="M40,22 C37,17 42,14 39,8" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity="0.85" />
@@ -77,6 +77,7 @@ onBeforeUnmount(() => {
       </RouterLink>
 
       <nav v-if="authStore.isAuthenticated" class="top-links">
+        <RouterLink to="/">{{ $t('nav.home') }}</RouterLink>
         <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
         <RouterLink to="/recipes/random">{{ $t('nav.random') }}</RouterLink>
         <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
@@ -118,6 +119,13 @@ onBeforeUnmount(() => {
   </header>
 
   <nav v-if="authStore.isAuthenticated" class="tabbar" :aria-label="t('nav.menu')">
+    <RouterLink to="/" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 11.5 12 4l8 7.5" />
+        <path d="M6 10v9h12v-9" />
+      </svg>
+      <span>{{ $t('nav.home') }}</span>
+    </RouterLink>
     <RouterLink to="/recipes" class="tab-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 5.5c2-1 4.5-1 6.5 0v13c-2-1-4.5-1-6.5 0v-13Z" />

@@ -1,11 +1,12 @@
 # Cocotte
 
-Application de gestion de recettes : recherche par ingrédients/saison/régime/temps, tirage
-d'une recette au hasard, menu de la semaine avec suivi nutritionnel (utile pour une transition
-vegan), génération de listes de courses, import manuel ou depuis une URL, export PDF (recette ou
-agenda de la semaine), image/vidéo/source par recette, pages thématiques (par ingrédient, par
-saison). Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive
-(mobile-first, navigation par barre d'onglets en bas d'écran).
+Application de gestion de recettes : page d'accueil (dernières recettes, pages thématiques),
+recherche par ingrédients/saison/régime/temps, tirage d'une recette au hasard, menu de la
+semaine avec suivi nutritionnel (utile pour une transition vegan), génération de listes de
+courses, import manuel ou depuis une URL (avec récupération automatique de l'image), export PDF
+(recette ou agenda de la semaine), image/vidéo/source par recette. Backend Django/DRF, frontend
+Vue 3 — interface traduite (FR/EN) et responsive (mobile-first, navigation par barre d'onglets
+en bas d'écran).
 
 ## Lancer en local (Docker)
 
@@ -83,9 +84,16 @@ B12) :
 uv run python manage.py seed_common_ingredients
 ```
 
-Les deux commandes sont idempotentes (rejouables sans dupliquer les données) et fusionnent avec
-un ingrédient déjà créé à la volée sous une casse différente (ex. "tomate" créé depuis
-l'application est enrichi plutôt que dupliqué en "Tomate").
+Peupler enfin quelques pages thématiques de base pour la page d'accueil (éditables ensuite,
+ou remplaçables, depuis l'admin Django — `/admin/recipes/thematicpage/`) :
+
+```bash
+uv run python manage.py seed_thematic_pages
+```
+
+Les trois commandes sont idempotentes (rejouables sans dupliquer les données) ; les deux
+premières fusionnent avec un ingrédient déjà créé à la volée sous une casse différente (ex.
+"tomate" créé depuis l'application est enrichi plutôt que dupliqué en "Tomate").
 
 ## Frontend — lancer en local (sans Docker)
 
@@ -125,10 +133,11 @@ npm run test:e2e
   `seed_nutrient_requirements`.
 - `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel hebdomadaire.
 - `backend/apps/shopping/` : génération et export de listes de courses.
-- `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery).
+- `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery), récupère aussi
+  automatiquement l'image de la recette source quand le site la fournit.
 - `frontend/src/api/` : client axios + modules par ressource.
 - `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
-- `frontend/src/views/` : pages (connexion, recettes, agenda, listes de courses).
+- `frontend/src/views/` : pages (accueil, connexion, recettes, agenda, listes de courses).
 - `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée),
   `MealSlot` (case repas de la grille semaine), `NutritionCard`.
 - `frontend/src/i18n/` : configuration vue-i18n + fichiers de traduction (`locales/fr.json`, `locales/en.json`).
@@ -167,17 +176,27 @@ la même façon un PDF de la grille de la semaine affichée suivie du détail de
 qui y figurent (`backend/apps/planning/templates/pdf/week.html`).
 
 Une recette peut aussi avoir une image (URL externe ou fichier téléversé), une source (lien vers
-la recette d'origine) et une vidéo YouTube, intégrée sur la page de la recette via
-`youtube-nocookie.com` (aucun cookie tiers chargé avant que la vidéo soit lancée). Seul l'auteur
-d'une recette peut la modifier, la supprimer ou changer son image ; la lecture reste ouverte à
-tout le monde, y compris aux visiteurs non connectés.
+la recette d'origine) et une vidéo YouTube, affichée à côté de la photo sur la page de la recette
+et intégrée via `youtube-nocookie.com` (aucun cookie tiers chargé avant que la vidéo soit
+lancée). Seul l'auteur d'une recette peut la modifier, la supprimer ou changer son image ; la
+lecture reste ouverte à tout le monde, y compris aux visiteurs non connectés. Quand une recette
+est importée depuis une URL, son image est elle aussi récupérée automatiquement si le site
+source en fournit une (via `recipe_scrapers`).
 
-## Pages thématiques
+## Page d'accueil & pages thématiques
 
-La liste des recettes (`/recipes`) reflète ses filtres (ingrédient, saison, régime, temps total)
-dans les paramètres d'URL — ce sont donc des pages partageables/marque-pageables : cliquer sur un
-ingrédient depuis une recette ouvre par exemple `/recipes?ingredients=Courgette`, et le raccourci
-« 🌱 Produits de saison » ouvre `/recipes?in_season=true`.
+La page d'accueil (`/`) présente l'application, les dernières recettes ajoutées et des « pages
+thématiques » : des raccourcis persistés en base (modèle `ThematicPage`, gérable depuis l'admin
+Django sur `/admin/recipes/thematicpage/` — titre, emoji, description, ordre d'affichage,
+activation) qui pointent chacun vers la liste des recettes déjà filtrée. Trois pages de base sont
+fournies par `seed_thematic_pages` (Produits de saison, Spécial végan, Prêt en 30 minutes) ; on
+peut en ajouter d'autres, ou changer leurs filtres, sans toucher au code.
+
+Plus largement, la liste des recettes (`/recipes`) reflète ses filtres (ingrédient, saison,
+régime, temps total) dans les paramètres d'URL — ce sont donc des pages partageables/
+marque-pageables : cliquer sur un ingrédient depuis une recette ouvre par exemple
+`/recipes?ingredients=Courgette`, et une page thématique dont les filtres sont
+`{"in_season": "true"}` ouvre `/recipes?in_season=true`.
 
 ## Design
 

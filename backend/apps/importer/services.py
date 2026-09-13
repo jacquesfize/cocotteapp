@@ -14,6 +14,7 @@ def scrape_url(url: str) -> dict:
         "cook_time_minutes": _safe_int(_safe_call(getattr(scraper, "total_time", None))),
         "ingredients": scraper.ingredients(),
         "instructions": scraper.instructions().split("\n"),
+        "image_url": _safe_call(getattr(scraper, "image", None)) or "",
     }
 
 
@@ -51,6 +52,7 @@ def create_recipe_from_url(user, url: str) -> Recipe:
         cook_time_minutes=data["cook_time_minutes"],
         source_type=SourceType.URL,
         source_url=url,
+        image_url=data.get("image_url", ""),
     )
     for order, instruction in enumerate(filter(None, data["instructions"]), start=1):
         RecipeStep.objects.create(recipe=recipe, order=order, instruction=instruction.strip())

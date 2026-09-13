@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recipe, RecipeIngredient, RecipeStep, Tag
+from .models import Recipe, RecipeIngredient, RecipeStep, Tag, ThematicPage
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -22,3 +22,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Tag)
+
+
+@admin.register(ThematicPage)
+class ThematicPageAdmin(admin.ModelAdmin):
+    list_display = ["title", "icon", "order", "is_active"]
+    list_editable = ["order", "is_active"]
+    prepopulated_fields = {"slug": ["title"]}

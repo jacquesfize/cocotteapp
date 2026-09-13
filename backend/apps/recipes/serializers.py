@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 
-from .models import Recipe, RecipeIngredient, RecipeStep, Tag
+from .models import Recipe, RecipeIngredient, RecipeStep, Tag, ThematicPage
 from .youtube import extract_youtube_id
 
 
@@ -11,6 +11,12 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name", "kind"]
+
+
+class ThematicPageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ThematicPage
+        fields = ["id", "title", "slug", "description", "icon", "filters", "order"]
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):

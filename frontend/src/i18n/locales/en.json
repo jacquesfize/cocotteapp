@@ -3,6 +3,7 @@
     "title": "Cocotte"
   },
   "nav": {
+    "home": "Home",
     "recipes": "Recipes",
     "random": "Surprise me",
     "planning": "Planner",
@@ -108,6 +109,15 @@
     "videoUrl": "Video (YouTube link)",
     "source": "Source",
     "downloadPdf": "Download as PDF"
+  },
+  "home": {
+    "title": "Cocotte",
+    "tagline": "The app that stores your recipes, plans your weekly menus and helps you move towards a more plant-based diet — without losing sight of your nutritional needs.",
+    "browseRecipes": "Browse recipes",
+    "thematicPages": "Explore",
+    "latestRecipes": "Latest recipes",
+    "seeAll": "See all recipes",
+    "noRecipes": "No recipe yet."
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",

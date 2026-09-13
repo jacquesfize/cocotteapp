@@ -3,6 +3,7 @@
     "title": "Cocotte"
   },
   "nav": {
+    "home": "Accueil",
     "recipes": "Recettes",
     "random": "Au hasard",
     "planning": "Agenda",
@@ -108,6 +109,15 @@
     "videoUrl": "Vidéo (lien YouTube)",
     "source": "Source",
     "downloadPdf": "Télécharger en PDF"
+  },
+  "home": {
+    "title": "Cocotte",
+    "tagline": "L'application qui range vos recettes, planifie vos menus de la semaine et vous accompagne vers une alimentation plus végétale — sans jamais perdre de vue vos besoins nutritionnels.",
+    "browseRecipes": "Voir les recettes",
+    "thematicPages": "À explorer",
+    "latestRecipes": "Dernières recettes",
+    "seeAll": "Voir toutes les recettes",
+    "noRecipes": "Aucune recette pour l'instant."
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",

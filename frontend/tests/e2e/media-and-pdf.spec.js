@@ -34,6 +34,12 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   )
   await expect(page.getByRole('link', { name: 'https://example.com/recette-originale' })).toBeVisible()
 
+  // La vidéo doit s'afficher à côté de la photo (même ligne), pas en dessous.
+  const photoBox = await page.locator('.recipe-photo').boundingBox()
+  const videoBox = await page.locator('.video-wrapper').boundingBox()
+  expect(Math.abs(photoBox.y - videoBox.y)).toBeLessThan(5)
+  expect(videoBox.x).toBeGreaterThan(photoBox.x + photoBox.width - 5)
+
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Télécharger en PDF' }).click()
   const download = await downloadPromise

@@ -25,12 +25,23 @@ async function handleDownloadPdf() {
       <button class="secondary" @click="handleDownloadPdf">{{ $t('recipes.downloadPdf') }}</button>
     </div>
 
-    <img
-      v-if="recipe.image || recipe.image_url"
-      :src="recipe.image || recipe.image_url"
-      class="recipe-photo"
-      alt=""
-    />
+    <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
+      <img
+        v-if="recipe.image || recipe.image_url"
+        :src="recipe.image || recipe.image_url"
+        class="recipe-photo"
+        alt=""
+      />
+
+      <div v-if="recipe.youtube_id" class="video-wrapper">
+        <iframe
+          :src="`https://www.youtube-nocookie.com/embed/${recipe.youtube_id}`"
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        />
+      </div>
+    </div>
 
     <p v-if="recipe.description">{{ recipe.description }}</p>
 
@@ -56,15 +67,6 @@ async function handleDownloadPdf() {
       </div>
     </div>
 
-    <div v-if="recipe.youtube_id" class="video-wrapper">
-      <iframe
-        :src="`https://www.youtube-nocookie.com/embed/${recipe.youtube_id}`"
-        title="YouTube video player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      />
-    </div>
-
     <p v-if="recipe.source_url" class="muted source-line">
       {{ $t('recipes.source') }} :
       <a :href="recipe.source_url" target="_blank" rel="noopener noreferrer">{{ recipe.source_url }}</a>
@@ -83,22 +85,32 @@ async function handleDownloadPdf() {
   margin-bottom: 0.75rem;
 }
 
+.media-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .recipe-photo {
   display: block;
+  flex: 1;
+  min-width: 260px;
   width: 100%;
   height: 320px;
   object-fit: cover;
   border-radius: 20px;
-  margin-bottom: 1rem;
 }
 
 .video-wrapper {
   position: relative;
+  flex: 1;
+  min-width: 260px;
   width: 100%;
   aspect-ratio: 16 / 9;
+  max-height: 320px;
   border-radius: 20px;
   overflow: hidden;
-  margin-top: 1rem;
 }
 
 .video-wrapper iframe {

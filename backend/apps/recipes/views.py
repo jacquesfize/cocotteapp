@@ -12,9 +12,9 @@ from weasyprint import HTML
 from apps.nutrition.services import compute_recipe_nutrition
 
 from .filters import RecipeFilter
-from .models import Recipe, Tag
+from .models import Recipe, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly
-from .serializers import RecipeSerializer, TagSerializer
+from .serializers import RecipeSerializer, TagSerializer, ThematicPageSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -75,3 +75,11 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):
+    """Pages thématiques gérées depuis l'admin Django, affichées en page d'accueil."""
+
+    queryset = ThematicPage.objects.filter(is_active=True)
+    serializer_class = ThematicPageSerializer
+    pagination_class = None
