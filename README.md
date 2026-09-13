@@ -345,6 +345,32 @@ biais (il doit passer par « Mon compte ») afin d'éviter de se retirer acciden
 Django Admin (`/admin/`) reste disponible pour le reste (recettes, ingrédients, pages
 thématiques...).
 
+## PWA / hors ligne
+
+L'application est une Progressive Web App (installable, via `vite-plugin-pwa`/Workbox) et reste
+utilisable sans connexion pour l'usage le plus courant : consulter ce qu'on a déjà chargé.
+
+- **Lecture hors ligne** : les réponses `GET` des recettes, pages thématiques, agenda et listes de
+  courses sont mises en cache par le service worker (stratégie `NetworkFirst` — réseau si
+  disponible, sinon la dernière version connue ; `CacheFirst` pour les images). Une fois une page
+  visitée en ligne, elle reste consultable hors ligne (bannière « Vous êtes hors ligne » affichée
+  en haut de l'écran). La création/édition de recettes et de l'agenda ne fonctionne qu'en ligne :
+  gérer des conflits d'édition concurrente hors ligne aurait été disproportionné pour une appli
+  mono-utilisateur.
+- **Écriture hors ligne, limitée aux listes de courses** : cocher un article comme « déjà en
+  stock » fonctionne aussi hors ligne (cas d'usage réel : au supermarché, réseau capricieux). La
+  case se coche immédiatement (mise à jour optimiste) et l'action est mise en file d'attente
+  (IndexedDB, `frontend/src/offline/`) si la requête échoue faute de réseau ; elle est rejouée
+  automatiquement dès que la connexion revient (écouteur sur l'évènement `online`, pas de
+  Background Sync API — non supportée sur Safari/iOS).
+- **Vie privée sur appareil partagé** : le cache des données utilisateur (agenda, listes de
+  courses) et la file d'écritures en attente sont vidés à la déconnexion (`authStore.logout()`),
+  pour qu'un compte suivant sur le même appareil ne voie pas les données mises en cache du
+  précédent.
+- Le service worker tourne aussi sous `vite dev` (`devOptions.enabled`) pour pouvoir être testé
+  sans build de production — voir `frontend/tests/e2e/offline-pwa.spec.js`
+  (`context.setOffline(true)` de Playwright).
+
 ## Design
 
 Palette chaude (rouge-orangé) et composants inspirés du design iOS récent / d'applications comme

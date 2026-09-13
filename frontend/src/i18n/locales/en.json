@@ -229,5 +229,9 @@
     "deleteUser": "Delete this user",
     "deleteUserConfirm": "Permanently delete the account \"{username}\" and all its data?",
     "thisIsYou": "This is you — manage your own account from \"My account\"."
+  },
+  "offline": {
+    "banner": "You're offline — showing the last saved version.",
+    "pendingSync": "Waiting for a connection to sync"
   }
 }
