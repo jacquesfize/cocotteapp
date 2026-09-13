@@ -15,7 +15,8 @@
     "account": "Compte",
     "accountSettings": "Mon compte",
     "admin": "Admin",
-    "adminThematicPages": "Pages thématiques"
+    "adminThematicPages": "Pages thématiques",
+    "administration": "Administration"
   },
   "common": {
     "loading": "Chargement...",
@@ -160,7 +161,7 @@
   },
   "home": {
     "title": "Cocotte",
-    "tagline": "L'application qui range vos recettes, planifie vos menus de la semaine et vous accompagne vers une alimentation plus végétale — sans jamais perdre de vue vos besoins nutritionnels.",
+    "tagline": "L'application qui range vos recettes, planifie vos menus de la semaine et affiche, pour chaque recette, sa valeur nutritionnelle et son empreinte carbone — de quoi voir, en un coup d'œil, ce qu'une semaine de repas coûte à votre corps et à la planète.",
     "browseRecipes": "Voir les recettes",
     "thematicPages": "À explorer",
     "latestRecipes": "Dernières recettes",

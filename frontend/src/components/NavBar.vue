@@ -77,51 +77,131 @@ onBeforeUnmount(() => {
       </RouterLink>
 
       <nav class="top-links">
-        <RouterLink to="/">{{ $t('nav.home') }}</RouterLink>
-        <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
-        <RouterLink to="/recipes/random">{{ $t('nav.random') }}</RouterLink>
+        <RouterLink to="/">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11.5 12 4l8 7.5" />
+            <path d="M6 10v9h12v-9" />
+          </svg>
+          <span>{{ $t('nav.home') }}</span>
+        </RouterLink>
+        <RouterLink to="/recipes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 5.5c2-1 4.5-1 6.5 0v13c-2-1-4.5-1-6.5 0v-13Z" />
+            <path d="M20 5.5c-2-1-4.5-1-6.5 0v13c2-1 4.5-1 6.5 0v-13Z" />
+          </svg>
+          <span>{{ $t('nav.recipes') }}</span>
+        </RouterLink>
         <template v-if="authStore.isAuthenticated">
-          <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
-          <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
-          <RouterLink v-if="authStore.user?.is_staff" to="/admin/users">{{ $t('nav.admin') }}</RouterLink>
-          <RouterLink v-if="authStore.user?.is_staff" to="/admin/thematic-pages">
-            {{ $t('nav.adminThematicPages') }}
+          <RouterLink to="/planning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5.5" width="16" height="15" rx="3" />
+              <path d="M4 10h16" />
+              <path d="M8 3.5v3M16 3.5v3" />
+            </svg>
+            <span>{{ $t('nav.planning') }}</span>
+          </RouterLink>
+          <RouterLink to="/shopping-lists">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3.5 4.5h2l2.2 11a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.6l1.3-6.9H6.2" />
+              <circle cx="10" cy="20" r="1.3" fill="currentColor" stroke="none" />
+              <circle cx="17" cy="20" r="1.3" fill="currentColor" stroke="none" />
+            </svg>
+            <span>{{ $t('nav.shopping') }}</span>
           </RouterLink>
         </template>
         <template v-else>
-          <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
-          <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
+          <RouterLink to="/login">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
+              <path d="M10 8l4 4-4 4" />
+              <path d="M14 12H3" />
+            </svg>
+            <span>{{ $t('nav.login') }}</span>
+          </RouterLink>
+          <RouterLink to="/register">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="8.5" cy="8" r="3.2" />
+              <path d="M2.5 20c1-3.3 3.6-5 6-5s5 1.7 6 5" />
+              <path d="M18 8v4M16 10h4" />
+            </svg>
+            <span>{{ $t('nav.register') }}</span>
+          </RouterLink>
         </template>
       </nav>
 
-      <div ref="accountEl" class="account">
-        <button
-          class="account-button"
-          type="button"
-          :aria-expanded="isMenuOpen"
-          aria-controls="account-panel"
-          :aria-label="t('nav.account')"
-          @click="toggleMenu"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <circle cx="12" cy="8.5" r="3.5" />
-            <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
+      <div class="nav-actions">
+        <RouterLink to="/recipes/random" class="dice-button" :aria-label="t('nav.random')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="4" />
+            <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none" />
+            <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none" />
+            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
           </svg>
-        </button>
+        </RouterLink>
 
-        <div id="account-panel" class="account-panel" :class="{ 'is-open': isMenuOpen }">
-          <p v-if="authStore.user" class="account-username">{{ authStore.user.username }}</p>
-          <RouterLink v-if="authStore.isAuthenticated" to="/account" class="account-link" @click="closeMenu">
-            {{ $t('nav.accountSettings') }}
-          </RouterLink>
-          <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
-            <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
-              {{ locale.label }}
-            </option>
-          </select>
-          <button v-if="authStore.isAuthenticated" class="secondary" @click="handleLogout">
-            {{ $t('nav.logout') }}
+        <div ref="accountEl" class="account">
+          <button
+            class="account-button"
+            type="button"
+            :aria-expanded="isMenuOpen"
+            aria-controls="account-panel"
+            :aria-label="t('nav.account')"
+            @click="toggleMenu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <circle cx="12" cy="8.5" r="3.5" />
+              <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
+            </svg>
           </button>
+
+          <div id="account-panel" class="account-panel" :class="{ 'is-open': isMenuOpen }">
+            <p v-if="authStore.user" class="account-username">{{ authStore.user.username }}</p>
+
+            <div v-if="authStore.isAuthenticated" class="account-section">
+              <RouterLink to="/account" class="account-link" @click="closeMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="12" cy="8.5" r="3.5" />
+                  <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
+                </svg>
+                <span>{{ $t('nav.accountSettings') }}</span>
+              </RouterLink>
+            </div>
+
+            <div v-if="authStore.user?.is_staff" class="account-section">
+              <p class="account-section-label">{{ $t('nav.administration') }}</p>
+              <RouterLink to="/admin/users" class="account-link" @click="closeMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3.5l6.5 2.6v5.4c0 4.6-3 7.7-6.5 8.9-3.5-1.2-6.5-4.3-6.5-8.9V6.1L12 3.5Z" />
+                </svg>
+                <span>{{ $t('nav.admin') }}</span>
+              </RouterLink>
+              <RouterLink to="/admin/thematic-pages" class="account-link" @click="closeMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="7" height="7" rx="1.5" />
+                  <rect x="13" y="4" width="7" height="7" rx="1.5" />
+                  <rect x="4" y="13" width="7" height="7" rx="1.5" />
+                  <rect x="13" y="13" width="7" height="7" rx="1.5" />
+                </svg>
+                <span>{{ $t('nav.adminThematicPages') }}</span>
+              </RouterLink>
+            </div>
+
+            <div class="account-section">
+              <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
+                <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
+                  {{ locale.label }}
+                </option>
+              </select>
+              <button v-if="authStore.isAuthenticated" class="secondary account-link-button" @click="handleLogout">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
+                  <path d="M14 16l4-4-4-4" />
+                  <path d="M18 12H8" />
+                </svg>
+                <span>{{ $t('nav.logout') }}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -222,13 +302,51 @@ onBeforeUnmount(() => {
 }
 
 .top-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   text-decoration: none;
   color: var(--color-text);
   font-weight: 600;
 }
 
+.top-links a svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .top-links a.router-link-active {
   color: var(--color-primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.dice-button {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border-radius: 999px;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dice-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dice-button:hover,
+.dice-button.router-link-active {
+  background: var(--color-primary-soft);
 }
 
 .account {
@@ -282,11 +400,50 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
-.account-link {
+.account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.account-section + .account-section {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.account-section-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
+}
+
+.account-link,
+.account-link-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--color-primary-dark);
   font-weight: 600;
   text-decoration: none;
   font-size: 0.9rem;
+}
+
+.account-link svg,
+.account-link-button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.account-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: auto;
+  cursor: pointer;
 }
 
 .locale-select {
@@ -300,6 +457,10 @@ onBeforeUnmount(() => {
 
 @media (max-width: 600px) {
   .top-links {
+    display: none;
+  }
+
+  .dice-button {
     display: none;
   }
 

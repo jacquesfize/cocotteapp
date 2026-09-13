@@ -15,7 +15,8 @@
     "account": "Account",
     "accountSettings": "My account",
     "admin": "Admin",
-    "adminThematicPages": "Thematic pages"
+    "adminThematicPages": "Thematic pages",
+    "administration": "Administration"
   },
   "common": {
     "loading": "Loading...",
@@ -160,7 +161,7 @@
   },
   "home": {
     "title": "Cocotte",
-    "tagline": "The app that stores your recipes, plans your weekly menus and helps you move towards a more plant-based diet — without losing sight of your nutritional needs.",
+    "tagline": "The app that stores your recipes, plans your weekly menus, and puts nutrition and carbon footprint right next to every recipe — so you can see, at a glance, what a week of meals costs your body and the planet.",
     "browseRecipes": "Browse recipes",
     "thematicPages": "Explore",
     "latestRecipes": "Latest recipes",
