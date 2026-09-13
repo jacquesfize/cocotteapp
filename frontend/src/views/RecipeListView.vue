@@ -35,6 +35,19 @@ function pageFromQuery(query: LocationQuery) {
   return Number(query.page) || 1
 }
 
+// Le routeur déclenche ses hooks afterEach (ex. la fermeture du menu compte dans NavBar.vue)
+// pour toute navigation, même un router.replace() vers une query string strictement
+// identique. Sans cette comparaison, chaque chargement de la liste — y compris le cas le
+// plus courant, sans filtre — émettait une navigation "pour rien" quelques centaines de ms
+// après le montage, qui pouvait entrer en collision avec ce que l'utilisateur faisait entre
+// temps (ouvrir le menu compte, cliquer sur un lien) et annuler cette action silencieusement.
+function queryMatches(current: LocationQuery, next: Record<string, unknown>) {
+  const currentKeys = Object.keys(current).filter((key) => current[key] !== undefined && current[key] !== '')
+  const nextKeys = Object.keys(next).filter((key) => next[key] !== undefined && next[key] !== '')
+  if (currentKeys.length !== nextKeys.length) return false
+  return currentKeys.every((key) => String(current[key]) === String(next[key]))
+}
+
 // Les filtres vivent dans l'URL (query string) : /recipes?ingredients=Tomate ou
 // /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
 const filters = ref(filtersFromQuery(route.query))
@@ -51,7 +64,9 @@ async function load() {
     const data = await listRecipes(params)
     recipes.value = data.results
     count.value = data.count
-    router.replace({ query: params as unknown as LocationQueryRaw })
+    if (!queryMatches(route.query, params as Record<string, unknown>)) {
+      router.replace({ query: params as unknown as LocationQueryRaw })
+    }
   } finally {
     isLoading.value = false
   }

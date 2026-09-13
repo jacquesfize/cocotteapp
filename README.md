@@ -324,6 +324,17 @@ correspondant dans la liste ci-contre ; une mention orpheline s'affiche en texte
 parsing (`frontend/src/utils/cooklangMentions.ts`) est purement côté client : le texte de
 l'étape stocké en base reste le texte brut tel que saisi, `@` compris.
 
+Le texte d'une étape peut aussi contenir un minuteur Cooklang `~{quantité%unité}` (nom
+optionnel avant les `{}`, ex. `~repos{10%minutes}`) ; les unités reconnues sont les secondes,
+minutes et heures (`s`/`sec`/`seconde(s)`, `min`/`minute(s)`, `h`/`heure(s)` — en français ou en
+anglais). En lecture, chaque minuteur reconnu devient un bouton qui lance un décompte
+(pause/reprise/réinitialisation, carillon à la fin) ; une syntaxe non reconnue (unité inconnue,
+quantité manquante) s'affiche en texte normal. Ce parsing
+(`frontend/src/utils/cooklangTimers.ts`) est lui aussi purement côté client et indépendant du
+`TIMER_RE` du parseur backend (`backend/apps/recipes/cooklang.py`, lui-même non câblé — voir plus
+haut) : il n'y a pas d'auto-complétion `~` dans `CooklangStepInput.vue`, la syntaxe se tape à la
+main.
+
 ## Page d'accueil & pages thématiques
 
 La page d'accueil (`/`) présente l'application, les dernières recettes ajoutées et des « pages

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Download } from '@lucide/vue'
 import NutritionCard from './NutritionCard.vue'
+import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../api/recipes'
 import { parseIngredientMentions } from '../utils/cooklangMentions'
+import { parseTimerMentions } from '../utils/cooklangTimers'
 import { downloadBlob } from '../utils/download'
 import { formatDuration } from '../utils/format'
 import type { Recipe } from '../types/models'
@@ -14,26 +16,41 @@ const props = defineProps<{
 interface StepSegment {
   text: string
   ingredientId?: number
+  timerSeconds?: number
+  timerLabel?: string
 }
 
 // Découpe le texte d'une étape en segments pour mettre en évidence les "@mentions"
-// d'ingrédients et les relier à l'ingrédient correspondant dans la liste ci-contre
-// (voir frontend/src/utils/cooklangMentions.ts pour la syntaxe).
+// d'ingrédients (reliées à l'ingrédient correspondant dans la liste ci-contre) et les
+// minuteurs "~{quantité%unité}" (voir frontend/src/utils/cooklangMentions.ts et
+// cooklangTimers.ts pour la syntaxe).
 function stepSegments(instruction: string): StepSegment[] {
-  const mentions = parseIngredientMentions(instruction)
-  if (!mentions.length) return [{ text: instruction }]
+  const mentions = parseIngredientMentions(instruction).map((mention) => ({ kind: 'mention' as const, ...mention }))
+  const timers = parseTimerMentions(instruction)
+    .filter((timer) => timer.totalSeconds !== null)
+    .map((timer) => ({ kind: 'timer' as const, ...timer }))
+  const ranges = [...mentions, ...timers].sort((a, b) => a.start - b.start)
+  if (!ranges.length) return [{ text: instruction }]
 
   const segments: StepSegment[] = []
   let cursor = 0
-  for (const mention of mentions) {
-    if (mention.start > cursor) {
-      segments.push({ text: instruction.slice(cursor, mention.start) })
+  for (const range of ranges) {
+    if (range.start > cursor) {
+      segments.push({ text: instruction.slice(cursor, range.start) })
     }
-    const match = props.recipe.ingredients.find(
-      (item) => item.ingredient.name.toLowerCase() === mention.displayName.toLowerCase(),
-    )
-    segments.push({ text: mention.displayName, ingredientId: match?.ingredient.id })
-    cursor = mention.end
+    if (range.kind === 'mention') {
+      const match = props.recipe.ingredients.find(
+        (item) => item.ingredient.name.toLowerCase() === range.displayName.toLowerCase(),
+      )
+      segments.push({ text: range.displayName, ingredientId: match?.ingredient.id })
+    } else {
+      segments.push({
+        text: instruction.slice(range.start, range.end),
+        timerSeconds: range.totalSeconds ?? undefined,
+        timerLabel: range.displayName || undefined,
+      })
+    }
+    cursor = range.end
   }
   if (cursor < instruction.length) {
     segments.push({ text: instruction.slice(cursor) })
@@ -100,6 +117,11 @@ async function handleDownloadPdf() {
               <a v-if="segment.ingredientId" :href="`#ingredient-${segment.ingredientId}`" class="ingredient-mention">{{
                 segment.text
               }}</a>
+              <StepTimerButton
+                v-else-if="segment.timerSeconds !== undefined"
+                :seconds="segment.timerSeconds"
+                :label="segment.timerLabel"
+              />
               <template v-else>{{ segment.text }}</template>
             </template>
           </li>

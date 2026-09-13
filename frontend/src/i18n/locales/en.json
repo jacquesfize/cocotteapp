@@ -261,5 +261,17 @@
   "offline": {
     "banner": "You're offline — showing the last saved version.",
     "pendingSync": "Waiting for a connection to sync"
+  },
+  "timer": {
+    "start": "Start a {duration} timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "reset": "Reset",
+    "finished": "Done!",
+    "seconds": "{n}s",
+    "minutesSeconds": "{m}m {s}s",
+    "notificationTitle": "Timer done!",
+    "notificationBody": "Your {duration} timer is done.",
+    "notificationBodyNamed": "\"{label}\" ({duration}) is done."
   }
 }
