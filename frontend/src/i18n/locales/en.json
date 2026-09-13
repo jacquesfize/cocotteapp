@@ -87,6 +87,7 @@
     "addedToPlanning": "Added to the planner.",
     "addToPlanningError": "Could not add this recipe (date already used?).",
     "deleteConfirm": "Delete this recipe?",
+    "deleteError": "Could not delete this recipe.",
     "saveError": "Could not save the recipe.",
     "newTitle": "New recipe",
     "editTitle": "Edit recipe",

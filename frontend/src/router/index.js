@@ -6,6 +6,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('../views/HomeView.vue'),
+    meta: { public: true },
   },
   {
     path: '/login',
@@ -23,6 +24,7 @@ const routes = [
     path: '/recipes',
     name: 'recipes',
     component: () => import('../views/RecipeListView.vue'),
+    meta: { public: true },
   },
   {
     path: '/recipes/new',
@@ -33,12 +35,14 @@ const routes = [
     path: '/recipes/random',
     name: 'recipe-random',
     component: () => import('../views/RandomRecipeView.vue'),
+    meta: { public: true },
   },
   {
     path: '/recipes/:id',
     name: 'recipe-detail',
     component: () => import('../views/RecipeDetailView.vue'),
     props: true,
+    meta: { public: true },
   },
   {
     path: '/recipes/:id/edit',

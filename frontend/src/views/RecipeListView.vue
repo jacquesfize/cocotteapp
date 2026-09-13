@@ -5,10 +5,12 @@ import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
 import { importRecipeFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
+import { useAuthStore } from '../stores/auth'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const recipes = ref([])
 const isLoading = ref(false)
@@ -90,13 +92,13 @@ async function handleImport() {
         <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">
           <button class="secondary">{{ $t('recipes.seasonalShortcut') }}</button>
         </RouterLink>
-        <RouterLink :to="{ name: 'recipe-new' }">
+        <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
           <button>{{ $t('recipes.newRecipe') }}</button>
         </RouterLink>
       </div>
     </div>
 
-    <div class="card" style="margin-bottom: 1rem">
+    <div v-if="authStore.isAuthenticated" class="card" style="margin-bottom: 1rem">
       <form class="row" style="align-items: flex-end" @submit.prevent="handleImport">
         <div class="field" style="flex: 1; min-width: 220px">
           <label for="import-url">{{ $t('recipes.importFromUrl') }}</label>

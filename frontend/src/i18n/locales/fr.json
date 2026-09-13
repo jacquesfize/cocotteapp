@@ -87,6 +87,7 @@
     "addedToPlanning": "Ajoutée à l'agenda.",
     "addToPlanningError": "Impossible d'ajouter cette recette (date déjà utilisée ?).",
     "deleteConfirm": "Supprimer cette recette ?",
+    "deleteError": "Impossible de supprimer cette recette.",
     "saveError": "Impossible d'enregistrer la recette.",
     "newTitle": "Nouvelle recette",
     "editTitle": "Modifier la recette",

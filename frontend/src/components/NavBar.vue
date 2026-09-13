@@ -76,16 +76,18 @@ onBeforeUnmount(() => {
         <span class="brand-name">{{ $t('app.title') }}</span>
       </RouterLink>
 
-      <nav v-if="authStore.isAuthenticated" class="top-links">
+      <nav class="top-links">
         <RouterLink to="/">{{ $t('nav.home') }}</RouterLink>
         <RouterLink to="/recipes">{{ $t('nav.recipes') }}</RouterLink>
         <RouterLink to="/recipes/random">{{ $t('nav.random') }}</RouterLink>
-        <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
-        <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
-      </nav>
-      <nav v-else class="top-links">
-        <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
-        <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
+        <template v-if="authStore.isAuthenticated">
+          <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
+          <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
+        </template>
+        <template v-else>
+          <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
+          <RouterLink to="/register">{{ $t('nav.register') }}</RouterLink>
+        </template>
       </nav>
 
       <div ref="accountEl" class="account">
@@ -118,7 +120,7 @@ onBeforeUnmount(() => {
     </div>
   </header>
 
-  <nav v-if="authStore.isAuthenticated" class="tabbar" :aria-label="t('nav.menu')">
+  <nav class="tabbar" :aria-label="t('nav.menu')">
     <RouterLink to="/" class="tab-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 11.5 12 4l8 7.5" />
@@ -142,22 +144,24 @@ onBeforeUnmount(() => {
       </svg>
       <span>{{ $t('nav.random') }}</span>
     </RouterLink>
-    <RouterLink to="/planning" class="tab-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="5.5" width="16" height="15" rx="3" />
-        <path d="M4 10h16" />
-        <path d="M8 3.5v3M16 3.5v3" />
-      </svg>
-      <span>{{ $t('nav.planning') }}</span>
-    </RouterLink>
-    <RouterLink to="/shopping-lists" class="tab-item">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3.5 4.5h2l2.2 11a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.6l1.3-6.9H6.2" />
-        <circle cx="10" cy="20" r="1.3" fill="currentColor" stroke="none" />
-        <circle cx="17" cy="20" r="1.3" fill="currentColor" stroke="none" />
-      </svg>
-      <span>{{ $t('nav.shopping') }}</span>
-    </RouterLink>
+    <template v-if="authStore.isAuthenticated">
+      <RouterLink to="/planning" class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="5.5" width="16" height="15" rx="3" />
+          <path d="M4 10h16" />
+          <path d="M8 3.5v3M16 3.5v3" />
+        </svg>
+        <span>{{ $t('nav.planning') }}</span>
+      </RouterLink>
+      <RouterLink to="/shopping-lists" class="tab-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 4.5h2l2.2 11a2 2 0 0 0 2 1.6h7.1a2 2 0 0 0 2-1.6l1.3-6.9H6.2" />
+          <circle cx="10" cy="20" r="1.3" fill="currentColor" stroke="none" />
+          <circle cx="17" cy="20" r="1.3" fill="currentColor" stroke="none" />
+        </svg>
+        <span>{{ $t('nav.shopping') }}</span>
+      </RouterLink>
+    </template>
   </nav>
 </template>
 
