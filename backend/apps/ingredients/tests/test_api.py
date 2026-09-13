@@ -16,7 +16,10 @@ def test_nutrition_suggestion_requires_name():
 @pytest.mark.django_db
 def test_nutrition_suggestion_returns_found_when_service_has_a_match():
     client = APIClient()
-    with patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value={"calories_kcal": 149}):
+    with (
+        patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value={"calories_kcal": 149}),
+        patch("apps.ingredients.views.lookup_carbon_footprint", return_value=None),
+    ):
         response = client.get("/api/ingredients/nutrition-suggestion/?name=ail")
 
     assert response.status_code == 200
@@ -26,11 +29,43 @@ def test_nutrition_suggestion_returns_found_when_service_has_a_match():
 @pytest.mark.django_db
 def test_nutrition_suggestion_returns_not_found_when_service_has_no_match():
     client = APIClient()
-    with patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value=None):
+    with (
+        patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value=None),
+        patch("apps.ingredients.views.lookup_carbon_footprint", return_value=None),
+    ):
         response = client.get("/api/ingredients/nutrition-suggestion/?name=ingredient-inconnu")
 
     assert response.status_code == 200
     assert response.data == {"found": False}
+
+
+@pytest.mark.django_db
+def test_nutrition_suggestion_merges_carbon_footprint_into_suggestion():
+    client = APIClient()
+    with (
+        patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value={"calories_kcal": 149}),
+        patch("apps.ingredients.views.lookup_carbon_footprint", return_value=0.383),
+    ):
+        response = client.get("/api/ingredients/nutrition-suggestion/?name=ail")
+
+    assert response.status_code == 200
+    assert response.data == {
+        "found": True,
+        "suggestion": {"calories_kcal": 149, "carbon_kg_co2e_per_kg": 0.383},
+    }
+
+
+@pytest.mark.django_db
+def test_nutrition_suggestion_found_from_carbon_footprint_alone():
+    client = APIClient()
+    with (
+        patch("apps.ingredients.views.lookup_nutrition_suggestion", return_value=None),
+        patch("apps.ingredients.views.lookup_carbon_footprint", return_value=0.383),
+    ):
+        response = client.get("/api/ingredients/nutrition-suggestion/?name=ail")
+
+    assert response.status_code == 200
+    assert response.data == {"found": True, "suggestion": {"carbon_kg_co2e_per_kg": 0.383}}
 
 
 @pytest.mark.django_db

@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 
 OFF_SEARCH_URL = "https://world.openfoodfacts.org/api/v2/search"
+AGRIBALYSE_LINES_URL = "https://data.ademe.fr/data-fair/api/v1/datasets/agribalyse-31-synthese/lines"
 
 # Mapping des nutriments Open Food Facts (par 100g) vers nos champs Ingredient : uniquement les
 # macronutriments principaux, dont l'unité (kcal / g) est sans ambiguïté dans les données OFF.
@@ -44,6 +45,31 @@ def lookup_nutrition_suggestion(name: str) -> dict | None:
             suggestion[field] = value
 
     return suggestion or None
+
+
+def lookup_carbon_footprint(name: str) -> float | None:
+    """Cherche l'ingrédient correspondant dans AGRIBALYSE (base ADEME/INRAE d'impacts
+    environnementaux par analyse de cycle de vie, indexée par nom de produit en français —
+    contrairement à Open Food Facts, mieux adaptée à un ingrédient brut) et renvoie son impact
+    "Changement climatique" en kg CO2e/kg, déjà dans l'unité de `carbon_kg_co2e_per_kg`. Ne lève
+    jamais d'exception : tout échec renvoie None."""
+    try:
+        response = requests.get(
+            AGRIBALYSE_LINES_URL,
+            params={"q": name, "size": 1},
+            headers={"User-Agent": f"Cocotte/1.0 ({settings.DEFAULT_FROM_EMAIL})"},
+            timeout=5,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except (requests.RequestException, ValueError):
+        return None
+
+    results = data.get("results") or []
+    if not results:
+        return None
+
+    return _as_float(results[0].get("Changement_climatique"))
 
 
 def _as_float(value) -> float | None:

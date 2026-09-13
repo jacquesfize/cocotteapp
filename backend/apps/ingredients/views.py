@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from .filters import IngredientFilter
 from .models import Ingredient
 from .serializers import IngredientSerializer
-from .services import lookup_nutrition_suggestion
+from .services import lookup_carbon_footprint, lookup_nutrition_suggestion
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
@@ -25,7 +25,12 @@ class IngredientViewSet(viewsets.ModelViewSet):
         if not name:
             return Response({"detail": "name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        suggestion = lookup_nutrition_suggestion(name)
-        if suggestion is None:
+        suggestion = lookup_nutrition_suggestion(name) or {}
+
+        carbon = lookup_carbon_footprint(name)
+        if carbon is not None:
+            suggestion["carbon_kg_co2e_per_kg"] = carbon
+
+        if not suggestion:
             return Response({"found": False})
         return Response({"found": True, "suggestion": suggestion})

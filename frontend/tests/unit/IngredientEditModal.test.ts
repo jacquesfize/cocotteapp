@@ -76,6 +76,20 @@ describe('IngredientEditModal', () => {
     expect(wrapper.text()).toContain('Valeurs suggérées appliquées')
   })
 
+  it('applies the suggested carbon footprint alongside nutrition values', async () => {
+    vi.mocked(suggestIngredientNutrition).mockResolvedValue({
+      found: true,
+      suggestion: { calories_kcal: 149, carbon_kg_co2e_per_kg: 0.383 },
+    })
+
+    const wrapper = mountModal('ail')
+    await wrapper.get('#ingredient-modal-suggest').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.get('#ingredient-modal-carbon').element).toHaveProperty('value', '0.383')
+  })
+
   it('shows a message when no suggestion is found', async () => {
     vi.mocked(suggestIngredientNutrition).mockResolvedValue({ found: false })
 

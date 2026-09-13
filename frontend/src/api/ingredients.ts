@@ -12,7 +12,7 @@ export function createIngredient(payload: Partial<Ingredient>): Promise<Ingredie
 
 export interface NutritionSuggestionResponse {
   found: boolean
-  suggestion?: Partial<NutrientTotals>
+  suggestion?: Partial<NutrientTotals> & { carbon_kg_co2e_per_kg?: number }
 }
 
 export function suggestIngredientNutrition(name: string): Promise<NutritionSuggestionResponse> {

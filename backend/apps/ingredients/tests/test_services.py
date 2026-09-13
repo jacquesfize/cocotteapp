@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from apps.ingredients.services import lookup_nutrition_suggestion
+from apps.ingredients.services import lookup_carbon_footprint, lookup_nutrition_suggestion
 
 
 def _mock_response(status_code=200, json_data=None, raise_for_status_error=None):
@@ -79,3 +79,33 @@ def test_lookup_nutrition_suggestion_returns_none_on_invalid_json():
     response.json.side_effect = ValueError("invalid json")
     with patch("apps.ingredients.services.requests.get", return_value=response):
         assert lookup_nutrition_suggestion("ail") is None
+
+
+def test_lookup_carbon_footprint_returns_climate_change_value():
+    payload = {"results": [{"Nom_du_Produit_en_Français": "Ail, cru", "Changement_climatique": 0.383}]}
+    with patch("apps.ingredients.services.requests.get", return_value=_mock_response(json_data=payload)):
+        assert lookup_carbon_footprint("ail") == 0.383
+
+
+def test_lookup_carbon_footprint_returns_none_when_no_results():
+    with patch(
+        "apps.ingredients.services.requests.get", return_value=_mock_response(json_data={"results": []})
+    ):
+        assert lookup_carbon_footprint("ingrédient inconnu") is None
+
+
+def test_lookup_carbon_footprint_returns_none_when_field_missing():
+    payload = {"results": [{"Nom_du_Produit_en_Français": "Ail, cru"}]}
+    with patch("apps.ingredients.services.requests.get", return_value=_mock_response(json_data=payload)):
+        assert lookup_carbon_footprint("ail") is None
+
+
+def test_lookup_carbon_footprint_returns_none_on_timeout():
+    with patch("apps.ingredients.services.requests.get", side_effect=requests.Timeout):
+        assert lookup_carbon_footprint("ail") is None
+
+
+def test_lookup_carbon_footprint_returns_none_on_http_error():
+    response = _mock_response(status_code=503, raise_for_status_error=requests.HTTPError("503"))
+    with patch("apps.ingredients.services.requests.get", return_value=response):
+        assert lookup_carbon_footprint("ail") is None
