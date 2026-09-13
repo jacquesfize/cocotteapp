@@ -1,104 +1,188 @@
-# Cocotte
+<p align="center">
+  <img src="frontend/public/pwa-512.png" width="110" alt="Cocotte logo">
+</p>
 
-Application de gestion de recettes : page d'accueil (dernières recettes, pages thématiques),
-recherche par ingrédients/saison/régime/temps, tirage d'une recette au hasard, menu de la
-semaine avec suivi nutritionnel et empreinte carbone (utile pour une transition vegan),
-génération de listes de courses, import manuel ou depuis une URL (avec récupération automatique
-de l'image), export PDF (recette ou agenda de la semaine), image/vidéo/source par recette.
-Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first,
-navigation par barre d'onglets en bas d'écran).
+<h1 align="center">Cocotte</h1>
 
-## Lancer en local (Docker)
+<p align="center">
+  An open-source recipe manager and weekly meal planner that puts nutrition and
+  <strong>carbon footprint</strong> right next to every recipe.
+</p>
+
+<p align="center">
+  <a href="https://github.com/jacquesfize/testrecetteapp/actions/workflows/ci.yml"><img src="https://github.com/jacquesfize/testrecetteapp/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js&logoColor=white" alt="Vue 3">
+  <img src="https://img.shields.io/badge/Django-5-092E20?logo=django&logoColor=white" alt="Django 5">
+</p>
+
+## What is Cocotte?
+
+Cocotte lets you store recipes (written by hand or imported from a URL), search them by ingredient, season, diet or cooking time, and plan them over a week — for yourself or for a household. Each recipe carries its nutritional values and its estimated CO2 impact, and the
+weekly planner rolls both up so you can see, at a glance, what a week of meals costs your body and the planet.
+
+#### 💫 Main features
+
+- **Recipe management** — manual entry or import from a URL (image fetched automatically when the source page has one), recipe image/video/source link, PDF export.
+- **Recipe versioning** — fork a recipe into a variation (e.g. "gluten-free", "spicier") that stays linked to the original.
+- **Search & filters** — by ingredient, season, diet, total time; shareable/bookmarkable filtered URLs; a homepage with themed  shortcuts (seasonal produce, vegan, ready in 30 minutes).
+- **Weekly meal planning** — a week grid with per-day and weekly totals for nutrition and carbon footprint, exportable as a single PDF (the week plus every recipe in it).
+- **Nutrition tracking** — per-serving macronutrients plus iron, B12, calcium, omega-3 and zinc, with deficiency alerts tuned to your diet type and activity level.
+- **Carbon footprint** — every ingredient carries a kg CO2e/kg estimate; recipes and the weekly plan show the cumulative impact.
+- **Shopping lists** — generated from your planned meals, ingredients aggregated and scaled to servings.
+- **Cooklang-style step links** — reference an ingredient from a recipe step (`@ingredient`) with autocomplete, plus inline cooking timers (`~{10%minutes}`).
+- **Accounts & admin** — email-based login, password reset by email, full data export, account deletion, and a staff-only user administration page.
+- **Bilingual PWA** — French/English UI, installable, mobile-first, with offline reading and offline shopping-list check-off.
+
+## 🌍 Why this project?
+
+Cocotte is built as a free, open-source alternative focused on
+**planning**, not browsing — storing your own recipes (or someone else's household), organizing them into a week, and generating the shopping list that comes out of it.
+
+An important reason is environmental. Diet is one of the largest levers an individual has on their carbon footprint, and that impact is almost never visible at the point where the decision is actually made — while picking what to cook. Cocotte surfaces the carbon footprint of every ingredient and recipe next to its nutrition facts, so a dietary shift (e.g. eating less meat and dairy) is something you can see and track over a week, not an abstract statistic. The season filter pushes the same idea further: cooking with vegetables that are actually in season usually means less energy-intensive production and transport. This environmental dimension is a core design goal of the app, not an add-on.
+
+## 🚀 Get started
+
+Docker Compose is the fastest way to get a full stack (Postgres + backend + frontend) running.
 
 ```bash
 cp backend/.env.example backend/.env
 docker compose up --build
 ```
 
-- API : `http://localhost:8000/api/`, admin : `http://localhost:8000/admin/`
-- Frontend : `http://localhost:5173/`
+- Frontend: `http://localhost:5173/`
+- API: `http://localhost:8000/api/`
+- Django admin: `http://localhost:8000/admin/`
 
-## Déploiement en production (Docker + Caddy)
+The first time you start the stack, the database is empty — **you must run migrations, create an
+admin account, and seed reference data before the app is usable** (nutrient thresholds and the
+carbon-footprint ingredient library in particular are what make nutrition/carbon tracking work at
+all):
 
-`docker-compose.prod.yml` construit des images de production (backend servi par Gunicorn,
-frontend buildé en fichiers statiques) et lance un conteneur Caddy en frontal qui obtient et
-renouvelle automatiquement un certificat HTTPS (Let's Encrypt) pour le domaine fourni, sert la
-SPA, et fait reverse proxy vers le backend pour `/api/`, `/admin/`, `/static/` et `/media/`.
+```bash
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py createsuperuser
+docker compose exec backend python manage.py seed_nutrient_requirements
+docker compose exec backend python manage.py seed_common_ingredients
+docker compose exec backend python manage.py seed_thematic_pages
+```
 
-Prérequis : un serveur avec Docker + Docker Compose, un nom de domaine dont l'enregistrement
-DNS (A/AAAA) pointe déjà vers ce serveur, et les ports 80/443 ouverts.
+All three seed commands are idempotent — safe to re-run any time without duplicating data.
+
+### 🔒 Production deployment
+
+`docker-compose.prod.yml` builds production images (backend served by Gunicorn, frontend built
+to static files) behind a Caddy reverse proxy that automatically obtains and renews an HTTPS
+certificate (Let's Encrypt). It needs a server with Docker + Docker Compose, a domain whose DNS
+(A/AAAA) already points at that server, and ports 80/443 open.
 
 ```bash
 cp .env.prod.example .env.prod
-# Éditer .env.prod : DOMAIN, ACME_EMAIL, DJANGO_SECRET_KEY, POSTGRES_PASSWORD (+ le
-# reporter dans DATABASE_URL), DJANGO_ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS, CSRF_TRUSTED_ORIGINS.
+# edit .env.prod — see the Configuration section below
 
 docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
 
-# Créer un compte admin une fois les conteneurs démarrés :
+# migrations run automatically on container start; still create the first admin account and seed data:
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py createsuperuser
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
 ```
 
-Le conteneur backend applique les migrations et régénère les fichiers statiques à chaque
-démarrage ; les images/PDF téléversés (`media/`) et les fichiers statiques (`staticfiles/`)
-vivent dans des volumes Docker nommés, tout comme les certificats Caddy (`caddy_data`) — ils
-survivent donc à un `docker compose up --build` répété. `POSTGRES_PASSWORD` (utilisé pour créer
-la base) et le mot de passe intégré dans `DATABASE_URL` doivent rester identiques.
+Uploaded images/PDFs (`media/`), static files (`staticfiles/`) and Caddy's certificates
+(`caddy_data`) live in named Docker volumes, so they survive a repeated
+`docker compose up --build`. `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` must
+stay identical.
 
-## Backend — lancer en local (sans Docker)
+## 🧑‍🍳 How to use it
 
-Le projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python
-(`pyproject.toml` + `uv.lock`, pas de `requirements.txt`).
+**Create a recipe.** Either write one by hand (title, servings, prep/cook time, steps,
+ingredients) or paste a URL from a supported recipe site — Cocotte scrapes the title, ingredients,
+steps and picture automatically, so you can review and adjust before saving. From an existing
+recipe you can also create a **version**: a fork (e.g. a gluten-free or spicier variant) that
+stays linked to the original so all variations stay discoverable together.
+
+**Add ingredients.** While typing a recipe step, `@ingredient` opens an autocomplete over the
+whole ingredient database, not just what's already in the recipe — picking one adds it to the
+recipe automatically. If nothing matches, "+ Create" opens a small form (name, category, default
+unit, nutrition, carbon footprint) that can pre-fill itself from Open Food Facts and Agribalyse
+lookups, so you don't have to hunt down nutrition values by hand.
+
+**Search.** The recipe list filters by ingredient, season, diet and total time, and the current
+filters live in the URL — so a filtered view is a link you can bookmark or share. The homepage
+also surfaces a few themed shortcuts (seasonal produce, vegan, ready in 30 minutes) that are just
+pre-set filters, editable from the Django admin without touching any code.
+
+**Plan your week & shop.** Add recipes to the weekly planner grid, scale servings per meal, and
+generate a shopping list from the whole week in one click — ingredients are aggregated and scaled
+automatically across every recipe you planned.
+
+**Export PDFs.** Any recipe page has a "Download as PDF" button; the weekly planner has a
+"Download the week's PDF" button that bundles the week grid with the full detail of every recipe
+in it — handy to print and take to a vegan association, a store, or just the kitchen.
+
+## ⚙️ Configuration
+
+Environment variables read by the backend (`backend/.env` in dev, `.env.prod` for the Docker
+production stack — see `backend/.env.example` and `.env.prod.example`):
+
+| Variable | Default | Description |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | `change-me-in-production` | Django's cryptographic secret key. Always set a long random value outside of local dev. |
+| `DEBUG` | `False` | Django debug mode. `.env.example` sets it to `True` for local development. |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated hostnames the backend will serve. |
+| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/cocotte` | Postgres connection string (`postgres://user:password@host:port/dbname`). |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated origins allowed to call the API from a browser (the frontend's origin). |
+| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Django email backend. The console backend prints password-reset emails to the backend logs instead of sending them — fine for dev, must be changed for production. |
+| `EMAIL_HOST` | `localhost` | SMTP server host (only used with the SMTP backend). |
+| `EMAIL_PORT` | `25` | SMTP server port. |
+| `EMAIL_HOST_USER` | *(empty)* | SMTP username. |
+| `EMAIL_HOST_PASSWORD` | *(empty)* | SMTP password. |
+| `EMAIL_USE_TLS` | `False` | Whether to use TLS for the SMTP connection. |
+| `DEFAULT_FROM_EMAIL` | `Cocotte <noreply@cocotte.app>` | "From" address for outgoing emails (password reset, etc.). |
+| `FRONTEND_URL` | `http://localhost:5173` | Base URL used to build links sent by email (e.g. the password-reset link). Must point at the public frontend URL in production. |
+
+Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml`):
+
+| Variable | Default | Description |
+|---|---|---|
+| `DOMAIN` | *(required)* | Public domain name Caddy requests an HTTPS certificate for and serves the app on. |
+| `ACME_EMAIL` | *(required)* | Contact email used for the Let's Encrypt account. |
+| `CSRF_TRUSTED_ORIGINS` | *(empty)* | Comma-separated origins allowed to pass Django's CSRF check (your public HTTPS domain). |
+| `SECURE_SSL_REDIRECT` | `True` | Redirect all HTTP requests to HTTPS. |
+| `SECURE_HSTS_SECONDS` | `604800` (1 week) | How long browsers should remember to only reach the site over HTTPS (HSTS). |
+| `POSTGRES_PASSWORD` | *(required)* | Password for the Postgres container's `postgres` user — must match the password embedded in `DATABASE_URL`. |
+
+## 🛠️ Dev mode (without Docker)
+
+### 🐍 Backend
+
+Uses [uv](https://docs.astral.sh/uv/) for dependency management (`pyproject.toml` + `uv.lock`,
+no `requirements.txt`):
 
 ```bash
 cd backend
 uv sync --group dev
-cp .env.example .env  # adapter DATABASE_URL à votre Postgres local
+cp .env.example .env   # point DATABASE_URL at your local Postgres
 uv run python manage.py migrate
 uv run python manage.py createsuperuser
+uv run python manage.py seed_nutrient_requirements
+uv run python manage.py seed_common_ingredients
+uv run python manage.py seed_thematic_pages
 uv run python manage.py runserver
 ```
 
-Tests :
+Tests and linting:
 
 ```bash
-cd backend
-uv run pytest
+uv run pytest                    # full suite
+uv run pytest --cov=apps         # with coverage
+uv run ruff check .              # lint
 ```
 
-Après la première migration, peupler les seuils nutritionnels de référence (utilisés pour
-détecter les carences en protéines/fer/B12/calcium/oméga-3/zinc selon le régime et le niveau
-d'activité) :
+### 💻 Frontend
 
-```bash
-uv run python manage.py seed_nutrient_requirements
-```
-
-Peupler aussi une bibliothèque d'ingrédients courants avec de vraies valeurs nutritionnelles, une
-empreinte carbone (Agribalyse/Poore & Nemecek) et une saisonnalité réaliste (légumes, fruits,
-légumineuses, céréales, noix/graines, laitier et alternatives végétales, viande/poisson, matières
-grasses, condiments — dont des sources clés pour un régime végan comme le tofu, le tempeh, les
-graines de lin/chia et la levure maltée enrichie en B12) :
-
-```bash
-uv run python manage.py seed_common_ingredients
-```
-
-Peupler enfin quelques pages thématiques de base pour la page d'accueil (éditables ensuite,
-ou remplaçables, depuis l'admin Django — `/admin/recipes/thematicpage/`) :
-
-```bash
-uv run python manage.py seed_thematic_pages
-```
-
-Les trois commandes sont idempotentes (rejouables sans dupliquer les données) ; les deux
-premières fusionnent avec un ingrédient déjà créé à la volée sous une casse différente (ex.
-"tomate" créé depuis l'application est enrichi plutôt que dupliqué en "Tomate").
-
-## Frontend — lancer en local (sans Docker)
-
-Le frontend consomme l'API DRF via un proxy Vite (`/api` → `http://localhost:8000`), donc le
-backend doit tourner en parallèle.
+Needs the backend running on `:8000` (Vite proxies `/api` there — see `vite.config.js`):
 
 ```bash
 cd frontend
@@ -106,321 +190,32 @@ npm install
 npm run dev
 ```
 
-Ouvrir `http://localhost:5173/`.
-
-Tests unitaires (Vitest) :
+Open `http://localhost:5173/`.
 
 ```bash
-cd frontend
-npm run test:unit
+npm run test:unit                # Vitest
+npx playwright install           # once
+npm run test:e2e                 # Playwright — needs backend AND frontend already running
+npm run build                    # production build
 ```
 
-Tests end-to-end (Playwright) — nécessite le backend ET le frontend démarrés :
+## 🙏 Acknowledgments
 
-```bash
-cd frontend
-npx playwright install  # une seule fois
-npm run test:e2e
-```
+Cocotte's code, including most of this README, was written with the assistance of AI coding tools (Claude Code) — reviewed and directed by a human, but you should read it with that in mind.
 
-## Structure
+Nutrition and carbon-footprint data come from:
 
-- `backend/config/` : settings Django (base/dev/prod), urls.
-- `backend/apps/accounts/` : utilisateurs (régime alimentaire, niveau d'activité), auth JWT.
-- `backend/apps/ingredients/` : ingrédients, valeurs nutritionnelles, empreinte carbone, saisonnalité.
-- `backend/apps/recipes/` : recettes, ingrédients de recette, étapes, tags, parseur Cooklang.
-- `backend/apps/nutrition/` : calcul des apports nutritionnels et de l'empreinte carbone, détection
-  de carences, commande `seed_nutrient_requirements`.
-- `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel et carbone hebdomadaire.
-- `backend/apps/shopping/` : génération et export de listes de courses.
-- `backend/apps/importer/` : import de recettes depuis une URL, récupère aussi automatiquement
-  l'image de la recette source quand le site la fournit.
-- `frontend/src/api/` : client axios + modules par ressource.
-- `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
-- `frontend/src/views/` : pages (accueil, connexion, recettes, agenda, listes de courses).
-- `frontend/src/components/` : `IngredientPicker`/`RecipePicker` (recherche + création à la volée),
-  `MealSlot` (case repas de la grille semaine), `NutritionCard`.
-- `frontend/src/i18n/` : configuration vue-i18n + fichiers de traduction (`locales/fr.json`, `locales/en.json`).
+- [Open Food Facts](https://world.openfoodfacts.org/) — packaged-product nutrition facts, used to
+  suggest macronutrients when creating an ingredient.
+- [Agribalyse](https://agribalyse.ademe.fr/) (ADEME/INRAE) — life-cycle environmental impact data
+  for food products, used for carbon-footprint suggestions and as the main source for the seeded
+  ingredient library.
+- [Poore & Nemecek (2018)](https://www.science.org/doi/10.1126/science.aaq0216), via
+  [Our World in Data](https://ourworldindata.org/environmental-impacts-of-food) — used as a
+  secondary reference for category-level carbon footprint averages in the seeded ingredient
+  library.
 
-## Architecture — parcours utilisateur
+These are category-level averages, not lab measurements or a certified carbon audit — production method (meat/dairy vs. plant-based, in particular) dominates a food's carbon footprint far more than transport distance.
 
-Les pages accessibles et les actions proposées changent selon que le visiteur est anonyme,
-connecté, ou administrateur (staff). Les routes réservées redirigent vers `/login` ; certaines
-actions (modifier une recette, l'ajouter à l'agenda) ne s'affichent que quand elles sont
-réellement disponibles.
-
-```mermaid
-flowchart TD
-    Start(["Arrivée sur Cocotte"]) --> Home
-
-    subgraph PUB["🔓 Sans connexion — pages publiques"]
-        direction TB
-        Home["Accueil<br/>/"]
-        NavPub{{"Barre de navigation"}}
-        Recipes["Recettes<br/>/recipes<br/>recherche · filtres · pagination"]
-        ThemePages["Pages thématiques<br/>/recipes?filtre=..."]
-        Random["Au hasard<br/>/recipes/random"]
-        Detail["Détail recette<br/>/recipes/:id<br/>lecture seule"]
-
-        Home --> NavPub
-        NavPub --> Recipes
-        NavPub --> Random
-        Recipes --> ThemePages
-        Recipes --> Detail
-        Random --> Detail
-        ThemePages --> Recipes
-    end
-
-    Private["Route réservée<br/>Agenda · Courses · Mon compte<br/>Nouvelle recette · Admin"]
-    Private -. redirection si non connecté .-> Login
-
-    subgraph AUTHFLOW["🔑 Connexion / Inscription"]
-        direction TB
-        Login["Connexion<br/>/login<br/>email + mot de passe"]
-        Register["Inscription<br/>/register"]
-        Forgot["Mot de passe oublié<br/>/forgot-password"]
-        ResetMail(["Lien reçu par email"])
-        Reset["Nouveau mot de passe<br/>/reset-password/:uid/:token"]
-
-        Login -- oublié ? --> Forgot --> ResetMail --> Reset --> Login
-    end
-
-    NavPub -. Connexion .-> Login
-    NavPub -. Inscription .-> Register
-
-    Login -- connecté --> NavMember
-    Register -- compte créé --> NavMember
-
-    subgraph MEMBER["🔒 Connecté"]
-        direction TB
-        NavMember{{"Barre de navigation complète"}}
-        MRecipes["Recettes<br/>+ bouton Nouvelle recette"]
-        NewRecipe["Nouvelle recette<br/>/recipes/new"]
-        MDetail["Détail recette<br/>+ Ajouter à l'agenda<br/>+ Modifier / Supprimer si auteur"]
-        Planning["Agenda<br/>/planning<br/>grille de la semaine"]
-        GenList["Générer la liste<br/>de courses"]
-        Shopping["Listes de courses<br/>/shopping-lists"]
-        ShopDetail["Détail liste<br/>/shopping-lists/:id<br/>cocher · exporter .txt"]
-        Account["Mon compte<br/>/account"]
-        ChangePwd["Changer le mot de passe"]
-        ExportData["Exporter mes données<br/>.zip"]
-        DeleteAcc["Supprimer le compte"]
-
-        NavMember --> MRecipes --> NewRecipe --> MDetail
-        MRecipes --> MDetail
-        NavMember --> Planning --> GenList --> ShopDetail
-        NavMember --> Shopping --> ShopDetail
-        NavMember --> Account
-        Account --> ChangePwd
-        Account --> ExportData
-        Account --> DeleteAcc
-    end
-
-    NavMember -. si compte staff .-> Admin
-    NavMember -- Déconnexion --> Home
-    ChangePwd -. déconnexion auto .-> Login
-    DeleteAcc -. déconnexion .-> Home
-
-    subgraph STAFF["🛡️ Admin (staff)"]
-        Admin["Utilisateurs<br/>/admin/users<br/>recherche · pagination<br/>activer/désactiver · promouvoir · supprimer"]
-    end
-```
-
-Les zones en pointillés marquent un changement d'état (connexion, déconnexion, redirection) ; les
-traits pleins sont des liens de navigation classiques à l'intérieur d'une même zone.
-
-| Route | Accès | Description |
-|---|---|---|
-| `/` | Public | Accueil : présentation, dernières recettes, pages thématiques |
-| `/recipes` | Public | Liste des recettes — recherche, filtres, pagination |
-| `/recipes/random` | Public | Tirage d'une recette au hasard |
-| `/recipes/:id` | Public | Détail d'une recette (édition/agenda masqués si non concerné) |
-| `/login` | Public | Connexion par email + mot de passe |
-| `/register` | Public | Création de compte |
-| `/forgot-password` | Public | Demande de lien de réinitialisation |
-| `/reset-password/:uid/:token` | Public | Choix d'un nouveau mot de passe |
-| `/recipes/new` | Connecté | Créer une recette |
-| `/recipes/:id/edit` | Auteur | Modifier sa propre recette |
-| `/planning` | Connecté | Agenda de la semaine, suivi nutritionnel et carbone |
-| `/shopping-lists` | Connecté | Listes de courses générées depuis l'agenda |
-| `/shopping-lists/:id` | Connecté | Détail d'une liste — cocher, exporter en .txt |
-| `/account` | Connecté | Profil, mot de passe, export des données, suppression |
-| `/admin/users` | Staff | Gestion des comptes utilisateurs |
-
-## Internationalisation
-
-L'interface est traduite via [vue-i18n](https://vue-i18n.intlify.dev/). Le sélecteur de langue est
-dans la barre de navigation ; le choix est mémorisé dans `localStorage`. Pour ajouter une langue :
-créer `frontend/src/i18n/locales/<code>.json` (copier `fr.json` comme base), l'enregistrer dans
-`frontend/src/i18n/index.js` (`messages` et `SUPPORTED_LOCALES`).
-
-## Responsive
-
-L'interface est pensée mobile-first (layout en `flex-wrap`, aucune largeur fixe supérieure à un
-écran de téléphone, cibles tactiles ≥ 40px). Sous 600px, la navigation passe d'une barre de liens
-en haut à une barre d'onglets fixée en bas d'écran (Recettes / Au hasard / Agenda / Courses), le
-compte (langue, déconnexion) restant accessible via le bouton rond en haut à droite sur toutes les
-tailles d'écran. Testé sur viewport 390×844 (iPhone 12) sans débordement horizontal — voir
-`frontend/tests/e2e/i18n-and-responsive.spec.js`.
-
-## Nutrition
-
-Chaque recette affiche ses valeurs nutritionnelles par portion (calories, macronutriments, fer,
-B12, calcium, oméga-3, zinc). La vue Agenda calcule en plus la moyenne journalière sur la semaine
-affichée et alerte si un apport tombe sous le seuil de référence pour le régime et le niveau
-d'activité du compte — pensé pour repérer les manques typiques d'une transition vers un régime
-végétarien/végan (fer, B12, zinc en particulier).
-
-## Empreinte carbone
-
-Chaque ingrédient porte une empreinte carbone (`carbon_kg_co2e_per_kg`, en kg CO2e par kg/litre de
-produit) — un ordre de grandeur tiré d'Agribalyse (ADEME) et de l'étude Poore & Nemecek (2018, via
-Our World in Data), pas une valeur de labo ni un bilan carbone certifié. Chaque recette affiche son
-empreinte totale par portion (`NutritionCard`), et la vue Agenda affiche l'empreinte cumulée de la
-semaine planifiée. Ces valeurs sont volontairement des moyennes de catégorie d'aliment : le mode de
-production (viande/lait vs végétal en particulier) domine largement l'empreinte carbone d'un
-aliment, bien plus que la distance de transport — voir `seed_common_ingredients.py` pour le détail
-des valeurs et leurs sources.
-
-## Export PDF & médias
-
-Chaque recette peut être téléchargée en PDF (bouton « Télécharger en PDF » sur sa page) —
-généré côté serveur avec [WeasyPrint](https://weasyprint.org/) à partir d'un template HTML/CSS
-dédié (`backend/apps/recipes/templates/pdf/recipe.html`), pratique pour l'imprimer et l'afficher
-en association ou magasin vegan. Depuis l'Agenda, « Télécharger le PDF de la semaine » génère de
-la même façon un PDF de la grille de la semaine affichée suivie du détail de toutes les recettes
-qui y figurent (`backend/apps/planning/templates/pdf/week.html`).
-
-Une recette peut aussi avoir une image (URL externe ou fichier téléversé), une source (lien vers
-la recette d'origine) et une vidéo YouTube, affichée à côté de la photo sur la page de la recette
-et intégrée via `youtube-nocookie.com` (aucun cookie tiers chargé avant que la vidéo soit
-lancée). Seul l'auteur d'une recette peut la modifier, la supprimer ou changer son image ; la
-lecture reste ouverte à tout le monde, y compris aux visiteurs non connectés. Quand une recette
-est importée depuis une URL, son image est elle aussi récupérée automatiquement si le site
-source en fournit une (via `recipe_scrapers`).
-
-## Lien entre les étapes et les ingrédients (Cooklang)
-
-Le texte d'une étape peut référencer un ingrédient de la recette avec la syntaxe
-[Cooklang](https://cooklang.org/) `@ingrédient` (même sous-ensemble que le parseur backend,
-`backend/apps/recipes/cooklang.py` — un nom multi-mots s'écrit avec un underscore, ex.
-`@huile_olive{2%cs}`, affiché ensuite « huile olive »).
-
-Dans l'éditeur (`frontend/src/components/CooklangStepInput.vue`), taper `@` ouvre une
-auto-complétion qui interroge la base d'ingrédients (pas seulement ceux déjà dans la recette) :
-
-- Choisir un ingrédient déjà présent dans la recette insère simplement la mention.
-- Choisir un ingrédient qui existe en base mais n'est pas encore dans la liste de la recette
-  l'y ajoute automatiquement (avec son unité par défaut), en plus d'insérer la mention.
-- Si rien ne correspond exactement, une option « + Créer « nom » » ouvre une modale
-  (`IngredientEditModal.vue` — nom, catégorie, unité par défaut, valeurs nutritionnelles, empreinte
-  carbone) ;
-  l'ingrédient créé est à son tour ajouté à la recette et la mention insérée.
-
-Si le texte mentionne malgré tout un ingrédient absent de la liste (mention tapée à la main,
-faute de frappe), un avertissement s'affiche sous l'étape concernée. En lecture
-(`RecipeSummary.vue`), chaque mention reconnue devient un lien qui pointe vers l'ingrédient
-correspondant dans la liste ci-contre ; une mention orpheline s'affiche en texte normal. Le
-parsing (`frontend/src/utils/cooklangMentions.ts`) est purement côté client : le texte de
-l'étape stocké en base reste le texte brut tel que saisi, `@` compris.
-
-Le texte d'une étape peut aussi contenir un minuteur Cooklang `~{quantité%unité}` (nom
-optionnel avant les `{}`, ex. `~repos{10%minutes}`) ; les unités reconnues sont les secondes,
-minutes et heures (`s`/`sec`/`seconde(s)`, `min`/`minute(s)`, `h`/`heure(s)` — en français ou en
-anglais). En lecture, chaque minuteur reconnu devient un bouton qui lance un décompte
-(pause/reprise/réinitialisation, carillon à la fin) ; une syntaxe non reconnue (unité inconnue,
-quantité manquante) s'affiche en texte normal. Ce parsing
-(`frontend/src/utils/cooklangTimers.ts`) est lui aussi purement côté client et indépendant du
-`TIMER_RE` du parseur backend (`backend/apps/recipes/cooklang.py`, lui-même non câblé — voir plus
-haut) : il n'y a pas d'auto-complétion `~` dans `CooklangStepInput.vue`, la syntaxe se tape à la
-main.
-
-## Page d'accueil & pages thématiques
-
-La page d'accueil (`/`) présente l'application, les dernières recettes ajoutées et des « pages
-thématiques » : des raccourcis persistés en base (modèle `ThematicPage`, gérable depuis l'admin
-Django sur `/admin/recipes/thematicpage/` — titre, emoji, description, ordre d'affichage,
-activation) qui pointent chacun vers la liste des recettes déjà filtrée. Trois pages de base sont
-fournies par `seed_thematic_pages` (Produits de saison, Spécial végan, Prêt en 30 minutes) ; on
-peut en ajouter d'autres, ou changer leurs filtres, sans toucher au code.
-
-Plus largement, la liste des recettes (`/recipes`) reflète ses filtres (ingrédient, saison,
-régime, temps total) dans les paramètres d'URL — ce sont donc des pages partageables/
-marque-pageables : cliquer sur un ingrédient depuis une recette ouvre par exemple
-`/recipes?ingredients=Courgette`, et une page thématique dont les filtres sont
-`{"in_season": "true"}` ouvre `/recipes?in_season=true`.
-
-## Pagination
-
-Toutes les listes qui peuvent grandir sans limite (recettes, listes de courses) sont paginées
-côté API (`PageNumberPagination`, 20 éléments par page) et côté interface, via le composant
-partagé `frontend/src/components/Pagination.vue` (page précédente/suivante + « Page X / Y »,
-masqué s'il n'y a qu'une page). Le numéro de page vit lui aussi dans l'URL (`/recipes?page=2`) et
-revient à 1 dès qu'un filtre change. Les grilles bornées par nature (l'agenda de la semaine, les
-pages thématiques de l'accueil) restent volontairement non paginées.
-
-## Gestion du compte
-
-La connexion se fait par email (et non par nom d'utilisateur) : `User.USERNAME_FIELD = "email"`,
-qui reste unique en base. Le nom d'utilisateur est conservé comme identifiant affiché (auteur
-d'une recette, admin, etc.) et reste demandé à l'inscription, mais n'est plus utilisé pour se
-connecter — ni sur `/login`, ni sur `/admin/` (Django Admin s'adapte automatiquement).
-
-Chaque utilisateur gère son propre compte depuis « Mon compte » (menu du compte, en haut à
-droite) : changer son nom d'utilisateur, son email, son régime/niveau d'activité, changer son
-mot de passe (déconnexion automatique ensuite, pour se reconnecter avec le nouveau), exporter
-toutes ses données (profil, recettes, agenda, listes de courses) dans une archive `.zip`
-(`GET /api/auth/me/export/`), ou supprimer définitivement son compte. La suppression est
-irréversible et cascade sur tout ce que le compte a créé — recettes comprises.
-
-En cas de mot de passe oublié, « Mot de passe oublié ? » sur la page de connexion mène à
-`/forgot-password` : l'utilisateur saisit son email et reçoit (si un compte y est associé — le
-message affiché est le même dans les deux cas, pour ne pas laisser deviner quels emails sont
-enregistrés) un lien vers `/reset-password/<uid>/<token>` où choisir un nouveau mot de passe. Le
-lien utilise le mécanisme de token à usage unique de Django (`PasswordResetTokenGenerator`) : il
-expire automatiquement dès que le mot de passe change. En développement, `EMAIL_BACKEND` pointe
-par défaut sur la console (le lien s'affiche dans les logs du serveur Django au lieu d'être
-vraiment envoyé) ; voir `.env.example`/`.env.prod.example` pour configurer un vrai serveur SMTP.
-
-## Administration
-
-Les comptes marqués « staff » ont accès à une page `/admin/users` (lien « Admin » dans la barre
-de navigation) listant tous les utilisateurs — recherche, pagination, activer/désactiver un
-compte, promouvoir/retirer le statut staff, supprimer un compte. L'API dédiée
-(`/api/admin/users/`) refuse qu'un compte staff modifie ou supprime son propre compte par ce
-biais (il doit passer par « Mon compte ») afin d'éviter de se retirer accidentellement l'accès.
-Django Admin (`/admin/`) reste disponible pour le reste (recettes, ingrédients, pages
-thématiques...).
-
-## PWA / hors ligne
-
-L'application est une Progressive Web App (installable, via `vite-plugin-pwa`/Workbox) et reste
-utilisable sans connexion pour l'usage le plus courant : consulter ce qu'on a déjà chargé.
-
-- **Lecture hors ligne** : les réponses `GET` des recettes, pages thématiques, agenda et listes de
-  courses sont mises en cache par le service worker (stratégie `NetworkFirst` — réseau si
-  disponible, sinon la dernière version connue ; `CacheFirst` pour les images). Une fois une page
-  visitée en ligne, elle reste consultable hors ligne (bannière « Vous êtes hors ligne » affichée
-  en haut de l'écran). La création/édition de recettes et de l'agenda ne fonctionne qu'en ligne :
-  gérer des conflits d'édition concurrente hors ligne aurait été disproportionné pour une appli
-  mono-utilisateur.
-- **Écriture hors ligne, limitée aux listes de courses** : cocher un article comme « déjà en
-  stock » fonctionne aussi hors ligne (cas d'usage réel : au supermarché, réseau capricieux). La
-  case se coche immédiatement (mise à jour optimiste) et l'action est mise en file d'attente
-  (IndexedDB, `frontend/src/offline/`) si la requête échoue faute de réseau ; elle est rejouée
-  automatiquement dès que la connexion revient (écouteur sur l'évènement `online`, pas de
-  Background Sync API — non supportée sur Safari/iOS).
-- **Vie privée sur appareil partagé** : le cache des données utilisateur (agenda, listes de
-  courses) et la file d'écritures en attente sont vidés à la déconnexion (`authStore.logout()`),
-  pour qu'un compte suivant sur le même appareil ne voie pas les données mises en cache du
-  précédent.
-- Le service worker tourne aussi sous `vite dev` (`devOptions.enabled`) pour pouvoir être testé
-  sans build de production — voir `frontend/tests/e2e/offline-pwa.spec.js`
-  (`context.setOffline(true)` de Playwright).
-
-## Design
-
-Palette chaude (rouge-orangé) et composants inspirés du design iOS récent / d'applications comme
-Alan : cartes blanches à coins très arrondis et ombre douce, boutons en pilule, champs de saisie
-remplis sans bordure visible. Les tokens de couleur/rayon/ombre sont centralisés dans
-`frontend/src/assets/base.css` (`--color-primary`, `--shadow-card`, etc.).
+Recipe import is powered by [recipe-scrapers](https://github.com/hhursev/recipe-scrapers), and
+PDF export by [WeasyPrint](https://weasyprint.org/).
