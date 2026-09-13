@@ -129,6 +129,22 @@
     "source": "Source",
     "downloadPdf": "Télécharger en PDF"
   },
+  "comments": {
+    "title": "Commentaires",
+    "empty": "Aucun commentaire pour l'instant.",
+    "loadError": "Impossible de charger les commentaires.",
+    "addTitle": "Laisser un commentaire",
+    "name": "Nom",
+    "namePlaceholder": "Votre nom",
+    "comment": "Commentaire",
+    "commentPlaceholder": "Votre avis sur cette recette...",
+    "submit": "Publier",
+    "submitError": "Impossible de publier ce commentaire.",
+    "hide": "Masquer",
+    "unhide": "Réafficher",
+    "hideError": "Impossible de modifier ce commentaire.",
+    "hiddenBadge": "masqué"
+  },
   "home": {
     "title": "Cocotte",
     "tagline": "L'application qui range vos recettes, planifie vos menus de la semaine et vous accompagne vers une alimentation plus végétale — sans jamais perdre de vue vos besoins nutritionnels.",

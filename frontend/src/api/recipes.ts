@@ -1,6 +1,6 @@
 import client from './client'
 import type { Paginated, RecipeListParams } from '../types/api'
-import type { Recipe, RecipeInput, RecipeNutrition, Tag } from '../types/models'
+import type { Recipe, RecipeComment, RecipeCommentInput, RecipeInput, RecipeNutrition, Tag } from '../types/models'
 
 export function listRecipes(params: RecipeListParams = {}): Promise<Paginated<Recipe>> {
   return client.get('recipes/', { params }).then((r) => r.data)
@@ -42,4 +42,22 @@ export function uploadRecipeImage(id: number | string, file: File): Promise<Reci
 
 export function downloadRecipePdf(id: number | string): Promise<Blob> {
   return client.get(`recipes/${id}/pdf/`, { responseType: 'blob' }).then((r) => r.data)
+}
+
+export function listRecipeComments(recipeId: number | string): Promise<Paginated<RecipeComment>> {
+  return client.get(`recipes/${recipeId}/comments/`).then((r) => r.data)
+}
+
+export function createRecipeComment(
+  recipeId: number | string,
+  payload: RecipeCommentInput,
+): Promise<RecipeComment> {
+  return client.post(`recipes/${recipeId}/comments/`, payload).then((r) => r.data)
+}
+
+export function hideRecipeComment(
+  recipeId: number | string,
+  commentId: number | string,
+): Promise<RecipeComment> {
+  return client.post(`recipes/${recipeId}/comments/${commentId}/hide/`).then((r) => r.data)
 }

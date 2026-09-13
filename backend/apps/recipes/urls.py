@@ -1,10 +1,28 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import RecipeViewSet, TagViewSet, ThematicPageViewSet
+from .views import (
+    RecipeCommentHideView,
+    RecipeCommentListCreateView,
+    RecipeViewSet,
+    TagViewSet,
+    ThematicPageViewSet,
+)
 
 router = DefaultRouter()
 router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("tags", TagViewSet, basename="tag")
 router.register("thematic-pages", ThematicPageViewSet, basename="thematic-page")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        "recipes/<int:recipe_id>/comments/",
+        RecipeCommentListCreateView.as_view(),
+        name="recipe-comments",
+    ),
+    path(
+        "recipes/<int:recipe_id>/comments/<int:pk>/hide/",
+        RecipeCommentHideView.as_view(),
+        name="recipe-comment-hide",
+    ),
+] + router.urls

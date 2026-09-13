@@ -88,6 +88,21 @@ export interface RecipeStep {
   instruction: string
 }
 
+export interface RecipeComment {
+  id: number
+  recipe: number
+  author_name: string
+  username: string | null
+  body: string
+  is_hidden?: boolean
+  created_at: string
+}
+
+export interface RecipeCommentInput {
+  author_name?: string
+  body: string
+}
+
 export interface Recipe {
   id: number
   title: string

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recipe, RecipeIngredient, RecipeStep, Tag, ThematicPage
+from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -22,6 +22,13 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Tag)
+
+
+@admin.register(RecipeComment)
+class RecipeCommentAdmin(admin.ModelAdmin):
+    list_display = ["recipe", "author_name", "user", "created_at", "is_hidden"]
+    list_filter = ["is_hidden"]
+    search_fields = ["author_name", "body", "recipe__title"]
 
 
 @admin.register(ThematicPage)

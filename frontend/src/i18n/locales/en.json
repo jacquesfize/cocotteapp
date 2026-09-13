@@ -129,6 +129,22 @@
     "source": "Source",
     "downloadPdf": "Download as PDF"
   },
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet.",
+    "loadError": "Could not load comments.",
+    "addTitle": "Leave a comment",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "comment": "Comment",
+    "commentPlaceholder": "What did you think of this recipe...",
+    "submit": "Post",
+    "submitError": "Could not post this comment.",
+    "hide": "Hide",
+    "unhide": "Unhide",
+    "hideError": "Could not update this comment.",
+    "hiddenBadge": "hidden"
+  },
   "home": {
     "title": "Cocotte",
     "tagline": "The app that stores your recipes, plans your weekly menus and helps you move towards a more plant-based diet — without losing sight of your nutritional needs.",

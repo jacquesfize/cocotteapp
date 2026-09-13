@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 
-from .models import Recipe, RecipeIngredient, RecipeStep, Tag, ThematicPage
+from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
 from .youtube import extract_youtube_id
 
 
@@ -102,3 +102,60 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.create(recipe=recipe, **data)
         for data in steps_data:
             RecipeStep.objects.create(recipe=recipe, **data)
+
+
+class RecipeCommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(max_length=80, required=False, allow_blank=True)
+    body = serializers.CharField(max_length=2000)
+    username = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RecipeComment
+        fields = ["id", "recipe", "author_name", "username", "body", "is_hidden", "created_at"]
+        read_only_fields = ["id", "recipe", "username", "is_hidden", "created_at"]
+
+    def get_username(self, obj):
+        return obj.user.username if obj.user_id else None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if not self._can_see_hidden(request):
+            self.fields.pop("is_hidden", None)
+
+    def _can_see_hidden(self, request):
+        if request is None or not request.user or not request.user.is_authenticated:
+            return False
+        if request.user.is_staff:
+            return True
+        recipe = self.context.get("recipe")
+        return recipe is not None and recipe.author_id == request.user.id
+
+    def validate_body(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Le commentaire ne peut pas être vide.")
+        return value
+
+    def validate_author_name(self, value):
+        return value.strip()
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        author_name = attrs.get("author_name", "")
+        user = getattr(request, "user", None) if request else None
+        if not author_name:
+            if user is not None and user.is_authenticated:
+                attrs["author_name"] = user.username
+            else:
+                raise serializers.ValidationError(
+                    {"author_name": "Merci d'indiquer un nom."}
+                )
+        return attrs
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if user is not None and user.is_authenticated:
+            validated_data["user"] = user
+        return super().create(validated_data)
