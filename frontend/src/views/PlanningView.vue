@@ -3,9 +3,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import MealSlot from '../components/MealSlot.vue'
-import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
+import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../utils/dates'
+import { downloadBlob } from '../utils/download'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
 
 const { locale } = useI18n()
@@ -59,6 +60,15 @@ async function handleGenerateShoppingList() {
   router.push({ name: 'shopping-list-detail', params: { id: shoppingList.id } })
 }
 
+async function handleDownloadWeekPdf() {
+  const params = {
+    date_after: toISODate(weekDays.value[0]),
+    date_before: toISODate(weekDays.value[6]),
+  }
+  const blob = await downloadWeekPdf(params)
+  downloadBlob(blob, `agenda-${params.date_after}-${params.date_before}.pdf`)
+}
+
 const rangeLabel = computed(() => {
   const fmt = (d) => d.toLocaleDateString(locale.value, { day: 'numeric', month: 'short' })
   return `${fmt(weekDays.value[0])} – ${fmt(weekDays.value[6])}`
@@ -107,6 +117,7 @@ const rangeLabel = computed(() => {
     </div>
 
     <div class="week-footer">
+      <button class="secondary" @click="handleDownloadWeekPdf">{{ $t('planning.downloadWeekPdf') }}</button>
       <button :disabled="!entries.length" @click="handleGenerateShoppingList">
         {{ $t('planning.generateShoppingList', { n: entries.length }) }}
       </button>
@@ -166,6 +177,8 @@ const rangeLabel = computed(() => {
   margin-top: 1.25rem;
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 900px) {

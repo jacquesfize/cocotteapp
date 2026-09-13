@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import IngredientPicker from '../components/IngredientPicker.vue'
-import { createRecipe, getRecipe, updateRecipe } from '../api/recipes'
+import { createRecipe, getRecipe, updateRecipe, uploadRecipeImage } from '../api/recipes'
 
 const props = defineProps({
   id: { type: [String, Number], default: null },
@@ -20,12 +20,21 @@ const form = ref({
   cook_time_minutes: 20,
   diet_type: 'omnivore',
   is_public: true,
+  source_url: '',
+  video_url: '',
+  image_url: '',
 })
 
 const ingredientRows = ref([{ ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 }])
 const stepRows = ref([{ instruction: '', order: 1 }])
+const imageFile = ref(null)
+const currentImageUrl = ref('')
 const error = ref('')
 const isSubmitting = ref(false)
+
+function handleImageFileChange(event) {
+  imageFile.value = event.target.files[0] || null
+}
 
 const UNITS = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
 
@@ -40,7 +49,11 @@ onMounted(async () => {
     cook_time_minutes: recipe.cook_time_minutes,
     diet_type: recipe.diet_type,
     is_public: recipe.is_public,
+    source_url: recipe.source_url,
+    video_url: recipe.video_url,
+    image_url: recipe.image_url,
   }
+  currentImageUrl.value = recipe.image || ''
   ingredientRows.value = recipe.ingredients.map((item) => ({
     ingredient: item.ingredient,
     quantity: item.quantity,
@@ -98,6 +111,9 @@ async function handleSubmit() {
   isSubmitting.value = true
   try {
     const recipe = isEditing ? await updateRecipe(props.id, payload) : await createRecipe(payload)
+    if (imageFile.value) {
+      await uploadRecipeImage(recipe.id, imageFile.value)
+    }
     router.push({ name: 'recipe-detail', params: { id: recipe.id } })
   } catch {
     error.value = t('recipes.saveError')
@@ -182,6 +198,36 @@ async function handleSubmit() {
         <button type="button" class="secondary" @click="addStepRow">{{ $t('recipes.addStep') }}</button>
       </div>
 
+      <div class="card" style="margin-top: 1rem">
+        <h2>{{ $t('recipes.media') }}</h2>
+        <div class="row">
+          <div class="field" style="flex: 1; min-width: 220px">
+            <label for="image_url">{{ $t('recipes.imageUrl') }}</label>
+            <input id="image_url" v-model="form.image_url" type="url" placeholder="https://..." />
+          </div>
+          <div class="field" style="flex: 1; min-width: 220px">
+            <label for="image_file">{{ $t('recipes.imageFile') }}</label>
+            <input id="image_file" type="file" accept="image/*" @change="handleImageFileChange" />
+          </div>
+        </div>
+        <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
+        <div class="row">
+          <div class="field" style="flex: 1; min-width: 220px">
+            <label for="source_url">{{ $t('recipes.sourceUrl') }}</label>
+            <input id="source_url" v-model="form.source_url" type="url" placeholder="https://..." />
+          </div>
+          <div class="field" style="flex: 1; min-width: 220px">
+            <label for="video_url">{{ $t('recipes.videoUrl') }}</label>
+            <input
+              id="video_url"
+              v-model="form.video_url"
+              type="url"
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+          </div>
+        </div>
+      </div>
+
       <p v-if="error" class="error">{{ error }}</p>
       <div class="row" style="margin-top: 1rem">
         <button type="submit" :disabled="isSubmitting">{{ $t('common.save') }}</button>
@@ -189,3 +235,13 @@ async function handleSubmit() {
     </form>
   </div>
 </template>
+
+<style scoped>
+.current-image {
+  max-width: 220px;
+  max-height: 140px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin: 0.25rem 0 1rem;
+}
+</style>

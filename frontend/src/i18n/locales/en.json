@@ -73,6 +73,7 @@
     "maxPrepTime": "Max prep time (min)",
     "maxCookTime": "Max cook time (min)",
     "inSeasonOnly": "In-season ingredients only",
+    "seasonalShortcut": "🌱 In season now",
     "noResults": "No recipe matches these criteria.",
     "prep": "prep",
     "cook": "cook",
@@ -99,7 +100,14 @@
     "addIngredient": "+ Add an ingredient",
     "step": "Step {n}",
     "addStep": "+ Add a step",
-    "missingIngredient": "Select an ingredient for each row (or remove the row)."
+    "missingIngredient": "Select an ingredient for each row (or remove the row).",
+    "media": "Media & source",
+    "imageUrl": "Image URL",
+    "imageFile": "Or upload a file",
+    "sourceUrl": "Source (link to the original recipe)",
+    "videoUrl": "Video (YouTube link)",
+    "source": "Source",
+    "downloadPdf": "Download as PDF"
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",
@@ -120,6 +128,7 @@
     "addError": "Could not add this entry (date already planned for this recipe and meal?).",
     "plannedMeals": "Planned meals",
     "generateShoppingList": "Generate shopping list ({n})",
+    "downloadWeekPdf": "Download the week as PDF",
     "noEntries": "No meal planned yet.",
     "remove": "Remove",
     "servingsUnit": "servings",

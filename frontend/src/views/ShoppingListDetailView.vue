@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
+import { downloadBlob } from '../utils/download'
 
 const props = defineProps({
   id: { type: [String, Number], required: true },
@@ -22,12 +23,7 @@ async function toggleOwned(item) {
 async function handleExport() {
   const { content } = await exportShoppingList(props.id)
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${shoppingList.value.name}.txt`
-  link.click()
-  URL.revokeObjectURL(url)
+  downloadBlob(blob, `${shoppingList.value.name}.txt`)
 }
 </script>
 

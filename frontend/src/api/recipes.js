@@ -31,3 +31,13 @@ export function deleteRecipe(id) {
 export function listTags() {
   return client.get('tags/').then((r) => r.data)
 }
+
+export function uploadRecipeImage(id, file) {
+  const formData = new FormData()
+  formData.append('image', file)
+  return client.patch(`recipes/${id}/image/`, formData).then((r) => r.data)
+}
+
+export function downloadRecipePdf(id) {
+  return client.get(`recipes/${id}/pdf/`, { responseType: 'blob' }).then((r) => r.data)
+}

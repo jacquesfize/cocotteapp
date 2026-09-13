@@ -15,3 +15,7 @@ export function deleteMealPlanEntry(id) {
 export function getNutritionSummary(params = {}) {
   return client.get('meal-plan-entries/nutrition_summary/', { params }).then((r) => r.data)
 }
+
+export function downloadWeekPdf(params = {}) {
+  return client.get('meal-plan-entries/week-pdf/', { params, responseType: 'blob' }).then((r) => r.data)
+}

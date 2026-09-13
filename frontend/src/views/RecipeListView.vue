@@ -1,23 +1,32 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '../components/RecipeCard.vue'
 import { importRecipeFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
 const recipes = ref([])
 const isLoading = ref(false)
 
-const filters = ref({
-  search: '',
-  diet_type: '',
-  max_prep_time: '',
-  max_cook_time: '',
-  ingredients: '',
-  in_season: false,
-})
+function filtersFromQuery(query) {
+  return {
+    search: query.search || '',
+    diet_type: query.diet_type || '',
+    max_prep_time: query.max_prep_time || '',
+    max_cook_time: query.max_cook_time || '',
+    ingredients: query.ingredients || '',
+    in_season: query.in_season === 'true',
+  }
+}
+
+// Les filtres vivent dans l'URL (query string) : /recipes?ingredients=Tomate ou
+// /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
+const filters = ref(filtersFromQuery(route.query))
 
 async function load() {
   isLoading.value = true
@@ -28,6 +37,7 @@ async function load() {
     }
     const data = await listRecipes(params)
     recipes.value = data.results
+    router.replace({ query: params })
   } finally {
     isLoading.value = false
   }
@@ -41,6 +51,18 @@ watch(
     debounceTimer = setTimeout(load, 300)
   },
   { deep: true },
+)
+
+// Permet à un lien interne (ex. "Produits de saison", ou un ingrédient cliqué
+// depuis une recette) de mettre à jour les filtres même si l'on est déjà sur
+// cette page — seule la query string change alors, le composant n'est pas remonté.
+watch(
+  () => route.query,
+  (query) => {
+    const next = filtersFromQuery(query)
+    const changed = Object.keys(next).some((key) => next[key] !== filters.value[key])
+    if (changed) filters.value = next
+  },
 )
 
 onMounted(load)
@@ -64,9 +86,14 @@ async function handleImport() {
   <div>
     <div class="row page-header">
       <h1>{{ $t('recipes.title') }}</h1>
-      <RouterLink :to="{ name: 'recipe-new' }">
-        <button>{{ $t('recipes.newRecipe') }}</button>
-      </RouterLink>
+      <div class="row">
+        <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">
+          <button class="secondary">{{ $t('recipes.seasonalShortcut') }}</button>
+        </RouterLink>
+        <RouterLink :to="{ name: 'recipe-new' }">
+          <button>{{ $t('recipes.newRecipe') }}</button>
+        </RouterLink>
+      </div>
     </div>
 
     <div class="card" style="margin-bottom: 1rem">

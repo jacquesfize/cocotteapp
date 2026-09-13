@@ -73,6 +73,7 @@
     "maxPrepTime": "Prépa max (min)",
     "maxCookTime": "Cuisson max (min)",
     "inSeasonOnly": "Ingrédients de saison uniquement",
+    "seasonalShortcut": "🌱 Produits de saison",
     "noResults": "Aucune recette ne correspond à ces critères.",
     "prep": "prépa",
     "cook": "cuisson",
@@ -99,7 +100,14 @@
     "addIngredient": "+ Ajouter un ingrédient",
     "step": "Étape {n}",
     "addStep": "+ Ajouter une étape",
-    "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne)."
+    "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne).",
+    "media": "Média & source",
+    "imageUrl": "URL de l'image",
+    "imageFile": "Ou téléverser un fichier",
+    "sourceUrl": "Source (lien de la recette d'origine)",
+    "videoUrl": "Vidéo (lien YouTube)",
+    "source": "Source",
+    "downloadPdf": "Télécharger en PDF"
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",
@@ -120,6 +128,7 @@
     "addError": "Impossible d'ajouter cette entrée (date déjà planifiée pour cette recette et ce repas ?).",
     "plannedMeals": "Repas planifiés",
     "generateShoppingList": "Générer la liste de courses ({n})",
+    "downloadWeekPdf": "Télécharger le PDF de la semaine",
     "noEntries": "Aucun repas planifié pour l'instant.",
     "remove": "Retirer",
     "servingsUnit": "portions",

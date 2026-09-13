@@ -47,4 +47,30 @@ describe('RecipeCard', () => {
     expect(wrapper.text()).toContain('Salade')
     expect(wrapper.find('.description').exists()).toBe(false)
   })
+
+  it('shows a thumbnail when the recipe has an image', () => {
+    const wrapper = mountCard({
+      id: 3,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 30,
+      description: '',
+      image_url: 'https://example.com/tarte.jpg',
+    })
+
+    expect(wrapper.find('.thumb').exists()).toBe(true)
+    expect(wrapper.find('.thumb').attributes('src')).toBe('https://example.com/tarte.jpg')
+  })
+
+  it('shows no thumbnail when the recipe has no image', () => {
+    const wrapper = mountCard({
+      id: 4,
+      title: 'Soupe',
+      diet_type: 'omnivore',
+      total_time_minutes: 15,
+      description: '',
+    })
+
+    expect(wrapper.find('.thumb').exists()).toBe(false)
+  })
 })
