@@ -34,7 +34,10 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
     'src',
     'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
   )
-  await expect(page.getByRole('link', { name: 'https://example.com/recette-originale' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Source' })).toHaveAttribute(
+    'href',
+    'https://example.com/recette-originale',
+  )
 
   // La vidéo doit s'afficher à côté de la photo (même ligne), pas en dessous.
   const photoBox = await page.locator('.recipe-photo').boundingBox()

@@ -31,6 +31,7 @@ test('editing a recipe pre-fills every ingredient picker, not just the last one'
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
 
+  await page.getByRole('button', { name: 'Actions' }).click()
   await page.getByRole('link', { name: 'Modifier' }).click()
   await page.waitForURL(/\/recipes\/\d+\/edit$/)
 
