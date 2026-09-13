@@ -125,3 +125,21 @@ def test_recipe_nutrition_action_returns_per_serving_values():
     assert response.status_code == 200
     assert response.data["totals"]["protein_g"] == 20.0
     assert response.data["per_serving"]["protein_g"] == 10.0
+
+
+@pytest.mark.django_db
+def test_recipe_nutrition_action_returns_carbon_footprint():
+    from decimal import Decimal
+
+    from apps.recipes.factories import RecipeIngredientFactory
+
+    ingredient = IngredientFactory(carbon_kg_co2e_per_kg=Decimal("10"))
+    recipe = RecipeFactory(servings=2)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("1000"), unit="g")
+
+    client = APIClient()
+    response = client.get(f"/api/recipes/{recipe.id}/nutrition/")
+
+    assert response.status_code == 200
+    assert response.data["carbon_footprint_kg_co2e"] == 10.0
+    assert response.data["carbon_footprint_per_serving_kg_co2e"] == 5.0

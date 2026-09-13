@@ -20,6 +20,7 @@ const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 const weekOffset = ref(0)
 const entries = ref<MealPlanEntry[]>([])
 const deficiencies = ref<NutrientDeficiency[]>([])
+const carbonFootprint = ref<number | null>(null)
 const isLoading = ref(false)
 
 const weekDays = computed(() => {
@@ -49,6 +50,7 @@ async function load() {
     ])
     entries.value = entriesData
     deficiencies.value = summary.deficiencies
+    carbonFootprint.value = summary.carbon_footprint_kg_co2e
   } finally {
     isLoading.value = false
   }
@@ -117,6 +119,10 @@ const rangeLabel = computed(() => {
       </ul>
     </div>
 
+    <p v-if="carbonFootprint !== null" class="muted carbon-summary">
+      {{ $t('nutrition.carbonWeekly') }} : <strong>{{ carbonFootprint.toFixed(1) }} kg CO2e</strong>
+    </p>
+
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
 
     <div class="week-grid">
@@ -173,6 +179,10 @@ const rangeLabel = computed(() => {
 .deficiency-banner ul {
   margin: 0.5rem 0 0;
   padding-left: 1.1rem;
+}
+
+.carbon-summary {
+  margin: 0 0 1rem;
 }
 
 .week-grid {

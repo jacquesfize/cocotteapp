@@ -8,11 +8,14 @@ const props = defineProps<{
 }>()
 
 const nutrition = ref<NutrientTotals | null>(null)
+const carbonPerServing = ref<number | null>(null)
 
 async function load() {
   nutrition.value = null
+  carbonPerServing.value = null
   const data = await getRecipeNutrition(props.recipeId)
   nutrition.value = data.per_serving
+  carbonPerServing.value = data.carbon_footprint_per_serving_kg_co2e
 }
 
 watch(() => props.recipeId, load)
@@ -61,6 +64,10 @@ onMounted(load)
         <span class="label">{{ $t('nutrition.zinc') }}</span>
       </div>
     </div>
+    <p v-if="carbonPerServing !== null" class="carbon-footprint">
+      <span class="value">{{ carbonPerServing.toFixed(2) }} kg CO2e</span>
+      <span class="label">{{ $t('nutrition.carbonPerServing') }}</span>
+    </p>
   </div>
 </template>
 
@@ -82,6 +89,23 @@ onMounted(load)
 }
 
 .nutrition-grid .label {
+  font-size: 0.72rem;
+  color: var(--color-muted);
+}
+
+.carbon-footprint {
+  margin: 0.9rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.carbon-footprint .value {
+  font-weight: 700;
+}
+
+.carbon-footprint .label {
   font-size: 0.72rem;
   color: var(--color-muted);
 }

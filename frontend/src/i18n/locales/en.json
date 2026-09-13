@@ -161,6 +161,7 @@
     "category": "Category",
     "defaultUnit": "Default unit",
     "nutritionTitle": "Nutrition facts (per 100 g / 100 ml)",
+    "carbonTitle": "Carbon footprint",
     "submit": "Create ingredient",
     "error": "Could not create the ingredient."
   },
@@ -201,7 +202,10 @@
     "calcium": "Calcium",
     "omega3": "Omega-3",
     "zinc": "Zinc",
-    "weeklyAlertTitle": "Possibly insufficient intake this week"
+    "weeklyAlertTitle": "Possibly insufficient intake this week",
+    "carbonPerServing": "Carbon footprint (per serving)",
+    "carbonPerKg": "Carbon footprint (kg CO2e / kg)",
+    "carbonWeekly": "This week's carbon footprint"
   },
   "random": {
     "title": "Random recipe",

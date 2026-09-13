@@ -49,3 +49,12 @@ def test_nutritional_yeast_provides_vitamin_b12():
 
     yeast = Ingredient.objects.get(name="Levure maltée enrichie en B12")
     assert yeast.vitamin_b12_ug > 0
+
+
+@pytest.mark.django_db
+def test_seeded_ingredient_has_carbon_footprint():
+    call_command("seed_common_ingredients")
+
+    beef = Ingredient.objects.get(name="Bœuf haché 5%")
+    lentils = Ingredient.objects.get(name="Lentilles corail")
+    assert beef.carbon_kg_co2e_per_kg > lentils.carbon_kg_co2e_per_kg > 0

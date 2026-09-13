@@ -94,6 +94,30 @@ def test_nutrition_summary_flags_deficiencies():
 
 
 @pytest.mark.django_db
+def test_nutrition_summary_returns_carbon_footprint():
+    from apps.ingredients.factories import IngredientFactory
+    from apps.recipes.factories import RecipeFactory as RecipeFactory2
+    from apps.recipes.factories import RecipeIngredientFactory
+    from decimal import Decimal
+
+    user = UserFactory()
+    ingredient = IngredientFactory(carbon_kg_co2e_per_kg=Decimal("10"))
+    recipe = RecipeFactory2(servings=1)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("1000"), unit="g")
+    MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-05", meal_type="lunch", servings=1)
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get(
+        "/api/meal-plan-entries/nutrition_summary/?date_after=2026-01-05&date_before=2026-01-05"
+    )
+
+    assert response.status_code == 200
+    assert response.data["carbon_footprint_kg_co2e"] == 10.0
+    assert response.data["carbon_footprint_daily_average_kg_co2e"] == 10.0
+
+
+@pytest.mark.django_db
 def test_week_pdf_download_returns_pdf():
     user = UserFactory()
     recipe = RecipeFactory(title="Curry de saison")

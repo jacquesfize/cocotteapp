@@ -26,6 +26,8 @@ NUTRIENT_FIELDS = [
     "zinc_mg",
 ]
 
+CARBON_FIELD = "carbon_kg_co2e_per_kg"
+
 
 def compute_recipe_nutrition(recipe):
     totals = {field: Decimal("0") for field in NUTRIENT_FIELDS}
@@ -35,6 +37,15 @@ def compute_recipe_nutrition(recipe):
         for field in NUTRIENT_FIELDS:
             totals[field] += getattr(recipe_ingredient.ingredient, field) * factor
     return totals
+
+
+def compute_recipe_carbon_footprint(recipe):
+    """Empreinte carbone totale de la recette, en kg CO2e (pas par portion)."""
+    total = Decimal("0")
+    for recipe_ingredient in recipe.recipe_ingredients.select_related("ingredient"):
+        grams = recipe_ingredient.quantity * UNIT_TO_GRAMS.get(recipe_ingredient.unit, Decimal("1"))
+        total += getattr(recipe_ingredient.ingredient, CARBON_FIELD) * grams / Decimal("1000")
+    return total
 
 
 def find_deficiencies(totals, diet_type, activity_level):

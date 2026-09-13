@@ -2,11 +2,11 @@
 
 Application de gestion de recettes : page d'accueil (dernières recettes, pages thématiques),
 recherche par ingrédients/saison/régime/temps, tirage d'une recette au hasard, menu de la
-semaine avec suivi nutritionnel (utile pour une transition vegan), génération de listes de
-courses, import manuel ou depuis une URL (avec récupération automatique de l'image), export PDF
-(recette ou agenda de la semaine), image/vidéo/source par recette. Backend Django/DRF, frontend
-Vue 3 — interface traduite (FR/EN) et responsive (mobile-first, navigation par barre d'onglets
-en bas d'écran).
+semaine avec suivi nutritionnel et empreinte carbone (utile pour une transition vegan),
+génération de listes de courses, import manuel ou depuis une URL (avec récupération automatique
+de l'image), export PDF (recette ou agenda de la semaine), image/vidéo/source par recette.
+Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first,
+navigation par barre d'onglets en bas d'écran).
 
 ## Lancer en local (Docker)
 
@@ -74,11 +74,11 @@ d'activité) :
 uv run python manage.py seed_nutrient_requirements
 ```
 
-Peupler aussi une bibliothèque d'ingrédients courants avec de vraies valeurs nutritionnelles et
-une saisonnalité réaliste (légumes, fruits, légumineuses, céréales, noix/graines, laitier et
-alternatives végétales, viande/poisson, matières grasses, condiments — dont des sources clés pour
-un régime végan comme le tofu, le tempeh, les graines de lin/chia et la levure maltée enrichie en
-B12) :
+Peupler aussi une bibliothèque d'ingrédients courants avec de vraies valeurs nutritionnelles, une
+empreinte carbone (Agribalyse/Poore & Nemecek) et une saisonnalité réaliste (légumes, fruits,
+légumineuses, céréales, noix/graines, laitier et alternatives végétales, viande/poisson, matières
+grasses, condiments — dont des sources clés pour un régime végan comme le tofu, le tempeh, les
+graines de lin/chia et la levure maltée enrichie en B12) :
 
 ```bash
 uv run python manage.py seed_common_ingredients
@@ -127,11 +127,11 @@ npm run test:e2e
 
 - `backend/config/` : settings Django (base/dev/prod), urls, Celery.
 - `backend/apps/accounts/` : utilisateurs (régime alimentaire, niveau d'activité), auth JWT.
-- `backend/apps/ingredients/` : ingrédients, valeurs nutritionnelles, saisonnalité.
+- `backend/apps/ingredients/` : ingrédients, valeurs nutritionnelles, empreinte carbone, saisonnalité.
 - `backend/apps/recipes/` : recettes, ingrédients de recette, étapes, tags, parseur Cooklang.
-- `backend/apps/nutrition/` : calcul des apports nutritionnels, détection de carences, commande
-  `seed_nutrient_requirements`.
-- `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel hebdomadaire.
+- `backend/apps/nutrition/` : calcul des apports nutritionnels et de l'empreinte carbone, détection
+  de carences, commande `seed_nutrient_requirements`.
+- `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel et carbone hebdomadaire.
 - `backend/apps/shopping/` : génération et export de listes de courses.
 - `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery), récupère aussi
   automatiquement l'image de la recette source quand le site la fournit.
@@ -241,7 +241,7 @@ traits pleins sont des liens de navigation classiques à l'intérieur d'une mêm
 | `/reset-password/:uid/:token` | Public | Choix d'un nouveau mot de passe |
 | `/recipes/new` | Connecté | Créer une recette |
 | `/recipes/:id/edit` | Auteur | Modifier sa propre recette |
-| `/planning` | Connecté | Agenda de la semaine, suivi nutritionnel |
+| `/planning` | Connecté | Agenda de la semaine, suivi nutritionnel et carbone |
 | `/shopping-lists` | Connecté | Listes de courses générées depuis l'agenda |
 | `/shopping-lists/:id` | Connecté | Détail d'une liste — cocher, exporter en .txt |
 | `/account` | Connecté | Profil, mot de passe, export des données, suppression |
@@ -270,6 +270,17 @@ B12, calcium, oméga-3, zinc). La vue Agenda calcule en plus la moyenne journali
 affichée et alerte si un apport tombe sous le seuil de référence pour le régime et le niveau
 d'activité du compte — pensé pour repérer les manques typiques d'une transition vers un régime
 végétarien/végan (fer, B12, zinc en particulier).
+
+## Empreinte carbone
+
+Chaque ingrédient porte une empreinte carbone (`carbon_kg_co2e_per_kg`, en kg CO2e par kg/litre de
+produit) — un ordre de grandeur tiré d'Agribalyse (ADEME) et de l'étude Poore & Nemecek (2018, via
+Our World in Data), pas une valeur de labo ni un bilan carbone certifié. Chaque recette affiche son
+empreinte totale par portion (`NutritionCard`), et la vue Agenda affiche l'empreinte cumulée de la
+semaine planifiée. Ces valeurs sont volontairement des moyennes de catégorie d'aliment : le mode de
+production (viande/lait vs végétal en particulier) domine largement l'empreinte carbone d'un
+aliment, bien plus que la distance de transport — voir `seed_common_ingredients.py` pour le détail
+des valeurs et leurs sources.
 
 ## Export PDF & médias
 
@@ -302,7 +313,8 @@ auto-complétion qui interroge la base d'ingrédients (pas seulement ceux déjà
 - Choisir un ingrédient qui existe en base mais n'est pas encore dans la liste de la recette
   l'y ajoute automatiquement (avec son unité par défaut), en plus d'insérer la mention.
 - Si rien ne correspond exactement, une option « + Créer « nom » » ouvre une modale
-  (`IngredientEditModal.vue` — nom, catégorie, unité par défaut, valeurs nutritionnelles) ;
+  (`IngredientEditModal.vue` — nom, catégorie, unité par défaut, valeurs nutritionnelles, empreinte
+  carbone) ;
   l'ingrédient créé est à son tour ajouté à la recette et la mention insérée.
 
 Si le texte mentionne malgré tout un ingrédient absent de la liste (mention tapée à la main,

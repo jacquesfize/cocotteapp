@@ -30,6 +30,7 @@ function ingredient(overrides: Partial<Ingredient>): Ingredient {
     calcium_mg: 0,
     omega3_g: 0,
     zinc_mg: 0,
+    carbon_kg_co2e_per_kg: 0,
     ...overrides,
   }
 }
