@@ -94,6 +94,14 @@ export interface RecipeStep {
   instruction: string
 }
 
+export interface RecipeVersion {
+  id: number
+  slug: string
+  title: string
+  version_label: string
+  author: string
+}
+
 export interface RecipeComment {
   id: number
   recipe: number
@@ -131,6 +139,9 @@ export interface Recipe {
   tags: Tag[]
   ingredients: RecipeIngredient[]
   steps: RecipeStep[]
+  root_recipe: number | null
+  version_label: string
+  versions: RecipeVersion[]
   created_at: string
   updated_at: string
 }

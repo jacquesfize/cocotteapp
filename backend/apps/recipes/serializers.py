@@ -1,3 +1,4 @@
+from django.db import models
 from rest_framework import serializers
 
 from apps.accounts.models import DietType
@@ -59,6 +60,16 @@ class RecipeStepSerializer(serializers.ModelSerializer):
         fields = ["id", "order", "instruction"]
 
 
+class RecipeVersionSerializer(serializers.ModelSerializer):
+    """Lightweight representation of a sibling version, used in RecipeSerializer.versions."""
+
+    author = serializers.ReadOnlyField(source="author.username")
+
+    class Meta:
+        model = Recipe
+        fields = ["id", "slug", "title", "version_label", "author"]
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(source="recipe_ingredients", many=True, required=False)
     steps = RecipeStepSerializer(many=True, required=False)
@@ -66,6 +77,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source="author.username")
     author_id = serializers.ReadOnlyField(source="author.id")
     youtube_id = serializers.SerializerMethodField()
+    versions = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -91,13 +103,27 @@ class RecipeSerializer(serializers.ModelSerializer):
             "tags",
             "ingredients",
             "steps",
+            "root_recipe",
+            "version_label",
+            "versions",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["slug", "total_time_minutes"]
+        read_only_fields = ["slug", "total_time_minutes", "root_recipe"]
 
     def get_youtube_id(self, obj):
         return extract_youtube_id(obj.video_url)
+
+    def get_versions(self, obj):
+        if obj.root_recipe_id is None and not obj.versions.exists():
+            return []
+        root = obj.root()
+        siblings = (
+            Recipe.objects.filter(models.Q(pk=root.pk) | models.Q(root_recipe=root))
+            .exclude(pk=obj.pk)
+            .select_related("author")
+        )
+        return RecipeVersionSerializer(siblings, many=True).data
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", [])

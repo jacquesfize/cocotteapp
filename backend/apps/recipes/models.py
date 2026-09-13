@@ -43,6 +43,17 @@ class Recipe(models.Model):
     image_url = models.URLField(blank=True, help_text="Image externe, utilisée si aucun fichier n'est téléversé.")
     is_public = models.BooleanField(default=True)
     tags = models.ManyToManyField(Tag, blank=True, related_name="recipes")
+    root_recipe = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="versions",
+        help_text="None means this recipe IS a root. A forked recipe points at the same root as its source.",
+    )
+    version_label = models.CharField(
+        max_length=80, blank=True, help_text="e.g. 'Sans gluten', 'Version épicée'. Blank for the root recipe."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,6 +66,14 @@ class Recipe(models.Model):
     @property
     def total_time_minutes(self):
         return self.prep_time_minutes + self.cook_time_minutes
+
+    def root(self):
+        return self.root_recipe or self
+
+    def family_versions(self):
+        """All versions of this recipe's family, including the root itself."""
+        root = self.root()
+        return Recipe.objects.filter(models.Q(pk=root.pk) | models.Q(root_recipe=root))
 
     def save(self, *args, **kwargs):
         if not self.slug:

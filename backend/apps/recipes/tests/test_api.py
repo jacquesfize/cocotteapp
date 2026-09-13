@@ -3,7 +3,8 @@ from rest_framework.test import APIClient
 
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
-from apps.recipes.factories import RecipeFactory
+from apps.recipes.factories import RecipeFactory, RecipeIngredientFactory
+from apps.recipes.models import RecipeStep, SourceType, Tag
 
 
 @pytest.mark.django_db
@@ -143,3 +144,148 @@ def test_recipe_nutrition_action_returns_carbon_footprint():
     assert response.status_code == 200
     assert response.data["carbon_footprint_kg_co2e"] == 10.0
     assert response.data["carbon_footprint_per_serving_kg_co2e"] == 5.0
+
+
+@pytest.mark.django_db
+def test_fork_recipe_creates_linked_version_with_copied_content():
+    original_author = UserFactory()
+    forker = UserFactory()
+    tag = Tag.objects.create(name="Végétarien")
+    ingredient = IngredientFactory()
+    source = RecipeFactory(
+        title="Curry de légumes",
+        author=original_author,
+        description="Un bon curry",
+        servings=4,
+        prep_time_minutes=10,
+        cook_time_minutes=20,
+        diet_type="vegan",
+        image_url="https://example.com/photo.jpg",
+        source_url="https://example.com/recette",
+    )
+    source.tags.add(tag)
+    RecipeIngredientFactory(recipe=source, ingredient=ingredient, quantity="150", unit="g", order=1)
+    RecipeStep.objects.create(recipe=source, order=1, instruction="Couper les légumes.")
+
+    client = APIClient()
+    client.force_authenticate(forker)
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Sans gluten"}, format="json")
+
+    assert response.status_code == 201
+    fork_id = response.data["id"]
+    assert fork_id != source.id
+    assert response.data["version_label"] == "Sans gluten"
+    assert response.data["author"] == forker.username
+    assert response.data["root_recipe"] == source.id
+    assert "Sans gluten" in response.data["title"]
+    assert response.data["image_url"] == ""
+    assert response.data["source_url"] == ""
+
+    fork = source.__class__.objects.get(pk=fork_id)
+    assert fork.root_recipe_id == source.id
+    assert fork.diet_type == "vegan"
+    assert list(fork.tags.values_list("id", flat=True)) == [tag.id]
+    assert fork.recipe_ingredients.count() == 1
+    fork_ingredient = fork.recipe_ingredients.first()
+    assert fork_ingredient.ingredient_id == ingredient.id
+    assert str(fork_ingredient.quantity) == "150.00"
+    assert fork_ingredient.unit == "g"
+    assert fork.steps.count() == 1
+    assert fork.steps.first().instruction == "Couper les légumes."
+    assert fork.source_type == SourceType.MANUAL
+    assert fork.is_public is True
+
+
+@pytest.mark.django_db
+def test_forking_a_fork_points_to_the_same_root():
+    root_author = UserFactory()
+    root = RecipeFactory(author=root_author, title="Recette originale")
+
+    first_forker = UserFactory()
+    client = APIClient()
+    client.force_authenticate(first_forker)
+    first_fork_response = client.post(
+        f"/api/recipes/{root.id}/fork/", {"version_label": "Version épicée"}, format="json"
+    )
+    assert first_fork_response.status_code == 201
+    first_fork_id = first_fork_response.data["id"]
+
+    second_forker = UserFactory()
+    client.force_authenticate(second_forker)
+    second_fork_response = client.post(
+        f"/api/recipes/{first_fork_id}/fork/", {"version_label": "Sans gluten"}, format="json"
+    )
+
+    assert second_fork_response.status_code == 201
+    assert second_fork_response.data["root_recipe"] == root.id
+
+
+@pytest.mark.django_db
+def test_fork_requires_a_version_label():
+    source = RecipeFactory()
+    user = UserFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": ""}, format="json")
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_anonymous_cannot_fork_recipe():
+    source = RecipeFactory()
+    client = APIClient()
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Ma variante"}, format="json")
+
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_any_authenticated_user_can_fork_someone_elses_recipe():
+    """Forking is not limited to the recipe's own author -- that is the point of versioning."""
+    source = RecipeFactory(author=UserFactory())
+    other_user = UserFactory()
+    client = APIClient()
+    client.force_authenticate(other_user)
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Ma variante"}, format="json")
+
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_recipe_detail_lists_sibling_versions():
+    root = RecipeFactory(title="Recette originale")
+    forker = UserFactory()
+    client = APIClient()
+    client.force_authenticate(forker)
+    fork_response = client.post(f"/api/recipes/{root.id}/fork/", {"version_label": "Sans gluten"}, format="json")
+    fork_id = fork_response.data["id"]
+
+    root_detail = client.get(f"/api/recipes/{root.id}/")
+    assert root_detail.status_code == 200
+    root_versions = root_detail.data["versions"]
+    assert len(root_versions) == 1
+    assert root_versions[0]["id"] == fork_id
+    assert root_versions[0]["version_label"] == "Sans gluten"
+    assert root_versions[0]["author"] == forker.username
+
+    fork_detail = client.get(f"/api/recipes/{fork_id}/")
+    assert fork_detail.status_code == 200
+    fork_versions = fork_detail.data["versions"]
+    assert len(fork_versions) == 1
+    assert fork_versions[0]["id"] == root.id
+    assert fork_versions[0]["version_label"] == ""
+
+
+@pytest.mark.django_db
+def test_recipe_detail_has_no_versions_when_not_forked():
+    recipe = RecipeFactory()
+    client = APIClient()
+
+    response = client.get(f"/api/recipes/{recipe.id}/")
+
+    assert response.status_code == 200
+    assert response.data["versions"] == []

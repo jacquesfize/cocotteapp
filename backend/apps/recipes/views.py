@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -15,7 +16,7 @@ from apps.nutrition.services import compute_recipe_carbon_footprint, compute_rec
 
 from .cooklang_import import create_recipe_from_cooklang
 from .filters import RecipeFilter
-from .models import Recipe, RecipeComment, Tag, ThematicPage
+from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, SourceType, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
 from .serializers import (
     AdminThematicPageSerializer,
@@ -40,6 +41,49 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_permissions(self):
+        if self.action == "fork":
+            return [IsAuthenticated()]
+        return super().get_permissions()
+
+    @action(detail=True, methods=["post"])
+    def fork(self, request, pk=None):
+        source = self.get_object()
+        version_label = (request.data.get("version_label") or "").strip()
+        if not version_label:
+            return Response(
+                {"detail": "version_label is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+            fork = Recipe.objects.create(
+                title=f"{source.title} ({version_label})",
+                description=source.description,
+                author=request.user,
+                servings=source.servings,
+                prep_time_minutes=source.prep_time_minutes,
+                cook_time_minutes=source.cook_time_minutes,
+                diet_type=source.diet_type,
+                source_type=SourceType.MANUAL,
+                is_public=True,
+                root_recipe=source.root_recipe or source,
+                version_label=version_label,
+            )
+            fork.tags.set(source.tags.all())
+            for ingredient in source.recipe_ingredients.all():
+                RecipeIngredient.objects.create(
+                    recipe=fork,
+                    ingredient=ingredient.ingredient,
+                    quantity=ingredient.quantity,
+                    unit=ingredient.unit,
+                    group_name=ingredient.group_name,
+                    order=ingredient.order,
+                )
+            for step in source.steps.all():
+                RecipeStep.objects.create(recipe=fork, order=step.order, instruction=step.instruction)
+
+        return Response(self.get_serializer(fork).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"])
     def random(self, request):
