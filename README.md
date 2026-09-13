@@ -125,7 +125,7 @@ npm run test:e2e
 
 ## Structure
 
-- `backend/config/` : settings Django (base/dev/prod), urls, Celery.
+- `backend/config/` : settings Django (base/dev/prod), urls.
 - `backend/apps/accounts/` : utilisateurs (régime alimentaire, niveau d'activité), auth JWT.
 - `backend/apps/ingredients/` : ingrédients, valeurs nutritionnelles, empreinte carbone, saisonnalité.
 - `backend/apps/recipes/` : recettes, ingrédients de recette, étapes, tags, parseur Cooklang.
@@ -133,8 +133,8 @@ npm run test:e2e
   de carences, commande `seed_nutrient_requirements`.
 - `backend/apps/planning/` : agenda (vue semaine), résumé nutritionnel et carbone hebdomadaire.
 - `backend/apps/shopping/` : génération et export de listes de courses.
-- `backend/apps/importer/` : import de recettes depuis une URL (tâche Celery), récupère aussi
-  automatiquement l'image de la recette source quand le site la fournit.
+- `backend/apps/importer/` : import de recettes depuis une URL, récupère aussi automatiquement
+  l'image de la recette source quand le site la fournit.
 - `frontend/src/api/` : client axios + modules par ressource.
 - `frontend/src/stores/` : store Pinia (authentification, tokens JWT).
 - `frontend/src/views/` : pages (accueil, connexion, recettes, agenda, listes de courses).

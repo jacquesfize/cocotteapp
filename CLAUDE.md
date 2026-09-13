@@ -93,8 +93,8 @@ display identifier and is still required at registration) plus `diet_type`/`acti
 which drive the nutrition-deficiency thresholds.
 
 Recipe import has two independent paths: `apps.importer` scrapes a given URL (via
-`recipe_scrapers`, as a Celery task, and also fetches the source's og:image when available) into
-a normal `Recipe`; `apps/recipes/cooklang.py` is a self-contained parser for a small subset of
+`recipe_scrapers`, synchronously in the request/response cycle, and also fetches the source's
+og:image when available) into a normal `Recipe`; `apps/recipes/cooklang.py` is a self-contained parser for a small subset of
 the Cooklang markup language (`@ingredient`, multi-word names joined with an underscore, e.g.
 `huile_olive`) with its own tests — nothing currently sets `SourceType.COOKLANG` or calls this
 parser, so treat it as dormant rather than wired into any view. The frontend independently

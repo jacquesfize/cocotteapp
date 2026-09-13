@@ -21,9 +21,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports: ["6379:6379"]
 
     defaults:
       run:
@@ -32,7 +29,6 @@ jobs:
     env:
       DJANGO_SECRET_KEY: ci-secret
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/recettes
-      CELERY_BROKER_URL: redis://localhost:6379/0
 
     steps:
       - uses: actions/checkout@v4
@@ -92,14 +88,10 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports: ["6379:6379"]
 
     env:
       DJANGO_SECRET_KEY: ci-secret
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/recettes
-      CELERY_BROKER_URL: redis://localhost:6379/0
 
     steps:
       - uses: actions/checkout@v4
