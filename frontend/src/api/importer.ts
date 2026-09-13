@@ -1,5 +1,6 @@
 import client from './client'
+import type { ImportPreview } from '../types/models'
 
-export function importRecipeFromUrl(url: string): Promise<{ task_id: string }> {
+export function previewImportFromUrl(url: string): Promise<ImportPreview> {
   return client.post('import/url/', { url }).then((r) => r.data)
 }

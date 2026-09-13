@@ -1,7 +1,7 @@
 import difflib
 
 from apps.ingredients.models import Ingredient
-from apps.recipes.models import Recipe, RecipeIngredient, RecipeStep, SourceType
+from apps.ingredients.serializers import IngredientSerializer
 
 from .ingredient_parsing import parse_ingredient_line
 
@@ -45,37 +45,46 @@ def _parse_servings(scraper):
         return 4
 
 
-def create_recipe_from_url(user, url: str) -> Recipe:
+def build_import_preview(url: str) -> dict:
+    """Scrape et parse une recette sans rien écrire en base : chaque ligne d'ingrédient est
+    rapprochée du catalogue existant (`find_matching_ingredient`) si possible, laissant à
+    l'appelant le soin de confirmer/corriger avant l'import final (création réelle via
+    `POST /api/recipes/`)."""
     data = scrape_url(url)
-    recipe = Recipe.objects.create(
-        title=data["title"],
-        author=user,
-        servings=data["servings"],
-        cook_time_minutes=data["cook_time_minutes"],
-        source_type=SourceType.URL,
-        source_url=url,
-        image_url=data.get("image_url", ""),
-    )
-    for order, instruction in enumerate(filter(None, data["instructions"]), start=1):
-        RecipeStep.objects.create(recipe=recipe, order=order, instruction=instruction.strip())
 
-    # Les recettes scrapées ne fournissent que des lignes de texte libre : on les parse pour en
-    # extraire quantité/unité/nom, puis on rapproche le nom du catalogue existant plutôt que de
-    # créer un nouvel ingrédient à chaque import (à affiner manuellement ensuite si besoin).
+    ingredients = []
     for raw_line in data["ingredients"]:
         parsed = parse_ingredient_line(raw_line)
-        ingredient = _match_or_create_ingredient(parsed.name)
-        RecipeIngredient.objects.create(
-            recipe=recipe, ingredient=ingredient, quantity=parsed.quantity, unit=parsed.unit
+        matched = find_matching_ingredient(parsed.name)
+        ingredients.append(
+            {
+                "raw_line": raw_line,
+                "quantity": str(parsed.quantity),
+                "unit": parsed.unit,
+                "name": parsed.name,
+                "ingredient": IngredientSerializer(matched).data if matched else None,
+            }
         )
 
-    return recipe
+    return {
+        "title": data["title"],
+        "servings": data["servings"],
+        "cook_time_minutes": data["cook_time_minutes"],
+        "image_url": data.get("image_url", ""),
+        "source_url": url,
+        "steps": [
+            {"order": order, "instruction": instruction.strip()}
+            for order, instruction in enumerate(filter(None, data["instructions"]), start=1)
+        ],
+        "ingredients": ingredients,
+    }
 
 
-def _match_or_create_ingredient(name: str) -> Ingredient:
+def find_matching_ingredient(name: str) -> Ingredient | None:
     # Table nom-normalisé -> Ingredient couvrant le nom français canonique et toutes ses
     # traductions (`Ingredient.translations`), pour rapprocher un ingrédient importé quelle que
     # soit la langue de la recette source (ex. "garlic" -> Ail via translations={"en": "garlic"}).
+    # Purement en lecture : ne crée jamais d'Ingredient (l'utilisateur confirme/corrige avant).
     catalog: dict[str, Ingredient] = {}
     for ingredient in Ingredient.objects.all():
         catalog[ingredient.name.strip().lower()] = ingredient
@@ -90,4 +99,4 @@ def _match_or_create_ingredient(name: str) -> Ingredient:
     if close_matches:
         return catalog[close_matches[0]]
 
-    return Ingredient.objects.create(name=name)
+    return None
