@@ -192,7 +192,11 @@
     "nutritionTitle": "Valeurs nutritionnelles (pour 100 g / 100 ml)",
     "carbonTitle": "Empreinte carbone",
     "submit": "Créer l'ingrédient",
-    "error": "Impossible de créer l'ingrédient."
+    "error": "Impossible de créer l'ingrédient.",
+    "suggestButton": "Suggérer les valeurs",
+    "suggestLoading": "Recherche...",
+    "suggestApplied": "Valeurs suggérées appliquées — à vérifier avant de créer l'ingrédient.",
+    "suggestNotFound": "Aucune suggestion trouvée pour cet ingrédient."
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."

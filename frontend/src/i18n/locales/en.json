@@ -192,7 +192,11 @@
     "nutritionTitle": "Nutrition facts (per 100 g / 100 ml)",
     "carbonTitle": "Carbon footprint",
     "submit": "Create ingredient",
-    "error": "Could not create the ingredient."
+    "error": "Could not create the ingredient.",
+    "suggestButton": "Suggest values",
+    "suggestLoading": "Searching...",
+    "suggestApplied": "Suggested values applied — review before creating the ingredient.",
+    "suggestNotFound": "No suggestion found for this ingredient."
   },
   "recipePicker": {
     "placeholder": "Search a recipe..."
