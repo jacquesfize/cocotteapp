@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Download } from '@lucide/vue'
+import { computed } from 'vue'
 import NutritionCard from './NutritionCard.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../api/recipes'
@@ -7,11 +8,33 @@ import { parseIngredientMentions } from '../utils/cooklangMentions'
 import { parseTimerMentions } from '../utils/cooklangTimers'
 import { downloadBlob } from '../utils/download'
 import { formatDuration } from '../utils/format'
-import type { Recipe } from '../types/models'
+import type { Recipe, RecipeIngredient } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
 }>()
+
+interface IngredientGroup {
+  name: string | null
+  items: RecipeIngredient[]
+}
+
+// Les ingrédients sont ordonnés côté backend (RecipeIngredient.order) : on regroupe donc les
+// group_name identiques et consécutifs sous un même intertitre plutôt que de le répéter en
+// texte entre parenthèses sur chaque ligne.
+const ingredientGroups = computed<IngredientGroup[]>(() => {
+  const groups: IngredientGroup[] = []
+  for (const item of props.recipe.ingredients) {
+    const name = item.group_name || null
+    const last = groups[groups.length - 1]
+    if (last && last.name === name) {
+      last.items.push(item)
+    } else {
+      groups.push({ name, items: [item] })
+    }
+  }
+  return groups
+})
 
 interface StepSegment {
   text: string
@@ -95,18 +118,23 @@ async function handleDownloadPdf() {
 
     <p v-if="recipe.description">{{ recipe.description }}</p>
 
-    <div class="row" style="align-items: flex-start">
+    <div class="row ingredients-steps-row">
       <div class="card" style="flex: 1; min-width: 260px">
         <h2>{{ $t('recipes.ingredients') }}</h2>
-        <ul>
-          <li v-for="item in recipe.ingredients" :key="item.id" :id="`ingredient-${item.ingredient.id}`">
-            {{ item.quantity }} {{ item.unit }} —
-            <RouterLink :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }">
-              {{ item.ingredient.name }}
-            </RouterLink>
-            <span v-if="item.group_name" class="muted">({{ item.group_name }})</span>
-          </li>
-        </ul>
+        <template v-for="(group, index) in ingredientGroups" :key="index">
+          <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
+          <ul class="ingredient-list">
+            <li v-for="item in group.items" :key="item.id" :id="`ingredient-${item.ingredient.id}`" class="ingredient-row">
+              <span class="ingredient-qty">{{ item.quantity }} {{ item.unit }}</span>
+              <RouterLink
+                :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
+                class="ingredient-name"
+              >
+                {{ item.ingredient.name }}
+              </RouterLink>
+            </li>
+          </ul>
+        </template>
       </div>
 
       <div class="card" style="flex: 2; min-width: 260px">
@@ -183,9 +211,68 @@ async function handleDownloadPdf() {
   border: none;
 }
 
+.ingredients-steps-row {
+  align-items: stretch;
+}
+
+.ingredients-steps-row > .card {
+  display: flex;
+  flex-direction: column;
+}
+
 .source-line {
   margin-top: 0.75rem;
   word-break: break-all;
+}
+
+.ingredient-group-label {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.ingredient-group-label:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.ingredient-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ingredient-row:last-child {
+  border-bottom: none;
+}
+
+.ingredient-qty {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  color: var(--color-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ingredient-name {
+  color: var(--color-text);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.ingredient-name:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
 }
 
 .ingredient-mention {
