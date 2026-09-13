@@ -27,6 +27,8 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
+  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
   await page.locator('input[type="number"][step="0.01"]').fill('250')
   await page.getByLabel('Étape 1').fill('Faire revenir les épices puis ajouter les lentilles.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()

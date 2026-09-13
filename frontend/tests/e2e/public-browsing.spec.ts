@@ -20,6 +20,8 @@ test('anonymous visitors can browse the homepage, the recipe list and a recipe p
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
+  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
   await page.locator('input[type="number"][step="0.01"]').fill('150')
   await page.getByLabel('Étape 1').fill('Faire revenir.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
