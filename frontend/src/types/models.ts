@@ -74,6 +74,11 @@ export interface ThematicPage {
   order: number
 }
 
+export interface AdminThematicPage extends ThematicPage {
+  is_active: boolean
+  created_at: string
+}
+
 export interface RecipeIngredient {
   id: number
   ingredient: Ingredient

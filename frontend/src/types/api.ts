@@ -40,6 +40,15 @@ export interface AdminUserListParams {
   page?: number
 }
 
+export interface AdminThematicPageInput {
+  title: string
+  description: string
+  icon: string
+  filters: Record<string, string>
+  order: number
+  is_active: boolean
+}
+
 export interface RegisterPayload {
   username: string
   email: string

@@ -84,6 +84,9 @@ onBeforeUnmount(() => {
           <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
           <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
           <RouterLink v-if="authStore.user?.is_staff" to="/admin/users">{{ $t('nav.admin') }}</RouterLink>
+          <RouterLink v-if="authStore.user?.is_staff" to="/admin/thematic-pages">
+            {{ $t('nav.adminThematicPages') }}
+          </RouterLink>
         </template>
         <template v-else>
           <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
