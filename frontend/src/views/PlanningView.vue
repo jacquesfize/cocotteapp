@@ -4,15 +4,15 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import MealSlot from '../components/MealSlot.vue'
-import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries } from '../api/planning'
+import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../utils/dates'
 import { downloadBlob } from '../utils/download'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
 import type { MealPlanEntryListParams } from '../types/api'
-import type { MealPlanEntry, MealType, NutrientDeficiency } from '../types/models'
+import type { MealPlanEntry, MealType, NutrientDeficiency, PlanningShareReceived } from '../types/models'
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 
 const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
@@ -22,6 +22,21 @@ const entries = ref<MealPlanEntry[]>([])
 const deficiencies = ref<NutrientDeficiency[]>([])
 const carbonFootprint = ref<number | null>(null)
 const isLoading = ref(false)
+const sharedAgendas = ref<PlanningShareReceived[]>([])
+const selectedOwner = ref<number | null>(null)
+
+const isReadOnly = computed(() => {
+  if (selectedOwner.value === null) return false
+  const share = sharedAgendas.value.find((s) => s.owner === selectedOwner.value)
+  return share?.permission === 'read'
+})
+
+function agendaLabel(share: PlanningShareReceived) {
+  const who = share.owner_username || share.owner_email
+  return share.permission === 'read'
+    ? t('planning.sharedAgendaReadLabel', { name: who })
+    : t('planning.sharedAgendaWriteLabel', { name: who })
+}
 
 const weekDays = computed(() => {
   const start = addDays(startOfWeek(new Date()), weekOffset.value * 7)
@@ -37,13 +52,21 @@ function entriesFor(date: Date, mealType: MealType) {
   return entries.value.filter((e) => e.date === iso && e.meal_type === mealType)
 }
 
+function currentParams(): MealPlanEntryListParams {
+  const params: MealPlanEntryListParams = {
+    date_after: toISODate(weekDays.value[0]),
+    date_before: toISODate(weekDays.value[6]),
+  }
+  if (selectedOwner.value !== null) {
+    params.owner = selectedOwner.value
+  }
+  return params
+}
+
 async function load() {
   isLoading.value = true
   try {
-    const params: MealPlanEntryListParams = {
-      date_after: toISODate(weekDays.value[0]),
-      date_before: toISODate(weekDays.value[6]),
-    }
+    const params = currentParams()
     const [entriesData, summary] = await Promise.all([
       listMealPlanEntries(params),
       getNutritionSummary(params),
@@ -56,8 +79,14 @@ async function load() {
   }
 }
 
+async function loadSharedAgendas() {
+  sharedAgendas.value = await listSharedWithMe()
+}
+
 watch(weekOffset, load)
+watch(selectedOwner, load)
 onMounted(load)
+onMounted(loadSharedAgendas)
 
 async function handleGenerateShoppingList() {
   if (!entries.value.length) return
@@ -66,10 +95,7 @@ async function handleGenerateShoppingList() {
 }
 
 async function handleDownloadWeekPdf() {
-  const params: MealPlanEntryListParams = {
-    date_after: toISODate(weekDays.value[0]),
-    date_before: toISODate(weekDays.value[6]),
-  }
+  const params = currentParams()
   const blob = await downloadWeekPdf(params)
   downloadBlob(blob, `agenda-${params.date_after}-${params.date_before}.pdf`)
 }
@@ -83,6 +109,16 @@ const rangeLabel = computed(() => {
 <template>
   <div>
     <h1>{{ $t('planning.title') }}</h1>
+
+    <div v-if="sharedAgendas.length" class="field agenda-switcher">
+      <label for="agenda-select">{{ $t('planning.agendaSelectorLabel') }}</label>
+      <select id="agenda-select" v-model="selectedOwner">
+        <option :value="null">{{ $t('planning.myAgenda') }}</option>
+        <option v-for="share in sharedAgendas" :key="share.id" :value="share.owner">
+          {{ agendaLabel(share) }}
+        </option>
+      </select>
+    </div>
 
     <div class="week-nav">
       <button
@@ -134,6 +170,8 @@ const rangeLabel = computed(() => {
           :date="toISODate(date)"
           :meal-type="mealType"
           :entries="entriesFor(date, mealType)"
+          :owner="selectedOwner ?? undefined"
+          :read-only="isReadOnly"
           @changed="load"
         />
       </div>
@@ -151,6 +189,11 @@ const rangeLabel = computed(() => {
 </template>
 
 <style scoped>
+.agenda-switcher {
+  max-width: 320px;
+  margin-bottom: 1rem;
+}
+
 .week-nav {
   display: flex;
   align-items: center;

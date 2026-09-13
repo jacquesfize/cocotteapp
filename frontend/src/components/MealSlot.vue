@@ -10,6 +10,8 @@ const props = defineProps<{
   date: string
   mealType: MealType
   entries?: MealPlanEntry[]
+  owner?: number | string
+  readOnly?: boolean
 }>()
 const emit = defineEmits<{
   changed: []
@@ -39,12 +41,15 @@ async function handleAdd() {
     return
   }
   try {
-    await createMealPlanEntry({
-      recipe: newRecipe.value.id,
-      date: props.date,
-      meal_type: props.mealType,
-      servings: newServings.value,
-    })
+    await createMealPlanEntry(
+      {
+        recipe: newRecipe.value.id,
+        date: props.date,
+        meal_type: props.mealType,
+        servings: newServings.value,
+      },
+      props.owner,
+    )
     closeForm()
     emit('changed')
   } catch {
@@ -53,7 +58,7 @@ async function handleAdd() {
 }
 
 async function handleRemove(entryId: number) {
-  await deleteMealPlanEntry(entryId)
+  await deleteMealPlanEntry(entryId, props.owner)
   emit('changed')
 }
 </script>
@@ -68,6 +73,7 @@ async function handleRemove(entryId: number) {
           {{ entry.recipe_title }}
         </RouterLink>
         <button
+          v-if="!readOnly"
           type="button"
           class="remove-btn"
           :aria-label="$t('planning.remove')"
@@ -78,26 +84,28 @@ async function handleRemove(entryId: number) {
       </li>
     </ul>
 
-    <button
-      v-if="!isAdding"
-      type="button"
-      class="add-btn secondary"
-      :aria-label="$t('planning.addEntry')"
-      @click="openForm"
-    >
-      <Plus :size="14" />
-    </button>
-    <form v-else class="add-form" @submit.prevent="handleAdd">
-      <RecipePicker v-model="newRecipe" />
-      <div class="row" style="align-items: center; gap: 0.4rem">
-        <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
-        <button type="submit">{{ $t('common.add') }}</button>
-        <button type="button" class="secondary icon-btn" :aria-label="$t('common.cancel')" @click="closeForm">
-          <X :size="14" />
-        </button>
-      </div>
-      <p v-if="error" class="error" style="margin: 0">{{ error }}</p>
-    </form>
+    <template v-if="!readOnly">
+      <button
+        v-if="!isAdding"
+        type="button"
+        class="add-btn secondary"
+        :aria-label="$t('planning.addEntry')"
+        @click="openForm"
+      >
+        <Plus :size="14" />
+      </button>
+      <form v-else class="add-form" @submit.prevent="handleAdd">
+        <RecipePicker v-model="newRecipe" />
+        <div class="row" style="align-items: center; gap: 0.4rem">
+          <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
+          <button type="submit">{{ $t('common.add') }}</button>
+          <button type="button" class="secondary icon-btn" :aria-label="$t('common.cancel')" @click="closeForm">
+            <X :size="14" />
+          </button>
+        </div>
+        <p v-if="error" class="error" style="margin: 0">{{ error }}</p>
+      </form>
+    </template>
   </div>
 </template>
 
