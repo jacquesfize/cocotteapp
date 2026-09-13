@@ -1,7 +1,16 @@
+import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+
+if sys.platform == "darwin" and not os.environ.get("DYLD_FALLBACK_LIBRARY_PATH"):
+    # `uv run`'s own hardened-runtime signature makes macOS strip DYLD_* env vars from its
+    # children (astral-sh/uv#7764, closed as not planned), so WeasyPrint can't dlopen() its
+    # Homebrew-installed native libs. dyld re-reads this var on every dlopen() call, not just
+    # at process launch, so setting it here (before WeasyPrint is imported anywhere) is enough.
+    os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = "/opt/homebrew/lib:/usr/local/lib"
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
