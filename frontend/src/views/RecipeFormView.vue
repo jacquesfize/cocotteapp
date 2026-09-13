@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from '@lucide/vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import CooklangStepInput from '../components/CooklangStepInput.vue'
 import IngredientPicker from '../components/IngredientPicker.vue'
 import { createRecipe, getRecipe, updateRecipe, uploadRecipeImage } from '../api/recipes'
 import type { RecipeInput } from '../types/models'
@@ -45,6 +46,13 @@ const ingredientRows = ref<IngredientRow[]>([
   { ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 },
 ])
 const stepRows = ref<StepRow[]>([{ instruction: '', order: 1 }])
+
+// Noms des ingrédients déjà ajoutés à la recette : utilisés pour l'auto-complétion
+// "@ingrédient" dans les étapes, et pour repérer une mention qui n'y correspond à rien.
+const knownIngredientNames = computed(() =>
+  ingredientRows.value.filter((row) => row.ingredient).map((row) => row.ingredient!.name),
+)
+
 const imageFile = ref<File | null>(null)
 const currentImageUrl = ref('')
 const error = ref('')
@@ -215,7 +223,11 @@ async function handleSubmit() {
         <div v-for="(step, index) in stepRows" :key="index" class="row" style="align-items: flex-end">
           <div class="field" style="flex: 1">
             <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
-            <textarea :id="`step-${index}`" v-model="step.instruction" rows="2" />
+            <CooklangStepInput
+              :id="`step-${index}`"
+              v-model="step.instruction"
+              :ingredient-names="knownIngredientNames"
+            />
           </div>
           <button
             type="button"

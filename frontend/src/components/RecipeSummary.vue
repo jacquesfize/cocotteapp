@@ -2,6 +2,7 @@
 import { Download } from '@lucide/vue'
 import NutritionCard from './NutritionCard.vue'
 import { downloadRecipePdf } from '../api/recipes'
+import { parseIngredientMentions } from '../utils/cooklangMentions'
 import { downloadBlob } from '../utils/download'
 import { formatDuration } from '../utils/format'
 import type { Recipe } from '../types/models'
@@ -9,6 +10,36 @@ import type { Recipe } from '../types/models'
 const props = defineProps<{
   recipe: Recipe
 }>()
+
+interface StepSegment {
+  text: string
+  ingredientId?: number
+}
+
+// Découpe le texte d'une étape en segments pour mettre en évidence les "@mentions"
+// d'ingrédients et les relier à l'ingrédient correspondant dans la liste ci-contre
+// (voir frontend/src/utils/cooklangMentions.ts pour la syntaxe).
+function stepSegments(instruction: string): StepSegment[] {
+  const mentions = parseIngredientMentions(instruction)
+  if (!mentions.length) return [{ text: instruction }]
+
+  const segments: StepSegment[] = []
+  let cursor = 0
+  for (const mention of mentions) {
+    if (mention.start > cursor) {
+      segments.push({ text: instruction.slice(cursor, mention.start) })
+    }
+    const match = props.recipe.ingredients.find(
+      (item) => item.ingredient.name.toLowerCase() === mention.displayName.toLowerCase(),
+    )
+    segments.push({ text: mention.displayName, ingredientId: match?.ingredient.id })
+    cursor = mention.end
+  }
+  if (cursor < instruction.length) {
+    segments.push({ text: instruction.slice(cursor) })
+  }
+  return segments
+}
 
 async function handleDownloadPdf() {
   const blob = await downloadRecipePdf(props.recipe.id)
@@ -51,7 +82,7 @@ async function handleDownloadPdf() {
       <div class="card" style="flex: 1; min-width: 260px">
         <h2>{{ $t('recipes.ingredients') }}</h2>
         <ul>
-          <li v-for="item in recipe.ingredients" :key="item.id">
+          <li v-for="item in recipe.ingredients" :key="item.id" :id="`ingredient-${item.ingredient.id}`">
             {{ item.quantity }} {{ item.unit }} —
             <RouterLink :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }">
               {{ item.ingredient.name }}
@@ -64,7 +95,14 @@ async function handleDownloadPdf() {
       <div class="card" style="flex: 2; min-width: 260px">
         <h2>{{ $t('recipes.steps') }}</h2>
         <ol>
-          <li v-for="step in recipe.steps" :key="step.id">{{ step.instruction }}</li>
+          <li v-for="step in recipe.steps" :key="step.id">
+            <template v-for="(segment, index) in stepSegments(step.instruction)" :key="index">
+              <a v-if="segment.ingredientId" :href="`#ingredient-${segment.ingredientId}`" class="ingredient-mention">{{
+                segment.text
+              }}</a>
+              <template v-else>{{ segment.text }}</template>
+            </template>
+          </li>
         </ol>
       </div>
     </div>
@@ -126,5 +164,15 @@ async function handleDownloadPdf() {
 .source-line {
   margin-top: 0.75rem;
   word-break: break-all;
+}
+
+.ingredient-mention {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ingredient-mention:hover {
+  text-decoration: underline;
 }
 </style>

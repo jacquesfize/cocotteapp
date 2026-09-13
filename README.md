@@ -288,6 +288,21 @@ lecture reste ouverte à tout le monde, y compris aux visiteurs non connectés. 
 est importée depuis une URL, son image est elle aussi récupérée automatiquement si le site
 source en fournit une (via `recipe_scrapers`).
 
+## Lien entre les étapes et les ingrédients (Cooklang)
+
+Le texte d'une étape peut référencer un ingrédient de la recette avec la syntaxe
+[Cooklang](https://cooklang.org/) `@ingrédient` (même sous-ensemble que le parseur backend,
+`backend/apps/recipes/cooklang.py` — un nom multi-mots s'écrit avec un underscore, ex.
+`@huile_olive{2%cs}`, affiché ensuite « huile olive »).
+
+Dans l'éditeur (`frontend/src/components/CooklangStepInput.vue`), taper `@` ouvre une
+auto-complétion parmi les ingrédients déjà ajoutés à la recette ; si le texte mentionne un
+ingrédient absent de la liste (faute de frappe, ou oublié), un avertissement s'affiche sous
+l'étape concernée. En lecture (`RecipeSummary.vue`), chaque mention reconnue devient un lien qui
+pointe vers l'ingrédient correspondant dans la liste ci-contre ; une mention orpheline s'affiche
+en texte normal. Le parsing (`frontend/src/utils/cooklangMentions.ts`) est purement côté client :
+le texte de l'étape stocké en base reste le texte brut tel que saisi, `@` compris.
+
 ## Page d'accueil & pages thématiques
 
 La page d'accueil (`/`) présente l'application, les dernières recettes ajoutées et des « pages
