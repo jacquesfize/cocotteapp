@@ -1,13 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { confirmPasswordReset } from '../api/auth'
 
-const props = defineProps({
-  uid: { type: String, required: true },
-  token: { type: String, required: true },
-})
+const props = defineProps<{
+  uid: string
+  token: string
+}>()
 
 const { t } = useI18n()
 const router = useRouter()

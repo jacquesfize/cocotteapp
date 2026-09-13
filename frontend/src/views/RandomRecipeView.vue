@@ -1,30 +1,32 @@
-<script setup>
+<script setup lang="ts">
 import { Dices } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { getRandomRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import type { RecipeListParams } from '../types/api'
+import type { DietType, Recipe } from '../types/models'
 
 const authStore = useAuthStore()
 
-const recipe = ref(null)
+const recipe = ref<Recipe | null>(null)
 const isLoading = ref(false)
 const notFound = ref(false)
 
-const filters = ref({ diet_type: '', in_season: false })
+const filters = ref<{ diet_type: DietType | ''; in_season: boolean }>({ diet_type: '', in_season: false })
 
 async function draw() {
   isLoading.value = true
   notFound.value = false
   try {
-    const params = {}
+    const params: RecipeListParams = {}
     if (filters.value.diet_type) params.diet_type = filters.value.diet_type
     if (filters.value.in_season) params.in_season = true
     recipe.value = await getRandomRecipe(params)
   } catch (err) {
     recipe.value = null
-    if (err.response?.status === 404) notFound.value = true
+    if ((err as { response?: { status?: number } }).response?.status === 404) notFound.value = true
   } finally {
     isLoading.value = false
   }

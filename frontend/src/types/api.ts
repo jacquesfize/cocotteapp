@@ -1,0 +1,59 @@
+import type { ActivityLevel, DietType, MealType } from './models'
+
+export interface Paginated<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+export interface RecipeListParams {
+  search?: string
+  diet_type?: DietType | ''
+  max_prep_time?: number | string
+  max_cook_time?: number | string
+  ingredients?: string
+  in_season?: boolean
+  page?: number
+}
+
+export interface IngredientListParams {
+  category?: string
+  in_season?: boolean
+  search?: string
+}
+
+export interface MealPlanEntryListParams {
+  date_after?: string
+  date_before?: string
+  meal_type?: MealType
+}
+
+export interface AdminUserListParams {
+  search?: string
+  page?: number
+}
+
+export interface RegisterPayload {
+  username: string
+  email: string
+  password: string
+  diet_type?: DietType
+  activity_level?: ActivityLevel
+}
+
+export interface ChangePasswordPayload {
+  old_password: string
+  new_password: string
+}
+
+export interface PasswordResetConfirmPayload {
+  uid: string
+  token: string
+  new_password: string
+}
+
+export interface TokenPair {
+  access: string
+  refresh: string
+}

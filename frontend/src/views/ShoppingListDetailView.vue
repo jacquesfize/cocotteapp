@@ -1,18 +1,22 @@
-<script setup>
+<script setup lang="ts">
 import { CloudOff, Download } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
+import type { ShoppingList, ShoppingListItem } from '../types/models'
 
-const props = defineProps({
-  id: { type: [String, Number], required: true },
-})
+type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
+type ListWithSync = Omit<ShoppingList, 'items'> & { items: ItemWithSync[] }
 
-const shoppingList = ref(null)
+const props = defineProps<{
+  id: string | number
+}>()
+
+const shoppingList = ref<ListWithSync | null>(null)
 
 async function load() {
-  shoppingList.value = await getShoppingList(props.id)
+  shoppingList.value = (await getShoppingList(props.id)) as ListWithSync
   for (const item of shoppingList.value.items) {
     item.pendingSync = !item.is_owned && (await isMarkOwnedQueued(props.id, item.ingredient.id))
   }
@@ -31,7 +35,7 @@ onBeforeUnmount(() => {
   window.removeEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
 })
 
-async function toggleOwned(item) {
+async function toggleOwned(item: ItemWithSync) {
   // Optimiste : on coche tout de suite, la case reste cochée même si la requête part
   // en file d'attente (pratique au supermarché avec un réseau capricieux).
   item.is_owned = true
@@ -50,7 +54,7 @@ async function toggleOwned(item) {
 async function handleExport() {
   const { content } = await exportShoppingList(props.id)
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  downloadBlob(blob, `${shoppingList.value.name}.txt`)
+  downloadBlob(blob, `${shoppingList.value?.name}.txt`)
 }
 </script>
 

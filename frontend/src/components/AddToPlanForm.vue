@@ -1,14 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createMealPlanEntry } from '../api/planning'
+import type { MealType, Recipe } from '../types/models'
 
-const props = defineProps({
-  recipe: { type: Object, required: true },
-})
+const props = defineProps<{
+  recipe: Recipe
+}>()
 
 const { t } = useI18n()
-const form = ref({ date: '', meal_type: 'dinner', servings: props.recipe.servings })
+const form = ref<{ date: string; meal_type: MealType; servings: number }>({
+  date: '',
+  meal_type: 'dinner',
+  servings: props.recipe.servings,
+})
 const message = ref('')
 
 async function handleSubmit() {

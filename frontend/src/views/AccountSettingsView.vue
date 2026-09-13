@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Download, Save, Trash2 } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -6,12 +6,18 @@ import { useRouter } from 'vue-router'
 import { changePassword, exportMyData } from '../api/auth'
 import { useAuthStore } from '../stores/auth'
 import { downloadBlob } from '../utils/download'
+import type { ActivityLevel, DietType } from '../types/models'
 
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const profile = ref({
+const profile = ref<{
+  username: string
+  email: string
+  diet_type: DietType
+  activity_level: ActivityLevel
+}>({
   username: authStore.user?.username || '',
   email: authStore.user?.email || '',
   diet_type: authStore.user?.diet_type || 'omnivore',
@@ -29,7 +35,8 @@ async function handleProfileSubmit() {
     await authStore.updateProfile(profile.value)
     profileMessage.value = t('account.profileSuccess')
   } catch (err) {
-    profileError.value = err.response?.data?.username?.[0] || t('account.profileError')
+    const data = (err as { response?: { data?: { username?: string[] } } }).response?.data
+    profileError.value = data?.username?.[0] || t('account.profileError')
   } finally {
     isSavingProfile.value = false
   }

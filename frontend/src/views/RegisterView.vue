@@ -1,14 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import type { RegisterPayload } from '../types/api'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const form = ref({
+const form = ref<RegisterPayload>({
   username: '',
   email: '',
   password: '',
@@ -25,7 +26,8 @@ async function handleSubmit() {
     await authStore.register(form.value)
     router.push({ name: 'recipes' })
   } catch (err) {
-    error.value = err.response?.data?.username?.[0] || t('auth.registerError')
+    const data = (err as { response?: { data?: { username?: string[] } } }).response?.data
+    error.value = data?.username?.[0] || t('auth.registerError')
   } finally {
     isSubmitting.value = false
   }

@@ -1,46 +1,63 @@
-<script setup>
+<script setup lang="ts">
 import { Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import IngredientPicker from '../components/IngredientPicker.vue'
 import { createRecipe, getRecipe, updateRecipe, uploadRecipeImage } from '../api/recipes'
+import type { RecipeInput } from '../types/models'
+import type { DietType, Ingredient, Unit } from '../types/models'
 
-const props = defineProps({
-  id: { type: [String, Number], default: null },
-})
+const props = defineProps<{
+  id?: string | number | null
+}>()
 const { t } = useI18n()
 const router = useRouter()
 const isEditing = Boolean(props.id)
 
-const form = ref({
+const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
   title: '',
   description: '',
   servings: 4,
   prep_time_minutes: 10,
   cook_time_minutes: 20,
-  diet_type: 'omnivore',
+  diet_type: 'omnivore' as DietType,
   is_public: true,
   source_url: '',
   video_url: '',
   image_url: '',
 })
 
-const ingredientRows = ref([{ ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 }])
-const stepRows = ref([{ instruction: '', order: 1 }])
-const imageFile = ref(null)
+interface IngredientRow {
+  ingredient: Ingredient | null
+  quantity: string | number
+  unit: Unit
+  group_name: string
+  order: number
+}
+
+interface StepRow {
+  instruction: string
+  order: number
+}
+
+const ingredientRows = ref<IngredientRow[]>([
+  { ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 },
+])
+const stepRows = ref<StepRow[]>([{ instruction: '', order: 1 }])
+const imageFile = ref<File | null>(null)
 const currentImageUrl = ref('')
 const error = ref('')
 const isSubmitting = ref(false)
 
-function handleImageFileChange(event) {
-  imageFile.value = event.target.files[0] || null
+function handleImageFileChange(event: Event) {
+  imageFile.value = (event.target as HTMLInputElement).files?.[0] || null
 }
 
-const UNITS = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
+const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
 
 onMounted(async () => {
-  if (!isEditing) return
+  if (!isEditing || !props.id) return
   const recipe = await getRecipe(props.id)
   form.value = {
     title: recipe.title,
@@ -75,7 +92,7 @@ function addIngredientRow() {
   })
 }
 
-function removeIngredientRow(index) {
+function removeIngredientRow(index: number) {
   ingredientRows.value.splice(index, 1)
 }
 
@@ -83,7 +100,7 @@ function addStepRow() {
   stepRows.value.push({ instruction: '', order: stepRows.value.length + 1 })
 }
 
-function removeStepRow(index) {
+function removeStepRow(index: number) {
   stepRows.value.splice(index, 1)
 }
 
@@ -95,10 +112,10 @@ async function handleSubmit() {
     return
   }
 
-  const payload = {
+  const payload: RecipeInput = {
     ...form.value,
     ingredients: ingredientRows.value.map((row, index) => ({
-      ingredient_id: row.ingredient.id,
+      ingredient_id: (row.ingredient as Ingredient).id,
       quantity: row.quantity,
       unit: row.unit,
       group_name: row.group_name,
@@ -111,7 +128,8 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    const recipe = isEditing ? await updateRecipe(props.id, payload) : await createRecipe(payload)
+    const recipe =
+      isEditing && props.id ? await updateRecipe(props.id, payload) : await createRecipe(payload)
     if (imageFile.value) {
       await uploadRecipeImage(recipe.id, imageFile.value)
     }

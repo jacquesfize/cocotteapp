@@ -1,20 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { listRecipes } from '../api/recipes'
+import type { Recipe } from '../types/models'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  modelValue: { type: Object, default: null },
-  id: { type: String, default: undefined },
-})
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<{
+  modelValue?: Recipe | null
+  id?: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [recipe: Recipe]
+}>()
 
 const query = ref(props.modelValue?.title ?? '')
-const suggestions = ref([])
+const suggestions = ref<Recipe[]>([])
 const isOpen = ref(false)
-let debounceTimer = null
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(query, (value) => {
   clearTimeout(debounceTimer)
@@ -29,7 +32,7 @@ watch(query, (value) => {
   }, 250)
 })
 
-function select(recipe) {
+function select(recipe: Recipe) {
   query.value = recipe.title
   isOpen.value = false
   emit('update:modelValue', recipe)

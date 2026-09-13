@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,15 +9,17 @@ import { createShoppingList } from '../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../utils/dates'
 import { downloadBlob } from '../utils/download'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
+import type { MealPlanEntryListParams } from '../types/api'
+import type { MealPlanEntry, MealType, NutrientDeficiency } from '../types/models'
 
 const { locale } = useI18n()
 const router = useRouter()
 
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
+const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 
 const weekOffset = ref(0)
-const entries = ref([])
-const deficiencies = ref([])
+const entries = ref<MealPlanEntry[]>([])
+const deficiencies = ref<NutrientDeficiency[]>([])
 const isLoading = ref(false)
 
 const weekDays = computed(() => {
@@ -25,11 +27,11 @@ const weekDays = computed(() => {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i))
 })
 
-function dayLabel(date) {
+function dayLabel(date: Date) {
   return date.toLocaleDateString(locale.value, { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-function entriesFor(date, mealType) {
+function entriesFor(date: Date, mealType: MealType) {
   const iso = toISODate(date)
   return entries.value.filter((e) => e.date === iso && e.meal_type === mealType)
 }
@@ -37,7 +39,7 @@ function entriesFor(date, mealType) {
 async function load() {
   isLoading.value = true
   try {
-    const params = {
+    const params: MealPlanEntryListParams = {
       date_after: toISODate(weekDays.value[0]),
       date_before: toISODate(weekDays.value[6]),
     }
@@ -62,7 +64,7 @@ async function handleGenerateShoppingList() {
 }
 
 async function handleDownloadWeekPdf() {
-  const params = {
+  const params: MealPlanEntryListParams = {
     date_after: toISODate(weekDays.value[0]),
     date_before: toISODate(weekDays.value[6]),
   }
@@ -71,7 +73,7 @@ async function handleDownloadWeekPdf() {
 }
 
 const rangeLabel = computed(() => {
-  const fmt = (d) => d.toLocaleDateString(locale.value, { day: 'numeric', month: 'short' })
+  const fmt = (d: Date) => d.toLocaleDateString(locale.value, { day: 'numeric', month: 'short' })
   return `${fmt(weekDays.value[0])} – ${fmt(weekDays.value[6])}`
 })
 </script>

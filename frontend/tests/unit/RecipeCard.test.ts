@@ -2,10 +2,11 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import RecipeCard from '../../src/components/RecipeCard.vue'
 import { i18n } from '../../src/i18n'
+import type { Recipe } from '../../src/types/models'
 
-function mountCard(recipe) {
+function mountCard(recipe: Partial<Recipe>) {
   return mount(RecipeCard, {
-    props: { recipe },
+    props: { recipe: recipe as Recipe },
     global: {
       plugins: [i18n],
       stubs: {

@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import { listRecipes } from '../api/recipes'
 import { listThematicPages } from '../api/thematicPages'
+import type { Recipe, ThematicPage } from '../types/models'
 
-const latestRecipes = ref([])
-const thematicPages = ref([])
+const latestRecipes = ref<Recipe[]>([])
+const thematicPages = ref<ThematicPage[]>([])
 const isLoading = ref(true)
 
 onMounted(async () => {

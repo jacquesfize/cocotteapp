@@ -1,13 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { Download } from '@lucide/vue'
 import NutritionCard from './NutritionCard.vue'
 import { downloadRecipePdf } from '../api/recipes'
 import { downloadBlob } from '../utils/download'
 import { formatDuration } from '../utils/format'
+import type { Recipe } from '../types/models'
 
-const props = defineProps({
-  recipe: { type: Object, required: true },
-})
+const props = defineProps<{
+  recipe: Recipe
+}>()
 
 async function handleDownloadPdf() {
   const blob = await downloadRecipePdf(props.recipe.id)

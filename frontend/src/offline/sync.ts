@@ -7,15 +7,18 @@ export const QUEUE_FLUSHED_EVENT = 'cocotte:queue-flushed'
 // réseau, timeout...) : c'est le seul cas où l'on met l'action de côté pour plus tard.
 // Une vraie erreur serveur (400, 403...) ne doit pas être mise en file, elle ne
 // deviendra pas valide en la rejouant.
-export function isNetworkError(error) {
-  return Boolean(error) && !error.response
+export function isNetworkError(error: unknown): boolean {
+  return Boolean(error) && !(error as { response?: unknown }).response
 }
 
-export async function queueMarkOwned(shoppingListId, ingredientIds) {
+export async function queueMarkOwned(shoppingListId: number | string, ingredientIds: number[]) {
   await queueWrite({ type: 'mark-owned', shoppingListId, ingredientIds })
 }
 
-export async function isMarkOwnedQueued(shoppingListId, ingredientId) {
+export async function isMarkOwnedQueued(
+  shoppingListId: number | string,
+  ingredientId: number,
+): Promise<boolean> {
   const pending = await listQueuedWrites()
   return pending.some(
     (entry) =>

@@ -41,7 +41,7 @@ describe('offline write queue', () => {
   })
 
   it('flushes a queued write by calling the API and clears it on success', async () => {
-    markOwned.mockResolvedValue({})
+    vi.mocked(markOwned).mockResolvedValue({} as never)
     await queueMarkOwned(5, [42])
 
     await flushQueue()
@@ -51,7 +51,7 @@ describe('offline write queue', () => {
   })
 
   it('keeps an entry queued when it still fails with a network error', async () => {
-    markOwned.mockRejectedValue({ message: 'Network Error' })
+    vi.mocked(markOwned).mockRejectedValue({ message: 'Network Error' })
     await queueMarkOwned(5, [42])
 
     await flushQueue()
@@ -60,7 +60,7 @@ describe('offline write queue', () => {
   })
 
   it('drops an entry that fails with a real API error instead of retrying forever', async () => {
-    markOwned.mockRejectedValue({ response: { status: 404 } })
+    vi.mocked(markOwned).mockRejectedValue({ response: { status: 404 } })
     await queueMarkOwned(5, [42])
 
     await flushQueue()
@@ -73,7 +73,7 @@ describe('offline write queue', () => {
     window.addEventListener(QUEUE_FLUSHED_EVENT, handler)
 
     try {
-      markOwned.mockResolvedValue({})
+      vi.mocked(markOwned).mockResolvedValue({} as never)
       await queueMarkOwned(5, [42])
       await flushQueue()
       expect(handler).toHaveBeenCalledTimes(1)

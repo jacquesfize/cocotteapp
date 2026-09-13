@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { WifiOff } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 

@@ -14,6 +14,7 @@ vi.mock('../../src/api/auth', () => ({
 }))
 
 import { deleteMe, fetchMe, obtainToken, refreshTokenRequest } from '../../src/api/auth'
+import type { User } from '../../src/types/models'
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -28,21 +29,21 @@ describe('auth store', () => {
   })
 
   it('stores tokens and fetches the user on login', async () => {
-    obtainToken.mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
-    fetchMe.mockResolvedValue({ id: 1, username: 'alice' })
+    vi.mocked(obtainToken).mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
+    vi.mocked(fetchMe).mockResolvedValue({ id: 1, username: 'alice' } as User)
 
     const store = useAuthStore()
     await store.login('alice', 'password123')
 
     expect(store.isAuthenticated).toBe(true)
     expect(store.accessToken).toBe('access-123')
-    expect(store.user.username).toBe('alice')
+    expect(store.user?.username).toBe('alice')
     expect(localStorage.getItem('access_token')).toBe('access-123')
   })
 
   it('clears state and storage on logout', async () => {
-    obtainToken.mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
-    fetchMe.mockResolvedValue({ id: 1, username: 'alice' })
+    vi.mocked(obtainToken).mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
+    vi.mocked(fetchMe).mockResolvedValue({ id: 1, username: 'alice' } as User)
 
     const store = useAuthStore()
     await store.login('alice', 'password123')
@@ -54,9 +55,9 @@ describe('auth store', () => {
   })
 
   it('refreshes the access token using the stored refresh token', async () => {
-    obtainToken.mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
-    fetchMe.mockResolvedValue({ id: 1, username: 'alice' })
-    refreshTokenRequest.mockResolvedValue({ access: 'access-789' })
+    vi.mocked(obtainToken).mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
+    vi.mocked(fetchMe).mockResolvedValue({ id: 1, username: 'alice' } as User)
+    vi.mocked(refreshTokenRequest).mockResolvedValue({ access: 'access-789', refresh: 'refresh-456' })
 
     const store = useAuthStore()
     await store.login('alice', 'password123')
@@ -73,9 +74,9 @@ describe('auth store', () => {
   })
 
   it('deletes the account then clears local state, like logout', async () => {
-    obtainToken.mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
-    fetchMe.mockResolvedValue({ id: 1, username: 'alice' })
-    deleteMe.mockResolvedValue()
+    vi.mocked(obtainToken).mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
+    vi.mocked(fetchMe).mockResolvedValue({ id: 1, username: 'alice' } as User)
+    vi.mocked(deleteMe).mockResolvedValue(undefined as never)
 
     const store = useAuthStore()
     await store.login('alice', 'password123')

@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
-async function registerAndLogin(page, username) {
+async function registerAndLogin(page: Page, username: string) {
   await page.goto('/register')
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)

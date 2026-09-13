@@ -1,12 +1,13 @@
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import { getRecipeNutrition } from '../api/recipes'
+import type { NutrientTotals } from '../types/models'
 
-const props = defineProps({
-  recipeId: { type: [String, Number], required: true },
-})
+const props = defineProps<{
+  recipeId: string | number
+}>()
 
-const nutrition = ref(null)
+const nutrition = ref<NutrientTotals | null>(null)
 
 async function load() {
   nutrition.value = null
