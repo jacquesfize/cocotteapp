@@ -127,7 +127,13 @@
     "sourceUrl": "Source (lien de la recette d'origine)",
     "videoUrl": "Vidéo (lien YouTube)",
     "source": "Source",
-    "downloadPdf": "Télécharger en PDF"
+    "downloadPdf": "Télécharger en PDF",
+    "createVariant": "Créer une variante",
+    "versionLabelPlaceholder": "Nom de la variante (ex. Sans gluten)",
+    "confirmFork": "Valider",
+    "forkError": "Impossible de créer cette variante.",
+    "otherVersions": "Autres versions de cette recette",
+    "originalVersion": "Originale"
   },
   "home": {
     "title": "Cocotte",

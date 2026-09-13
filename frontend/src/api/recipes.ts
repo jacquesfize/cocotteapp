@@ -43,3 +43,7 @@ export function uploadRecipeImage(id: number | string, file: File): Promise<Reci
 export function downloadRecipePdf(id: number | string): Promise<Blob> {
   return client.get(`recipes/${id}/pdf/`, { responseType: 'blob' }).then((r) => r.data)
 }
+
+export function forkRecipe(id: number | string, versionLabel: string): Promise<Recipe> {
+  return client.post(`recipes/${id}/fork/`, { version_label: versionLabel }).then((r) => r.data)
+}
