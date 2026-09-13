@@ -142,6 +142,28 @@
     "placeholder": "Rechercher un ingrédient...",
     "create": "+ Créer « {name} »"
   },
+  "ingredientCategory": {
+    "vegetable": "Légume",
+    "fruit": "Fruit",
+    "legume": "Légumineuse",
+    "grain": "Céréale",
+    "nut_seed": "Noix / graine",
+    "dairy": "Produit laitier",
+    "meat_fish": "Viande / poisson",
+    "egg": "Œuf",
+    "fat": "Matière grasse",
+    "condiment": "Condiment / épice",
+    "other": "Autre"
+  },
+  "ingredientModal": {
+    "title": "Nouvel ingrédient",
+    "name": "Nom",
+    "category": "Catégorie",
+    "defaultUnit": "Unité par défaut",
+    "nutritionTitle": "Valeurs nutritionnelles (pour 100 g / 100 ml)",
+    "submit": "Créer l'ingrédient",
+    "error": "Impossible de créer l'ingrédient."
+  },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
   },
