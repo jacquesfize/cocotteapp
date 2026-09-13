@@ -128,7 +128,14 @@
     "sourceUrl": "Source (lien de la recette d'origine)",
     "videoUrl": "Vidéo (lien YouTube)",
     "source": "Source",
-    "downloadPdf": "Télécharger en PDF"
+    "downloadPdf": "Télécharger en PDF",
+    "modeManual": "Saisie manuelle",
+    "modeCooklang": "Coller du Cooklang",
+    "cooklangText": "Texte Cooklang",
+    "cooklangHint": "Utilisez la syntaxe \\@ingrédient{'{'}quantité%unité{'}'}, par ex. \\@huile_olive{'{'}2%cs{'}'}.",
+    "cooklangPlaceholder": "Faire revenir \\@oignon{'{'}1%piece{'}'} dans \\@huile_olive{'{'}2%cs{'}'}...",
+    "cooklangImportButton": "Importer",
+    "cooklangImportError": "Échec de l'import du texte Cooklang."
   },
   "home": {
     "title": "Cocotte",

@@ -1,6 +1,15 @@
 import client from './client'
 import type { Paginated, RecipeListParams } from '../types/api'
-import type { Recipe, RecipeInput, RecipeNutrition, Tag } from '../types/models'
+import type { DietType, Recipe, RecipeInput, RecipeNutrition, Tag } from '../types/models'
+
+export interface CooklangImportInput {
+  title: string
+  raw_cooklang: string
+  servings?: number
+  prep_time_minutes?: number
+  cook_time_minutes?: number
+  diet_type?: DietType
+}
 
 export function listRecipes(params: RecipeListParams = {}): Promise<Paginated<Recipe>> {
   return client.get('recipes/', { params }).then((r) => r.data)
@@ -20,6 +29,10 @@ export function getRecipeNutrition(id: number | string): Promise<RecipeNutrition
 
 export function createRecipe(payload: RecipeInput): Promise<Recipe> {
   return client.post('recipes/', payload).then((r) => r.data)
+}
+
+export function importRecipeFromCooklang(payload: CooklangImportInput): Promise<Recipe> {
+  return client.post('recipes/import-cooklang/', payload).then((r) => r.data)
 }
 
 export function updateRecipe(id: number | string, payload: RecipeInput): Promise<Recipe> {
