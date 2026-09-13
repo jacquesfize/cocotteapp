@@ -97,6 +97,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/AdminUsersView.vue'),
     meta: { requiresStaff: true },
   },
+  {
+    path: '/admin/thematic-pages',
+    name: 'admin-thematic-pages',
+    component: () => import('../views/AdminThematicPagesView.vue'),
+    meta: { requiresStaff: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: '/recipes' },
 ]
 

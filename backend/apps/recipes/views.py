@@ -2,21 +2,29 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from weasyprint import HTML
 
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
+from .cooklang_import import create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, RecipeComment, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
-from .serializers import RecipeCommentSerializer, RecipeSerializer, TagSerializer, ThematicPageSerializer
+from .serializers import (
+    AdminThematicPageSerializer,
+    CooklangImportSerializer,
+    RecipeCommentSerializer,
+    RecipeSerializer,
+    TagSerializer,
+    ThematicPageSerializer,
+)
 from .throttles import CommentCreateAnonThrottle
 
 
@@ -65,6 +73,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe.image = uploaded
         recipe.save()
         return Response(self.get_serializer(recipe).data)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="import-cooklang",
+        permission_classes=[IsAuthenticated],
+    )
+    def import_cooklang(self, request):
+        serializer = CooklangImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipe = create_recipe_from_cooklang(author=request.user, **serializer.validated_data)
+        return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get"], url_path="pdf")
     def download_pdf(self, request, pk=None):
@@ -141,4 +161,14 @@ class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = ThematicPage.objects.filter(is_active=True)
     serializer_class = ThematicPageSerializer
+    pagination_class = None
+
+
+class AdminThematicPageViewSet(viewsets.ModelViewSet):
+    """Réservé aux comptes staff : gestion complète des pages thématiques (raccourcis de la
+    page d'accueil), en alternative à l'admin Django (`/admin/recipes/thematicpage/`)."""
+
+    queryset = ThematicPage.objects.all()
+    serializer_class = AdminThematicPageSerializer
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = None

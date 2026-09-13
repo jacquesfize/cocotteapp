@@ -2,11 +2,13 @@ from datetime import date as date_cls
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from weasyprint import HTML
@@ -19,8 +21,14 @@ from apps.nutrition.services import (
 )
 
 from .filters import MealPlanEntryFilter
-from .models import MealPlanEntry, MealType
-from .serializers import MealPlanEntrySerializer
+from .models import MealPlanEntry, MealType, PlanningPermission, PlanningShare
+from .serializers import (
+    MealPlanEntrySerializer,
+    PlanningShareReceivedSerializer,
+    PlanningShareSerializer,
+)
+
+WRITE_ACTIONS = {"create", "update", "partial_update", "destroy"}
 
 
 class MealPlanEntryViewSet(viewsets.ModelViewSet):
@@ -30,11 +38,58 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = MealPlanEntryFilter
 
+    def _resolve_agenda(self):
+        """Resolve which user's agenda applies to this request and the requester's permission.
+
+        Returns the agenda owner (a User) and one of "owner" (full access, it's the
+        requester's own agenda), "read" or "write" (access granted via a PlanningShare).
+        Raises NotFound if the ?owner= id doesn't exist, PermissionDenied if there's no
+        share allowing access. Cached on the instance since a fresh viewset instance is
+        created per request but several call sites (get_queryset, perform_create/update/
+        destroy, the custom actions) need this within the same request.
+        """
+        if getattr(self, "_agenda_resolution", None) is not None:
+            return self._agenda_resolution
+
+        owner_id = self.request.query_params.get("owner")
+        user = self.request.user
+        if not owner_id or str(owner_id) == str(user.id):
+            self._agenda_resolution = (user, "owner")
+            return self._agenda_resolution
+
+        try:
+            owner = get_user_model().objects.get(pk=owner_id)
+        except (get_user_model().DoesNotExist, ValueError, TypeError):
+            raise NotFound("Utilisateur introuvable.")
+
+        share = PlanningShare.objects.filter(owner=owner, shared_with=user).first()
+        if share is None:
+            raise PermissionDenied("Cet agenda n'est pas partagé avec vous.")
+        self._agenda_resolution = (owner, share.permission)
+        return self._agenda_resolution
+
     def get_queryset(self):
-        return MealPlanEntry.objects.filter(user=self.request.user).select_related("recipe")
+        agenda_owner, _permission = self._resolve_agenda()
+        return MealPlanEntry.objects.filter(user=agenda_owner).select_related("recipe")
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if self.action in WRITE_ACTIONS:
+            _agenda_owner, permission = self._resolve_agenda()
+            if permission == PlanningPermission.READ:
+                raise PermissionDenied("Vous n'avez qu'un accès en lecture seule à cet agenda.")
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        agenda_owner, _permission = self._resolve_agenda()
+        serializer.save(user=agenda_owner)
+
+    def perform_update(self, serializer):
+        agenda_owner, _permission = self._resolve_agenda()
+        serializer.save(user=agenda_owner)
+
+    def perform_destroy(self, instance):
+        self._resolve_agenda()
+        instance.delete()
 
     @action(detail=False, methods=["get"])
     def nutrition_summary(self, request):
@@ -53,7 +108,8 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
         daily_average = {field: totals[field] / days for field in NUTRIENT_FIELDS}
         carbon_daily_average = carbon_total / days
 
-        deficiencies = find_deficiencies(daily_average, request.user.diet_type, request.user.activity_level)
+        agenda_owner, _permission = self._resolve_agenda()
+        deficiencies = find_deficiencies(daily_average, agenda_owner.diet_type, agenda_owner.activity_level)
         for deficiency in deficiencies:
             deficiency["amount"] = float(deficiency["amount"])
             deficiency["minimum"] = float(deficiency["minimum"])
@@ -140,3 +196,25 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
             except ValueError:
                 pass
         return 7
+
+
+class PlanningShareViewSet(viewsets.ModelViewSet):
+    """Manage shares of the current user's agenda with other users."""
+
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+    http_method_names = ["get", "post", "patch", "put", "delete", "head", "options"]
+
+    def get_queryset(self):
+        return PlanningShare.objects.filter(owner=self.request.user).select_related("shared_with")
+
+    def get_serializer_class(self):
+        if self.action == "shared_with_me":
+            return PlanningShareReceivedSerializer
+        return PlanningShareSerializer
+
+    @action(detail=False, methods=["get"], url_path="shared-with-me")
+    def shared_with_me(self, request):
+        shares = PlanningShare.objects.filter(shared_with=request.user).select_related("owner")
+        serializer = self.get_serializer(shares, many=True)
+        return Response(serializer.data)

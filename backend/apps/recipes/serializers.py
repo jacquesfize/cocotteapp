@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 
@@ -17,6 +18,28 @@ class ThematicPageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ThematicPage
         fields = ["id", "title", "slug", "description", "icon", "filters", "order"]
+
+
+class AdminThematicPageSerializer(serializers.ModelSerializer):
+    """Utilisée par l'API d'administration (`/api/admin/thematic-pages/`) : contrairement à
+    `ThematicPageSerializer` (lecture seule, publique, réservée aux pages actives), celle-ci
+    expose aussi `is_active` et `created_at` et autorise l'écriture pour permettre la gestion
+    complète des pages thématiques depuis l'interface staff."""
+
+    class Meta:
+        model = ThematicPage
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "icon",
+            "filters",
+            "order",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = ["slug", "created_at"]
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -159,3 +182,15 @@ class RecipeCommentSerializer(serializers.ModelSerializer):
         if user is not None and user.is_authenticated:
             validated_data["user"] = user
         return super().create(validated_data)
+
+
+class CooklangImportSerializer(serializers.Serializer):
+    """Input for POST /api/recipes/import-cooklang/: raw Cooklang text plus a
+    handful of recipe-level fields the markup itself doesn't carry."""
+
+    title = serializers.CharField(max_length=200)
+    raw_cooklang = serializers.CharField()
+    servings = serializers.IntegerField(required=False, min_value=1)
+    prep_time_minutes = serializers.IntegerField(required=False, min_value=0)
+    cook_time_minutes = serializers.IntegerField(required=False, min_value=0)
+    diet_type = serializers.ChoiceField(choices=DietType.choices, required=False)
