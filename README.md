@@ -2,9 +2,10 @@
 
 Application de gestion de recettes : recherche par ingrédients/saison/régime/temps, tirage
 d'une recette au hasard, menu de la semaine avec suivi nutritionnel (utile pour une transition
-vegan), génération de listes de courses, import manuel ou depuis une URL. Backend Django/DRF,
-frontend Vue 3 — interface traduite (FR/EN) et responsive (mobile-first, navigation par barre
-d'onglets en bas d'écran).
+vegan), génération de listes de courses, import manuel ou depuis une URL, export PDF (recette ou
+agenda de la semaine), image/vidéo/source par recette, pages thématiques (par ingrédient, par
+saison). Backend Django/DRF, frontend Vue 3 — interface traduite (FR/EN) et responsive
+(mobile-first, navigation par barre d'onglets en bas d'écran).
 
 ## Lancer en local (Docker)
 
@@ -15,6 +16,33 @@ docker compose up --build
 
 - API : `http://localhost:8000/api/`, admin : `http://localhost:8000/admin/`
 - Frontend : `http://localhost:5173/`
+
+## Déploiement en production (Docker + Caddy)
+
+`docker-compose.prod.yml` construit des images de production (backend servi par Gunicorn,
+frontend buildé en fichiers statiques) et lance un conteneur Caddy en frontal qui obtient et
+renouvelle automatiquement un certificat HTTPS (Let's Encrypt) pour le domaine fourni, sert la
+SPA, et fait reverse proxy vers le backend pour `/api/`, `/admin/`, `/static/` et `/media/`.
+
+Prérequis : un serveur avec Docker + Docker Compose, un nom de domaine dont l'enregistrement
+DNS (A/AAAA) pointe déjà vers ce serveur, et les ports 80/443 ouverts.
+
+```bash
+cp .env.prod.example .env.prod
+# Éditer .env.prod : DOMAIN, ACME_EMAIL, DJANGO_SECRET_KEY, POSTGRES_PASSWORD (+ le
+# reporter dans DATABASE_URL), DJANGO_ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS, CSRF_TRUSTED_ORIGINS.
+
+docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+
+# Créer un compte admin une fois les conteneurs démarrés :
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py createsuperuser
+```
+
+Le conteneur backend applique les migrations et régénère les fichiers statiques à chaque
+démarrage ; les images/PDF téléversés (`media/`) et les fichiers statiques (`staticfiles/`)
+vivent dans des volumes Docker nommés, tout comme les certificats Caddy (`caddy_data`) — ils
+survivent donc à un `docker compose up --build` répété. `POSTGRES_PASSWORD` (utilisé pour créer
+la base) et le mot de passe intégré dans `DATABASE_URL` doivent rester identiques.
 
 ## Backend — lancer en local (sans Docker)
 
@@ -128,6 +156,28 @@ B12, calcium, oméga-3, zinc). La vue Agenda calcule en plus la moyenne journali
 affichée et alerte si un apport tombe sous le seuil de référence pour le régime et le niveau
 d'activité du compte — pensé pour repérer les manques typiques d'une transition vers un régime
 végétarien/végan (fer, B12, zinc en particulier).
+
+## Export PDF & médias
+
+Chaque recette peut être téléchargée en PDF (bouton « Télécharger en PDF » sur sa page) —
+généré côté serveur avec [WeasyPrint](https://weasyprint.org/) à partir d'un template HTML/CSS
+dédié (`backend/apps/recipes/templates/pdf/recipe.html`), pratique pour l'imprimer et l'afficher
+en association ou magasin vegan. Depuis l'Agenda, « Télécharger le PDF de la semaine » génère de
+la même façon un PDF de la grille de la semaine affichée suivie du détail de toutes les recettes
+qui y figurent (`backend/apps/planning/templates/pdf/week.html`).
+
+Une recette peut aussi avoir une image (URL externe ou fichier téléversé), une source (lien vers
+la recette d'origine) et une vidéo YouTube, intégrée sur la page de la recette via
+`youtube-nocookie.com` (aucun cookie tiers chargé avant que la vidéo soit lancée). Seul l'auteur
+d'une recette peut la modifier, la supprimer ou changer son image ; la lecture reste ouverte à
+tout le monde, y compris aux visiteurs non connectés.
+
+## Pages thématiques
+
+La liste des recettes (`/recipes`) reflète ses filtres (ingrédient, saison, régime, temps total)
+dans les paramètres d'URL — ce sont donc des pages partageables/marque-pageables : cliquer sur un
+ingrédient depuis une recette ouvre par exemple `/recipes?ingredients=Courgette`, et le raccourci
+« 🌱 Produits de saison » ouvre `/recipes?in_season=true`.
 
 ## Design
 
