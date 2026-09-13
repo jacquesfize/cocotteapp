@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Download } from '@lucide/vue'
+import { Clock, Download, Flame, Users, Utensils } from '@lucide/vue'
 import { computed } from 'vue'
 import NutritionCard from './NutritionCard.vue'
 import StepTimerButton from './StepTimerButton.vue'
@@ -90,12 +90,15 @@ async function handleDownloadPdf() {
 <template>
   <div>
     <div class="row summary-header">
-      <p class="muted" style="margin: 0">
-        {{ $t(`diet.${recipe.diet_type}`) }} · {{ recipe.servings }} {{ $t('recipes.servings') }} ·
-        {{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }} · {{ $t('recipes.cook') }}
-        {{ formatDuration(recipe.cook_time_minutes) }}
-      </p>
-      <button class="secondary" @click="handleDownloadPdf"><Download :size="16" />{{ $t('recipes.downloadPdf') }}</button>
+      <div class="meta-chips">
+        <span class="meta-chip"><Utensils :size="14" />{{ $t(`diet.${recipe.diet_type}`) }}</span>
+        <span class="meta-chip"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</span>
+        <span class="meta-chip"><Clock :size="14" />{{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }}</span>
+        <span class="meta-chip"><Flame :size="14" />{{ $t('recipes.cook') }} {{ formatDuration(recipe.cook_time_minutes) }}</span>
+      </div>
+      <button class="secondary download-button" :aria-label="$t('recipes.downloadPdf')" @click="handleDownloadPdf">
+        <Download :size="16" /><span class="download-label">{{ $t('recipes.downloadPdf') }}</span>
+      </button>
     </div>
 
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
@@ -157,11 +160,6 @@ async function handleDownloadPdf() {
       </div>
     </div>
 
-    <p v-if="recipe.source_url" class="muted source-line">
-      {{ $t('recipes.source') }} :
-      <a :href="recipe.source_url" target="_blank" rel="noopener noreferrer">{{ recipe.source_url }}</a>
-    </p>
-
     <NutritionCard :recipe-id="recipe.id" style="margin-top: 1rem" />
   </div>
 </template>
@@ -170,9 +168,53 @@ async function handleDownloadPdf() {
 .summary-header {
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.meta-chip svg {
+  color: var(--color-primary-dark);
+  flex-shrink: 0;
+}
+
+.download-button {
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .download-button {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-height: auto;
+    padding: 0;
+    border-radius: 999px;
+    justify-content: center;
+  }
+
+  .download-label {
+    display: none;
+  }
 }
 
 .media-row {
@@ -218,11 +260,6 @@ async function handleDownloadPdf() {
 .ingredients-steps-row > .card {
   display: flex;
   flex-direction: column;
-}
-
-.source-line {
-  margin-top: 0.75rem;
-  word-break: break-all;
 }
 
 .ingredient-group-label {

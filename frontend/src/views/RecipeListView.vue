@@ -251,4 +251,7 @@ async function handleImport() {
   align-items: center;
   gap: 0.5rem;
 }
+.filters{
+  margin-bottom: 1em;
+}
 </style>

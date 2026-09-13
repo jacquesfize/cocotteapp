@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { GitFork, Pencil, Trash2 } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
+import { EllipsisVertical, GitFork, Link2, Pencil, Trash2 } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
@@ -25,10 +25,37 @@ const forkLabel = ref('')
 const forkError = ref('')
 const forking = ref(false)
 
+const showActionsMenu = ref(false)
+const actionsEl = ref<HTMLElement | null>(null)
+
 const isOwner = computed(
   () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
 const canModerateComments = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
+
+function closeActionsMenu() {
+  showActionsMenu.value = false
+}
+
+function handleActionsOutsideClick(event: MouseEvent) {
+  if (showActionsMenu.value && actionsEl.value && !actionsEl.value.contains(event.target as Node)) {
+    closeActionsMenu()
+  }
+}
+
+function handleActionsKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeActionsMenu()
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleActionsOutsideClick)
+  document.addEventListener('keydown', handleActionsKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleActionsOutsideClick)
+  document.removeEventListener('keydown', handleActionsKeydown)
+})
 
 async function load() {
   recipe.value = await getRecipe(props.id)
@@ -37,6 +64,7 @@ async function load() {
 onMounted(load)
 
 async function handleDelete() {
+  closeActionsMenu()
   if (!confirm(t('recipes.deleteConfirm'))) return
   deleteError.value = ''
   try {
@@ -71,21 +99,53 @@ async function handleFork() {
 <template>
   <div v-if="recipe">
     <div class="row page-header">
-      <h1>{{ recipe.title }}</h1>
-      <div class="row">
-        <template v-if="isOwner">
-          <RouterLink :to="{ name: 'recipe-edit', params: { id: recipe.id } }">
-            <button class="secondary"><Pencil :size="16" />{{ $t('common.edit') }}</button>
-          </RouterLink>
-          <button class="danger" @click="handleDelete"><Trash2 :size="16" />{{ $t('common.delete') }}</button>
-        </template>
+      <div class="title-block">
+        <h1>
+          {{ recipe.title }}
+          <a
+            v-if="recipe.source_url"
+            :href="recipe.source_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="source-badge"
+          >
+            <Link2 :size="14" /><span>{{ $t('recipes.source') }}</span>
+          </a>
+        </h1>
+      </div>
+      <div v-if="authStore.isAuthenticated" ref="actionsEl" class="actions-menu">
         <button
-          v-if="authStore.isAuthenticated && !showForkForm"
-          class="secondary"
-          @click="showForkForm = true"
+          class="actions-toggle secondary"
+          type="button"
+          :aria-expanded="showActionsMenu"
+          aria-controls="recipe-actions-panel"
+          :aria-label="t('recipes.actions')"
+          @click="showActionsMenu = !showActionsMenu"
         >
-          <GitFork :size="16" />{{ $t('recipes.createVariant') }}
+          <EllipsisVertical :size="18" />
         </button>
+
+        <div id="recipe-actions-panel" class="actions-panel" :class="{ 'is-open': showActionsMenu }">
+          <template v-if="isOwner">
+            <RouterLink
+              :to="{ name: 'recipe-edit', params: { id: recipe.id } }"
+              class="actions-link"
+              @click="closeActionsMenu"
+            >
+              <Pencil :size="16" /><span>{{ $t('common.edit') }}</span>
+            </RouterLink>
+            <button class="actions-link actions-link-danger" @click="handleDelete">
+              <Trash2 :size="16" /><span>{{ $t('common.delete') }}</span>
+            </button>
+          </template>
+          <button
+            v-if="!showForkForm"
+            class="actions-link"
+            @click="showForkForm = true; closeActionsMenu()"
+          >
+            <GitFork :size="16" /><span>{{ $t('recipes.createVariant') }}</span>
+          </button>
+        </div>
       </div>
     </div>
     <p v-if="deleteError" class="error">{{ deleteError }}</p>
@@ -128,7 +188,101 @@ async function handleFork() {
 <style scoped>
 .page-header {
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.title-block {
+  flex: 1;
+  min-width: 0;
+
+  h1{
+    margin-top: 0;
+  }
+}
+
+
+.source-badge {
+  display: inline-flex;
   align-items: center;
+  gap: 0.35rem;
+  vertical-align: middle;
+  margin-left: 0.6rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.source-badge:hover {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.actions-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.actions-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-height: auto;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 200px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 0.6rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 20;
+}
+
+.actions-panel.is-open {
+  display: flex;
+}
+
+.actions-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  min-height: auto;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.actions-link:hover {
+  background: var(--color-surface-muted);
+}
+
+.actions-link-danger {
+  color: var(--color-danger);
 }
 
 .fork-form {

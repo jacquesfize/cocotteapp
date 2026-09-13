@@ -130,6 +130,7 @@
     "source": "Source",
     "downloadPdf": "Download as PDF",
     "createVariant": "Create a variant",
+    "actions": "Actions",
     "versionLabelPlaceholder": "Variant name (e.g. Gluten-free)",
     "confirmFork": "Confirm",
     "forkError": "Could not create this variant.",

@@ -32,7 +32,7 @@
   <h1>{{ item.recipe.title }}</h1>
   <p class="meta">
     {{ item.recipe.get_diet_type_display }} · {{ item.recipe.servings }} portions ·
-    prépa {{ item.recipe.prep_time_minutes }} min · cuisson {{ item.recipe.cook_time_minutes }} min
+    préparation {{ item.recipe.prep_time_minutes }} min · cuisson {{ item.recipe.cook_time_minutes }} min
   </p>
   {% if item.image_src %}<img class="recipe-image" src="{{ item.image_src }}" alt="">{% endif %}
   <div class="columns">
