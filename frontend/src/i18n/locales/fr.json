@@ -161,6 +161,7 @@
     "category": "Catégorie",
     "defaultUnit": "Unité par défaut",
     "nutritionTitle": "Valeurs nutritionnelles (pour 100 g / 100 ml)",
+    "carbonTitle": "Empreinte carbone",
     "submit": "Créer l'ingrédient",
     "error": "Impossible de créer l'ingrédient."
   },
@@ -201,7 +202,10 @@
     "calcium": "Calcium",
     "omega3": "Oméga-3",
     "zinc": "Zinc",
-    "weeklyAlertTitle": "Apports possiblement insuffisants cette semaine"
+    "weeklyAlertTitle": "Apports possiblement insuffisants cette semaine",
+    "carbonPerServing": "Empreinte carbone (par portion)",
+    "carbonPerKg": "Empreinte carbone (kg CO2e / kg)",
+    "carbonWeekly": "Empreinte carbone de la semaine"
   },
   "random": {
     "title": "Recette au hasard",

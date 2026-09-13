@@ -11,7 +11,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from weasyprint import HTML
 
-from apps.nutrition.services import NUTRIENT_FIELDS, compute_recipe_nutrition, find_deficiencies
+from apps.nutrition.services import (
+    NUTRIENT_FIELDS,
+    compute_recipe_carbon_footprint,
+    compute_recipe_nutrition,
+    find_deficiencies,
+)
 
 from .filters import MealPlanEntryFilter
 from .models import MealPlanEntry, MealType
@@ -36,14 +41,17 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         totals = {field: Decimal("0") for field in NUTRIENT_FIELDS}
+        carbon_total = Decimal("0")
         for entry in queryset.select_related("recipe"):
             recipe_totals = compute_recipe_nutrition(entry.recipe)
             ratio = Decimal(entry.servings) / Decimal(entry.recipe.servings or 1)
             for field in NUTRIENT_FIELDS:
                 totals[field] += recipe_totals[field] * ratio
+            carbon_total += compute_recipe_carbon_footprint(entry.recipe) * ratio
 
         days = self._window_days(request)
         daily_average = {field: totals[field] / days for field in NUTRIENT_FIELDS}
+        carbon_daily_average = carbon_total / days
 
         deficiencies = find_deficiencies(daily_average, request.user.diet_type, request.user.activity_level)
         for deficiency in deficiencies:
@@ -55,6 +63,8 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
                 "totals": {k: float(v) for k, v in totals.items()},
                 "daily_average": {k: float(v) for k, v in daily_average.items()},
                 "deficiencies": deficiencies,
+                "carbon_footprint_kg_co2e": float(carbon_total),
+                "carbon_footprint_daily_average_kg_co2e": float(carbon_daily_average),
             }
         )
 

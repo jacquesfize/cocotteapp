@@ -55,6 +55,15 @@ class Ingredient(models.Model):
     omega3_g = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     zinc_mg = models.DecimalField(max_digits=6, decimal_places=2, default=0)
 
+    # Empreinte carbone, en kg CO2e par kg (ou litre) de produit — ordre de grandeur
+    # issu de l'ACV (Agribalyse/ADEME, Poore & Nemecek 2018), pas une valeur de labo.
+    carbon_kg_co2e_per_kg = models.DecimalField(
+        max_digits=7,
+        decimal_places=3,
+        default=0,
+        help_text="Empreinte carbone en kg CO2e par kg de produit (ordre de grandeur ACV).",
+    )
+
     class Meta:
         ordering = ["name"]
 

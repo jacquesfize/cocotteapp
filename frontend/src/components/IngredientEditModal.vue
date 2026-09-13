@@ -46,6 +46,7 @@ const form = ref({
   calcium_mg: 0,
   omega3_g: 0,
   zinc_mg: 0,
+  carbon_kg_co2e_per_kg: 0,
 })
 const error = ref('')
 const isSubmitting = ref(false)
@@ -114,6 +115,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
             <label :for="`ingredient-modal-${field}`">{{ t(NUTRIENT_LABEL_KEYS[field]) }}</label>
             <input :id="`ingredient-modal-${field}`" v-model.number="form[field]" type="number" step="0.01" min="0" />
           </div>
+        </div>
+
+        <h3>{{ t('ingredientModal.carbonTitle') }}</h3>
+        <div class="field">
+          <label for="ingredient-modal-carbon">{{ t('nutrition.carbonPerKg') }}</label>
+          <input
+            id="ingredient-modal-carbon"
+            v-model.number="form.carbon_kg_co2e_per_kg"
+            type="number"
+            step="0.01"
+            min="0"
+          />
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>

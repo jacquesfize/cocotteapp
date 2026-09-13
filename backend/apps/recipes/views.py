@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from weasyprint import HTML
 
-from apps.nutrition.services import compute_recipe_nutrition
+from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
 from .filters import RecipeFilter
 from .models import Recipe, Tag, ThematicPage
@@ -43,10 +43,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         totals = compute_recipe_nutrition(recipe)
         servings = recipe.servings or 1
         per_serving = {k: v / servings for k, v in totals.items()}
+        carbon_footprint = compute_recipe_carbon_footprint(recipe)
         return Response(
             {
                 "totals": {k: float(v) for k, v in totals.items()},
                 "per_serving": {k: float(v) for k, v in per_serving.items()},
+                "carbon_footprint_kg_co2e": float(carbon_footprint),
+                "carbon_footprint_per_serving_kg_co2e": float(carbon_footprint / servings),
             }
         )
 

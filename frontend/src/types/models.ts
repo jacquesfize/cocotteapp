@@ -54,6 +54,7 @@ export interface Ingredient {
   calcium_mg: number
   omega3_g: number
   zinc_mg: number
+  carbon_kg_co2e_per_kg: number
 }
 
 export interface Tag {
@@ -157,6 +158,8 @@ export interface NutrientTotals {
 export interface RecipeNutrition {
   totals: NutrientTotals
   per_serving: NutrientTotals
+  carbon_footprint_kg_co2e: number
+  carbon_footprint_per_serving_kg_co2e: number
 }
 
 export interface NutrientDeficiency {
@@ -170,6 +173,8 @@ export interface NutritionSummary {
   totals: NutrientTotals
   daily_average: NutrientTotals
   deficiencies: NutrientDeficiency[]
+  carbon_footprint_kg_co2e: number
+  carbon_footprint_daily_average_kg_co2e: number
 }
 
 export interface MealPlanEntry {
