@@ -209,6 +209,11 @@ pages thématiques de l'accueil) restent volontairement non paginées.
 
 ## Gestion du compte
 
+La connexion se fait par email (et non par nom d'utilisateur) : `User.USERNAME_FIELD = "email"`,
+qui reste unique en base. Le nom d'utilisateur est conservé comme identifiant affiché (auteur
+d'une recette, admin, etc.) et reste demandé à l'inscription, mais n'est plus utilisé pour se
+connecter — ni sur `/login`, ni sur `/admin/` (Django Admin s'adapte automatiquement).
+
 Chaque utilisateur gère son propre compte depuis « Mon compte » (menu du compte, en haut à
 droite) : changer son nom d'utilisateur, son email, son régime/niveau d'activité, changer son
 mot de passe (déconnexion automatique ensuite, pour se reconnecter avec le nouveau), exporter

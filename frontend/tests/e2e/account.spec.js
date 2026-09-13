@@ -70,7 +70,7 @@ test('changing the password logs the user out and the new password works', async
 
   await expect(page).toHaveURL(/\/login/, { timeout: 10000 })
 
-  await page.getByLabel("Nom d'utilisateur").fill(username)
+  await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('a-brand-new-pass')
   await page.getByRole('button', { name: 'Se connecter' }).click()
   await expect(page).toHaveURL(/\/recipes$/)

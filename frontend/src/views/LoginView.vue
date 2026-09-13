@@ -9,7 +9,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
 const error = ref('')
 const isSubmitting = ref(false)
@@ -18,7 +18,7 @@ async function handleSubmit() {
   error.value = ''
   isSubmitting.value = true
   try {
-    await authStore.login(username.value, password.value)
+    await authStore.login(email.value, password.value)
     router.push(route.query.redirect || { name: 'recipes' })
   } catch {
     error.value = t('auth.invalidCredentials')
@@ -34,8 +34,8 @@ async function handleSubmit() {
     <p v-if="route.query.resetDone === 'true'" class="muted">{{ $t('auth.resetPasswordSuccess') }}</p>
     <form @submit.prevent="handleSubmit">
       <div class="field">
-        <label for="username">{{ $t('auth.username') }}</label>
-        <input id="username" v-model="username" required autocomplete="username" />
+        <label for="email">{{ $t('auth.email') }}</label>
+        <input id="email" v-model="email" type="email" required autocomplete="email" />
       </div>
       <div class="field">
         <label for="password">{{ $t('auth.password') }}</label>

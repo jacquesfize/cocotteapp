@@ -26,10 +26,21 @@ def test_register_and_login():
     assert response.status_code == 201
 
     token_response = client.post(
-        "/api/auth/token/", {"username": "alice", "password": "s3cret-pass"}
+        "/api/auth/token/", {"email": "alice@example.com", "password": "s3cret-pass"}
     )
     assert token_response.status_code == 200
     assert "access" in token_response.data
+
+
+@pytest.mark.django_db
+def test_login_with_username_instead_of_email_is_rejected():
+    UserFactory(username="alice", email="alice@example.com")
+    client = APIClient()
+
+    response = client.post("/api/auth/token/", {"username": "alice", "password": "password123"})
+
+    assert response.status_code == 400
+    assert "email" in response.data
 
 
 @pytest.mark.django_db
@@ -78,7 +89,7 @@ def test_change_password_with_correct_old_password():
 
     assert response.status_code == 204
     login_response = APIClient().post(
-        "/api/auth/token/", {"username": user.username, "password": "a-new-password"}
+        "/api/auth/token/", {"email": user.email, "password": "a-new-password"}
     )
     assert login_response.status_code == 200
 
@@ -243,7 +254,7 @@ def test_password_reset_confirm_with_valid_token_changes_the_password():
 
     assert response.status_code == 204
     login_response = APIClient().post(
-        "/api/auth/token/", {"username": user.username, "password": "a-brand-new-pass"}
+        "/api/auth/token/", {"email": user.email, "password": "a-brand-new-pass"}
     )
     assert login_response.status_code == 200
 

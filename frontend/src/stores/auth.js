@@ -22,11 +22,11 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async register(payload) {
       await registerRequest(payload)
-      await this.login(payload.username, payload.password)
+      await this.login(payload.email, payload.password)
     },
 
-    async login(username, password) {
-      const data = await obtainToken(username, password)
+    async login(email, password) {
+      const data = await obtainToken(email, password)
       this._setTokens(data.access, data.refresh)
       await this.fetchMe()
     },

@@ -16,6 +16,12 @@ class ActivityLevel(models.TextChoices):
 
 class User(AbstractUser):
     email = models.EmailField("email address", unique=True)
+
+    # On se connecte avec l'email plutôt que le nom d'utilisateur ; ce dernier reste un
+    # identifiant affiché (auteur d'une recette, etc.) mais n'est plus utilisé pour l'auth.
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
     diet_type = models.CharField(max_length=20, choices=DietType.choices, default=DietType.OMNIVORE)
     activity_level = models.CharField(
         max_length=20, choices=ActivityLevel.choices, default=ActivityLevel.MODERATE
