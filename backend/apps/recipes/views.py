@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -15,7 +15,13 @@ from .cooklang_import import create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly
-from .serializers import CooklangImportSerializer, RecipeSerializer, TagSerializer, ThematicPageSerializer
+from .serializers import (
+    AdminThematicPageSerializer,
+    CooklangImportSerializer,
+    RecipeSerializer,
+    TagSerializer,
+    ThematicPageSerializer,
+)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -98,4 +104,14 @@ class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = ThematicPage.objects.filter(is_active=True)
     serializer_class = ThematicPageSerializer
+    pagination_class = None
+
+
+class AdminThematicPageViewSet(viewsets.ModelViewSet):
+    """Réservé aux comptes staff : gestion complète des pages thématiques (raccourcis de la
+    page d'accueil), en alternative à l'admin Django (`/admin/recipes/thematicpage/`)."""
+
+    queryset = ThematicPage.objects.all()
+    serializer_class = AdminThematicPageSerializer
+    permission_classes = [permissions.IsAdminUser]
     pagination_class = None

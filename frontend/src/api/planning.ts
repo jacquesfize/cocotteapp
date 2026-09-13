@@ -1,6 +1,6 @@
 import client from './client'
-import type { MealPlanEntryListParams } from '../types/api'
-import type { MealPlanEntry, NutritionSummary } from '../types/models'
+import type { MealPlanEntryListParams, PlanningSharePayload } from '../types/api'
+import type { MealPlanEntry, NutritionSummary, PlanningShare, PlanningShareReceived } from '../types/models'
 
 export function listMealPlanEntries(params: MealPlanEntryListParams = {}): Promise<MealPlanEntry[]> {
   return client.get('meal-plan-entries/', { params }).then((r) => r.data)
@@ -8,12 +8,13 @@ export function listMealPlanEntries(params: MealPlanEntryListParams = {}): Promi
 
 export function createMealPlanEntry(
   payload: Pick<MealPlanEntry, 'recipe' | 'date' | 'meal_type' | 'servings'>,
+  owner?: number | string,
 ): Promise<MealPlanEntry> {
-  return client.post('meal-plan-entries/', payload).then((r) => r.data)
+  return client.post('meal-plan-entries/', payload, { params: owner ? { owner } : {} }).then((r) => r.data)
 }
 
-export function deleteMealPlanEntry(id: number | string) {
-  return client.delete(`meal-plan-entries/${id}/`)
+export function deleteMealPlanEntry(id: number | string, owner?: number | string) {
+  return client.delete(`meal-plan-entries/${id}/`, { params: owner ? { owner } : {} })
 }
 
 export function getNutritionSummary(params: MealPlanEntryListParams = {}): Promise<NutritionSummary> {
@@ -22,4 +23,20 @@ export function getNutritionSummary(params: MealPlanEntryListParams = {}): Promi
 
 export function downloadWeekPdf(params: MealPlanEntryListParams = {}): Promise<Blob> {
   return client.get('meal-plan-entries/week-pdf/', { params, responseType: 'blob' }).then((r) => r.data)
+}
+
+export function listPlanningShares(): Promise<PlanningShare[]> {
+  return client.get('planning-shares/').then((r) => r.data)
+}
+
+export function listSharedWithMe(): Promise<PlanningShareReceived[]> {
+  return client.get('planning-shares/shared-with-me/').then((r) => r.data)
+}
+
+export function createOrUpdatePlanningShare(payload: PlanningSharePayload): Promise<PlanningShare> {
+  return client.post('planning-shares/', payload).then((r) => r.data)
+}
+
+export function deletePlanningShare(id: number | string) {
+  return client.delete(`planning-shares/${id}/`)
 }

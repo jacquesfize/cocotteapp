@@ -20,6 +20,28 @@ class ThematicPageSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "slug", "description", "icon", "filters", "order"]
 
 
+class AdminThematicPageSerializer(serializers.ModelSerializer):
+    """Utilisée par l'API d'administration (`/api/admin/thematic-pages/`) : contrairement à
+    `ThematicPageSerializer` (lecture seule, publique, réservée aux pages actives), celle-ci
+    expose aussi `is_active` et `created_at` et autorise l'écriture pour permettre la gestion
+    complète des pages thématiques depuis l'interface staff."""
+
+    class Meta:
+        model = ThematicPage
+        fields = [
+            "id",
+            "title",
+            "slug",
+            "description",
+            "icon",
+            "filters",
+            "order",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = ["slug", "created_at"]
+
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer(read_only=True)
     ingredient_id = serializers.PrimaryKeyRelatedField(
