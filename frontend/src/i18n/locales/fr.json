@@ -257,5 +257,12 @@
   "offline": {
     "banner": "Vous êtes hors ligne — vous consultez la dernière version enregistrée.",
     "pendingSync": "En attente de connexion pour synchroniser"
+  },
+  "timer": {
+    "start": "Démarrer un minuteur de {duration}",
+    "pause": "Mettre en pause",
+    "resume": "Reprendre",
+    "reset": "Réinitialiser",
+    "finished": "Terminé !"
   }
 }

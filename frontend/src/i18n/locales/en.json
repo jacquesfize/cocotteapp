@@ -257,5 +257,12 @@
   "offline": {
     "banner": "You're offline — showing the last saved version.",
     "pendingSync": "Waiting for a connection to sync"
+  },
+  "timer": {
+    "start": "Start a {duration} timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "reset": "Reset",
+    "finished": "Done!"
   }
 }
