@@ -83,6 +83,7 @@ onBeforeUnmount(() => {
         <template v-if="authStore.isAuthenticated">
           <RouterLink to="/planning">{{ $t('nav.planning') }}</RouterLink>
           <RouterLink to="/shopping-lists">{{ $t('nav.shopping') }}</RouterLink>
+          <RouterLink v-if="authStore.user?.is_staff" to="/admin/users">{{ $t('nav.admin') }}</RouterLink>
         </template>
         <template v-else>
           <RouterLink to="/login">{{ $t('nav.login') }}</RouterLink>
@@ -107,6 +108,9 @@ onBeforeUnmount(() => {
 
         <div id="account-panel" class="account-panel" :class="{ 'is-open': isMenuOpen }">
           <p v-if="authStore.user" class="account-username">{{ authStore.user.username }}</p>
+          <RouterLink v-if="authStore.isAuthenticated" to="/account" class="account-link" @click="closeMenu">
+            {{ $t('nav.accountSettings') }}
+          </RouterLink>
           <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
             <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
               {{ locale.label }}
@@ -273,6 +277,13 @@ onBeforeUnmount(() => {
 .account-username {
   margin: 0;
   font-weight: 700;
+}
+
+.account-link {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
 }
 
 .locale-select {

@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia'
-import { fetchMe, obtainToken, refreshTokenRequest, register as registerRequest, updateMe } from '../api/auth'
+import {
+  deleteMe,
+  fetchMe,
+  obtainToken,
+  refreshTokenRequest,
+  register as registerRequest,
+  updateMe,
+} from '../api/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -30,6 +37,11 @@ export const useAuthStore = defineStore('auth', {
 
     async updateProfile(payload) {
       this.user = await updateMe(payload)
+    },
+
+    async deleteAccount() {
+      await deleteMe()
+      this.logout()
     },
 
     async refreshAccessToken() {

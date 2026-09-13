@@ -22,3 +22,15 @@ export function fetchMe() {
 export function updateMe(payload) {
   return client.patch('auth/me/', payload).then((r) => r.data)
 }
+
+export function deleteMe() {
+  return client.delete('auth/me/')
+}
+
+export function changePassword(payload) {
+  return client.post('auth/me/change-password/', payload)
+}
+
+export function exportMyData() {
+  return client.get('auth/me/export/', { responseType: 'blob' }).then((r) => r.data)
+}

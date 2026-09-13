@@ -207,6 +207,25 @@ masqué s'il n'y a qu'une page). Le numéro de page vit lui aussi dans l'URL (`/
 revient à 1 dès qu'un filtre change. Les grilles bornées par nature (l'agenda de la semaine, les
 pages thématiques de l'accueil) restent volontairement non paginées.
 
+## Gestion du compte
+
+Chaque utilisateur gère son propre compte depuis « Mon compte » (menu du compte, en haut à
+droite) : changer son nom d'utilisateur, son email, son régime/niveau d'activité, changer son
+mot de passe (déconnexion automatique ensuite, pour se reconnecter avec le nouveau), exporter
+toutes ses données (profil, recettes, agenda, listes de courses) dans une archive `.zip`
+(`GET /api/auth/me/export/`), ou supprimer définitivement son compte. La suppression est
+irréversible et cascade sur tout ce que le compte a créé — recettes comprises.
+
+## Administration
+
+Les comptes marqués « staff » ont accès à une page `/admin/users` (lien « Admin » dans la barre
+de navigation) listant tous les utilisateurs — recherche, pagination, activer/désactiver un
+compte, promouvoir/retirer le statut staff, supprimer un compte. L'API dédiée
+(`/api/admin/users/`) refuse qu'un compte staff modifie ou supprime son propre compte par ce
+biais (il doit passer par « Mon compte ») afin d'éviter de se retirer accidentellement l'accès.
+Django Admin (`/admin/`) reste disponible pour le reste (recettes, ingrédients, pages
+thématiques...).
+
 ## Design
 
 Palette chaude (rouge-orangé) et composants inspirés du design iOS récent / d'applications comme

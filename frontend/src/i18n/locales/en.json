@@ -12,7 +12,9 @@
     "login": "Log in",
     "register": "Sign up",
     "menu": "Menu",
-    "account": "Account"
+    "account": "Account",
+    "accountSettings": "My account",
+    "admin": "Admin"
   },
   "common": {
     "loading": "Loading...",
@@ -178,5 +180,44 @@
     "delete": "Delete",
     "export": "Export as .txt",
     "checkOwned": "Check off the ingredients you already have."
+  },
+  "account": {
+    "title": "My account",
+    "profileTitle": "Profile",
+    "profileSuccess": "Profile updated.",
+    "profileError": "Could not update the profile.",
+    "passwordTitle": "Password",
+    "oldPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm the new password",
+    "changePassword": "Change password",
+    "passwordSuccess": "Password changed. Logging you out...",
+    "passwordMismatch": "The two passwords don't match.",
+    "passwordError": "Could not change the password (wrong current password?).",
+    "exportTitle": "Export my data",
+    "exportDescription": "Download an archive containing your profile, your recipes, your planner and your shopping lists.",
+    "exportButton": "Download the archive",
+    "dangerZoneTitle": "Danger zone",
+    "deleteAccountDescription": "This permanently deletes your account, your recipes, your planner and your shopping lists. This cannot be undone.",
+    "deleteAccountButton": "Delete my account",
+    "deleteAccountConfirm": "Do you really want to permanently delete your account and all your data? This cannot be undone.",
+    "deleteAccountError": "Could not delete the account."
+  },
+  "admin": {
+    "usersTitle": "Users",
+    "accessDenied": "Restricted to administrators.",
+    "search": "Search",
+    "searchPlaceholder": "Username, email...",
+    "noUsers": "No user matches this search.",
+    "username": "User",
+    "email": "Email",
+    "recipeCount": "Recipes",
+    "active": "Active",
+    "inactive": "Inactive",
+    "staff": "Staff",
+    "notStaff": "Standard",
+    "deleteUser": "Delete this user",
+    "deleteUserConfirm": "Permanently delete the account \"{username}\" and all its data?",
+    "thisIsYou": "This is you — manage your own account from \"My account\"."
   }
 }

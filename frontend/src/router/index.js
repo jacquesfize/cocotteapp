@@ -66,6 +66,17 @@ const routes = [
     component: () => import('../views/ShoppingListDetailView.vue'),
     props: true,
   },
+  {
+    path: '/account',
+    name: 'account',
+    component: () => import('../views/AccountSettingsView.vue'),
+  },
+  {
+    path: '/admin/users',
+    name: 'admin-users',
+    component: () => import('../views/AdminUsersView.vue'),
+    meta: { requiresStaff: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: '/recipes' },
 ]
 
@@ -78,6 +89,12 @@ router.beforeEach((to) => {
   const authStore = useAuthStore()
   if (!to.meta.public && !authStore.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+  // authStore.user peut ne pas encore être chargé juste après un rechargement de page
+  // (fetchMe() est asynchrone) : on ne bloque que si l'on sait déjà que ce n'est pas un
+  // compte staff, sinon la vue elle-même gère le refus d'accès renvoyé par l'API.
+  if (to.meta.requiresStaff && authStore.user && !authStore.user.is_staff) {
+    return { name: 'home' }
   }
   return true
 })

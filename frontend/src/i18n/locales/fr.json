@@ -12,7 +12,9 @@
     "login": "Connexion",
     "register": "Inscription",
     "menu": "Menu",
-    "account": "Compte"
+    "account": "Compte",
+    "accountSettings": "Mon compte",
+    "admin": "Admin"
   },
   "common": {
     "loading": "Chargement...",
@@ -178,5 +180,44 @@
     "delete": "Supprimer",
     "export": "Exporter en .txt",
     "checkOwned": "Cochez les ingrédients que vous avez déjà."
+  },
+  "account": {
+    "title": "Mon compte",
+    "profileTitle": "Profil",
+    "profileSuccess": "Profil mis à jour.",
+    "profileError": "Impossible de mettre à jour le profil.",
+    "passwordTitle": "Mot de passe",
+    "oldPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "changePassword": "Changer le mot de passe",
+    "passwordSuccess": "Mot de passe modifié. Reconnexion nécessaire...",
+    "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+    "passwordError": "Impossible de changer le mot de passe (mot de passe actuel incorrect ?).",
+    "exportTitle": "Exporter mes données",
+    "exportDescription": "Téléchargez une archive contenant votre profil, vos recettes, votre agenda et vos listes de courses.",
+    "exportButton": "Télécharger l'archive",
+    "dangerZoneTitle": "Zone de danger",
+    "deleteAccountDescription": "Cette action supprime définitivement votre compte, vos recettes, votre agenda et vos listes de courses. Elle est irréversible.",
+    "deleteAccountButton": "Supprimer mon compte",
+    "deleteAccountConfirm": "Voulez-vous vraiment supprimer définitivement votre compte et toutes vos données ? Cette action est irréversible.",
+    "deleteAccountError": "Impossible de supprimer le compte."
+  },
+  "admin": {
+    "usersTitle": "Utilisateurs",
+    "accessDenied": "Accès réservé aux administrateurs.",
+    "search": "Recherche",
+    "searchPlaceholder": "Nom d'utilisateur, email...",
+    "noUsers": "Aucun utilisateur ne correspond à cette recherche.",
+    "username": "Utilisateur",
+    "email": "Email",
+    "recipeCount": "Recettes",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "staff": "Staff",
+    "notStaff": "Standard",
+    "deleteUser": "Supprimer cet utilisateur",
+    "deleteUserConfirm": "Supprimer définitivement le compte « {username} » et toutes ses données ?",
+    "thisIsYou": "C'est vous — gérez votre propre compte depuis « Mon compte »."
   }
 }

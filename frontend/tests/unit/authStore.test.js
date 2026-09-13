@@ -8,9 +8,12 @@ vi.mock('../../src/api/auth', () => ({
   refreshTokenRequest: vi.fn(),
   fetchMe: vi.fn(),
   updateMe: vi.fn(),
+  deleteMe: vi.fn(),
+  changePassword: vi.fn(),
+  exportMyData: vi.fn(),
 }))
 
-import { fetchMe, obtainToken, refreshTokenRequest } from '../../src/api/auth'
+import { deleteMe, fetchMe, obtainToken, refreshTokenRequest } from '../../src/api/auth'
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -67,5 +70,20 @@ describe('auth store', () => {
     const store = useAuthStore()
     const refreshed = await store.refreshAccessToken()
     expect(refreshed).toBe(false)
+  })
+
+  it('deletes the account then clears local state, like logout', async () => {
+    obtainToken.mockResolvedValue({ access: 'access-123', refresh: 'refresh-456' })
+    fetchMe.mockResolvedValue({ id: 1, username: 'alice' })
+    deleteMe.mockResolvedValue()
+
+    const store = useAuthStore()
+    await store.login('alice', 'password123')
+    await store.deleteAccount()
+
+    expect(deleteMe).toHaveBeenCalled()
+    expect(store.isAuthenticated).toBe(false)
+    expect(store.user).toBeNull()
+    expect(localStorage.getItem('access_token')).toBeNull()
   })
 })

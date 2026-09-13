@@ -22,5 +22,35 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "diet_type", "activity_level"]
-        read_only_fields = ["id", "username"]
+        fields = ["id", "username", "email", "diet_type", "activity_level", "is_staff", "date_joined"]
+        read_only_fields = ["id", "is_staff", "date_joined"]
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_old_password(self, value):
+        if not self.context["request"].user.check_password(value):
+            raise serializers.ValidationError("Mot de passe actuel incorrect.")
+        return value
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    recipe_count = serializers.SerializerMethodField()
+
+    def get_recipe_count(self, obj):
+        return obj.recipes.count()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_active",
+            "is_staff",
+            "date_joined",
+            "recipe_count",
+        ]
+        read_only_fields = ["id", "username", "email", "date_joined", "recipe_count"]
