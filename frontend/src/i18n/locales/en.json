@@ -263,6 +263,8 @@
     "pause": "Pause",
     "resume": "Resume",
     "reset": "Reset",
-    "finished": "Done!"
+    "finished": "Done!",
+    "seconds": "{n}s",
+    "minutesSeconds": "{m}m {s}s"
   }
 }

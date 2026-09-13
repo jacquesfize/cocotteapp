@@ -19,12 +19,22 @@ const phase = ref<TimerPhase>('idle')
 const remainingSeconds = ref(Math.round(props.seconds))
 let intervalId: ReturnType<typeof setInterval> | undefined
 
-const durationLabel = computed(() => formatDuration(Math.round(props.seconds / 60)))
+// formatDuration() est pensé pour des durées de recette en minutes entières ; en dessous
+// d'une minute ou pour un reste de secondes (~{30%s}, ~{90%s}...), l'arrondir à la minute la
+// plus proche afficherait un bouton "1 min" pour un minuteur de 30 secondes, ce qui est faux.
+const durationLabel = computed(() => {
+  const total = Math.round(props.seconds)
+  if (total < 60) return t('timer.seconds', { n: total })
+  if (total % 60 === 0) return formatDuration(total / 60)
+  return t('timer.minutesSeconds', { m: Math.floor(total / 60), s: total % 60 })
+})
 
 const clockLabel = computed(() => {
   const total = Math.max(0, remainingSeconds.value)
-  const m = Math.floor(total / 60)
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
   const s = total % 60
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   return `${m}:${String(s).padStart(2, '0')}`
 })
 
@@ -105,6 +115,7 @@ onBeforeUnmount(stopInterval)
   </button>
   <span v-else class="timer-chip active" :class="{ finished: phase === 'finished' }" role="timer" aria-live="polite">
     <Timer :size="14" />
+    <span v-if="label">{{ label }} · </span>
     <template v-if="phase === 'finished'">{{ t('timer.finished') }}</template>
     <template v-else>{{ clockLabel }}</template>
     <button

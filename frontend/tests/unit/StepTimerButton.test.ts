@@ -31,6 +31,17 @@ describe('StepTimerButton', () => {
     expect(wrapper.find('button').text()).toContain('repos')
   })
 
+  it('shows a sub-minute duration in seconds rather than rounding up to a minute', () => {
+    const wrapper = mountTimer(30)
+    expect(wrapper.find('button').text()).toContain('30 s')
+    expect(wrapper.find('button').text()).not.toContain('1 min')
+  })
+
+  it('shows a non-exact-minute duration as minutes and seconds', () => {
+    const wrapper = mountTimer(90)
+    expect(wrapper.find('button').text()).toContain('1 min 30 s')
+  })
+
   it('counts down once started, and can be paused/resumed', async () => {
     const wrapper = mountTimer(5)
     await wrapper.find('button').trigger('click')
@@ -47,6 +58,23 @@ describe('StepTimerButton', () => {
     await wrapper.get('[aria-label="Reprendre"]').trigger('click')
     await vi.advanceTimersByTimeAsync(1000)
     expect(wrapper.find('[role="timer"]').text()).toContain('0:02')
+  })
+
+  it('keeps the name label visible once the timer is running', async () => {
+    const wrapper = mountTimer(600, 'repos')
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.find('[role="timer"]').text()).toContain('repos')
+  })
+
+  it('shows an hour-long countdown as H:MM:SS instead of overflowing minutes', async () => {
+    const wrapper = mountTimer(3600)
+    await wrapper.find('button').trigger('click')
+
+    expect(wrapper.find('[role="timer"]').text()).toContain('1:00:00')
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.find('[role="timer"]').text()).toContain('59:55')
   })
 
   it('shows a finished state once the countdown reaches zero', async () => {

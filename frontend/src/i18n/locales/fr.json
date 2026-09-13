@@ -263,6 +263,8 @@
     "pause": "Mettre en pause",
     "resume": "Reprendre",
     "reset": "Réinitialiser",
-    "finished": "Terminé !"
+    "finished": "Terminé !",
+    "seconds": "{n} s",
+    "minutesSeconds": "{m} min {s} s"
   }
 }
