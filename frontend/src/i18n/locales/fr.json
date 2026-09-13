@@ -21,7 +21,10 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "add": "Ajouter",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "pageOf": "Page {page} / {total}"
   },
   "diet": {
     "omnivore": "Omnivore",

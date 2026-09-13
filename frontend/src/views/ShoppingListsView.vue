@@ -1,19 +1,36 @@
 <script setup>
 import { Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Pagination from '../components/Pagination.vue'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 
+const route = useRoute()
+const router = useRouter()
+
 const shoppingLists = ref([])
+const count = ref(0)
+const page = ref(Number(route.query.page) || 1)
 
 async function load() {
-  const data = await listShoppingLists()
+  const params = {}
+  if (page.value > 1) params.page = page.value
+  const data = await listShoppingLists(params)
   shoppingLists.value = data.results
+  count.value = data.count
+  router.replace({ query: params })
+}
+
+function goToPage(newPage) {
+  page.value = newPage
+  load()
 }
 
 onMounted(load)
 
 async function handleDelete(id) {
   await deleteShoppingList(id)
+  if (page.value > 1 && shoppingLists.value.length === 1) page.value -= 1
   await load()
 }
 </script>
@@ -34,6 +51,8 @@ async function handleDelete(id) {
         <Trash2 :size="16" />
       </button>
     </div>
+
+    <Pagination :page="page" :count="count" @update:page="goToPage" />
   </div>
 </template>
 

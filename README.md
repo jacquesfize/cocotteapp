@@ -198,6 +198,15 @@ marque-pageables : cliquer sur un ingrédient depuis une recette ouvre par exemp
 `/recipes?ingredients=Courgette`, et une page thématique dont les filtres sont
 `{"in_season": "true"}` ouvre `/recipes?in_season=true`.
 
+## Pagination
+
+Toutes les listes qui peuvent grandir sans limite (recettes, listes de courses) sont paginées
+côté API (`PageNumberPagination`, 20 éléments par page) et côté interface, via le composant
+partagé `frontend/src/components/Pagination.vue` (page précédente/suivante + « Page X / Y »,
+masqué s'il n'y a qu'une page). Le numéro de page vit lui aussi dans l'URL (`/recipes?page=2`) et
+revient à 1 dès qu'un filtre change. Les grilles bornées par nature (l'agenda de la semaine, les
+pages thématiques de l'accueil) restent volontairement non paginées.
+
 ## Design
 
 Palette chaude (rouge-orangé) et composants inspirés du design iOS récent / d'applications comme

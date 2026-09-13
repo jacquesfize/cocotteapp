@@ -52,6 +52,23 @@ def test_filter_recipes_by_max_time():
 
 
 @pytest.mark.django_db
+def test_recipe_list_is_paginated():
+    RecipeFactory.create_batch(25)
+    client = APIClient()
+
+    first_page = client.get("/api/recipes/")
+    assert first_page.data["count"] == 25
+    assert len(first_page.data["results"]) == 20
+    assert first_page.data["next"] is not None
+    assert first_page.data["previous"] is None
+
+    second_page = client.get("/api/recipes/?page=2")
+    assert len(second_page.data["results"]) == 5
+    assert second_page.data["next"] is None
+    assert second_page.data["previous"] is not None
+
+
+@pytest.mark.django_db
 def test_anonymous_cannot_create_recipe():
     client = APIClient()
     response = client.post("/api/recipes/", {"title": "Test"}, format="json")

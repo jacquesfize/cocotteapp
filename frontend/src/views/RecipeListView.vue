@@ -3,6 +3,7 @@ import { Leaf, Link2, Plus } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import Pagination from '../components/Pagination.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import { importRecipeFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
@@ -14,6 +15,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const recipes = ref([])
+const count = ref(0)
 const isLoading = ref(false)
 
 function filtersFromQuery(query) {
@@ -27,9 +29,14 @@ function filtersFromQuery(query) {
   }
 }
 
+function pageFromQuery(query) {
+  return Number(query.page) || 1
+}
+
 // Les filtres vivent dans l'URL (query string) : /recipes?ingredients=Tomate ou
 // /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
 const filters = ref(filtersFromQuery(route.query))
+const page = ref(pageFromQuery(route.query))
 
 async function load() {
   isLoading.value = true
@@ -38,18 +45,26 @@ async function load() {
     for (const [key, value] of Object.entries(filters.value)) {
       if (value !== '' && value !== false) params[key] = value
     }
+    if (page.value > 1) params.page = page.value
     const data = await listRecipes(params)
     recipes.value = data.results
+    count.value = data.count
     router.replace({ query: params })
   } finally {
     isLoading.value = false
   }
 }
 
+function goToPage(newPage) {
+  page.value = newPage
+  load()
+}
+
 let debounceTimer = null
 watch(
   filters,
   () => {
+    page.value = 1
     clearTimeout(debounceTimer)
     debounceTimer = setTimeout(load, 300)
   },
@@ -65,6 +80,8 @@ watch(
     const next = filtersFromQuery(query)
     const changed = Object.keys(next).some((key) => next[key] !== filters.value[key])
     if (changed) filters.value = next
+    const nextPage = pageFromQuery(query)
+    if (nextPage !== page.value) page.value = nextPage
   },
 )
 
@@ -149,6 +166,8 @@ async function handleImport() {
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
     <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>
     <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" />
+
+    <Pagination :page="page" :count="count" @update:page="goToPage" />
   </div>
 </template>
 

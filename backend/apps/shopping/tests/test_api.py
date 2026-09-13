@@ -43,3 +43,20 @@ def test_mark_owned_action():
     )
     assert response.status_code == 200
     assert response.data["items"][0]["is_owned"] is True
+
+
+@pytest.mark.django_db
+def test_shopping_list_list_is_paginated():
+    from apps.shopping.models import ShoppingList
+
+    user = UserFactory()
+    for i in range(22):
+        ShoppingList.objects.create(user=user, name=f"Liste {i}")
+
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.get("/api/shopping-lists/")
+    assert response.data["count"] == 22
+    assert len(response.data["results"]) == 20
+    assert response.data["next"] is not None

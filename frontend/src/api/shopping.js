@@ -1,7 +1,7 @@
 import client from './client'
 
-export function listShoppingLists() {
-  return client.get('shopping-lists/').then((r) => r.data)
+export function listShoppingLists(params = {}) {
+  return client.get('shopping-lists/', { params }).then((r) => r.data)
 }
 
 export function getShoppingList(id) {
