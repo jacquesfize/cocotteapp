@@ -142,6 +142,111 @@ npm run test:e2e
   `MealSlot` (case repas de la grille semaine), `NutritionCard`.
 - `frontend/src/i18n/` : configuration vue-i18n + fichiers de traduction (`locales/fr.json`, `locales/en.json`).
 
+## Architecture — parcours utilisateur
+
+Les pages accessibles et les actions proposées changent selon que le visiteur est anonyme,
+connecté, ou administrateur (staff). Les routes réservées redirigent vers `/login` ; certaines
+actions (modifier une recette, l'ajouter à l'agenda) ne s'affichent que quand elles sont
+réellement disponibles.
+
+```mermaid
+flowchart TD
+    Start(["Arrivée sur Cocotte"]) --> Home
+
+    subgraph PUB["🔓 Sans connexion — pages publiques"]
+        direction TB
+        Home["Accueil<br/>/"]
+        NavPub{{"Barre de navigation"}}
+        Recipes["Recettes<br/>/recipes<br/>recherche · filtres · pagination"]
+        ThemePages["Pages thématiques<br/>/recipes?filtre=..."]
+        Random["Au hasard<br/>/recipes/random"]
+        Detail["Détail recette<br/>/recipes/:id<br/>lecture seule"]
+
+        Home --> NavPub
+        NavPub --> Recipes
+        NavPub --> Random
+        Recipes --> ThemePages
+        Recipes --> Detail
+        Random --> Detail
+        ThemePages --> Recipes
+    end
+
+    Private["Route réservée<br/>Agenda · Courses · Mon compte<br/>Nouvelle recette · Admin"]
+    Private -. redirection si non connecté .-> Login
+
+    subgraph AUTHFLOW["🔑 Connexion / Inscription"]
+        direction TB
+        Login["Connexion<br/>/login<br/>email + mot de passe"]
+        Register["Inscription<br/>/register"]
+        Forgot["Mot de passe oublié<br/>/forgot-password"]
+        ResetMail(["Lien reçu par email"])
+        Reset["Nouveau mot de passe<br/>/reset-password/:uid/:token"]
+
+        Login -- oublié ? --> Forgot --> ResetMail --> Reset --> Login
+    end
+
+    NavPub -. Connexion .-> Login
+    NavPub -. Inscription .-> Register
+
+    Login -- connecté --> NavMember
+    Register -- compte créé --> NavMember
+
+    subgraph MEMBER["🔒 Connecté"]
+        direction TB
+        NavMember{{"Barre de navigation complète"}}
+        MRecipes["Recettes<br/>+ bouton Nouvelle recette"]
+        NewRecipe["Nouvelle recette<br/>/recipes/new"]
+        MDetail["Détail recette<br/>+ Ajouter à l'agenda<br/>+ Modifier / Supprimer si auteur"]
+        Planning["Agenda<br/>/planning<br/>grille de la semaine"]
+        GenList["Générer la liste<br/>de courses"]
+        Shopping["Listes de courses<br/>/shopping-lists"]
+        ShopDetail["Détail liste<br/>/shopping-lists/:id<br/>cocher · exporter .txt"]
+        Account["Mon compte<br/>/account"]
+        ChangePwd["Changer le mot de passe"]
+        ExportData["Exporter mes données<br/>.zip"]
+        DeleteAcc["Supprimer le compte"]
+
+        NavMember --> MRecipes --> NewRecipe --> MDetail
+        MRecipes --> MDetail
+        NavMember --> Planning --> GenList --> ShopDetail
+        NavMember --> Shopping --> ShopDetail
+        NavMember --> Account
+        Account --> ChangePwd
+        Account --> ExportData
+        Account --> DeleteAcc
+    end
+
+    NavMember -. si compte staff .-> Admin
+    NavMember -- Déconnexion --> Home
+    ChangePwd -. déconnexion auto .-> Login
+    DeleteAcc -. déconnexion .-> Home
+
+    subgraph STAFF["🛡️ Admin (staff)"]
+        Admin["Utilisateurs<br/>/admin/users<br/>recherche · pagination<br/>activer/désactiver · promouvoir · supprimer"]
+    end
+```
+
+Les zones en pointillés marquent un changement d'état (connexion, déconnexion, redirection) ; les
+traits pleins sont des liens de navigation classiques à l'intérieur d'une même zone.
+
+| Route | Accès | Description |
+|---|---|---|
+| `/` | Public | Accueil : présentation, dernières recettes, pages thématiques |
+| `/recipes` | Public | Liste des recettes — recherche, filtres, pagination |
+| `/recipes/random` | Public | Tirage d'une recette au hasard |
+| `/recipes/:id` | Public | Détail d'une recette (édition/agenda masqués si non concerné) |
+| `/login` | Public | Connexion par email + mot de passe |
+| `/register` | Public | Création de compte |
+| `/forgot-password` | Public | Demande de lien de réinitialisation |
+| `/reset-password/:uid/:token` | Public | Choix d'un nouveau mot de passe |
+| `/recipes/new` | Connecté | Créer une recette |
+| `/recipes/:id/edit` | Auteur | Modifier sa propre recette |
+| `/planning` | Connecté | Agenda de la semaine, suivi nutritionnel |
+| `/shopping-lists` | Connecté | Listes de courses générées depuis l'agenda |
+| `/shopping-lists/:id` | Connecté | Détail d'une liste — cocher, exporter en .txt |
+| `/account` | Connecté | Profil, mot de passe, export des données, suppression |
+| `/admin/users` | Staff | Gestion des comptes utilisateurs |
+
 ## Internationalisation
 
 L'interface est traduite via [vue-i18n](https://vue-i18n.intlify.dev/). Le sélecteur de langue est
