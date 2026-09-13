@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 
@@ -102,3 +103,15 @@ class RecipeSerializer(serializers.ModelSerializer):
             RecipeIngredient.objects.create(recipe=recipe, **data)
         for data in steps_data:
             RecipeStep.objects.create(recipe=recipe, **data)
+
+
+class CooklangImportSerializer(serializers.Serializer):
+    """Input for POST /api/recipes/import-cooklang/: raw Cooklang text plus a
+    handful of recipe-level fields the markup itself doesn't carry."""
+
+    title = serializers.CharField(max_length=200)
+    raw_cooklang = serializers.CharField()
+    servings = serializers.IntegerField(required=False, min_value=1)
+    prep_time_minutes = serializers.IntegerField(required=False, min_value=0)
+    cook_time_minutes = serializers.IntegerField(required=False, min_value=0)
+    diet_type = serializers.ChoiceField(choices=DietType.choices, required=False)

@@ -5,16 +5,17 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from weasyprint import HTML
 
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
+from .cooklang_import import create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly
-from .serializers import RecipeSerializer, TagSerializer, ThematicPageSerializer
+from .serializers import CooklangImportSerializer, RecipeSerializer, TagSerializer, ThematicPageSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -62,6 +63,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe.image = uploaded
         recipe.save()
         return Response(self.get_serializer(recipe).data)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="import-cooklang",
+        permission_classes=[IsAuthenticated],
+    )
+    def import_cooklang(self, request):
+        serializer = CooklangImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipe = create_recipe_from_cooklang(author=request.user, **serializer.validated_data)
+        return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get"], url_path="pdf")
     def download_pdf(self, request, pk=None):
