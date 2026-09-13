@@ -1,13 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import { computed } from 'vue'
 
-const props = defineProps({
-  page: { type: Number, required: true },
-  count: { type: Number, required: true },
-  pageSize: { type: Number, default: 20 },
-})
-const emit = defineEmits(['update:page'])
+const props = withDefaults(
+  defineProps<{
+    page: number
+    count: number
+    pageSize?: number
+  }>(),
+  { pageSize: 20 },
+)
+const emit = defineEmits<{
+  'update:page': [page: number]
+}>()
 
 const totalPages = computed(() => Math.max(1, Math.ceil(props.count / props.pageSize)))
 </script>

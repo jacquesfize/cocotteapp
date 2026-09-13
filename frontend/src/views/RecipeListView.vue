@@ -1,35 +1,37 @@
-<script setup>
+<script setup lang="ts">
 import { Leaf, Link2, Plus } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import { importRecipeFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import type { RecipeListParams } from '../types/api'
+import type { Recipe } from '../types/models'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const recipes = ref([])
+const recipes = ref<Recipe[]>([])
 const count = ref(0)
 const isLoading = ref(false)
 
-function filtersFromQuery(query) {
+function filtersFromQuery(query: LocationQuery) {
   return {
-    search: query.search || '',
-    diet_type: query.diet_type || '',
-    max_prep_time: query.max_prep_time || '',
-    max_cook_time: query.max_cook_time || '',
-    ingredients: query.ingredients || '',
+    search: (query.search as string) || '',
+    diet_type: (query.diet_type as string) || '',
+    max_prep_time: (query.max_prep_time as string) || '',
+    max_cook_time: (query.max_cook_time as string) || '',
+    ingredients: (query.ingredients as string) || '',
     in_season: query.in_season === 'true',
   }
 }
 
-function pageFromQuery(query) {
+function pageFromQuery(query: LocationQuery) {
   return Number(query.page) || 1
 }
 
@@ -41,26 +43,26 @@ const page = ref(pageFromQuery(route.query))
 async function load() {
   isLoading.value = true
   try {
-    const params = {}
+    const params: RecipeListParams = {}
     for (const [key, value] of Object.entries(filters.value)) {
-      if (value !== '' && value !== false) params[key] = value
+      if (value !== '' && value !== false) (params as Record<string, unknown>)[key] = value
     }
     if (page.value > 1) params.page = page.value
     const data = await listRecipes(params)
     recipes.value = data.results
     count.value = data.count
-    router.replace({ query: params })
+    router.replace({ query: params as unknown as LocationQueryRaw })
   } finally {
     isLoading.value = false
   }
 }
 
-function goToPage(newPage) {
+function goToPage(newPage: number) {
   page.value = newPage
   load()
 }
 
-let debounceTimer = null
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 watch(
   filters,
   () => {
@@ -78,7 +80,9 @@ watch(
   () => route.query,
   (query) => {
     const next = filtersFromQuery(query)
-    const changed = Object.keys(next).some((key) => next[key] !== filters.value[key])
+    const changed = (Object.keys(next) as Array<keyof typeof next>).some(
+      (key) => next[key] !== filters.value[key],
+    )
     if (changed) filters.value = next
     const nextPage = pageFromQuery(query)
     if (nextPage !== page.value) page.value = nextPage

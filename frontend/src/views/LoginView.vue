@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -19,7 +19,7 @@ async function handleSubmit() {
   isSubmitting.value = true
   try {
     await authStore.login(email.value, password.value)
-    router.push(route.query.redirect || { name: 'recipes' })
+    router.push((route.query.redirect as string) || { name: 'recipes' })
   } catch {
     error.value = t('auth.invalidCredentials')
   } finally {

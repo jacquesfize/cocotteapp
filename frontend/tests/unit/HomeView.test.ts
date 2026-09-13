@@ -12,6 +12,7 @@ vi.mock('../../src/api/thematicPages', () => ({
 import { listRecipes } from '../../src/api/recipes'
 import { listThematicPages } from '../../src/api/thematicPages'
 import HomeView from '../../src/views/HomeView.vue'
+import type { Recipe } from '../../src/types/models'
 
 function mountHome() {
   return mount(HomeView, {
@@ -25,8 +26,14 @@ function mountHome() {
   })
 }
 
-function recipe(id) {
-  return { id, title: `Recette ${id}`, diet_type: 'omnivore', total_time_minutes: 20, description: '' }
+function recipe(id: number): Recipe {
+  return {
+    id,
+    title: `Recette ${id}`,
+    diet_type: 'omnivore',
+    total_time_minutes: 20,
+    description: '',
+  } as Recipe
 }
 
 beforeEach(() => {
@@ -36,9 +43,22 @@ beforeEach(() => {
 
 describe('HomeView', () => {
   it('shows only the 6 latest recipes and the thematic pages as links to filtered lists', async () => {
-    listRecipes.mockResolvedValue({ results: Array.from({ length: 8 }, (_, i) => recipe(i + 1)) })
-    listThematicPages.mockResolvedValue([
-      { id: 1, title: 'Produits de saison', icon: '🌱', description: 'En ce moment.', filters: { in_season: 'true' } },
+    vi.mocked(listRecipes).mockResolvedValue({
+      results: Array.from({ length: 8 }, (_, i) => recipe(i + 1)),
+      count: 8,
+      next: null,
+      previous: null,
+    })
+    vi.mocked(listThematicPages).mockResolvedValue([
+      {
+        id: 1,
+        title: 'Produits de saison',
+        slug: 'produits-de-saison',
+        icon: '🌱',
+        description: 'En ce moment.',
+        filters: { in_season: 'true' },
+        order: 0,
+      },
     ])
 
     const wrapper = mountHome()
@@ -48,15 +68,15 @@ describe('HomeView', () => {
     expect(wrapper.text()).toContain('Produits de saison')
 
     const thematicLink = wrapper.findAll('a').find((a) => a.text().includes('Produits de saison'))
-    expect(JSON.parse(thematicLink.attributes('data-to'))).toEqual({
+    expect(JSON.parse(thematicLink?.attributes('data-to') ?? '{}')).toEqual({
       name: 'recipes',
       query: { in_season: 'true' },
     })
   })
 
   it('shows a message when there are no recipes or thematic pages yet', async () => {
-    listRecipes.mockResolvedValue({ results: [] })
-    listThematicPages.mockResolvedValue([])
+    vi.mocked(listRecipes).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
 
     const wrapper = mountHome()
     await flushPromises()

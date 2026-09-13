@@ -1,8 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { i18n, setLocale, SUPPORTED_LOCALES } from '../i18n'
+import { i18n, setLocale, SUPPORTED_LOCALES, type Locale } from '../i18n'
 import { useAuthStore } from '../stores/auth'
 
 const { t } = useI18n()
@@ -10,7 +10,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 
 const isMenuOpen = ref(false)
-const accountEl = ref(null)
+const accountEl = ref<HTMLElement | null>(null)
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -26,18 +26,18 @@ function handleLogout() {
   router.push({ name: 'login' })
 }
 
-function handleLocaleChange(event) {
-  setLocale(event.target.value)
+function handleLocaleChange(event: Event) {
+  setLocale((event.target as HTMLSelectElement).value as Locale)
   closeMenu()
 }
 
-function handleOutsideClick(event) {
-  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(event.target)) {
+function handleOutsideClick(event: MouseEvent) {
+  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(event.target as Node)) {
     closeMenu()
   }
 }
 
-function handleKeydown(event) {
+function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') closeMenu()
 }
 

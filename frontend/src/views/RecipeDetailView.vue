@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Pencil, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -7,19 +7,20 @@ import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, getRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import type { Recipe } from '../types/models'
 
-const props = defineProps({
-  id: { type: [String, Number], required: true },
-})
+const props = defineProps<{
+  id: string | number
+}>()
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const recipe = ref(null)
+const recipe = ref<Recipe | null>(null)
 const deleteError = ref('')
 
 const isOwner = computed(
-  () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user.id,
+  () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
 
 async function load() {

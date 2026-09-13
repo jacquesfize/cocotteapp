@@ -13,6 +13,7 @@ vi.mock('../../src/api/admin', () => ({
 import { deleteUser, listUsers, updateUser } from '../../src/api/admin'
 import { useAuthStore } from '../../src/stores/auth'
 import AdminUsersView from '../../src/views/AdminUsersView.vue'
+import type { AdminUser, User } from '../../src/types/models'
 
 async function mountAdminUsers() {
   const router = createRouter({
@@ -32,13 +33,14 @@ async function mountAdminUsers() {
   })
 }
 
-function user(overrides) {
+function user(overrides?: Partial<AdminUser>): AdminUser {
   return {
     id: 1,
     username: 'alice',
     email: 'alice@example.com',
     is_active: true,
     is_staff: false,
+    date_joined: '2024-01-01',
     recipe_count: 3,
     ...overrides,
   }
@@ -54,10 +56,10 @@ beforeEach(() => {
 describe('AdminUsersView', () => {
   it('lists users and lets a staff admin toggle another account', async () => {
     const authStore = useAuthStore()
-    authStore.user = user({ id: 99, username: 'admin', is_staff: true })
+    authStore.user = { ...user({ id: 99, username: 'admin', is_staff: true }) } as unknown as User
 
-    listUsers.mockResolvedValue({ results: [user()], count: 1 })
-    updateUser.mockResolvedValue(user({ is_active: false }))
+    vi.mocked(listUsers).mockResolvedValue({ results: [user()], count: 1, next: null, previous: null })
+    vi.mocked(updateUser).mockResolvedValue(user({ is_active: false }))
 
     const wrapper = await mountAdminUsers()
     await flushPromises()
@@ -66,7 +68,7 @@ describe('AdminUsersView', () => {
     expect(wrapper.text()).toContain('alice@example.com')
 
     const toggleButton = wrapper.findAll('button').find((b) => b.text() === 'Actif')
-    await toggleButton.trigger('click')
+    await toggleButton?.trigger('click')
     await flushPromises()
 
     expect(updateUser).toHaveBeenCalledWith(1, { is_active: false })
@@ -74,9 +76,14 @@ describe('AdminUsersView', () => {
 
   it("hides action buttons on the admin's own row", async () => {
     const authStore = useAuthStore()
-    authStore.user = user({ id: 99, username: 'admin', is_staff: true })
+    authStore.user = { ...user({ id: 99, username: 'admin', is_staff: true }) } as unknown as User
 
-    listUsers.mockResolvedValue({ results: [user({ id: 99, username: 'admin' })], count: 1 })
+    vi.mocked(listUsers).mockResolvedValue({
+      results: [user({ id: 99, username: 'admin' })],
+      count: 1,
+      next: null,
+      previous: null,
+    })
 
     const wrapper = await mountAdminUsers()
     await flushPromises()
@@ -87,10 +94,10 @@ describe('AdminUsersView', () => {
 
   it('deletes a user after confirmation', async () => {
     const authStore = useAuthStore()
-    authStore.user = user({ id: 99, username: 'admin', is_staff: true })
+    authStore.user = { ...user({ id: 99, username: 'admin', is_staff: true }) } as unknown as User
 
-    listUsers.mockResolvedValue({ results: [user()], count: 1 })
-    deleteUser.mockResolvedValue()
+    vi.mocked(listUsers).mockResolvedValue({ results: [user()], count: 1, next: null, previous: null })
+    vi.mocked(deleteUser).mockResolvedValue(undefined as never)
 
     const wrapper = await mountAdminUsers()
     await flushPromises()
@@ -104,9 +111,9 @@ describe('AdminUsersView', () => {
 
   it('shows an access-denied message for a non-staff visitor rejected by the API', async () => {
     const authStore = useAuthStore()
-    authStore.user = user({ id: 1, is_staff: false })
+    authStore.user = { ...user({ id: 1, is_staff: false }) } as unknown as User
 
-    listUsers.mockRejectedValue({ response: { status: 403 } })
+    vi.mocked(listUsers).mockRejectedValue({ response: { status: 403 } })
 
     const wrapper = await mountAdminUsers()
     await flushPromises()

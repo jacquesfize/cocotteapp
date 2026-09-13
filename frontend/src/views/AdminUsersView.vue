@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Trash2 } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -6,43 +6,45 @@ import { useRoute, useRouter } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
 import { deleteUser, listUsers, updateUser } from '../api/admin'
 import { useAuthStore } from '../stores/auth'
+import type { AdminUserListParams } from '../types/api'
+import type { AdminUser } from '../types/models'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
-const users = ref([])
+const users = ref<AdminUser[]>([])
 const count = ref(0)
 const page = ref(Number(route.query.page) || 1)
-const search = ref(route.query.search || '')
+const search = ref((route.query.search as string) || '')
 const isLoading = ref(false)
 const accessDenied = ref(false)
 
 async function load() {
   isLoading.value = true
   try {
-    const params = {}
+    const params: AdminUserListParams = {}
     if (search.value) params.search = search.value
     if (page.value > 1) params.page = page.value
     const data = await listUsers(params)
     users.value = data.results
     count.value = data.count
     accessDenied.value = false
-    router.replace({ query: params })
+    router.replace({ query: params as Record<string, string> })
   } catch (err) {
-    if (err.response?.status === 403) accessDenied.value = true
+    if ((err as { response?: { status?: number } }).response?.status === 403) accessDenied.value = true
   } finally {
     isLoading.value = false
   }
 }
 
-function goToPage(newPage) {
+function goToPage(newPage: number) {
   page.value = newPage
   load()
 }
 
-let debounceTimer = null
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 watch(search, () => {
   page.value = 1
   clearTimeout(debounceTimer)
@@ -51,15 +53,15 @@ watch(search, () => {
 
 onMounted(load)
 
-async function toggleActive(user) {
+async function toggleActive(user: AdminUser) {
   user.is_active = await updateUser(user.id, { is_active: !user.is_active }).then((u) => u.is_active)
 }
 
-async function toggleStaff(user) {
+async function toggleStaff(user: AdminUser) {
   user.is_staff = await updateUser(user.id, { is_staff: !user.is_staff }).then((u) => u.is_staff)
 }
 
-async function handleDelete(user) {
+async function handleDelete(user: AdminUser) {
   if (!confirm(t('admin.deleteUserConfirm', { username: user.username }))) return
   await deleteUser(user.id)
   await load()

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -50,7 +50,7 @@ export default defineConfig({
           },
           {
             // Agenda + listes de courses : données propres à l'utilisateur — voir
-            // stores/auth.js pour le nettoyage de ce cache à la déconnexion.
+            // stores/auth.ts pour le nettoyage de ce cache à la déconnexion.
             urlPattern: ({ url, request }) =>
               request.method === 'GET' &&
               (url.pathname.startsWith('/api/meal-plan-entries') ||
@@ -89,6 +89,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    include: ['tests/unit/**/*.test.js'],
+    include: ['tests/unit/**/*.test.ts'],
   },
 })

@@ -1,20 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createIngredient, listIngredients } from '../api/ingredients'
+import type { Ingredient } from '../types/models'
 
 const { t } = useI18n()
 
-const props = defineProps({
-  modelValue: { type: Object, default: null },
-  id: { type: String, default: undefined },
-})
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<{
+  modelValue?: Ingredient | null
+  id?: string
+}>()
+const emit = defineEmits<{
+  'update:modelValue': [ingredient: Ingredient]
+}>()
 
 const query = ref(props.modelValue?.name ?? '')
-const suggestions = ref([])
+const suggestions = ref<Ingredient[]>([])
 const isOpen = ref(false)
-let debounceTimer = null
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(query, (value) => {
   clearTimeout(debounceTimer)
@@ -29,7 +32,7 @@ watch(query, (value) => {
   }, 250)
 })
 
-function select(ingredient) {
+function select(ingredient: Ingredient) {
   query.value = ingredient.name
   isOpen.value = false
   emit('update:modelValue', ingredient)
@@ -46,7 +49,8 @@ function closeSoon() {
   }, 150)
 }
 
-const exactMatch = () => suggestions.value.some((i) => i.name.toLowerCase() === query.value.toLowerCase())
+const exactMatch = () =>
+  suggestions.value.some((i) => i.name.toLowerCase() === query.value.toLowerCase())
 </script>
 
 <template>

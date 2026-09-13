@@ -1,7 +1,14 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-const routes = [
+declare module 'vue-router' {
+  interface RouteMeta {
+    public?: boolean
+    requiresStaff?: boolean
+  }
+}
+
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',

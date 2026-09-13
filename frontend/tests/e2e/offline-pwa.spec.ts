@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
-async function registerAndBuildShoppingList(page, suffix) {
+async function registerAndBuildShoppingList(page: Page, suffix: number) {
   const username = `e2e-offline-${suffix}`
   const recipeTitle = `Curry hors ligne ${suffix}`
   const ingredientName = `epinards-${suffix}`

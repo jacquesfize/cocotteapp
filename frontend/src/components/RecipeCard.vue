@@ -1,9 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { formatDuration } from '../utils/format'
+import type { Recipe } from '../types/models'
 
-defineProps({
-  recipe: { type: Object, required: true },
-})
+defineProps<{
+  recipe: Recipe
+}>()
 </script>
 
 <template>

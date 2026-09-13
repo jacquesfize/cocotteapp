@@ -1,20 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import { Plus, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import RecipePicker from './RecipePicker.vue'
 import { createMealPlanEntry, deleteMealPlanEntry } from '../api/planning'
+import type { MealPlanEntry, MealType, Recipe } from '../types/models'
 
-const props = defineProps({
-  date: { type: String, required: true },
-  mealType: { type: String, required: true },
-  entries: { type: Array, default: () => [] },
-})
-const emit = defineEmits(['changed'])
+const props = defineProps<{
+  date: string
+  mealType: MealType
+  entries?: MealPlanEntry[]
+}>()
+const emit = defineEmits<{
+  changed: []
+}>()
 
 const { t } = useI18n()
 const isAdding = ref(false)
-const newRecipe = ref(null)
+const newRecipe = ref<Recipe | null>(null)
 const newServings = ref(2)
 const error = ref('')
 
@@ -49,7 +52,7 @@ async function handleAdd() {
   }
 }
 
-async function handleRemove(entryId) {
+async function handleRemove(entryId: number) {
   await deleteMealPlanEntry(entryId)
   emit('changed')
 }
@@ -59,7 +62,7 @@ async function handleRemove(entryId) {
   <div class="meal-slot">
     <span class="meal-label">{{ $t(`mealType.${mealType}`) }}</span>
 
-    <ul v-if="entries.length" class="entry-list">
+    <ul v-if="entries?.length" class="entry-list">
       <li v-for="entry in entries" :key="entry.id">
         <RouterLink :to="{ name: 'recipe-detail', params: { id: entry.recipe } }">
           {{ entry.recipe_title }}

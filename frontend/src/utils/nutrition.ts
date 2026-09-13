@@ -1,4 +1,6 @@
-export const NUTRIENT_LABEL_KEYS = {
+import type { NutrientTotals } from '../types/models'
+
+export const NUTRIENT_LABEL_KEYS: Record<keyof NutrientTotals, string> = {
   calories_kcal: 'nutrition.calories',
   protein_g: 'nutrition.protein',
   carbs_g: 'nutrition.carbs',

@@ -8,12 +8,14 @@ import {
   updateMe,
 } from '../api/auth'
 import { clearPrivateOfflineData } from '../offline/sync'
+import type { RegisterPayload } from '../types/api'
+import type { User } from '../types/models'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
-    accessToken: localStorage.getItem('access_token'),
-    refreshToken: localStorage.getItem('refresh_token'),
+    user: null as User | null,
+    accessToken: localStorage.getItem('access_token') as string | null,
+    refreshToken: localStorage.getItem('refresh_token') as string | null,
   }),
 
   getters: {
@@ -21,12 +23,12 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async register(payload) {
+    async register(payload: RegisterPayload) {
       await registerRequest(payload)
       await this.login(payload.email, payload.password)
     },
 
-    async login(email, password) {
+    async login(email: string, password: string) {
       const data = await obtainToken(email, password)
       this._setTokens(data.access, data.refresh)
       await this.fetchMe()
@@ -36,7 +38,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = await fetchMe()
     },
 
-    async updateProfile(payload) {
+    async updateProfile(payload: Partial<User>) {
       this.user = await updateMe(payload)
     },
 
@@ -45,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
       this.logout()
     },
 
-    async refreshAccessToken() {
+    async refreshAccessToken(): Promise<boolean> {
       if (!this.refreshToken) return false
       try {
         const data = await refreshTokenRequest(this.refreshToken)
@@ -67,7 +69,7 @@ export const useAuthStore = defineStore('auth', {
       clearPrivateOfflineData().catch(() => {})
     },
 
-    _setTokens(access, refresh) {
+    _setTokens(access: string, refresh: string) {
       this.accessToken = access
       this.refreshToken = refresh
       localStorage.setItem('access_token', access)
