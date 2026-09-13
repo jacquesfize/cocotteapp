@@ -95,8 +95,14 @@ which drive the nutrition-deficiency thresholds.
 Recipe import has two independent paths: `apps.importer` scrapes a given URL (via
 `recipe_scrapers`, as a Celery task, and also fetches the source's og:image when available) into
 a normal `Recipe`; `apps/recipes/cooklang.py` is a self-contained parser for a small subset of
-the Cooklang markup language with its own tests, used for the `SourceType.COOKLANG` manual-entry
-path — the two don't share code.
+the Cooklang markup language (`@ingredient`, multi-word names joined with an underscore, e.g.
+`huile_olive`) with its own tests — nothing currently sets `SourceType.COOKLANG` or calls this
+parser, so treat it as dormant rather than wired into any view. The frontend independently
+reimplements the same `@mention` regex client-side
+(`frontend/src/utils/cooklangMentions.ts`) to let a recipe step reference one of the recipe's own
+ingredients (autocomplete while typing `@` in `CooklangStepInput.vue`, a highlighted link back to
+the ingredient in `RecipeSummary.vue`) — the two parsers are independent, not sharing code, and
+only the frontend one is actually exercised by the app today.
 
 PDF export (recipe or full week) uses WeasyPrint rendering server-side HTML templates
 (`apps/recipes/templates/pdf/recipe.html`, `apps/planning/templates/pdf/week.html`), not a
