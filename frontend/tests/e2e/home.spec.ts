@@ -17,6 +17,8 @@ test('homepage shows the intro and the recipe just created', async ({ page }) =>
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
+  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
   await page.locator('input[type="number"][step="0.01"]').fill('300')
   await page.getByLabel('Étape 1').fill('Faire revenir à la poêle.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()

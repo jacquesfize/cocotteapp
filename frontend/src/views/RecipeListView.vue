@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { Leaf, Link2, Plus, X } from '@lucide/vue'
+import { Link2, Plus, X } from '@lucide/vue'
 import { nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
 import RecipeCard from '../components/RecipeCard.vue'
-import { importRecipeFromUrl } from '../api/importer'
+import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import { setPendingImportDraft } from '../utils/pendingImportDraft'
 import type { RecipeListParams } from '../types/api'
 import type { Recipe } from '../types/models'
 
@@ -107,7 +108,8 @@ watch(
 onMounted(load)
 
 const importUrl = ref('')
-const importMessage = ref('')
+const importError = ref('')
+const isImporting = ref(false)
 const showImportForm = ref(false)
 const importUrlInput = ref<HTMLInputElement | null>(null)
 
@@ -118,14 +120,35 @@ function toggleImportForm() {
   }
 }
 
+// Le scraping est rapproché du catalogue d'ingrédients (voir apps/importer/services.py) mais
+// ne crée rien en base : le brouillon part directement vers le formulaire de création de
+// recette, qui a déjà tout le nécessaire pour vérifier/corriger chaque ingrédient (IngredientPicker
+// par ligne + soumission bloquée tant qu'une ligne n'a pas d'ingrédient choisi) — pas besoin
+// d'un écran intermédiaire dédié.
 async function handleImport() {
-  importMessage.value = ''
+  importError.value = ''
+  isImporting.value = true
   try {
-    await importRecipeFromUrl(importUrl.value)
-    importMessage.value = t('recipes.importSuccess')
-    importUrl.value = ''
+    const preview = await previewImportFromUrl(importUrl.value)
+    setPendingImportDraft({
+      title: preview.title,
+      servings: preview.servings,
+      cook_time_minutes: preview.cook_time_minutes,
+      image_url: preview.image_url,
+      source_url: preview.source_url,
+      steps: preview.steps,
+      ingredients: preview.ingredients.map((item) => ({
+        ingredient: item.ingredient,
+        quantity: item.quantity,
+        unit: item.unit,
+        raw_line: item.raw_line,
+      })),
+    })
+    router.push({ name: 'recipe-new' })
   } catch {
-    importMessage.value = t('recipes.importError')
+    importError.value = t('recipes.importError')
+  } finally {
+    isImporting.value = false
   }
 }
 </script>
@@ -135,9 +158,6 @@ async function handleImport() {
     <div class="row page-header">
       <h1>{{ $t('recipes.title') }}</h1>
       <div class="row">
-        <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">
-          <button class="secondary"><Leaf :size="16" />{{ $t('recipes.seasonalShortcut') }}</button>
-        </RouterLink>
         <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
           <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
         </RouterLink>
@@ -167,9 +187,11 @@ async function handleImport() {
             required
           />
         </div>
-        <button type="submit"><Link2 :size="16" />{{ $t('recipes.importButton') }}</button>
+        <button type="submit" :disabled="isImporting">
+          <Link2 :size="16" />{{ isImporting ? $t('common.loading') : $t('recipes.importButton') }}
+        </button>
       </form>
-      <p v-if="importMessage" class="muted">{{ importMessage }}</p>
+      <p v-if="importError" class="muted">{{ importError }}</p>
     </div>
 
     <div class="card filters">

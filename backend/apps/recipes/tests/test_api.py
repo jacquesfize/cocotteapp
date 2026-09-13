@@ -33,6 +33,52 @@ def test_create_recipe_with_nested_ingredients():
 
 
 @pytest.mark.django_db
+def test_create_recipe_rejects_non_integer_quantity_for_piece_unit():
+    user = UserFactory()
+    ingredient = IngredientFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    payload = {
+        "title": "Curry de lentilles",
+        "servings": 4,
+        "prep_time_minutes": 15,
+        "cook_time_minutes": 30,
+        "diet_type": "vegan",
+        "ingredients": [
+            {"ingredient_id": ingredient.id, "quantity": "1.5", "unit": "piece", "order": 1}
+        ],
+        "steps": [{"order": 1, "instruction": "Faire revenir les oignons."}],
+    }
+    response = client.post("/api/recipes/", payload, format="json")
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_create_recipe_accepts_integer_quantity_for_piece_unit():
+    user = UserFactory()
+    ingredient = IngredientFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    payload = {
+        "title": "Curry de lentilles",
+        "servings": 4,
+        "prep_time_minutes": 15,
+        "cook_time_minutes": 30,
+        "diet_type": "vegan",
+        "ingredients": [
+            {"ingredient_id": ingredient.id, "quantity": "2", "unit": "piece", "order": 1}
+        ],
+        "steps": [{"order": 1, "instruction": "Faire revenir les oignons."}],
+    }
+    response = client.post("/api/recipes/", payload, format="json")
+
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
 def test_filter_recipes_by_diet_type():
     RecipeFactory(diet_type="vegan")
     RecipeFactory(diet_type="omnivore")

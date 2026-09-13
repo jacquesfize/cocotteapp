@@ -80,8 +80,8 @@
     "newRecipe": "New recipe",
     "importFromUrl": "Import from a URL",
     "importButton": "Import",
-    "importSuccess": "Import started, the recipe will appear shortly.",
-    "importError": "Import failed.",
+    "importError": "Couldn't fetch this recipe. Check the URL and try again.",
+    "importNotFound": "Not found",
     "search": "Search",
     "searchPlaceholder": "Title, description...",
     "dietFilter": "Diet",
@@ -91,7 +91,6 @@
     "maxPrepTime": "Max prep time (min)",
     "maxCookTime": "Max cook time (min)",
     "inSeasonOnly": "In-season ingredients only",
-    "seasonalShortcut": "In season now",
     "noResults": "No recipe matches these criteria.",
     "prep": "prep",
     "cook": "cook",
@@ -193,7 +192,11 @@
     "nutritionTitle": "Nutrition facts (per 100 g / 100 ml)",
     "carbonTitle": "Carbon footprint",
     "submit": "Create ingredient",
-    "error": "Could not create the ingredient."
+    "error": "Could not create the ingredient.",
+    "suggestButton": "Suggest values",
+    "suggestLoading": "Searching...",
+    "suggestApplied": "Suggested values applied — review before creating the ingredient.",
+    "suggestNotFound": "No suggestion found for this ingredient."
   },
   "recipePicker": {
     "placeholder": "Search a recipe..."

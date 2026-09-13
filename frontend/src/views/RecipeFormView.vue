@@ -14,6 +14,7 @@ import {
 } from '../api/recipes'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
+import { takePendingImportDraft } from '../utils/pendingImportDraft'
 
 const props = defineProps<{
   id?: string | number | null
@@ -67,6 +68,12 @@ interface IngredientRow {
   unit: Unit
   group_name: string
   order: number
+  // Ligne importée depuis une recette scrapée dont l'ingrédient n'a pas pu être rapproché
+  // automatiquement du catalogue (voir apps/importer/services.py::find_matching_ingredient) :
+  // affiche un badge (+ le texte d'origine pour aider) tant qu'aucun ingrédient n'a été
+  // choisi/créé ici.
+  unmatched?: boolean
+  raw_line?: string
 }
 
 interface StepRow {
@@ -97,29 +104,58 @@ function handleImageFileChange(event: Event) {
 const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
 
 onMounted(async () => {
-  if (!isEditing || !props.id) return
-  const recipe = await getRecipe(props.id)
-  form.value = {
-    title: recipe.title,
-    description: recipe.description,
-    servings: recipe.servings,
-    prep_time_minutes: recipe.prep_time_minutes,
-    cook_time_minutes: recipe.cook_time_minutes,
-    diet_type: recipe.diet_type,
-    is_public: recipe.is_public,
-    source_url: recipe.source_url,
-    video_url: recipe.video_url,
-    image_url: recipe.image_url,
+  if (isEditing && props.id) {
+    const recipe = await getRecipe(props.id)
+    form.value = {
+      title: recipe.title,
+      description: recipe.description,
+      servings: recipe.servings,
+      prep_time_minutes: recipe.prep_time_minutes,
+      cook_time_minutes: recipe.cook_time_minutes,
+      diet_type: recipe.diet_type,
+      is_public: recipe.is_public,
+      source_url: recipe.source_url,
+      video_url: recipe.video_url,
+      image_url: recipe.image_url,
+    }
+    currentImageUrl.value = recipe.image || ''
+    ingredientRows.value = recipe.ingredients.map((item) => ({
+      ingredient: item.ingredient,
+      quantity: item.quantity,
+      unit: item.unit,
+      group_name: item.group_name,
+      order: item.order,
+    }))
+    stepRows.value = recipe.steps.map((step) => ({ instruction: step.instruction, order: step.order }))
+    return
   }
-  currentImageUrl.value = recipe.image || ''
-  ingredientRows.value = recipe.ingredients.map((item) => ({
+
+  // Recette pré-remplie depuis un import d'URL (voir RecipeListView.vue::handleImport) : les
+  // ingrédients déjà rapprochés du catalogue arrivent avec leur Ingredient, les autres arrivent
+  // vides et marqués `unmatched` pour que l'utilisateur les choisisse ou les crée ici même
+  // (IngredientPicker gère déjà recherche + création, et la soumission reste bloquée tant qu'une
+  // ligne n'a pas d'ingrédient — pas besoin d'un écran de vérification séparé).
+  const draft = takePendingImportDraft()
+  if (!draft) return
+
+  form.value = {
+    ...form.value,
+    title: draft.title,
+    servings: draft.servings,
+    cook_time_minutes: draft.cook_time_minutes,
+    source_url: draft.source_url,
+    image_url: draft.image_url,
+  }
+  ingredientRows.value = draft.ingredients.map((item, index) => ({
     ingredient: item.ingredient,
+    unmatched: !item.ingredient,
+    raw_line: item.raw_line,
     quantity: item.quantity,
     unit: item.unit,
-    group_name: item.group_name,
-    order: item.order,
+    group_name: '',
+    order: index + 1,
   }))
-  stepRows.value = recipe.steps.map((step) => ({ instruction: step.instruction, order: step.order }))
+  stepRows.value = draft.steps.map((step) => ({ instruction: step.instruction, order: step.order }))
 })
 
 function addIngredientRow() {
@@ -149,6 +185,15 @@ function handleMentionIngredient(ingredient: Ingredient) {
 
 function removeIngredientRow(index: number) {
   ingredientRows.value.splice(index, 1)
+}
+
+// L'unité "piece" ne se compte qu'en entier (pas de "1.5 pièce") : on arrondit toute
+// quantité déjà saisie lorsqu'on bascule sur cette unité.
+function onUnitChange(row: IngredientRow) {
+  if (row.unit !== 'piece') return
+  const numeric = Number(row.quantity)
+  if (!Number.isFinite(numeric)) return
+  row.quantity = Math.round(numeric)
 }
 
 function addStepRow() {
@@ -288,14 +333,25 @@ async function handleSubmit() {
           <div class="field" style="flex: 2; min-width: 220px">
             <label :for="`ingredient-${index}`">{{ $t('recipes.ingredient') }}</label>
             <IngredientPicker :id="`ingredient-${index}`" v-model="row.ingredient" />
+            <span v-if="row.unmatched && !row.ingredient" class="not-found-badge">
+              {{ $t('recipes.importNotFound') }}
+              <template v-if="row.raw_line">— « {{ row.raw_line }} »</template>
+            </span>
           </div>
           <div class="field" style="width: 100px">
             <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
-            <input :id="`quantity-${index}`" v-model="row.quantity" type="number" step="0.01" min="0" required />
+            <input
+              :id="`quantity-${index}`"
+              v-model="row.quantity"
+              type="number"
+              :step="row.unit === 'piece' ? 1 : 0.01"
+              min="0"
+              required
+            />
           </div>
           <div class="field" style="width: 110px">
             <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
-            <select :id="`unit-${index}`" v-model="row.unit">
+            <select :id="`unit-${index}`" v-model="row.unit" @change="onUnitChange(row)">
               <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
             </select>
           </div>
@@ -393,5 +449,16 @@ async function handleSubmit() {
   object-fit: cover;
   border-radius: 14px;
   margin: 0.25rem 0 1rem;
+}
+
+.not-found-badge {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 </style>

@@ -23,6 +23,19 @@ def test_ingredient_out_of_season():
 
 
 @pytest.mark.django_db
+def test_ingredient_translations_default_to_empty_dict():
+    ingredient = IngredientFactory()
+    assert ingredient.translations == {}
+
+
+@pytest.mark.django_db
+def test_ingredient_translations_store_arbitrary_locales():
+    ingredient = IngredientFactory(translations={"en": "garlic", "de": "Knoblauch", "es": "ajo"})
+    ingredient.refresh_from_db()
+    assert ingredient.translations == {"en": "garlic", "de": "Knoblauch", "es": "ajo"}
+
+
+@pytest.mark.django_db
 def test_ingredient_slug_collision_gets_a_suffix():
     # "Tomate" et "tomate" produisent le même slugify() : le second ne doit pas
     # provoquer d'erreur d'intégrité mais obtenir un slug distinct.

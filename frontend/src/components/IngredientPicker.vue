@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createIngredient, listIngredients } from '../api/ingredients'
+import IngredientEditModal from './IngredientEditModal.vue'
+import { listIngredients } from '../api/ingredients'
 import type { Ingredient } from '../types/models'
 
 const { t } = useI18n()
@@ -48,8 +49,15 @@ function select(ingredient: Ingredient) {
   emit('update:modelValue', ingredient)
 }
 
-async function createAndSelect() {
-  const ingredient = await createIngredient({ name: query.value })
+const showCreateModal = ref(false)
+
+function openCreateModal() {
+  isOpen.value = false
+  showCreateModal.value = true
+}
+
+function handleIngredientCreated(ingredient: Ingredient) {
+  showCreateModal.value = false
   select(ingredient)
 }
 
@@ -77,10 +85,17 @@ const exactMatch = () =>
       <li v-for="ingredient in suggestions" :key="ingredient.id" @mousedown.prevent="select(ingredient)">
         {{ ingredient.name }}
       </li>
-      <li v-if="!exactMatch()" class="create" @mousedown.prevent="createAndSelect">
+      <li v-if="!exactMatch()" class="create" @mousedown.prevent="openCreateModal">
         {{ t('ingredientPicker.create', { name: query }) }}
       </li>
     </ul>
+
+    <IngredientEditModal
+      v-if="showCreateModal"
+      :initial-name="query"
+      @created="handleIngredientCreated"
+      @close="showCreateModal = false"
+    />
   </div>
 </template>
 

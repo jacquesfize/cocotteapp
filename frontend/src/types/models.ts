@@ -174,6 +174,29 @@ export interface RecipeInput {
   steps: RecipeStepInput[]
 }
 
+export interface ImportPreviewIngredient {
+  raw_line: string
+  quantity: string
+  unit: Unit
+  name: string
+  ingredient: Ingredient | null
+}
+
+export interface ImportPreviewStep {
+  order: number
+  instruction: string
+}
+
+export interface ImportPreview {
+  title: string
+  servings: number
+  cook_time_minutes: number
+  image_url: string
+  source_url: string
+  steps: ImportPreviewStep[]
+  ingredients: ImportPreviewIngredient[]
+}
+
 export interface NutrientTotals {
   calories_kcal: number
   protein_g: number

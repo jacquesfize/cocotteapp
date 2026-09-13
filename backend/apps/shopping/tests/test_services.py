@@ -26,6 +26,22 @@ def test_build_shopping_list_aggregates_quantities():
 
 
 @pytest.mark.django_db
+def test_build_shopping_list_rounds_piece_quantities_up():
+    user = UserFactory()
+    ingredient = IngredientFactory(name="Oignon")
+    recipe = RecipeFactory(servings=2)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("1"), unit="piece")
+
+    # ratio 3/2 = 1.5 pièce, doit être arrondi à 2 pour rester un compte entier.
+    entry = MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-01", servings=3)
+
+    shopping_list = build_shopping_list(user, [entry])
+
+    item = shopping_list.items.get(ingredient=ingredient)
+    assert item.quantity == Decimal("2")
+
+
+@pytest.mark.django_db
 def test_export_excludes_owned_items():
     user = UserFactory()
     ingredient = IngredientFactory(name="Sel")

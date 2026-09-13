@@ -2,7 +2,7 @@ from django.db import models
 from rest_framework import serializers
 
 from apps.accounts.models import DietType
-from apps.ingredients.models import Ingredient
+from apps.ingredients.models import Ingredient, Unit
 from apps.ingredients.serializers import IngredientSerializer
 
 from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
@@ -52,6 +52,13 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         fields = ["id", "ingredient", "ingredient_id", "quantity", "unit", "group_name", "order"]
+
+    def validate(self, attrs):
+        unit = attrs.get("unit", getattr(self.instance, "unit", None))
+        quantity = attrs.get("quantity", getattr(self.instance, "quantity", None))
+        if unit == Unit.PIECE and quantity is not None and quantity % 1 != 0:
+            raise serializers.ValidationError({"quantity": "La quantité doit être un nombre entier pour l'unité pièce."})
+        return attrs
 
 
 class RecipeStepSerializer(serializers.ModelSerializer):

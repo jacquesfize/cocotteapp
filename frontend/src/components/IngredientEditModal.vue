@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { X } from '@lucide/vue'
+import { Sparkles, X } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createIngredient } from '../api/ingredients'
+import { createIngredient, suggestIngredientNutrition } from '../api/ingredients'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
 import type { Ingredient, IngredientCategory, Unit } from '../types/models'
 
@@ -50,6 +50,26 @@ const form = ref({
 })
 const error = ref('')
 const isSubmitting = ref(false)
+const isSuggesting = ref(false)
+const suggestMessage = ref('')
+
+async function handleSuggest() {
+  suggestMessage.value = ''
+  isSuggesting.value = true
+  try {
+    const { found, suggestion } = await suggestIngredientNutrition(form.value.name)
+    if (found && suggestion) {
+      Object.assign(form.value, suggestion)
+      suggestMessage.value = t('ingredientModal.suggestApplied')
+    } else {
+      suggestMessage.value = t('ingredientModal.suggestNotFound')
+    }
+  } catch {
+    suggestMessage.value = t('ingredientModal.suggestNotFound')
+  } finally {
+    isSuggesting.value = false
+  }
+}
 
 async function handleSubmit() {
   error.value = ''
@@ -90,7 +110,19 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
       <form @submit.prevent="handleSubmit">
         <div class="field">
           <label for="ingredient-modal-name">{{ t('ingredientModal.name') }}</label>
-          <input id="ingredient-modal-name" v-model="form.name" required autofocus />
+          <div class="row" style="align-items: center">
+            <input id="ingredient-modal-name" v-model="form.name" required autofocus style="flex: 1" />
+            <button
+              id="ingredient-modal-suggest"
+              type="button"
+              class="secondary"
+              :disabled="!form.name || isSuggesting"
+              @click="handleSuggest"
+            >
+              <Sparkles :size="16" />{{ isSuggesting ? t('ingredientModal.suggestLoading') : t('ingredientModal.suggestButton') }}
+            </button>
+          </div>
+          <p v-if="suggestMessage" class="muted">{{ suggestMessage }}</p>
         </div>
         <div class="row">
           <div class="field">
