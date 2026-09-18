@@ -18,9 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-prod = [
-    "gunicorn==23.0.0",
-]
+prod = ["gunicorn==23.0.0"]
 
 [dependency-groups]
 dev = [

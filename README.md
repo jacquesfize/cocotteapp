@@ -71,10 +71,36 @@ All three seed commands are idempotent — safe to re-run any time without dupli
 
 ### 🔒 Production deployment
 
-`docker-compose.prod.yml` builds production images (backend served by Gunicorn, frontend built
-to static files) behind a Caddy reverse proxy that automatically obtains and renews an HTTPS
-certificate (Let's Encrypt). It needs a server with Docker + Docker Compose, a domain whose DNS
-(A/AAAA) already points at that server, and ports 80/443 open.
+`docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
+`frontend` built to static files and served by a plain `nginx` container) as one isolated stack meant to run
+behind a **shared, host-level reverse proxy** — a single Caddy instance on the server, its own
+stack, that owns ports 80/443 and automatically obtains/renews HTTPS certificates (Let's
+Encrypt) for every app on the box. This stack itself publishes no ports; it only joins an
+external Docker network (`proxy`) that the host Caddy also sits on, and is reached there as
+`cocotte-frontend`.
+
+Server-side, one-time setup (see a general "Debian full Docker" deployment guide for the full
+walkthrough — installing Docker, the host Caddy stack, DNS, backups, etc.):
+
+```bash
+docker network create proxy   # once per server, shared by every app stack
+```
+
+Add a block for this app to the host Caddy's `Caddyfile` (e.g. `/opt/docker/caddy/Caddyfile`)
+and reload it:
+
+```caddyfile
+cocotte.example.org {
+    reverse_proxy cocotte-frontend:80
+}
+```
+
+```bash
+docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile   # in the host Caddy stack
+```
+
+Then, in this project's own directory (e.g. `/opt/docker/cocotte/` on the server) — needs Docker
++ Docker Compose and a domain whose DNS (A/AAAA) already points at the server:
 
 ```bash
 cp .env.prod.example .env.prod
@@ -89,10 +115,9 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend pyth
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
 ```
 
-Uploaded images/PDFs (`media/`), static files (`staticfiles/`) and Caddy's certificates
-(`caddy_data`) live in named Docker volumes, so they survive a repeated
-`docker compose up --build`. `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` must
-stay identical.
+Uploaded images/PDFs (`media/`) and static files (`staticfiles/`) live in named Docker volumes,
+so they survive a repeated `docker compose up --build`. `POSTGRES_PASSWORD` and the password
+embedded in `DATABASE_URL` must stay identical.
 
 ## 🧑‍🍳 How to use it
 
@@ -142,12 +167,12 @@ production stack — see `backend/.env.example` and `.env.prod.example`):
 | `DEFAULT_FROM_EMAIL` | `Cocotte <noreply@cocotte.app>` | "From" address for outgoing emails (password reset, etc.). |
 | `FRONTEND_URL` | `http://localhost:5173` | Base URL used to build links sent by email (e.g. the password-reset link). Must point at the public frontend URL in production. |
 
-Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml`):
+Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml`). The public
+domain and its HTTPS certificate are configured on the *host's* shared Caddy stack, not here —
+see the Production deployment section above.
 
 | Variable | Default | Description |
 |---|---|---|
-| `DOMAIN` | *(required)* | Public domain name Caddy requests an HTTPS certificate for and serves the app on. |
-| `ACME_EMAIL` | *(required)* | Contact email used for the Let's Encrypt account. |
 | `CSRF_TRUSTED_ORIGINS` | *(empty)* | Comma-separated origins allowed to pass Django's CSRF check (your public HTTPS domain). |
 | `SECURE_SSL_REDIRECT` | `True` | Redirect all HTTP requests to HTTPS. |
 | `SECURE_HSTS_SECONDS` | `604800` (1 week) | How long browsers should remember to only reach the site over HTTPS (HSTS). |

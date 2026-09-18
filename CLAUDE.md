@@ -67,8 +67,12 @@ cp backend/.env.example backend/.env
 docker compose up --build      # backend :8000, frontend :5173
 ```
 
-`docker-compose.prod.yml` is the production variant (Gunicorn + built static frontend + Caddy
-reverse proxy/TLS) — see the README's deployment section for required `.env.prod` variables.
+`docker-compose.prod.yml` is the production variant: three services (`db`, `backend` on
+Gunicorn, `frontend` on nginx serving the built static SPA and reverse-proxying `/api` and
+`/admin` to `backend`). That nginx does not terminate TLS itself: it's meant to run behind a
+shared, host-level Caddy reverse proxy (one per server, its own stack, handling Let's Encrypt
+for every app) reached over an external `proxy` Docker network — no `ports:` are published by
+this stack. See the README's deployment section for required `.env.prod` variables.
 
 ## Architecture
 
@@ -109,8 +113,8 @@ PDF export (recipe or full week) uses WeasyPrint rendering server-side HTML temp
 client-side PDF library.
 
 Settings are split `config/settings/{base,dev,prod}.py`, driven by env vars via `django-environ`
-(`DATABASE_URL`, `DJANGO_SECRET_KEY`, `CELERY_BROKER_URL`, `EMAIL_*`, `FRONTEND_URL` — the last is
-used to build password-reset links). `EMAIL_BACKEND` defaults to the console backend in dev.
+(`DATABASE_URL`, `DJANGO_SECRET_KEY`, `EMAIL_*`, `FRONTEND_URL` — the last is used to build
+password-reset links). `EMAIL_BACKEND` defaults to the console backend in dev.
 
 ### Frontend: views own their data fetching, Pinia only holds auth
 

@@ -13,8 +13,10 @@ CMD ["npm", "run", "dev", "--", "--host"]
 FROM base AS build
 RUN npm run build
 
-# --- Image de production : Caddy sert la SPA et fait office de reverse proxy + HTTPS automatique.
-FROM caddy:2-alpine AS prod
+# --- Image de production : nginx sert la SPA et reverse-proxie /api et /admin vers le backend,
+# en HTTP interne uniquement (pas de TLS ici : le Caddy partagé de l'hôte s'en charge, voir
+# nginx.conf).
+FROM nginx:1.27-alpine AS prod
 COPY --from=build /app/dist /srv/app
-COPY Caddyfile /etc/caddy/Caddyfile
-EXPOSE 80 443
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80

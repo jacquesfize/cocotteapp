@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
+      // PWA désactivée : pas de service worker généré ni enregistré (dev ou build). Les
+      // imports `virtual:pwa-register` restent valides (no-op) grâce à ça — inutile de
+      // toucher main.ts ou StepTimerButton.vue, qui gèrent déjà l'absence de SW actif.
+      disable: true,
       registerType: 'autoUpdate',
       // Le service worker tourne aussi en `vite dev`, pour pouvoir tester le mode
       // hors ligne sans build de production (context.setOffline() en e2e, par ex.).
