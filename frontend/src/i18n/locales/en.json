@@ -175,11 +175,21 @@
   },
   "home": {
     "title": "Cocotte",
-    "tagline": "The app that stores your recipes, plans your weekly menus, and puts nutrition and carbon footprint right next to every recipe — so you can see, at a glance, what a week of meals costs your body and the planet.",
+    "tagline": "Store your recipes, plan your week, and see the nutrition and carbon footprint of every meal.",
     "browseRecipes": "Browse recipes",
     "thematicPages": "Explore",
     "latestRecipes": "Latest recipes",
     "seeAll": "See all recipes",
+    "quickActions": "Quick actions",
+    "thisWeek": "This week",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "planMeal": "Plan a meal",
+    "openShoppingList": "Latest shopping list",
+    "nutritionAlerts": "no alert | {n} nutrition alert | {n} nutrition alerts",
+    "inSeason": "In season now",
+    "fetchError": "Could not load recipes.",
+    "viewRecipe": "View recipe",
     "noRecipes": "No recipe yet."
   },
   "ingredientPicker": {

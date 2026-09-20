@@ -4,12 +4,14 @@ import type { Recipe } from '../types/models'
 
 defineProps<{
   recipe: Recipe
+  variant?: 'row' | 'tile'
 }>()
 </script>
 
 <template>
   <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="recipe-card">
     <img v-if="recipe.image || recipe.image_url" :src="recipe.image || recipe.image_url" class="thumb" alt="" />
+    <div v-else-if="variant === 'tile'" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
     <div class="recipe-card-body">
       <h3>{{ recipe.title }}</h3>
       <p class="muted">
@@ -61,5 +63,33 @@ defineProps<{
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.recipe-card.tile {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-bottom: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.tile .thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  background: var(--color-primary-soft);
+}
+
+.tile .recipe-card-body {
+  padding: 0 1rem 1rem;
 }
 </style>

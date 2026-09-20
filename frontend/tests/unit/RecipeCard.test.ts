@@ -21,6 +21,18 @@ beforeEach(() => {
 })
 
 describe('RecipeCard', () => {
+  it('shows a placeholder for imageless recipes only in the tile variant', () => {
+    const recipe = { id: 1, title: 'Soupe', diet_type: 'vegan', total_time_minutes: 10 } as Recipe
+    const mountVariant = (variant?: 'tile') =>
+      mount(RecipeCard, {
+        props: { recipe, variant },
+        global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+      })
+
+    expect(mountVariant('tile').find('.thumb-placeholder').exists()).toBe(true)
+    expect(mountVariant().find('.thumb-placeholder').exists()).toBe(false)
+  })
+
   it('renders the title, diet type and total time', () => {
     const wrapper = mountCard({
       id: 1,

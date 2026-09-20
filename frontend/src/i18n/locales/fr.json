@@ -175,11 +175,21 @@
   },
   "home": {
     "title": "Cocotte",
-    "tagline": "L'application qui range vos recettes, planifie vos menus de la semaine et affiche, pour chaque recette, sa valeur nutritionnelle et son empreinte carbone — de quoi voir, en un coup d'œil, ce qu'une semaine de repas coûte à votre corps et à la planète.",
+    "tagline": "Rangez vos recettes, planifiez votre semaine et voyez la valeur nutritionnelle et l'empreinte carbone de chaque repas.",
     "browseRecipes": "Voir les recettes",
     "thematicPages": "À explorer",
     "latestRecipes": "Dernières recettes",
     "seeAll": "Voir toutes les recettes",
+    "quickActions": "Actions rapides",
+    "thisWeek": "Cette semaine",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "planMeal": "Planifier un repas",
+    "openShoppingList": "Dernière liste de courses",
+    "nutritionAlerts": "aucune alerte | {n} alerte nutritionnelle | {n} alertes nutritionnelles",
+    "inSeason": "De saison en ce moment",
+    "fetchError": "Impossible de charger les recettes.",
+    "viewRecipe": "Voir la recette",
     "noRecipes": "Aucune recette pour l'instant."
   },
   "ingredientPicker": {
