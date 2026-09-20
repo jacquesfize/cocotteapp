@@ -237,7 +237,13 @@ const rangeLabel = computed(() => {
       </div>
       <template v-for="mealType in MEAL_TYPES" :key="mealType">
         <div class="agenda-row-head">{{ $t(`mealType.${mealType}`) }}</div>
-        <div v-for="date in weekDays" :key="toISODate(date)" class="agenda-cell">
+        <div
+          v-for="date in weekDays"
+          :key="toISODate(date)"
+          class="agenda-cell"
+          :data-meal-type="mealType"
+          :data-date="toISODate(date)"
+        >
           <MealSlot
             :date="toISODate(date)"
             :meal-type="mealType"
