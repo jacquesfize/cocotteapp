@@ -2,6 +2,7 @@
 import { Plus, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AllergenWarning from './AllergenWarning.vue'
 import RecipePicker from './RecipePicker.vue'
 import { createMealPlanEntry, deleteMealPlanEntry } from '../api/planning'
 import type { MealPlanEntry, MealType, Recipe } from '../types/models'
@@ -72,6 +73,7 @@ async function handleRemove(entryId: number) {
         <RouterLink :to="{ name: 'recipe-detail', params: { id: entry.recipe } }">
           {{ entry.recipe_title }}
         </RouterLink>
+        <AllergenWarning :allergens="entry.recipe_allergens" class="entry-warning" />
         <button
           v-if="!readOnly"
           type="button"
@@ -96,6 +98,7 @@ async function handleRemove(entryId: number) {
       </button>
       <form v-else class="add-form" @submit.prevent="handleAdd">
         <RecipePicker v-model="newRecipe" />
+        <AllergenWarning :allergens="newRecipe?.allergens" />
         <div class="row" style="align-items: center; gap: 0.4rem">
           <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
           <button type="submit">{{ $t('common.add') }}</button>
@@ -142,10 +145,16 @@ async function handleRemove(entryId: number) {
 
 .entry-list li {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
   font-size: 0.85rem;
+}
+
+.entry-warning {
+  flex-basis: 100%;
+  order: 3;
 }
 
 .entry-list a {

@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RecipeSummary from '../../src/components/RecipeSummary.vue'
 import StepTimerButton from '../../src/components/StepTimerButton.vue'
@@ -66,7 +67,7 @@ function mountSummary(recipe: Recipe) {
   return mount(RecipeSummary, {
     props: { recipe },
     global: {
-      plugins: [i18n],
+      plugins: [i18n, createPinia()],
       stubs: {
         RouterLink: { template: '<a><slot /></a>' },
         NutritionCard: true,

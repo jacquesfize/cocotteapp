@@ -67,6 +67,14 @@ class Recipe(models.Model):
     def total_time_minutes(self):
         return self.prep_time_minutes + self.cook_time_minutes
 
+    def allergen_slugs(self):
+        """Allergènes de la recette, déduits de ses ingrédients (triés).
+
+        Préchargez `recipe_ingredients__ingredient__allergens` pour éviter les requêtes N+1.
+        """
+        slugs = {a.slug for ri in self.recipe_ingredients.all() for a in ri.ingredient.allergens.all()}
+        return sorted(slugs)
+
     def root(self):
         return self.root_recipe or self
 

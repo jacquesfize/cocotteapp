@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { Download, Save, Trash2, Upload } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
+import { listAllergens } from '../api/allergens'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { changePassword, exportMyData } from '../api/auth'
 import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
 import { useAuthStore } from '../stores/auth'
+import { allergenEmoji } from '../utils/allergens'
 import { ACCENT_PRESETS, accentColor, DEFAULT_ACCENT, resetAccentColor, setAccentColor } from '../utils/theme'
 import { downloadBlob } from '../utils/download'
-import type { ActivityLevel, DietType, PlanningPermission, PlanningShare } from '../types/models'
+import type { ActivityLevel, Allergen, DietType, PlanningPermission, PlanningShare } from '../types/models'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -20,12 +22,33 @@ const profile = ref<{
   email: string
   diet_type: DietType
   activity_level: ActivityLevel
+  allergies: string[]
+  intolerances: string[]
 }>({
   username: authStore.user?.username || '',
   email: authStore.user?.email || '',
   diet_type: authStore.user?.diet_type || 'omnivore',
   activity_level: authStore.user?.activity_level || 'moderate',
+  allergies: [...(authStore.user?.allergies || [])],
+  intolerances: [...(authStore.user?.intolerances || [])],
 })
+
+const allergenList = ref<Allergen[]>([])
+onMounted(async () => {
+  // Liste de référence : sans elle (hors ligne, erreur), la section reste simplement vide.
+  allergenList.value = await listAllergens().catch(() => [])
+})
+
+// Un allergène est soit une allergie, soit une intolérance : cocher l'un décoche l'autre.
+function toggleAllergen(kind: 'allergies' | 'intolerances', slug: string, checked: boolean) {
+  const other = kind === 'allergies' ? 'intolerances' : 'allergies'
+  const current = profile.value[kind].filter((s) => s !== slug)
+  if (checked) {
+    current.push(slug)
+    profile.value[other] = profile.value[other].filter((s) => s !== slug)
+  }
+  profile.value[kind] = current
+}
 const profileMessage = ref('')
 const profileError = ref('')
 const isSavingProfile = ref(false)
@@ -244,6 +267,25 @@ async function handleDeleteAccount() {
             </select>
           </div>
         </div>
+        <fieldset class="allergen-fieldset">
+          <legend>{{ $t('allergens.title') }}</legend>
+          <p class="muted">{{ $t('allergens.hint') }}</p>
+          <div v-for="kind in (['allergies', 'intolerances'] as const)" :key="kind" class="allergen-group">
+            <strong>{{ $t(`allergens.${kind}`) }}</strong>
+            <div class="allergen-options">
+              <label v-for="allergen in allergenList" :key="allergen.slug" class="allergen-option">
+                <input
+                  type="checkbox"
+                  :data-testid="`${kind}-${allergen.slug}`"
+                  :checked="profile[kind].includes(allergen.slug)"
+                  @change="toggleAllergen(kind, allergen.slug, ($event.target as HTMLInputElement).checked)"
+                />
+                <span aria-hidden="true">{{ allergenEmoji(allergen.slug) }}</span>
+                {{ $t(`allergen.${allergen.slug}`) }}
+              </label>
+            </div>
+          </div>
+        </fieldset>
         <p v-if="profileMessage" class="muted">{{ profileMessage }}</p>
         <p v-if="profileError" class="error">{{ profileError }}</p>
         <button type="submit" :disabled="isSavingProfile"><Save :size="16" />{{ $t('common.save') }}</button>
@@ -397,6 +439,35 @@ async function handleDeleteAccount() {
 </template>
 
 <style scoped>
+.allergen-fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+}
+
+.allergen-group {
+  margin-top: 0.75rem;
+}
+
+.allergen-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin-top: 0.4rem;
+}
+
+.allergen-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.allergen-option input {
+  width: auto;
+}
+
 .accent-row {
   display: flex;
   align-items: center;

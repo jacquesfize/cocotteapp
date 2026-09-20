@@ -146,3 +146,22 @@ def test_week_pdf_download_works_with_no_entries():
 
     assert response.status_code == 200
     assert response.content.startswith(b"%PDF")
+
+
+@pytest.mark.django_db
+def test_meal_plan_entry_exposes_recipe_allergens():
+    from apps.ingredients.models import Allergen, Ingredient
+    from apps.recipes.factories import RecipeIngredientFactory
+
+    user = UserFactory()
+    recipe = RecipeFactory()
+    ingredient = Ingredient.objects.create(name="pâtes")
+    ingredient.allergens.add(Allergen.objects.create(slug="gluten", name="Gluten"))
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient)
+    MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-01")
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get("/api/meal-plan-entries/")
+
+    assert response.data[0]["recipe_allergens"] == ["gluten"]

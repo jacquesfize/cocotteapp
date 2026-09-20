@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatDuration } from '../utils/format'
+import AllergenBadges from './AllergenBadges.vue'
 import type { Recipe } from '../types/models'
 
 defineProps<{
@@ -18,6 +19,7 @@ defineProps<{
       <p class="muted">
         {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
       </p>
+      <AllergenBadges :allergens="recipe.allergens ?? []" only-mine class="card-allergens" />
       <p v-if="recipe.description" class="description">{{ recipe.description }}</p>
     </div>
   </RouterLink>
@@ -55,6 +57,10 @@ defineProps<{
 
 .recipe-card h3 {
   margin: 0 0 0.25rem;
+}
+
+.card-allergens {
+  margin-top: 0.4rem;
 }
 
 .description {

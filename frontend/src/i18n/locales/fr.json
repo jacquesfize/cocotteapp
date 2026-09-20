@@ -240,7 +240,10 @@
       "10": "octobre",
       "11": "novembre",
       "12": "décembre"
-    }
+    },
+    "allergensTitle": "Allergènes",
+    "allergensHint": "Cochez les allergènes présents dans cet ingrédient.",
+    "allergensReviewed": "J'ai vérifié : cet ingrédient ne contient pas d'allergène de la liste"
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
@@ -472,5 +475,34 @@
     "reset": "Par défaut",
     "switchToDark": "Passer en mode sombre",
     "switchToLight": "Passer en mode clair"
+  },
+  "allergen": {
+    "gluten": "Gluten",
+    "milk": "Lait",
+    "lactose": "Lactose",
+    "egg": "Œufs",
+    "peanut": "Arachides",
+    "tree_nuts": "Fruits à coque",
+    "soy": "Soja",
+    "fish": "Poisson",
+    "crustaceans": "Crustacés",
+    "molluscs": "Mollusques",
+    "celery": "Céleri",
+    "mustard": "Moutarde",
+    "sesame": "Sésame",
+    "sulphites": "Sulfites",
+    "lupin": "Lupin"
+  },
+  "allergens": {
+    "title": "Allergies et intolérances",
+    "hint": "Allergies : à éviter strictement. Intolérances : à limiter. Les allergènes affichés sur les recettes sont indicatifs — vérifiez toujours les étiquettes.",
+    "allergies": "Allergies",
+    "intolerances": "Intolérances",
+    "unverified": "Allergènes non vérifiés pour certains ingrédients",
+    "allergyWarning": "Contient :",
+    "intoleranceWarning": "Peut gêner :",
+    "hideMine": "Masquer les recettes contenant mes allergènes",
+    "contains": "Allergènes",
+    "disclaimer": "Indicatif : vérifiez les étiquettes des produits industriels."
   }
 }

@@ -8,6 +8,12 @@ vi.mock('../../src/api/auth', () => ({
   changePassword: vi.fn(),
   exportMyData: vi.fn(),
 }))
+vi.mock('../../src/api/allergens', () => ({
+  listAllergens: vi.fn().mockResolvedValue([
+    { slug: 'gluten', name: 'Gluten' },
+    { slug: 'lactose', name: 'Lactose' },
+  ]),
+}))
 vi.mock('../../src/api/planning', () => ({
   listPlanningShares: vi.fn(),
   createOrUpdatePlanningShare: vi.fn(),
@@ -110,5 +116,32 @@ describe('AccountSettingsView planning sharing', () => {
 
     expect(window.confirm).toHaveBeenCalled()
     expect(deletePlanningShare).toHaveBeenCalledWith(1)
+  })
+})
+
+describe('AccountSettingsView allergens', () => {
+  it('pre-checks the profile allergens and keeps allergy/intolerance mutually exclusive', async () => {
+    const authStore = useAuthStore()
+    authStore.user = {
+      id: 1,
+      username: 'me',
+      email: 'me@example.com',
+      allergies: ['gluten'],
+      intolerances: [],
+    } as unknown as User
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+
+    const allergy = wrapper.find('[data-testid="allergies-gluten"]')
+    const intolerance = wrapper.find('[data-testid="intolerances-gluten"]')
+    expect((allergy.element as HTMLInputElement).checked).toBe(true)
+    expect((intolerance.element as HTMLInputElement).checked).toBe(false)
+
+    await intolerance.setValue(true)
+
+    expect((wrapper.find('[data-testid="allergies-gluten"]').element as HTMLInputElement).checked).toBe(false)
+    expect((wrapper.find('[data-testid="intolerances-gluten"]').element as HTMLInputElement).checked).toBe(true)
   })
 })

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('the login page links to the forgot-password flow, which always shows the same message', async ({
   page,

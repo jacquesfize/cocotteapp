@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async ({ page }) => {
   const suffix = Date.now()

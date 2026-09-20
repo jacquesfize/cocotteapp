@@ -16,6 +16,7 @@ export interface RecipeListParams {
   in_season?: boolean
   carbon_level?: 'low' | 'medium' | 'high' | ''
   max_carbon?: number | string
+  exclude_allergens?: string
   page?: number
 }
 

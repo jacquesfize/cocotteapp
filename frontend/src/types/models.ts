@@ -18,12 +18,19 @@ export type IngredientCategory =
 export type RecipeSourceType = 'manual' | 'url' | 'cooklang'
 export type TagKind = 'meal_type' | 'cuisine' | 'other'
 
+export interface Allergen {
+  slug: string
+  name: string
+}
+
 export interface User {
   id: number
   username: string
   email: string
   diet_type: DietType
   activity_level: ActivityLevel
+  allergies: string[]
+  intolerances: string[]
   is_staff: boolean
   date_joined: string
 }
@@ -46,6 +53,8 @@ export interface Ingredient {
   default_unit: Unit
   available_months: number[]
   translations?: Record<string, string>
+  allergens?: string[]
+  allergens_reviewed?: boolean
   calories_kcal: number
   protein_g: number
   carbs_g: number
@@ -140,6 +149,8 @@ export interface Recipe {
   is_public: boolean
   tags: Tag[]
   ingredients: RecipeIngredient[]
+  allergens: string[]
+  allergens_unverified: boolean
   steps: RecipeStep[]
   root_recipe: number | null
   version_label: string
@@ -238,6 +249,7 @@ export interface MealPlanEntry {
   id: number
   recipe: number
   recipe_title: string
+  recipe_allergens?: string[]
   date: string
   meal_type: MealType
   servings: number

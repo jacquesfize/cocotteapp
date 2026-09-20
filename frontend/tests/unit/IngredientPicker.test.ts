@@ -1,7 +1,8 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../src/i18n'
 
+vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
   createIngredient: vi.fn(),
@@ -34,6 +35,10 @@ function ingredient(overrides?: Partial<Ingredient>): Ingredient {
     ...overrides,
   } as Ingredient
 }
+
+// Démonte les composants entre les tests : leurs timers de debounce ne doivent pas fuiter
+// dans le test suivant (ils y faisaient appeler listIngredients une fois de trop).
+enableAutoUnmount(afterEach)
 
 beforeEach(() => {
   i18n.global.locale.value = 'fr'

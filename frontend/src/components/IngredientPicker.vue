@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
 import { listIngredients } from '../api/ingredients'
@@ -51,6 +51,8 @@ function onInput() {
     suggestions.value = data.results
   }, 250)
 }
+
+onBeforeUnmount(() => clearTimeout(debounceTimer))
 
 function close() {
   clearTimeout(debounceTimer)

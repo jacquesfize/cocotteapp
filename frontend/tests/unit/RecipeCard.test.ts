@@ -1,4 +1,5 @@
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import RecipeCard from '../../src/components/RecipeCard.vue'
 import { i18n } from '../../src/i18n'
@@ -8,7 +9,7 @@ function mountCard(recipe: Partial<Recipe>) {
   return mount(RecipeCard, {
     props: { recipe: recipe as Recipe },
     global: {
-      plugins: [i18n],
+      plugins: [i18n, createPinia()],
       stubs: {
         RouterLink: { template: '<a><slot /></a>' },
       },
@@ -26,7 +27,7 @@ describe('RecipeCard', () => {
     const mountVariant = (variant?: 'tile') =>
       mount(RecipeCard, {
         props: { recipe, variant },
-        global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+        global: { plugins: [i18n, createPinia()], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
       })
 
     expect(mountVariant('tile').find('.thumb-placeholder').exists()).toBe(true)

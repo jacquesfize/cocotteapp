@@ -6,10 +6,14 @@ from .models import MealPlanEntry, PlanningShare
 
 class MealPlanEntrySerializer(serializers.ModelSerializer):
     recipe_title = serializers.ReadOnlyField(source="recipe.title")
+    recipe_allergens = serializers.SerializerMethodField()
 
     class Meta:
         model = MealPlanEntry
-        fields = ["id", "recipe", "recipe_title", "date", "meal_type", "servings"]
+        fields = ["id", "recipe", "recipe_title", "recipe_allergens", "date", "meal_type", "servings"]
+
+    def get_recipe_allergens(self, obj):
+        return obj.recipe.allergen_slugs()
 
 
 class PlanningShareSerializer(serializers.ModelSerializer):

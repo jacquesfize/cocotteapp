@@ -2,7 +2,9 @@ from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 
-from apps.ingredients.models import Ingredient, IngredientCategory, Unit
+from apps.ingredients.allergen_tags import ALLERGEN_TAGS
+from apps.ingredients.management.commands.seed_allergens import seed_allergens
+from apps.ingredients.models import Allergen, Ingredient, IngredientCategory, Unit
 
 # Valeurs nutritionnelles approximatives pour 100 g (ou 100 ml pour les liquides),
 # arrondies à partir de tables de composition usuelles (Ciqual/USDA). Ce sont des
@@ -569,6 +571,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         created_count = 0
         updated_count = 0
+        seed_allergens()
+        allergens_by_slug = {a.slug: a for a in Allergen.objects.all()}
 
         for entry in INGREDIENTS:
             defaults = {
@@ -577,6 +581,7 @@ class Command(BaseCommand):
                 "default_unit": Unit(entry["unit"]),
                 "available_months": entry["months"],
                 "translations": entry.get("translations", {}),
+                "allergens_reviewed": True,
             }
             for field in NUTRIENT_FIELD_NAMES:
                 defaults[field] = Decimal(str(entry.get(field, 0)))
@@ -590,10 +595,14 @@ class Command(BaseCommand):
                 for field, value in defaults.items():
                     setattr(existing, field, value)
                 existing.save()
+                ingredient = existing
                 updated_count += 1
             else:
-                Ingredient.objects.create(**defaults)
+                ingredient = Ingredient.objects.create(**defaults)
                 created_count += 1
+            ingredient.allergens.set(
+                allergens_by_slug[slug] for slug in ALLERGEN_TAGS.get(entry["name"], [])
+            )
 
         self.stdout.write(
             self.style.SUCCESS(f"Ingrédients : {created_count} créés, {updated_count} mis à jour.")

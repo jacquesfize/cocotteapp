@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('editing a recipe pre-fills every ingredient picker, not just the last one', async ({ page }) => {
   const suffix = Date.now()

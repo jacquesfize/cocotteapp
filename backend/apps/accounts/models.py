@@ -14,6 +14,11 @@ class ActivityLevel(models.TextChoices):
     ATHLETE = "athlete", "Sportif"
 
 
+class AllergySeverity(models.TextChoices):
+    ALLERGY = "allergy", "Allergie"
+    INTOLERANCE = "intolerance", "Intolérance"
+
+
 class User(AbstractUser):
     email = models.EmailField("email address", unique=True)
 
@@ -27,5 +32,28 @@ class User(AbstractUser):
         max_length=20, choices=ActivityLevel.choices, default=ActivityLevel.MODERATE
     )
 
+    allergens = models.ManyToManyField(
+        "ingredients.Allergen", through="UserAllergen", related_name="users", blank=True
+    )
+
     def __str__(self):
         return self.username
+
+    def allergen_slugs(self, severity=None):
+        rows = self.allergen_links.all()
+        if severity:
+            rows = rows.filter(severity=severity)
+        return list(rows.values_list("allergen__slug", flat=True))
+
+
+class UserAllergen(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="allergen_links")
+    allergen = models.ForeignKey("ingredients.Allergen", on_delete=models.CASCADE)
+    severity = models.CharField(
+        max_length=20, choices=AllergySeverity.choices, default=AllergySeverity.ALLERGY
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "allergen"], name="unique_user_allergen")
+        ]
