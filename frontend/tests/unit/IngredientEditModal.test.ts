@@ -1,6 +1,12 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('../../src/api/allergens', () => ({
+  listAllergens: vi.fn().mockResolvedValue([
+    { slug: 'gluten', name: 'Gluten' },
+    { slug: 'egg', name: 'Œufs' },
+  ]),
+}))
 vi.mock('../../src/api/ingredients', () => ({
   createIngredient: vi.fn(),
   suggestIngredientNutrition: vi.fn(),
@@ -112,5 +118,39 @@ describe('IngredientEditModal', () => {
 
     expect(wrapper.text()).toContain('Aucune suggestion trouvée')
     expect(wrapper.get('#ingredient-modal-calories_kcal').element).toHaveProperty('value', '0')
+  })
+
+  it('sends the ticked allergens and marks the ingredient as reviewed', async () => {
+    vi.mocked(createIngredient).mockResolvedValue({ id: 1 } as Ingredient)
+    const wrapper = mountModal('pâtes')
+    await flushPromises()
+
+    const reviewed = wrapper.get('[data-testid="allergens-reviewed"]')
+    expect((reviewed.element as HTMLInputElement).checked).toBe(false)
+
+    await wrapper.get('[data-testid="allergen-gluten"]').setValue(true)
+    expect((reviewed.element as HTMLInputElement).checked).toBe(true)
+    expect((reviewed.element as HTMLInputElement).disabled).toBe(true)
+
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(createIngredient).toHaveBeenCalledWith(
+      expect.objectContaining({ allergens: ['gluten'], allergens_reviewed: true }),
+    )
+  })
+
+  it('lets the user declare "no allergen" explicitly', async () => {
+    vi.mocked(createIngredient).mockResolvedValue({ id: 1 } as Ingredient)
+    const wrapper = mountModal('riz')
+    await flushPromises()
+
+    await wrapper.get('[data-testid="allergens-reviewed"]').setValue(true)
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(createIngredient).toHaveBeenCalledWith(
+      expect.objectContaining({ allergens: [], allergens_reviewed: true }),
+    )
   })
 })

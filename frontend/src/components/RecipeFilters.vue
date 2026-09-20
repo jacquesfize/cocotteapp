@@ -10,6 +10,8 @@ export interface RecipeFilterValues {
   ingredients: string
   in_season: boolean
   carbon_level: string
+  // Slugs d'allergènes à exclure, séparés par des virgules (cf. filtre backend).
+  exclude_allergens: string
 }
 
 // Les filtres sont édités en place (v-model sur les propriétés de l'objet) : la vue parente
@@ -17,6 +19,16 @@ export interface RecipeFilterValues {
 // RecipeFilterValues + filtersFromQuery (vue parente), et un bloc .field dans le template.
 // Le badge et le bouton "Réinitialiser" sont génériques (ils parcourent les clés).
 const filters = defineModel<RecipeFilterValues>({ required: true })
+
+// Slugs du profil (allergies + intolérances) : active la case "masquer mes allergènes".
+const props = defineProps<{ myAllergens?: string[] }>()
+
+const hideMine = computed({
+  get: () => filters.value.exclude_allergens !== '',
+  set: (checked: boolean) => {
+    filters.value.exclude_allergens = checked ? (props.myAllergens ?? []).join(',') : ''
+  },
+})
 
 const isOpen = ref(false)
 
@@ -106,6 +118,10 @@ function reset() {
         <div class="field checkbox-field">
           <input id="in_season" v-model="filters.in_season" type="checkbox" style="width: auto" />
           <label for="in_season" style="margin: 0">{{ $t('recipes.inSeasonOnly') }}</label>
+        </div>
+        <div v-if="myAllergens?.length || filters.exclude_allergens" class="field checkbox-field">
+          <input id="hide_allergens" v-model="hideMine" type="checkbox" style="width: auto" />
+          <label for="hide_allergens" style="margin: 0">{{ $t('allergens.hideMine') }}</label>
         </div>
       </div>
 

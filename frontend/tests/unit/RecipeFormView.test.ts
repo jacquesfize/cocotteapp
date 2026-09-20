@@ -11,6 +11,7 @@ vi.mock('../../src/api/recipes', () => ({
   uploadRecipeImage: vi.fn(),
   importRecipeFromCooklang: vi.fn(),
 }))
+vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
   createIngredient: vi.fn(),

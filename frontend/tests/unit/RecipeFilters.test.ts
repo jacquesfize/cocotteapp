@@ -13,6 +13,7 @@ function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilter
     ingredients: '',
     in_season: false,
     carbon_level: '',
+    exclude_allergens: '',
     ...overrides,
   }
 }

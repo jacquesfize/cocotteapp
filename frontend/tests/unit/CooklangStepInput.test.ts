@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn(),
   createIngredient: vi.fn(),

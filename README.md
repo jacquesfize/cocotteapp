@@ -27,6 +27,7 @@ weekly planner rolls both up so you can see, at a glance, what a week of meals c
 - **Recipe versioning** — fork a recipe into a variation (e.g. "gluten-free", "spicier") that stays linked to the original.
 - **Search & filters** — by ingredient, season, diet, total time; shareable/bookmarkable filtered URLs; a homepage with themed  shortcuts (seasonal produce, vegan, ready in 30 minutes).
 - **Weekly meal planning** — a week grid with per-day and weekly totals for nutrition and carbon footprint, exportable as a single PDF (the week plus every recipe in it).
+- **Allergies & intolerances** — declare them in your profile (the 14 EU allergens plus lactose, each tagged as *allergy* or *intolerance*); recipes show their allergens, the list hides matching recipes by default, and the planner warns when you schedule one. Allergens come from the ingredients; an ingredient without verified allergen data is flagged as such (never silently treated as safe). Indicative only — always check product labels.
 - **Nutrition tracking** — per-serving macronutrients plus iron, B12, calcium, omega-3 and zinc, with deficiency alerts tuned to your diet type and activity level.
 - **Carbon footprint** — every ingredient carries a kg CO2e/kg estimate; recipes and the weekly plan show the cumulative impact.
 - **Shopping lists** — generated from your planned meals, ingredients aggregated and scaled to servings.

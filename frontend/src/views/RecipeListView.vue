@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link2, Plus, X } from '@lucide/vue'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
@@ -22,6 +22,11 @@ const recipes = ref<Recipe[]>([])
 const count = ref(0)
 const isLoading = ref(false)
 
+const myAllergens = computed(() => [
+  ...(authStore.user?.allergies ?? []),
+  ...(authStore.user?.intolerances ?? []),
+])
+
 function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
   return {
     search: (query.search as string) || '',
@@ -31,6 +36,7 @@ function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
     ingredients: (query.ingredients as string) || '',
     in_season: query.in_season === 'true',
     carbon_level: (query.carbon_level as string) || '',
+    exclude_allergens: (query.exclude_allergens as string) || '',
   }
 }
 
@@ -54,6 +60,11 @@ function queryMatches(current: LocationQuery, next: Record<string, unknown>) {
 // Les filtres vivent dans l'URL (query string) : /recipes?ingredients=Tomate ou
 // /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
 const filters = ref<RecipeFilterValues>(filtersFromQuery(route.query))
+// À l'arrivée sur la liste sans filtre explicite, on masque par défaut les recettes qui
+// contiennent un allergène du profil (décochable dans le panneau de filtres).
+if (!('exclude_allergens' in route.query) && myAllergens.value.length) {
+  filters.value.exclude_allergens = myAllergens.value.join(',')
+}
 const page = ref(pageFromQuery(route.query))
 
 async function load() {
@@ -196,7 +207,7 @@ async function handleImport() {
       <p v-if="importError" class="muted">{{ importError }}</p>
     </div>
 
-    <RecipeFilters v-model="filters" />
+    <RecipeFilters v-model="filters" :my-allergens="myAllergens" />
 
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
     <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>

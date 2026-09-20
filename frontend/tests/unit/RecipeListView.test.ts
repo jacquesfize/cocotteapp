@@ -13,6 +13,7 @@ vi.mock('../../src/api/recipes', () => ({
 
 import { previewImportFromUrl } from '../../src/api/importer'
 import RecipeListView from '../../src/views/RecipeListView.vue'
+import { listRecipes } from '../../src/api/recipes'
 import { useAuthStore } from '../../src/stores/auth'
 import { takePendingImportDraft } from '../../src/utils/pendingImportDraft'
 import type { ImportPreview, User } from '../../src/types/models'
@@ -117,5 +118,27 @@ describe('RecipeListView filters', () => {
 
     expect(router.currentRoute.value.query.search).toBe('tarte')
     expect(wrapper.find('[data-testid="filters-badge"]').text()).toBe('3')
+  })
+
+  it('hides recipes with the profile allergens by default, and the checkbox turns it off', async () => {
+    useAuthStore().user = { allergies: ['peanut'], intolerances: ['lactose'] } as unknown as User
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/recipes', name: 'recipes', component: RecipeListView }],
+    })
+    router.push('/recipes')
+    await router.isReady()
+    const wrapper = mount(RecipeListView, { global: { plugins: [i18n, router] } })
+    await flushPromises()
+
+    expect(listRecipes).toHaveBeenLastCalledWith({ exclude_allergens: 'peanut,lactose' })
+
+    vi.useFakeTimers()
+    await wrapper.find('#hide_allergens').setValue(false)
+    await vi.advanceTimersByTimeAsync(400)
+    vi.useRealTimers()
+    await flushPromises()
+
+    expect(listRecipes).toHaveBeenLastCalledWith({})
   })
 })

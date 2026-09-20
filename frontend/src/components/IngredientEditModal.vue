@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Sparkles, X } from '@lucide/vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { listAllergens } from '../api/allergens'
 import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../api/ingredients'
+import { allergenEmoji } from '../utils/allergens'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
 import { formatUnit } from '../utils/format'
-import type { Ingredient, IngredientCategory, Unit } from '../types/models'
+import type { Allergen, Ingredient, IngredientCategory, Unit } from '../types/models'
 
 const { t } = useI18n()
 
@@ -56,7 +58,23 @@ const form = ref({
   omega3_g: props.ingredient?.omega3_g ?? 0,
   zinc_mg: props.ingredient?.zinc_mg ?? 0,
   carbon_kg_co2e_per_kg: props.ingredient?.carbon_kg_co2e_per_kg ?? 0,
+  allergens: [...(props.ingredient?.allergens ?? [])] as string[],
+  allergens_reviewed: props.ingredient?.allergens_reviewed ?? false,
 })
+
+const allergenList = ref<Allergen[]>([])
+onMounted(async () => {
+  allergenList.value = await listAllergens().catch(() => [])
+})
+
+// Cocher un allergène implique que l'ingrédient a été vérifié ; sans allergène, la case
+// "vérifié" reste au choix de l'utilisateur ("aucun allergène" est aussi une réponse).
+watch(
+  () => form.value.allergens.length,
+  (length) => {
+    if (length) form.value.allergens_reviewed = true
+  },
+)
 const error = ref('')
 const isSubmitting = ref(false)
 const isSuggesting = ref(false)
@@ -192,6 +210,24 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
             min="0"
           />
         </div>
+
+        <h3>{{ t('ingredientModal.allergensTitle') }}</h3>
+        <p class="muted">{{ t('ingredientModal.allergensHint') }}</p>
+        <div class="months">
+          <label v-for="allergen in allergenList" :key="allergen.slug" class="month">
+            <input v-model="form.allergens" type="checkbox" :value="allergen.slug" :data-testid="`allergen-${allergen.slug}`" />
+            <span aria-hidden="true">{{ allergenEmoji(allergen.slug) }}</span>{{ t(`allergen.${allergen.slug}`) }}
+          </label>
+        </div>
+        <label class="month" style="margin-top: 0.5rem">
+          <input
+            v-model="form.allergens_reviewed"
+            type="checkbox"
+            :disabled="form.allergens.length > 0"
+            data-testid="allergens-reviewed"
+          />
+          {{ t('ingredientModal.allergensReviewed') }}
+        </label>
 
         <p v-if="error" class="error">{{ error }}</p>
         <div class="row" style="margin-top: 1rem; justify-content: flex-end">

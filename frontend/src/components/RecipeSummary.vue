@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Clock, Download, Flame, Users, Utensils } from '@lucide/vue'
 import { computed } from 'vue'
+import AllergenBadges from './AllergenBadges.vue'
 import NutritionCard from './NutritionCard.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../api/recipes'
@@ -101,6 +102,12 @@ async function handleDownloadPdf() {
       </button>
     </div>
 
+    <AllergenBadges
+      :allergens="recipe.allergens ?? []"
+      :unverified="recipe.allergens_unverified"
+      class="summary-allergens"
+    />
+
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
       <img
         v-if="recipe.image || recipe.image_url"
@@ -165,6 +172,10 @@ async function handleDownloadPdf() {
 </template>
 
 <style scoped>
+.summary-allergens {
+  margin-bottom: 0.75rem;
+}
+
 .summary-header {
   justify-content: space-between;
   align-items: center;
