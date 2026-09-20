@@ -82,7 +82,7 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.waitForURL(/\/recipes\/\d+$/)
 
   await page.getByRole('link', { name: 'Agenda' }).click()
-  const dinnerSlot = page.locator('.day-col').first().locator('.meal-slot').filter({ hasText: 'Dîner' })
+  const dinnerSlot = page.locator('.agenda-cell[data-meal-type="dinner"]').first()
   await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
   await dinnerSlot.locator('.suggestions').getByText(recipeTitle).click()

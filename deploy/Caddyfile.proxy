@@ -1,0 +1,35 @@
+# Caddyfile du mode "reverse proxy externe" (docker-compose.prod.proxy.yml — voir le README,
+# section "Déploiement en production"). Monté dans le conteneur "frontend" à la place de
+# deploy/Caddyfile.standalone : pas de domaine ni de TLS ici, ce Caddy n'est atteint qu'en HTTP
+# interne, uniquement depuis le Caddy partagé de l'hôte (jamais exposé directement), qui a déjà
+# terminé le TLS pour tous les sous-domaines du serveur.
+:80 {
+	encode gzip
+
+	handle_path /static/* {
+		root * /srv/static
+		file_server
+	}
+
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
+	@backend path /api/* /django-admin/*
+	handle @backend {
+		reverse_proxy backend:8000 {
+			# Le Caddy hôte a déjà terminé le TLS : on peut affirmer "https" ici sans se soucier du
+			# saut interne en clair. Sans ça, SECURE_SSL_REDIRECT côté Django renverrait un 301 sur
+			# chaque requête, y compris les vraies requêtes HTTPS des utilisateurs.
+			header_up X-Forwarded-Proto https
+		}
+	}
+
+	# SPA (Vue Router en mode history) : toute route inconnue retombe sur index.html.
+	handle {
+		root * /srv/app
+		try_files {path} /index.html
+		file_server
+	}
+}

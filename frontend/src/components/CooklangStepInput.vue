@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TriangleAlert } from '@lucide/vue'
+import { AtSign, TriangleAlert, Timer } from '@lucide/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
@@ -113,6 +113,41 @@ function handleIngredientCreated(ingredient: Ingredient) {
   emit('add-ingredient', ingredient)
 }
 
+// Insère `text` à la position du curseur (ou remplace la sélection) et redonne le focus au
+// textarea ; `select` ([début, fin] relatifs à `text`) permet de présélectionner une partie.
+function insertAtCursor(text: string, select?: [number, number]) {
+  const el = textareaEl.value
+  const value = props.modelValue
+  const from = el?.selectionStart ?? value.length
+  const to = el?.selectionEnd ?? value.length
+  emit('update:modelValue', value.slice(0, from) + text + value.slice(to))
+  const [selStart, selEnd] = select ?? [text.length, text.length]
+  nextTick(() => {
+    textareaEl.value?.focus()
+    textareaEl.value?.setSelectionRange(from + selStart, from + selEnd)
+  })
+  return from
+}
+
+async function insertMentionTemplate() {
+  const at = insertAtCursor('@')
+  mentionStart.value = at
+  mentionQuery.value = ''
+  await nextTick()
+  clearTimeout(debounceTimer)
+  const data = await listIngredients({ search: '' })
+  dbSuggestions.value = data.results
+  isOpen.value = true
+}
+
+// Même syntaxe que cooklangTimers.ts : ~{quantité%unité}, "minutes" fait partie des unités reconnues.
+const TIMER_TEMPLATE = '~{10%minutes}'
+
+function insertTimerTemplate() {
+  isOpen.value = false
+  insertAtCursor(TIMER_TEMPLATE, [2, 4])
+}
+
 function closeSoon() {
   setTimeout(() => {
     isOpen.value = false
@@ -122,15 +157,37 @@ function closeSoon() {
 
 <template>
   <div class="cooklang-input">
-    <textarea
-      :id="id"
-      ref="textareaEl"
-      :value="modelValue"
-      rows="2"
-      :placeholder="t('recipes.stepPlaceholder')"
-      @input="handleInput"
-      @blur="closeSoon"
-    />
+    <div class="input-row">
+      <textarea
+        :id="id"
+        ref="textareaEl"
+        :value="modelValue"
+        rows="2"
+        :placeholder="t('recipes.stepPlaceholder')"
+        @input="handleInput"
+        @blur="closeSoon"
+      />
+      <div class="templates">
+        <button
+          type="button"
+          class="secondary template-btn"
+          data-testid="insert-ingredient"
+          @mousedown.prevent
+          @click="insertMentionTemplate"
+        >
+          <AtSign :size="14" />{{ t('recipes.insertIngredient') }}
+        </button>
+        <button
+          type="button"
+          class="secondary template-btn"
+          data-testid="insert-timer"
+          @mousedown.prevent
+          @click="insertTimerTemplate"
+        >
+          <Timer :size="14" />{{ t('recipes.insertTimer') }}
+        </button>
+      </div>
+    </div>
     <ul v-if="isOpen" class="suggestions">
       <li
         v-for="ingredient in dbSuggestions"
@@ -160,6 +217,47 @@ function closeSoon() {
 <style scoped>
 .cooklang-input {
   position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.input-row textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.templates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: none;
+}
+
+.template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: auto;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .input-row {
+    flex-direction: column;
+  }
+
+  .templates {
+    flex-direction: row;
+  }
 }
 
 .suggestions {

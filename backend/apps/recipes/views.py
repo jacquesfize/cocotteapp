@@ -210,7 +210,7 @@ class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):
 
 class AdminThematicPageViewSet(viewsets.ModelViewSet):
     """Réservé aux comptes staff : gestion complète des pages thématiques (raccourcis de la
-    page d'accueil), en alternative à l'admin Django (`/admin/recipes/thematicpage/`)."""
+    page d'accueil), en alternative à l'admin Django (`/django-admin/recipes/thematicpage/`)."""
 
     queryset = ThematicPage.objects.all()
     serializer_class = AdminThematicPageSerializer

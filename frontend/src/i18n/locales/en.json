@@ -16,7 +16,8 @@
     "accountSettings": "My account",
     "admin": "Admin",
     "adminThematicPages": "Thematic pages",
-    "administration": "Administration"
+    "administration": "Administration",
+    "adminIngredients": "Ingredients"
   },
   "common": {
     "loading": "Loading...",
@@ -25,6 +26,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "add": "Add",
+    "close": "Close",
     "cancel": "Cancel",
     "previousPage": "Previous page",
     "nextPage": "Next page",
@@ -91,7 +93,16 @@
     "ingredientsPlaceholder": "tomato, onion",
     "maxPrepTime": "Max prep time (min)",
     "maxCookTime": "Max cook time (min)",
+    "filters": "Filters",
+    "activeFilters": "{count} active filter | {count} active filters",
+    "resetFilters": "Reset",
+    "showResults": "Show results",
     "inSeasonOnly": "In-season ingredients only",
+    "carbonLevel": "Carbon impact per serving",
+    "carbonAny": "Any",
+    "carbonLow": "Low (≤ 0.5 kg CO₂e)",
+    "carbonMedium": "Medium (0.5 to 1.5 kg CO₂e)",
+    "carbonHigh": "High (> 1.5 kg CO₂e)",
     "noResults": "No recipe matches these criteria.",
     "prep": "prep",
     "cook": "cook",
@@ -120,6 +131,8 @@
     "step": "Step {n}",
     "addStep": "Add a step",
     "stepPlaceholder": "Type \\@ to link an ingredient from the recipe",
+    "insertIngredient": "Ingredient",
+    "insertTimer": "Duration",
     "mentionOrphan": "\"{name}\" isn't in the ingredient list above.",
     "missingIngredient": "Select an ingredient for each row (or remove the row).",
     "media": "Media & source",
@@ -198,10 +211,41 @@
     "suggestButton": "Suggest values",
     "suggestLoading": "Searching...",
     "suggestApplied": "Suggested values applied — review before creating the ingredient.",
-    "suggestNotFound": "No suggestion found for this ingredient."
+    "suggestNotFound": "No suggestion found for this ingredient.",
+    "editTitle": "Edit ingredient",
+    "nameEn": "English name",
+    "updateError": "Could not save the ingredient.",
+    "seasonTitle": "Seasonality",
+    "seasonHint": "Peak-season months. No month checked = available all year.",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    }
   },
   "recipePicker": {
     "placeholder": "Search a recipe..."
+  },
+  "calendarExport": {
+    "button": "Export to calendar",
+    "downloadIcs": "Download the week as .ics file",
+    "subscription": "Subscription (updates automatically)",
+    "copyUrl": "Copy subscription URL",
+    "copied": "URL copied!",
+    "addToGoogle": "Add to Google Calendar",
+    "regenerate": "Regenerate URL",
+    "regenerateConfirm": "Calendars already subscribed will stop updating. Continue?",
+    "secretHint": "This URL is secret: anyone who has it can read your meal plan.",
+    "error": "Could not load the subscription URL."
   },
   "planning": {
     "title": "Planner",
@@ -222,6 +266,14 @@
     "servingsUnit": "servings",
     "today": "Today",
     "previousWeek": "Previous week",
+    "nutritionIntake": "Nutritional intake",
+    "viewLabel": "Calendar view",
+    "view": {
+      "week": "Week",
+      "month": "Month"
+    },
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
     "nextWeek": "Next week",
     "agendaSelectorLabel": "Displayed agenda",
     "myAgenda": "My agenda",
@@ -364,5 +416,32 @@
     "notificationTitle": "Timer done!",
     "notificationBody": "Your {duration} timer is done.",
     "notificationBodyNamed": "\"{label}\" ({duration}) is done."
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "l",
+    "piece": "piece",
+    "tbsp": "tbsp",
+    "tsp": "tsp",
+    "pinch": "pinch"
+  },
+  "adminIngredients": {
+    "title": "Ingredients",
+    "subtitle": "Manage the ingredient library: names, nutrition, seasonality and carbon footprint.",
+    "addButton": "New ingredient",
+    "accessDenied": "Access restricted to administrators.",
+    "search": "Search",
+    "searchPlaceholder": "French or English name...",
+    "noIngredients": "No ingredient matches this search.",
+    "colName": "Name",
+    "colCategory": "Category",
+    "colSeason": "Season",
+    "allYear": "All year",
+    "deleteIngredient": "Delete this ingredient",
+    "deleteConfirm": "Permanently delete ingredient \"{name}\"?",
+    "deleteInUse": "Cannot delete \"{name}\": it is used by recipes or shopping lists. Remove it from them first.",
+    "deleteError": "Could not delete this ingredient."
   }
 }

@@ -130,6 +130,11 @@ onBeforeUnmount(() => {
       </nav>
 
       <div class="nav-actions">
+        <div v-if="!authStore.isAuthenticated" class="mobile-auth" data-testid="mobile-auth">
+          <RouterLink to="/login" class="mobile-auth-login">{{ $t('nav.login') }}</RouterLink>
+          <RouterLink to="/register" class="mobile-auth-register">{{ $t('nav.register') }}</RouterLink>
+        </div>
+
         <RouterLink to="/recipes/random" class="dice-button" :aria-label="t('nav.random')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <rect x="4" y="4" width="16" height="16" rx="4" />
@@ -183,6 +188,14 @@ onBeforeUnmount(() => {
                   <rect x="13" y="13" width="7" height="7" rx="1.5" />
                 </svg>
                 <span>{{ $t('nav.adminThematicPages') }}</span>
+              </RouterLink>
+              <RouterLink to="/admin/ingredients" class="account-link" @click="closeMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12c0-4 3-7 7-7 0 4-3 7-7 7Z" />
+                  <path d="M5 12c4 0 7 3 7 7-4 0-7-3-7-7Z" />
+                  <path d="M19 12c0 4-3 7-7 7 0-4 3-7 7-7Z" />
+                </svg>
+                <span>{{ $t('nav.adminIngredients') }}</span>
               </RouterLink>
             </div>
 
@@ -455,6 +468,10 @@ onBeforeUnmount(() => {
   display: none;
 }
 
+.mobile-auth {
+  display: none;
+}
+
 @media (max-width: 600px) {
   .top-links {
     display: none;
@@ -462,6 +479,35 @@ onBeforeUnmount(() => {
 
   .dice-button {
     display: none;
+  }
+
+  .mobile-auth {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .mobile-auth a {
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .mobile-auth-login {
+    color: var(--color-primary-dark);
+    background: var(--color-surface-muted);
+  }
+
+  .mobile-auth-register {
+    color: #fff;
+    background: var(--color-primary);
+  }
+
+  .navbar-inner {
+    gap: 0.5rem;
   }
 
   .tabbar {

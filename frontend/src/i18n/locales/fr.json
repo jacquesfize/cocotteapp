@@ -16,7 +16,8 @@
     "accountSettings": "Mon compte",
     "admin": "Admin",
     "adminThematicPages": "Pages thématiques",
-    "administration": "Administration"
+    "administration": "Administration",
+    "adminIngredients": "Ingrédients"
   },
   "common": {
     "loading": "Chargement...",
@@ -25,6 +26,7 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "add": "Ajouter",
+    "close": "Fermer",
     "cancel": "Annuler",
     "previousPage": "Page précédente",
     "nextPage": "Page suivante",
@@ -91,7 +93,16 @@
     "ingredientsPlaceholder": "tomate, oignon",
     "maxPrepTime": "Préparation max (min)",
     "maxCookTime": "Cuisson max (min)",
+    "filters": "Filtres",
+    "activeFilters": "{count} filtre actif | {count} filtres actifs",
+    "resetFilters": "Réinitialiser",
+    "showResults": "Voir les résultats",
     "inSeasonOnly": "Ingrédients de saison uniquement",
+    "carbonLevel": "Impact carbone par portion",
+    "carbonAny": "Tous",
+    "carbonLow": "Faible (≤ 0,5 kg CO₂e)",
+    "carbonMedium": "Moyen (0,5 à 1,5 kg CO₂e)",
+    "carbonHigh": "Élevé (> 1,5 kg CO₂e)",
     "noResults": "Aucune recette ne correspond à ces critères.",
     "prep": "préparation",
     "cook": "cuisson",
@@ -120,6 +131,8 @@
     "step": "Étape {n}",
     "addStep": "Ajouter une étape",
     "stepPlaceholder": "Tapez \\@ pour lier un ingrédient de la recette",
+    "insertIngredient": "Ingrédient",
+    "insertTimer": "Durée",
     "mentionOrphan": "« {name} » n'est pas dans la liste des ingrédients ci-dessus.",
     "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne).",
     "media": "Média & source",
@@ -198,10 +211,41 @@
     "suggestButton": "Suggérer les valeurs",
     "suggestLoading": "Recherche...",
     "suggestApplied": "Valeurs suggérées appliquées — à vérifier avant de créer l'ingrédient.",
-    "suggestNotFound": "Aucune suggestion trouvée pour cet ingrédient."
+    "suggestNotFound": "Aucune suggestion trouvée pour cet ingrédient.",
+    "editTitle": "Modifier l'ingrédient",
+    "nameEn": "Nom anglais",
+    "updateError": "Impossible d'enregistrer l'ingrédient.",
+    "seasonTitle": "Saisonnalité",
+    "seasonHint": "Mois de pleine saison. Aucun mois coché = disponible toute l'année.",
+    "months": {
+      "1": "janvier",
+      "2": "février",
+      "3": "mars",
+      "4": "avril",
+      "5": "mai",
+      "6": "juin",
+      "7": "juillet",
+      "8": "août",
+      "9": "septembre",
+      "10": "octobre",
+      "11": "novembre",
+      "12": "décembre"
+    }
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
+  },
+  "calendarExport": {
+    "button": "Exporter vers l'agenda",
+    "downloadIcs": "Télécharger le fichier .ics de la semaine",
+    "subscription": "Abonnement (se met à jour automatiquement)",
+    "copyUrl": "Copier l'URL d'abonnement",
+    "copied": "URL copiée !",
+    "addToGoogle": "Ajouter à Google Agenda",
+    "regenerate": "Régénérer l'URL",
+    "regenerateConfirm": "Les agendas déjà abonnés cesseront de se mettre à jour. Continuer ?",
+    "secretHint": "Cette URL est secrète : toute personne qui la possède peut lire votre planning.",
+    "error": "Impossible de charger l'URL d'abonnement."
   },
   "planning": {
     "title": "Agenda",
@@ -222,6 +266,14 @@
     "servingsUnit": "portions",
     "today": "Aujourd'hui",
     "previousWeek": "Semaine précédente",
+    "nutritionIntake": "Apports nutritionnels",
+    "viewLabel": "Vue du calendrier",
+    "view": {
+      "week": "Semaine",
+      "month": "Mois"
+    },
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
     "nextWeek": "Semaine suivante",
     "agendaSelectorLabel": "Agenda affiché",
     "myAgenda": "Mon agenda",
@@ -364,5 +416,32 @@
     "notificationTitle": "Minuteur terminé !",
     "notificationBody": "Votre minuteur de {duration} est terminé.",
     "notificationBodyNamed": "« {label} » ({duration}) est terminé."
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "l",
+    "piece": "pièce",
+    "tbsp": "c. à soupe",
+    "tsp": "c. à café",
+    "pinch": "pincée"
+  },
+  "adminIngredients": {
+    "title": "Ingrédients",
+    "subtitle": "Gérer la bibliothèque d'ingrédients : noms, nutrition, saisonnalité et empreinte carbone.",
+    "addButton": "Nouvel ingrédient",
+    "accessDenied": "Accès réservé aux administrateurs.",
+    "search": "Recherche",
+    "searchPlaceholder": "Nom français ou anglais...",
+    "noIngredients": "Aucun ingrédient ne correspond à cette recherche.",
+    "colName": "Nom",
+    "colCategory": "Catégorie",
+    "colSeason": "Saison",
+    "allYear": "Toute l'année",
+    "deleteIngredient": "Supprimer cet ingrédient",
+    "deleteConfirm": "Supprimer définitivement l'ingrédient « {name} » ?",
+    "deleteInUse": "Impossible de supprimer « {name} » : il est utilisé par des recettes ou des listes de courses. Retirez-le d'abord de celles-ci.",
+    "deleteError": "Impossible de supprimer cet ingrédient."
   }
 }

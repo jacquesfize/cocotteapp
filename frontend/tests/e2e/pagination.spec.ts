@@ -56,6 +56,7 @@ test('paginates the recipe list once there are more than one page of results', a
   // Changing a filter resets back to page 1.
   await nextButton.click()
   await expect(page).toHaveURL(/[?&]page=2/)
+  await page.getByRole('button', { name: /Filtres/ }).click()
   await page.getByLabel('Régime').selectOption('vegan')
   await expect(page).not.toHaveURL(/[?&]page=2/)
 })

@@ -94,3 +94,28 @@ describe('RecipeListView import', () => {
     expect(wrapper.text()).toContain("Impossible de récupérer cette recette")
   })
 })
+
+describe('RecipeListView filters', () => {
+  it('initialises filters and the badge from the URL query, and syncs edits back to it', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/recipes', name: 'recipes', component: RecipeListView }],
+    })
+    router.push('/recipes?in_season=true&ingredients=Tomate')
+    await router.isReady()
+    const wrapper = mount(RecipeListView, { global: { plugins: [i18n, router] } })
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="filters-badge"]').text()).toBe('2')
+
+    vi.useFakeTimers()
+    await wrapper.find('button.toggle').trigger('click')
+    await wrapper.find('#search').setValue('tarte')
+    await vi.advanceTimersByTimeAsync(400)
+    vi.useRealTimers()
+    await flushPromises()
+
+    expect(router.currentRoute.value.query.search).toBe('tarte')
+    expect(wrapper.find('[data-testid="filters-badge"]').text()).toBe('3')
+  })
+})

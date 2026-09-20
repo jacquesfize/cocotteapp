@@ -4,7 +4,8 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
-import type { ShoppingList, ShoppingListItem } from '../types/models'
+import { formatUnit } from '../utils/format'
+import type { ShoppingList,ShoppingListItem } from '../types/models'
 
 type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
 type ListWithSync = Omit<ShoppingList, 'items'> & { items: ItemWithSync[] }
@@ -77,7 +78,7 @@ async function handleExport() {
             @change="toggleOwned(item)"
           />
           <span :class="{ owned: item.is_owned }">
-            {{ item.quantity }} {{ item.unit }} — {{ item.ingredient.name }}
+            {{ item.quantity }} {{ formatUnit(item.unit) }} — {{ item.ingredient.name }}
           </span>
           <span v-if="item.pendingSync" class="pending-sync" :title="$t('offline.pendingSync')">
             <CloudOff :size="14" />

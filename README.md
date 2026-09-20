@@ -52,7 +52,7 @@ docker compose up --build
 
 - Frontend: `http://localhost:5173/`
 - API: `http://localhost:8000/api/`
-- Django admin: `http://localhost:8000/admin/`
+- Django admin: `http://localhost:8000/django-admin/`
 
 The first time you start the stack, the database is empty — **you must run migrations, create an
 admin account, and seed reference data before the app is usable** (nutrient thresholds and the
@@ -69,30 +69,117 @@ docker compose exec backend python manage.py seed_thematic_pages
 
 All three seed commands are idempotent — safe to re-run any time without duplicating data.
 
+### 🧪 Everyday commands (Docker dev)
+
+This is the *dev* compose file (`docker-compose.yml`, distinct from `docker-compose.prod.yml`):
+`backend` runs `manage.py runserver` and `frontend` runs the Vite dev server, both with the repo
+bind-mounted in (`./backend:/app`, `./frontend:/app`) so code edits apply immediately — no
+rebuild needed unless you change a dependency (`pyproject.toml`/`uv.lock` or
+`package.json`/`package-lock.json`), in which case re-run `docker compose up --build`.
+
+```bash
+# backend tests & lint
+docker compose exec backend uv run pytest
+docker compose exec backend uv run pytest apps/shopping/tests/test_api.py   # single file
+docker compose exec backend uv run ruff check .
+
+# frontend unit tests
+docker compose exec frontend npm run test:unit
+```
+
+Playwright e2e tests aren't run inside the containers — `backend` (`:8000`) and `frontend`
+(`:5173`) already publish to the host, so run them from the host instead, same as native dev
+(`cd frontend && npm run test:e2e`, see below).
+
+```bash
+docker compose logs -f backend     # tail logs (swap "backend" for "frontend" or "db")
+docker compose down                # stop the stack, keep the database
+docker compose down -v             # stop the stack and wipe the database (re-seed needed after)
+```
+
 ### 🔒 Production deployment
 
-`docker-compose.prod.yml` builds production images (backend served by Gunicorn, frontend built
-to static files) behind a Caddy reverse proxy that automatically obtains and renews an HTTPS
-certificate (Let's Encrypt). It needs a server with Docker + Docker Compose, a domain whose DNS
-(A/AAAA) already points at that server, and ports 80/443 open.
+`docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
+`frontend` serving the built static SPA) and is **standalone by default**: `frontend` runs Caddy
+instead of nginx, so the same container serves the SPA, reverse-proxies `/api`/`/django-admin` to
+`backend`, *and* terminates HTTPS — no separate web server, no separate reverse-proxy container,
+no host-level dependency. An overlay file switches it to sit behind a shared host Caddy instead,
+for servers that already run several apps behind one reverse proxy.
+
+#### Standalone (default) — this stack owns HTTPS
+
+Needs Docker + Docker Compose and a domain whose DNS (A/AAAA) already points at the server:
 
 ```bash
 cp .env.prod.example .env.prod
-# edit .env.prod — see the Configuration section below
+# edit .env.prod — set DOMAIN and ACME_EMAIL (read by the bundled Caddy, see
+# deploy/Caddyfile.standalone), and see the Configuration section below for the rest
 
 docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+```
 
-# migrations run automatically on container start; still create the first admin account and seed data:
+`frontend` publishes `80`/`443` directly and gets/renews its own Let's Encrypt certificate for
+`DOMAIN`, storing it in a named volume (`caddy_data`) so it survives restarts and rebuilds.
+Nothing else to configure — no host-level reverse proxy needed.
+
+#### Behind a shared, host-level reverse proxy
+
+Use this when the server already hosts (or will host) several apps behind one Caddy instance
+that owns ports 80/443 for the whole box (see a general "Debian full Docker" deployment guide
+for the full walkthrough of that host Caddy stack — installing Docker, DNS, backups, etc.). The
+`docker-compose.prod.proxy.yml` overlay swaps `frontend`'s Caddy config for a plain-HTTP one
+(`deploy/Caddyfile.proxy` instead of `deploy/Caddyfile.standalone`), drops its published ports,
+and joins an external Docker network instead — reached from the host Caddy as
+`cocotte-frontend`.
+
+One-time setup on the host:
+
+```bash
+docker network create proxy   # once per server, shared by every app stack — name it however you like
+```
+
+Add a block for this app to the host Caddy's `Caddyfile` (e.g. `/opt/docker/caddy/Caddyfile`)
+and reload it:
+
+```caddyfile
+cocotte.example.org {
+    reverse_proxy cocotte-frontend:80
+}
+```
+
+```bash
+docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile   # in the host Caddy stack
+```
+
+Then, in this project's own directory (e.g. `/opt/docker/cocotte/` on the server):
+
+```bash
+cp .env.prod.example .env.prod
+# edit .env.prod — set PROXY_NETWORK_NAME to match the network created above (defaults to
+# "proxy"), and see the Configuration section below for the rest; DOMAIN/ACME_EMAIL are unused
+# in this mode since the host Caddyfile is what declares the domain and handles TLS
+
+docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
+```
+
+The external network name doesn't have to be `proxy` on every server — `PROXY_NETWORK_NAME` in
+`.env.prod` lets each deployment point at whatever network the host's shared Caddy actually
+uses, without editing the compose file.
+
+#### Common to both modes
+
+```bash
+# migrations run automatically on container start; still create the first admin account and seed data
+# (add "-f docker-compose.prod.proxy.yml" before --env-file if using the shared-proxy mode)
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py createsuperuser
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
 ```
 
-Uploaded images/PDFs (`media/`), static files (`staticfiles/`) and Caddy's certificates
-(`caddy_data`) live in named Docker volumes, so they survive a repeated
-`docker compose up --build`. `POSTGRES_PASSWORD` and the password embedded in `DATABASE_URL` must
-stay identical.
+Uploaded images/PDFs (`media/`) and static files (`staticfiles/`) live in named Docker volumes,
+so they survive a repeated `docker compose up --build`. `POSTGRES_PASSWORD` and the password
+embedded in `DATABASE_URL` must stay identical.
 
 ## 🧑‍🍳 How to use it
 
@@ -142,16 +229,19 @@ production stack — see `backend/.env.example` and `.env.prod.example`):
 | `DEFAULT_FROM_EMAIL` | `Cocotte <noreply@cocotte.app>` | "From" address for outgoing emails (password reset, etc.). |
 | `FRONTEND_URL` | `http://localhost:5173` | Base URL used to build links sent by email (e.g. the password-reset link). Must point at the public frontend URL in production. |
 
-Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml`):
+Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml` and its
+overlays). See the Production deployment section above for which of `DOMAIN`/`ACME_EMAIL` vs.
+`PROXY_NETWORK_NAME` actually applies to your chosen mode.
 
 | Variable | Default | Description |
 |---|---|---|
-| `DOMAIN` | *(required)* | Public domain name Caddy requests an HTTPS certificate for and serves the app on. |
-| `ACME_EMAIL` | *(required)* | Contact email used for the Let's Encrypt account. |
 | `CSRF_TRUSTED_ORIGINS` | *(empty)* | Comma-separated origins allowed to pass Django's CSRF check (your public HTTPS domain). |
 | `SECURE_SSL_REDIRECT` | `True` | Redirect all HTTP requests to HTTPS. |
 | `SECURE_HSTS_SECONDS` | `604800` (1 week) | How long browsers should remember to only reach the site over HTTPS (HSTS). |
 | `POSTGRES_PASSWORD` | *(required)* | Password for the Postgres container's `postgres` user — must match the password embedded in `DATABASE_URL`. |
+| `DOMAIN` | *(required in standalone mode, the default)* | Public domain the bundled Caddy (`deploy/Caddyfile.standalone`) requests a Let's Encrypt certificate for. Unused with the `docker-compose.prod.proxy.yml` overlay. |
+| `ACME_EMAIL` | *(required in standalone mode, the default)* | Email given to Let's Encrypt by the bundled Caddy for expiry/renewal notices. Unused with the `docker-compose.prod.proxy.yml` overlay. |
+| `PROXY_NETWORK_NAME` | `proxy` | Name of the external Docker network the shared host Caddy sits on. Only used with the `docker-compose.prod.proxy.yml` overlay. |
 
 ## 🛠️ Dev mode (without Docker)
 

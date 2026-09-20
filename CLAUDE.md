@@ -67,8 +67,22 @@ cp backend/.env.example backend/.env
 docker compose up --build      # backend :8000, frontend :5173
 ```
 
-`docker-compose.prod.yml` is the production variant (Gunicorn + built static frontend + Caddy
-reverse proxy/TLS) — see the README's deployment section for required `.env.prod` variables.
+`docker-compose.prod.yml` is the production stack (`db`, `backend` on Gunicorn, `frontend`) and
+is **standalone by default**: `frontend` runs Caddy (not nginx) as its `prod` target, so the same
+container serves the built static SPA, reverse-proxies `/api` and `/django-admin` to `backend`, *and*
+terminates TLS — it publishes `80`/`443` directly and obtains/renews its own Let's Encrypt
+certificate for `DOMAIN`/`ACME_EMAIL`, using `deploy/Caddyfile.standalone` (bind-mounted, not
+baked into the image, so it's editable without a rebuild). Use this mode when the app is the
+only thing on the server.
+
+The `docker-compose.prod.proxy.yml` overlay switches `frontend` to sit behind a *shared*,
+host-level Caddy instead (one per server, its own stack, handling Let's Encrypt for every app on
+the box): it swaps in `deploy/Caddyfile.proxy` (plain HTTP, no TLS — it always assumes whatever
+sits in front of it, standalone or host Caddy, has already terminated TLS), drops the published
+ports, and joins an external Docker network (name set by `PROXY_NETWORK_NAME`, default `proxy`)
+on which the host Caddy also sits, reaching this stack as `cocotte-frontend`. Use this mode when
+several apps share one host Caddy. See the README's deployment section for the exact commands
+and required `.env.prod` variables per mode.
 
 ## Architecture
 
@@ -109,8 +123,8 @@ PDF export (recipe or full week) uses WeasyPrint rendering server-side HTML temp
 client-side PDF library.
 
 Settings are split `config/settings/{base,dev,prod}.py`, driven by env vars via `django-environ`
-(`DATABASE_URL`, `DJANGO_SECRET_KEY`, `CELERY_BROKER_URL`, `EMAIL_*`, `FRONTEND_URL` — the last is
-used to build password-reset links). `EMAIL_BACKEND` defaults to the console backend in dev.
+(`DATABASE_URL`, `DJANGO_SECRET_KEY`, `EMAIL_*`, `FRONTEND_URL` — the last is used to build
+password-reset links). `EMAIL_BACKEND` defaults to the console backend in dev.
 
 ### Frontend: views own their data fetching, Pinia only holds auth
 

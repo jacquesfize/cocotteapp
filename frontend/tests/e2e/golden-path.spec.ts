@@ -38,9 +38,9 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await expect(page.getByText(ingredientName)).toBeVisible()
 
   await page.getByRole('link', { name: 'Agenda' }).click()
-  await expect(page.locator('.day-col').first()).toBeVisible()
+  await expect(page.locator('.agenda-week')).toBeVisible()
 
-  const dinnerSlot = page.locator('.day-col').first().locator('.meal-slot').filter({ hasText: 'Dîner' })
+  const dinnerSlot = page.locator('.agenda-cell[data-meal-type="dinner"]').first()
   await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
   await dinnerSlot.locator('.suggestions').getByText(recipeTitle).click()

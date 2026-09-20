@@ -30,23 +30,61 @@ watch(
   },
 )
 
-watch(query, (value) => {
+// La recherche n'est déclenchée que par une saisie de l'utilisateur (événement `input`), pas par
+// un changement programmatique de `query` (sélection, resynchronisation depuis le parent) : sinon
+// la liste se rouvrirait juste après la sélection.
+const activeIndex = ref(-1)
+
+function onInput() {
   clearTimeout(debounceTimer)
+  activeIndex.value = -1
+  const value = query.value
   if (!value) {
     suggestions.value = []
+    isOpen.value = false
     return
   }
+  isOpen.value = true
   debounceTimer = setTimeout(async () => {
     const data = await listIngredients({ search: value })
+    if (value !== query.value) return
     suggestions.value = data.results
-    isOpen.value = true
   }, 250)
-})
+}
+
+function close() {
+  clearTimeout(debounceTimer)
+  isOpen.value = false
+  activeIndex.value = -1
+}
 
 function select(ingredient: Ingredient) {
   query.value = ingredient.name
-  isOpen.value = false
+  suggestions.value = []
+  close()
   emit('update:modelValue', ingredient)
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    if (isOpen.value) {
+      event.preventDefault()
+      close()
+    }
+    return
+  }
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    if (!isOpen.value || !suggestions.value.length) return
+    event.preventDefault()
+    const count = suggestions.value.length
+    const delta = event.key === 'ArrowDown' ? 1 : -1
+    activeIndex.value = (activeIndex.value + delta + count) % count
+    return
+  }
+  if (event.key === 'Enter' && isOpen.value && activeIndex.value >= 0) {
+    event.preventDefault()
+    select(suggestions.value[activeIndex.value])
+  }
 }
 
 const showCreateModal = ref(false)
@@ -62,9 +100,7 @@ function handleIngredientCreated(ingredient: Ingredient) {
 }
 
 function closeSoon() {
-  setTimeout(() => {
-    isOpen.value = false
-  }, 150)
+  setTimeout(close, 150)
 }
 
 const exactMatch = () =>
@@ -78,11 +114,17 @@ const exactMatch = () =>
       v-model="query"
       type="text"
       :placeholder="t('ingredientPicker.placeholder')"
-      @focus="isOpen = true"
+      autocomplete="off"
+      @input="onInput"
+      @keydown="onKeydown"
       @blur="closeSoon"
     />
     <ul v-if="isOpen && query" class="suggestions">
-      <li v-for="ingredient in suggestions" :key="ingredient.id" @mousedown.prevent="select(ingredient)">
+      <li
+        v-for="(ingredient, i) in suggestions"
+        :key="ingredient.id"
+        :class="{ active: i === activeIndex }"
+        @mousedown.prevent="select(ingredient)">
         {{ ingredient.name }}
       </li>
       <li v-if="!exactMatch()" class="create" @mousedown.prevent="openCreateModal">
@@ -126,7 +168,8 @@ const exactMatch = () =>
   cursor: pointer;
 }
 
-.suggestions li:hover {
+.suggestions li:hover,
+.suggestions li.active {
   background: var(--color-surface-muted);
 }
 

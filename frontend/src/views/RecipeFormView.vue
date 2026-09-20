@@ -12,6 +12,7 @@ import {
   updateRecipe,
   uploadRecipeImage,
 } from '../api/recipes'
+import { formatUnit } from '../utils/format'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
 import { takePendingImportDraft } from '../utils/pendingImportDraft'
@@ -329,14 +330,11 @@ async function handleSubmit() {
 
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.ingredients') }}</h2>
-        <div v-for="(row, index) in ingredientRows" :key="index" class="row" style="align-items: flex-end">
+        <template v-for="(row, index) in ingredientRows" :key="index">
+        <div class="row ingredient-row">
           <div class="field" style="flex: 2; min-width: 220px">
             <label :for="`ingredient-${index}`">{{ $t('recipes.ingredient') }}</label>
             <IngredientPicker :id="`ingredient-${index}`" v-model="row.ingredient" />
-            <span v-if="row.unmatched && !row.ingredient" class="not-found-badge">
-              {{ $t('recipes.importNotFound') }}
-              <template v-if="row.raw_line">— « {{ row.raw_line }} »</template>
-            </span>
           </div>
           <div class="field" style="width: 100px">
             <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
@@ -352,18 +350,23 @@ async function handleSubmit() {
           <div class="field" style="width: 110px">
             <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
             <select :id="`unit-${index}`" v-model="row.unit" @change="onUnitChange(row)">
-              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
+              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
             </select>
           </div>
           <button
             type="button"
-            class="secondary icon-btn"
+            class="secondary icon-btn ingredient-remove"
             :aria-label="$t('common.remove')"
             @click="removeIngredientRow(index)"
           >
             <Trash2 :size="16" />
           </button>
         </div>
+        <span v-if="row.unmatched && !row.ingredient" class="not-found-badge">
+          {{ $t('recipes.importNotFound') }}
+          <template v-if="row.raw_line">— « {{ row.raw_line }} »</template>
+        </span>
+        </template>
         <button type="button" class="secondary" @click="addIngredientRow">
           <Plus :size="16" />{{ $t('recipes.addIngredient') }}
         </button>
@@ -372,7 +375,7 @@ async function handleSubmit() {
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.steps') }}</h2>
         <div v-for="(step, index) in stepRows" :key="index" class="row" style="align-items: flex-end">
-          <div class="field" style="flex: 1">
+          <div class="field" style="flex: 1; min-width: 0">
             <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
             <CooklangStepInput
               :id="`step-${index}`"
@@ -449,6 +452,17 @@ async function handleSubmit() {
   object-fit: cover;
   border-radius: 14px;
   margin: 0.25rem 0 1rem;
+}
+
+.ingredient-row {
+  align-items: flex-end;
+}
+
+/* Les .field ont un margin-bottom (0.85rem) que le bouton n'a pas : on le compense pour que le
+   bouton soit sur la même ligne que les inputs. */
+.ingredient-remove {
+  margin-bottom: 0.85rem;
+  flex-shrink: 0;
 }
 
 .not-found-badge {
