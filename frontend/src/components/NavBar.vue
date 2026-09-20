@@ -525,6 +525,21 @@ onBeforeUnmount(() => {
     gap: 0.5rem;
   }
 
+  .nav-actions {
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .theme-toggle,
+  .account-button {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .mobile-auth a {
+    padding: 0.4rem 0.55rem;
+  }
+
   .tabbar {
     display: flex;
     position: fixed;
