@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { Moon, Sun } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { i18n, setLocale, SUPPORTED_LOCALES, type Locale } from '../i18n'
 import { useAuthStore } from '../stores/auth'
+import { themeMode, toggleThemeMode } from '../utils/theme'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -143,6 +145,17 @@ onBeforeUnmount(() => {
             <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
           </svg>
         </RouterLink>
+
+        <button
+          class="theme-toggle"
+          type="button"
+          data-testid="theme-toggle"
+          :aria-label="themeMode === 'dark' ? t('theme.switchToLight') : t('theme.switchToDark')"
+          @click="toggleThemeMode"
+        >
+          <Sun v-if="themeMode === 'dark'" :size="20" />
+          <Moon v-else :size="20" />
+        </button>
 
         <div ref="accountEl" class="account">
           <button
@@ -367,6 +380,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
+.theme-toggle,
 .account-button {
   background: var(--color-surface-muted);
   color: var(--color-text);
@@ -385,6 +399,7 @@ onBeforeUnmount(() => {
   height: 20px;
 }
 
+.theme-toggle:hover,
 .account-button:hover {
   background: var(--color-primary-soft);
 }
@@ -502,7 +517,7 @@ onBeforeUnmount(() => {
   }
 
   .mobile-auth-register {
-    color: #fff;
+    color: var(--color-on-primary);
     background: var(--color-primary);
   }
 

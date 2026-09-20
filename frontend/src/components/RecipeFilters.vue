@@ -134,7 +134,7 @@ function reset() {
   padding: 0 0.35rem;
   border-radius: 999px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.75rem;
   font-weight: 700;
   display: inline-flex;

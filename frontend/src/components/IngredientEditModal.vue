@@ -225,7 +225,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(36, 31, 29, 0.35);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { changePassword, exportMyData } from '../api/auth'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
 import { useAuthStore } from '../stores/auth'
+import { ACCENT_PRESETS, accentColor, DEFAULT_ACCENT, resetAccentColor, setAccentColor } from '../utils/theme'
 import { downloadBlob } from '../utils/download'
 import type { ActivityLevel, DietType, PlanningPermission, PlanningShare } from '../types/models'
 
@@ -137,6 +138,43 @@ async function handleDeleteAccount() {
 <template>
   <div>
     <h1>{{ $t('account.title') }}</h1>
+
+    <div class="card" style="margin-bottom: 1rem" data-testid="appearance-card">
+      <h2>{{ $t('theme.title') }}</h2>
+      <p class="muted">{{ $t('theme.accentHelp') }}</p>
+      <div class="accent-row" role="group" :aria-label="$t('theme.accent')">
+        <button
+          v-for="preset in ACCENT_PRESETS"
+          :key="preset"
+          type="button"
+          class="swatch"
+          :class="{ 'is-selected': accentColor === preset }"
+          :style="{ background: preset }"
+          :aria-label="preset"
+          :aria-pressed="accentColor === preset"
+          @click="setAccentColor(preset)"
+        />
+        <label class="swatch-custom">
+          <input
+            type="color"
+            :value="accentColor"
+            :aria-label="$t('theme.customAccent')"
+            data-testid="accent-input"
+            @input="setAccentColor(($event.target as HTMLInputElement).value)"
+          />
+          <span>{{ $t('theme.customAccent') }}</span>
+        </label>
+        <button
+          v-if="accentColor !== DEFAULT_ACCENT"
+          type="button"
+          class="secondary"
+          data-testid="accent-reset"
+          @click="resetAccentColor"
+        >
+          {{ $t('theme.reset') }}
+        </button>
+      </div>
+    </div>
 
     <div class="card" style="margin-bottom: 1rem">
       <h2>{{ $t('account.profileTitle') }}</h2>
@@ -279,6 +317,50 @@ async function handleDeleteAccount() {
 </template>
 
 <style scoped>
+.accent-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.swatch {
+  width: 2rem;
+  height: 2rem;
+  min-height: auto;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.swatch:hover {
+  background-blend-mode: normal;
+  filter: brightness(0.92);
+}
+
+.swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--color-text);
+}
+
+.swatch-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.swatch-custom input[type='color'] {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
 .danger-zone {
   border: 1.5px solid var(--color-danger-soft);
 }

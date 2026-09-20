@@ -214,7 +214,7 @@ onBeforeUnmount(stopInterval)
 
 .timer-chip.finished {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   animation: timer-pulse 1s ease-in-out infinite;
 }
 

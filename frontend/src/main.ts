@@ -8,8 +8,10 @@ import { i18n } from './i18n'
 import { flushQueue, setupAutoSync } from './offline/sync'
 import router from './router'
 import { useAuthStore } from './stores/auth'
+import { applyTheme } from './utils/theme'
 
 document.documentElement.setAttribute('lang', i18n.global.locale.value)
+applyTheme()
 
 registerSW({ immediate: true })
 
