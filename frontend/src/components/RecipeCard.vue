@@ -8,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="recipe-card card">
+  <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="recipe-card">
     <img v-if="recipe.image || recipe.image_url" :src="recipe.image || recipe.image_url" class="thumb" alt="" />
     <div class="recipe-card-body">
       <h3>{{ recipe.title }}</h3>
@@ -27,14 +27,22 @@ defineProps<{
   align-items: center;
   text-decoration: none;
   color: inherit;
-  margin-bottom: 0.75rem;
+  padding: 0.85rem 1.25rem;
+}
+
+.recipe-card:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.recipe-card:hover {
+  background: var(--color-surface-hover, rgba(127, 127, 127, 0.08));
 }
 
 .thumb {
-  width: 84px;
-  height: 84px;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 10px;
   flex-shrink: 0;
 }
 
