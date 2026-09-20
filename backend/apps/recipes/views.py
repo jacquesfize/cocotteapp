@@ -33,7 +33,7 @@ from .transfer import ArchiveError, build_export_archive, import_archive
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
-        "recipe_ingredients__ingredient", "steps", "tags"
+        "recipe_ingredients__ingredient__allergens", "steps", "tags"
     )
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]

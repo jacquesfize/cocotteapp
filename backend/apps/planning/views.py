@@ -72,7 +72,11 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         agenda_owner, _permission = self._resolve_agenda()
-        return MealPlanEntry.objects.filter(user=agenda_owner).select_related("recipe")
+        return (
+            MealPlanEntry.objects.filter(user=agenda_owner)
+            .select_related("recipe")
+            .prefetch_related("recipe__recipe_ingredients__ingredient__allergens")
+        )
 
     def initial(self, request, *args, **kwargs):
         super().initial(request, *args, **kwargs)

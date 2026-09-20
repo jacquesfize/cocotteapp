@@ -1,5 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers
+
+from apps.ingredients.models import Allergen
+
+from .models import AllergySeverity, UserAllergen
 
 User = get_user_model()
 
@@ -20,10 +25,64 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    # Slugs d'allergènes (cf. GET /api/allergens/). Une allergie est stricte, une
+    # intolérance est un simple inconfort : un même allergène ne peut être dans les deux.
+    allergies = serializers.SlugRelatedField(
+        many=True, slug_field="slug", queryset=Allergen.objects.all(), required=False
+    )
+    intolerances = serializers.SlugRelatedField(
+        many=True, slug_field="slug", queryset=Allergen.objects.all(), required=False
+    )
+
     class Meta:
         model = User
-        fields = ["id", "username", "email", "diet_type", "activity_level", "is_staff", "date_joined"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "diet_type",
+            "activity_level",
+            "allergies",
+            "intolerances",
+            "is_staff",
+            "date_joined",
+        ]
         read_only_fields = ["id", "is_staff", "date_joined"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["allergies"] = instance.allergen_slugs(AllergySeverity.ALLERGY)
+        data["intolerances"] = instance.allergen_slugs(AllergySeverity.INTOLERANCE)
+        return data
+
+    def validate(self, attrs):
+        allergies = {a.slug for a in attrs.get("allergies", [])}
+        intolerances = {a.slug for a in attrs.get("intolerances", [])}
+        overlap = allergies & intolerances
+        if overlap:
+            raise serializers.ValidationError(
+                {"intolerances": f"Déjà déclaré comme allergie : {', '.join(sorted(overlap))}."}
+            )
+        return attrs
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        allergies = validated_data.pop("allergies", None)
+        intolerances = validated_data.pop("intolerances", None)
+        instance = super().update(instance, validated_data)
+        # Un PATCH qui ne fournit qu'une des deux listes laisse l'autre intacte.
+        for severity, allergens in (
+            (AllergySeverity.ALLERGY, allergies),
+            (AllergySeverity.INTOLERANCE, intolerances),
+        ):
+            if allergens is None:
+                continue
+            instance.allergen_links.filter(severity=severity).exclude(allergen__in=allergens).delete()
+            for allergen in allergens:
+                UserAllergen.objects.update_or_create(
+                    user=instance, allergen=allergen, defaults={"severity": severity}
+                )
+        return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):

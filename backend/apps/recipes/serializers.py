@@ -98,6 +98,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     author_id = serializers.ReadOnlyField(source="author.id")
     youtube_id = serializers.SerializerMethodField()
     versions = serializers.SerializerMethodField()
+    allergens = serializers.SerializerMethodField()
+    allergens_unverified = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -122,6 +124,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             "is_public",
             "tags",
             "ingredients",
+            "allergens",
+            "allergens_unverified",
             "steps",
             "root_recipe",
             "version_label",
@@ -130,6 +134,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["slug", "total_time_minutes", "root_recipe"]
+
+    def get_allergens(self, obj):
+        return obj.allergen_slugs()
+
+    def get_allergens_unverified(self, obj):
+        """Vrai si un ingrédient n'a pas d'allergènes vérifiés : l'absence de badge ne prouve rien."""
+        return any(not ri.ingredient.allergens_reviewed for ri in obj.recipe_ingredients.all())
 
     def get_youtube_id(self, obj):
         return extract_youtube_id(obj.video_url)

@@ -29,6 +29,19 @@ class Unit(models.TextChoices):
     PINCH = "pinch", "pincée"
 
 
+class Allergen(models.Model):
+    """Allergène ou intolérance alimentaire de référence (les 14 allergènes UE + lactose)."""
+
+    slug = models.SlugField(max_length=40, unique=True)
+    name = models.CharField(max_length=80)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Ingredient(models.Model):
     name = models.CharField(max_length=150, unique=True)
     slug = models.SlugField(max_length=160, unique=True, blank=True)
@@ -48,6 +61,13 @@ class Ingredient(models.Model):
         help_text='Noms de l\'ingrédient dans d\'autres langues, ex. {"en": "garlic", '
         '"de": "Knoblauch", "es": "ajo"} — utilisé pour rapprocher les ingrédients importés '
         "depuis une recette non francophone.",
+    )
+
+    allergens = models.ManyToManyField(Allergen, blank=True, related_name="ingredients")
+    allergens_reviewed = models.BooleanField(
+        default=False,
+        help_text="Les allergènes ont été vérifiés. Faux = inconnu (ex. ingrédient créé à la "
+        "volée ou importé) : l'absence d'allergène renseigné ne garantit rien.",
     )
 
     # Valeurs nutritionnelles pour 100g / 100ml de produit.

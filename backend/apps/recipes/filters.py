@@ -50,6 +50,7 @@ class RecipeFilter(django_filters.FilterSet):
     ingredients = django_filters.CharFilter(method="filter_ingredients")
     in_season = django_filters.BooleanFilter(method="filter_in_season")
     max_carbon = django_filters.NumberFilter(method="filter_max_carbon")
+    exclude_allergens = django_filters.CharFilter(method="filter_exclude_allergens")
     carbon_level = django_filters.ChoiceFilter(
         method="filter_carbon_level",
         choices=[("low", "low"), ("medium", "medium"), ("high", "high")],
@@ -66,6 +67,14 @@ class RecipeFilter(django_filters.FilterSet):
                 recipe_ingredients__ingredient__in=fuzzy_exact_ingredients(ingredient_name)
             )
         return queryset.distinct()
+
+    def filter_exclude_allergens(self, queryset, name, value):
+        # Seuls les allergènes *renseignés* excluent une recette : un ingrédient non
+        # vérifié est simplement signalé (`allergens_unverified`), pas écarté.
+        slugs = [s.strip() for s in value.split(",") if s.strip()]
+        if not slugs:
+            return queryset
+        return queryset.exclude(recipe_ingredients__ingredient__allergens__slug__in=slugs)
 
     def filter_max_carbon(self, queryset, name, value):
         return annotate_carbon_per_serving(queryset).filter(carbon_per_serving__lte=value)

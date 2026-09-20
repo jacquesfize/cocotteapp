@@ -1,19 +1,26 @@
 from django.db.models import ProtectedError
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from .filters import IngredientFilter
 from .search import FuzzySearchFilter
-from .models import Ingredient
-from .serializers import IngredientSerializer
+from .models import Allergen, Ingredient
+from .serializers import AllergenSerializer, IngredientSerializer
 from .services import lookup_carbon_footprint, lookup_nutrition_suggestion
 
 
+class AllergenViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Allergen.objects.all()
+    serializer_class = AllergenSerializer
+    permission_classes = [AllowAny]
+    pagination_class = None
+
+
 class IngredientViewSet(viewsets.ModelViewSet):
-    queryset = Ingredient.objects.all()
+    queryset = Ingredient.objects.prefetch_related("allergens")
     serializer_class = IngredientSerializer
     filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
     filterset_class = IngredientFilter
