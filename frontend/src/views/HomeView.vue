@@ -131,9 +131,14 @@ async function handleImport() {
     </section>
 
     <section v-if="seasonalRecipes.length" class="home-section">
-      <div class="row page-header">
+      <div class="row season-header">
         <h2>{{ $t('home.inSeason') }}</h2>
-        <RouterLink :to="{ name: 'recipes', query: { in_season: 'true' } }">{{ $t('home.seeAll') }}</RouterLink>
+        <RouterLink
+          :to="{ name: 'recipes', query: { in_season: 'true' } }"
+          class="see-all-btn"
+          :aria-label="$t('home.seeAll')"
+          :title="$t('home.seeAll')"
+        >+</RouterLink>
       </div>
       <div class="recipe-grid">
         <RecipeCard v-for="recipe in seasonalRecipes" :key="recipe.id" :recipe="recipe" variant="tile" />
@@ -174,9 +179,39 @@ async function handleImport() {
   margin: 0;
 }
 
+.season-header {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.season-header h2 {
+  margin: 0;
+}
+
+.see-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: 1.4rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.see-all-btn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
 .recipe-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
 }
 
@@ -224,7 +259,7 @@ async function handleImport() {
 
 .thematic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
 }
 
