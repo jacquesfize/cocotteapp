@@ -364,5 +364,15 @@
     "notificationTitle": "Minuteur terminé !",
     "notificationBody": "Votre minuteur de {duration} est terminé.",
     "notificationBodyNamed": "« {label} » ({duration}) est terminé."
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "l",
+    "piece": "pièce",
+    "tbsp": "c. à soupe",
+    "tsp": "c. à café",
+    "pinch": "pincée"
   }
 }

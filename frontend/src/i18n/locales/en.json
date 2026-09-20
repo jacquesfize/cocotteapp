@@ -364,5 +364,15 @@
     "notificationTitle": "Timer done!",
     "notificationBody": "Your {duration} timer is done.",
     "notificationBodyNamed": "\"{label}\" ({duration}) is done."
+  },
+  "units": {
+    "g": "g",
+    "kg": "kg",
+    "ml": "ml",
+    "l": "l",
+    "piece": "piece",
+    "tbsp": "tbsp",
+    "tsp": "tsp",
+    "pinch": "pinch"
   }
 }

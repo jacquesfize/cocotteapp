@@ -4,6 +4,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createIngredient, suggestIngredientNutrition } from '../api/ingredients'
 import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
+import { formatUnit } from '../utils/format'
 import type { Ingredient, IngredientCategory, Unit } from '../types/models'
 
 const { t } = useI18n()
@@ -136,7 +137,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
           <div class="field">
             <label for="ingredient-modal-unit">{{ t('ingredientModal.defaultUnit') }}</label>
             <select id="ingredient-modal-unit" v-model="form.default_unit">
-              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
+              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
             </select>
           </div>
         </div>

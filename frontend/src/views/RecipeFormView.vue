@@ -12,6 +12,7 @@ import {
   updateRecipe,
   uploadRecipeImage,
 } from '../api/recipes'
+import { formatUnit } from '../utils/format'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
 import { takePendingImportDraft } from '../utils/pendingImportDraft'
@@ -349,7 +350,7 @@ async function handleSubmit() {
           <div class="field" style="width: 110px">
             <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
             <select :id="`unit-${index}`" v-model="row.unit" @change="onUnitChange(row)">
-              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ unit }}</option>
+              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
             </select>
           </div>
           <button
