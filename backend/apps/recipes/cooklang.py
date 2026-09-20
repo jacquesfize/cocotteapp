@@ -17,6 +17,9 @@ class ParsedIngredient:
 @dataclass
 class ParsedRecipe:
     steps: list = field(default_factory=list)
+    # Même texte d'étape, mais avec les balises @ingrédient / ~{durée} conservées (le frontend les
+    # affiche en lien / minuteur). Seul le matériel #cookware est aplati.
+    tagged_steps: list = field(default_factory=list)
     ingredients: list = field(default_factory=list)
     cookware: list = field(default_factory=list)
 
@@ -45,6 +48,9 @@ def parse(text: str) -> ParsedRecipe:
             result.ingredients.append(
                 ParsedIngredient(name=match.group("name").replace("_", " "), quantity=quantity, unit=unit)
             )
+
+        tagged = COOKWARE_RE.sub(lambda m: m.group("name").replace("_", " "), line)
+        result.tagged_steps.append(tagged.strip())
 
         step_text = INGREDIENT_RE.sub(lambda m: m.group("name").replace("_", " "), line)
         step_text = COOKWARE_RE.sub(lambda m: m.group("name").replace("_", " "), step_text)

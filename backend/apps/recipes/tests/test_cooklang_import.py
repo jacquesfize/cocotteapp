@@ -54,9 +54,25 @@ def test_creates_recipe_with_ingredients_and_steps():
 
     steps = list(recipe.steps.order_by("order"))
     assert len(steps) == 3
-    assert steps[0].instruction == "Peel and dice onion and garlic clove."
-    assert "5 minutes" in steps[1].instruction
-    assert "pan" in steps[1].instruction
+    # Les balises @ingrédient et ~{durée} sont conservées (le matériel #pan{} est aplati).
+    assert steps[0].instruction == "Peel and dice @onion{1%piece} and @garlic clove."
+    assert "~{5 minutes}" in steps[1].instruction
+    assert "#" not in steps[1].instruction
+    assert "in a pan" in steps[1].instruction
+
+
+@pytest.mark.django_db
+def test_repeated_mention_without_quantity_does_not_duplicate_ingredient():
+    user = UserFactory()
+
+    recipe = create_recipe_from_cooklang(
+        author=user,
+        title="Oignons",
+        raw_cooklang="Émincer @oignon{2}.\nFaire dorer l'@oignon dans @huile_olive{1%cs}.",
+    )
+
+    names = [ri.ingredient.name for ri in recipe.recipe_ingredients.order_by("order")]
+    assert names == ["oignon", "huile olive"]
 
 
 @pytest.mark.django_db

@@ -134,7 +134,16 @@ def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, p
 
     recipe = Recipe.objects.create(**recipe_kwargs)
 
-    for order, parsed_ingredient in enumerate(parsed.ingredients, start=1):
+    # Une mention sans quantité d'un ingrédient déjà déclaré (ex. "@oignon" à l'étape 3 après
+    # "@oignon{1}" à l'étape 1) ne fait que référencer la ligne existante : pas de doublon.
+    seen_names = set()
+    order = 0
+    for parsed_ingredient in parsed.ingredients:
+        key = parsed_ingredient.name.strip().lower()
+        if key in seen_names and not parsed_ingredient.quantity:
+            continue
+        seen_names.add(key)
+        order += 1
         ingredient = get_or_create_ingredient(parsed_ingredient.name)
         RecipeIngredient.objects.create(
             recipe=recipe,
@@ -145,7 +154,7 @@ def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, p
         )
 
     order = 0
-    for step_text in parsed.steps:
+    for step_text in parsed.tagged_steps:
         if not step_text.strip():
             continue
         order += 1

@@ -6,17 +6,41 @@
 """Create a Cocotte recipe from a .cook file via the API.
 
 Logs in with COCOTTE_EMAIL / COCOTTE_PASSWORD (JWT), POSTs to
-/api/recipes/import-cooklang/, then PATCHes video_url/source_url onto the recipe.
+/api/recipes/import-cooklang/, then PATCHes video_url/source_url (and the video thumbnail as image_url) onto the recipe.
 
 Usage: post_cooklang.py recipe.cook --title "Tarte" [--servings 4] [--prep 15] [--cook 30]
-       [--diet omnivore] [--video-url URL] [--dry-run]
+       [--diet omnivore] [--video-url URL] [--image-url URL] [--dry-run]
 Env:   COCOTTE_API (default http://localhost:8000/api), COCOTTE_EMAIL, COCOTTE_PASSWORD
 """
 import argparse
 import os
+import re
 import sys
 
 import httpx
+
+
+# The backend parser takes everything up to the next space as the name, so `@sel,` would
+# create an ingredient called "sel,". Force explicit braces before trailing punctuation.
+_UNBRACED_PUNCT_RE = re.compile(r"([@#][^\s@#~{}]*?[^\s@#~{},.;:!?)»])([,.;:!?)»]+)(?=\s|$)")
+
+
+def sanitize_cooklang(text: str) -> str:
+    return _UNBRACED_PUNCT_RE.sub(r"\1{}\2", text)
+
+
+def youtube_thumbnail(url: str, client: httpx.Client | None = None) -> str | None:
+    m = re.search(r"(?:v=|youtu\.be/)([\w-]{11})", url)
+    if not m:
+        return None
+    for name in ("maxresdefault", "hqdefault"):
+        thumb = f"https://img.youtube.com/vi/{m.group(1)}/{name}.jpg"
+        try:
+            if httpx.head(thumb, timeout=10).status_code == 200:
+                return thumb
+        except httpx.HTTPError:
+            pass
+    return None
 
 
 def main():
@@ -28,10 +52,11 @@ def main():
     ap.add_argument("--cook", type=int, help="cook time, minutes")
     ap.add_argument("--diet", help="diet_type value (e.g. omnivore, vegetarian, vegan)")
     ap.add_argument("--video-url")
+    ap.add_argument("--image-url", help="recipe image; defaults to the YouTube thumbnail of --video-url")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
-    raw = open(args.file, encoding="utf-8").read()
+    raw = sanitize_cooklang(open(args.file, encoding="utf-8").read())
     payload = {"title": args.title, "raw_cooklang": raw}
     for key, val in [("servings", args.servings), ("prep_time_minutes", args.prep),
                      ("cook_time_minutes", args.cook), ("diet_type", args.diet)]:
@@ -58,8 +83,10 @@ def main():
         recipe = r.json()
 
         if args.video_url:
-            r = c.patch(f"/recipes/{recipe['id']}/",
-                        json={"video_url": args.video_url, "source_url": args.video_url})
+            patch = {"video_url": args.video_url, "source_url": args.video_url}
+            if image := args.image_url or youtube_thumbnail(args.video_url):
+                patch["image_url"] = image
+            r = c.patch(f"/recipes/{recipe['id']}/", json=patch)
             if r.status_code >= 400:
                 print(f"warning: recipe created but video_url patch failed: {r.text}", file=sys.stderr)
 
