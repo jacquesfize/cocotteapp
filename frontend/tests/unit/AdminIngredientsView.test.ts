@@ -64,12 +64,14 @@ beforeEach(() => {
 })
 
 describe('AdminIngredientsView', () => {
-  it('lists ingredients with their English name', async () => {
+  it('lists ingredients without the removed columns', async () => {
     vi.mocked(listIngredients).mockResolvedValue(page([ingredient()]))
     const wrapper = await mountView()
     await flushPromises()
     expect(wrapper.text()).toContain('ail')
-    expect(wrapper.text()).toContain('garlic')
+    expect(wrapper.text()).not.toContain('garlic')
+    expect(wrapper.text()).not.toContain('kcal')
+    expect(wrapper.find('.admin-table .actions button').exists()).toBe(true)
   })
 
   it('edits an ingredient through the modal', async () => {

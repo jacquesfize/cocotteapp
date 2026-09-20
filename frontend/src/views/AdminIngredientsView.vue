@@ -129,23 +129,17 @@ async function handleDelete(ingredient: Ingredient) {
           <thead>
             <tr>
               <th>{{ $t('adminIngredients.colName') }}</th>
-              <th>{{ $t('adminIngredients.colNameEn') }}</th>
               <th>{{ $t('adminIngredients.colCategory') }}</th>
-              <th>{{ $t('adminIngredients.colCalories') }}</th>
-              <th>{{ $t('adminIngredients.colCarbon') }}</th>
               <th>{{ $t('adminIngredients.colSeason') }}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="ingredient in ingredients" :key="ingredient.id">
-              <td>{{ ingredient.name }}</td>
-              <td>{{ ingredient.translations?.en || '—' }}</td>
-              <td>{{ $t(`ingredientCategory.${ingredient.category}`) }}</td>
-              <td>{{ ingredient.calories_kcal }}</td>
-              <td>{{ ingredient.carbon_kg_co2e_per_kg }}</td>
-              <td>{{ seasonSummary(ingredient) }}</td>
-              <td class="row" style="gap: 0.5rem; flex-wrap: nowrap">
+              <td class="name">{{ ingredient.name }}</td>
+              <td :data-label="$t('adminIngredients.colCategory')">{{ $t(`ingredientCategory.${ingredient.category}`) }}</td>
+              <td :data-label="$t('adminIngredients.colSeason')">{{ seasonSummary(ingredient) }}</td>
+              <td class="actions">
                 <button class="secondary" @click="openEdit(ingredient)">{{ $t('common.edit') }}</button>
                 <button
                   class="danger icon-btn"
@@ -181,14 +175,12 @@ async function handleDelete(ingredient: Ingredient) {
 }
 
 .table-wrapper {
-  overflow-x: auto;
   padding: 0;
 }
 
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  white-space: nowrap;
 }
 
 .admin-table th,
@@ -207,5 +199,56 @@ async function handleDelete(ingredient: Ingredient) {
 
 .admin-table tbody tr:not(:last-child) td {
   border-bottom: 1px solid var(--color-border);
+}
+
+.admin-table .actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .admin-table thead {
+    display: none;
+  }
+
+  .admin-table,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table tbody tr {
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-table tbody tr:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.2rem 0;
+  }
+
+  .admin-table tbody tr:not(:last-child) td {
+    border-bottom: none;
+  }
+
+  .admin-table .name {
+    font-weight: 600;
+  }
+
+  .admin-table td[data-label]::before {
+    content: attr(data-label) ' : ';
+    color: var(--color-muted);
+  }
+
+  .admin-table .actions {
+    justify-content: flex-start;
+    padding-top: 0.5rem;
+  }
 }
 </style>
