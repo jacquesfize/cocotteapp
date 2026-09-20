@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Download, Save, Trash2 } from '@lucide/vue'
+import { Download, Save, Trash2, Upload } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { changePassword, exportMyData } from '../api/auth'
+import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
 import { useAuthStore } from '../stores/auth'
 import { ACCENT_PRESETS, accentColor, DEFAULT_ACCENT, resetAccentColor, setAccentColor } from '../utils/theme'
@@ -84,6 +85,42 @@ async function handleExport() {
     downloadBlob(blob, `cocotte-donnees-${new Date().toISOString().slice(0, 10)}.zip`)
   } finally {
     isExporting.value = false
+  }
+}
+
+const isExportingRecipes = ref(false)
+
+async function handleRecipesExport(scope: 'mine' | 'all') {
+  isExportingRecipes.value = true
+  try {
+    const blob = await exportRecipeLibrary(scope)
+    const name = scope === 'all' ? 'cocotte-base-recettes' : 'cocotte-recettes'
+    downloadBlob(blob, `${name}-${new Date().toISOString().slice(0, 10)}.zip`)
+  } finally {
+    isExportingRecipes.value = false
+  }
+}
+
+const recipesFileInput = ref<HTMLInputElement | null>(null)
+const isImportingRecipes = ref(false)
+const recipesImportResult = ref<RecipeArchiveImportResult | null>(null)
+const recipesImportError = ref('')
+
+async function handleRecipesImport(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+  recipesImportResult.value = null
+  recipesImportError.value = ''
+  isImportingRecipes.value = true
+  try {
+    recipesImportResult.value = await importRecipeLibrary(file)
+  } catch (err) {
+    const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+    recipesImportError.value = detail || t('account.recipesImportError')
+  } finally {
+    isImportingRecipes.value = false
+    input.value = ''
   }
 }
 
@@ -262,6 +299,49 @@ async function handleDeleteAccount() {
       <button class="secondary" :disabled="isExporting" @click="handleExport">
         <Download :size="16" />{{ $t('account.exportButton') }}
       </button>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem" data-testid="recipes-transfer-card">
+      <h2>{{ $t('account.recipesTransferTitle') }}</h2>
+      <p class="muted">{{ $t('account.recipesTransferDescription') }}</p>
+      <div class="row">
+        <button class="secondary" :disabled="isExportingRecipes" @click="handleRecipesExport('mine')">
+          <Download :size="16" />{{ $t('account.recipesExportButton') }}
+        </button>
+        <button
+          v-if="authStore.user?.is_staff"
+          class="secondary"
+          :disabled="isExportingRecipes"
+          data-testid="recipes-export-all"
+          @click="handleRecipesExport('all')"
+        >
+          <Download :size="16" />{{ $t('account.recipesExportAllButton') }}
+        </button>
+        <button class="secondary" :disabled="isImportingRecipes" @click="recipesFileInput?.click()">
+          <Upload :size="16" />{{ $t('account.recipesImportButton') }}
+        </button>
+        <input
+          ref="recipesFileInput"
+          type="file"
+          accept=".zip,application/zip"
+          hidden
+          data-testid="recipes-import-input"
+          @change="handleRecipesImport"
+        />
+      </div>
+      <p v-if="recipesImportResult" class="muted" data-testid="recipes-import-result">
+        {{
+          $t('account.recipesImportResult', {
+            created: recipesImportResult.created,
+            skipped: recipesImportResult.skipped,
+            errors: recipesImportResult.errors.length,
+          })
+        }}
+      </p>
+      <ul v-if="recipesImportResult?.errors.length" class="error">
+        <li v-for="e in recipesImportResult.errors" :key="e.title">{{ e.title }} — {{ e.detail }}</li>
+      </ul>
+      <p v-if="recipesImportError" class="error">{{ recipesImportError }}</p>
     </div>
 
     <div class="card" style="margin-bottom: 1rem">
