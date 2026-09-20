@@ -69,6 +69,34 @@ docker compose exec backend python manage.py seed_thematic_pages
 
 All three seed commands are idempotent — safe to re-run any time without duplicating data.
 
+### 🧪 Everyday commands (Docker dev)
+
+This is the *dev* compose file (`docker-compose.yml`, distinct from `docker-compose.prod.yml`):
+`backend` runs `manage.py runserver` and `frontend` runs the Vite dev server, both with the repo
+bind-mounted in (`./backend:/app`, `./frontend:/app`) so code edits apply immediately — no
+rebuild needed unless you change a dependency (`pyproject.toml`/`uv.lock` or
+`package.json`/`package-lock.json`), in which case re-run `docker compose up --build`.
+
+```bash
+# backend tests & lint
+docker compose exec backend uv run pytest
+docker compose exec backend uv run pytest apps/shopping/tests/test_api.py   # single file
+docker compose exec backend uv run ruff check .
+
+# frontend unit tests
+docker compose exec frontend npm run test:unit
+```
+
+Playwright e2e tests aren't run inside the containers — `backend` (`:8000`) and `frontend`
+(`:5173`) already publish to the host, so run them from the host instead, same as native dev
+(`cd frontend && npm run test:e2e`, see below).
+
+```bash
+docker compose logs -f backend     # tail logs (swap "backend" for "frontend" or "db")
+docker compose down                # stop the stack, keep the database
+docker compose down -v             # stop the stack and wipe the database (re-seed needed after)
+```
+
 ### 🔒 Production deployment
 
 `docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
