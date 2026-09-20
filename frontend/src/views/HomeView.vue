@@ -123,9 +123,13 @@ async function handleImport() {
           class="thematic-card card"
           :to="{ name: 'recipes', query: page.filters }"
         >
-          <span v-if="page.icon" class="thematic-icon-badge">{{ page.icon }}</span>
-          <h3>{{ page.title }}</h3>
-          <p v-if="page.description" class="muted">{{ page.description }}</p>
+          <img v-if="page.image" :src="page.image" class="thematic-image" alt="" />
+          <span v-else-if="page.icon" class="thematic-icon-badge">{{ page.icon }}</span>
+          <div class="thematic-scrim" />
+          <div class="thematic-body">
+            <h3>{{ page.title }}</h3>
+            <p v-if="page.description" class="thematic-description">{{ page.description }}</p>
+          </div>
         </RouterLink>
       </div>
     </section>
@@ -265,48 +269,67 @@ async function handleImport() {
 
 .thematic-card {
   position: relative;
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
   display: block;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
   margin-bottom: 0;
-  border: 1px solid transparent;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.thematic-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--color-primary);
+  border: 0;
+  border-radius: 16px;
+  text-decoration: none;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .thematic-card:hover {
   transform: translateY(-3px);
-  border-color: var(--color-primary-soft);
   box-shadow: 0 4px 8px rgba(36, 31, 29, 0.06), 0 12px 24px rgba(36, 31, 29, 0.08);
 }
 
+.thematic-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .thematic-icon-badge {
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: var(--color-primary-soft);
-  font-size: 1.5rem;
-  margin-bottom: 0.6rem;
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.thematic-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 60%);
+}
+
+.thematic-body {
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.75rem;
 }
 
 .thematic-card h3 {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.15rem;
+  font-size: 1rem;
+  line-height: 1.25;
+  color: inherit;
 }
 
-.thematic-card p {
+.thematic-description {
   margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>

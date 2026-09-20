@@ -137,8 +137,10 @@ function goTo(index: number) {
   bottom: 1.25rem;
   padding: 0.45rem 1.1rem;
   border-radius: 999px;
+  /* Posée sur une photo : toujours blanc sur texte sombre, indépendamment du thème
+     (--color-text devient clair en mode sombre et serait illisible sur ce fond). */
   background: #fff;
-  color: var(--color-text);
+  color: #241f1d;
   font-weight: 600;
   font-size: 0.9rem;
 }

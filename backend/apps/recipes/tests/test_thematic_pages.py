@@ -129,3 +129,29 @@ def test_admin_can_delete_thematic_page():
 
     assert response.status_code == 204
     assert not ThematicPage.objects.filter(id=page.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_can_upload_and_remove_thematic_page_image(settings, tmp_path):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    settings.MEDIA_ROOT = tmp_path
+    staff = UserFactory(is_staff=True)
+    page = ThematicPage.objects.create(title="Végan")
+    client = APIClient()
+    client.force_authenticate(staff)
+    gif = (
+        b"GIF87a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff,"
+        b"\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+    )
+
+    response = client.patch(
+        f"/api/admin/thematic-pages/{page.id}/image/",
+        {"image": SimpleUploadedFile("a.gif", gif, content_type="image/gif")},
+        format="multipart",
+    )
+    assert response.status_code == 200
+    assert response.data["image"]
+
+    response = client.delete(f"/api/admin/thematic-pages/{page.id}/image/")
+    assert response.status_code == 200
+    assert response.data["image"] is None

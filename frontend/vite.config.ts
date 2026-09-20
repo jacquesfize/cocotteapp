@@ -94,6 +94,7 @@ export default defineConfig({
       '/api': apiTarget,
       '/django-admin': apiTarget,
       '/static': apiTarget,
+      '/media': apiTarget,
     },
   },
   test: {

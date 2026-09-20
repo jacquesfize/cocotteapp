@@ -255,3 +255,19 @@ class AdminThematicPageViewSet(viewsets.ModelViewSet):
     serializer_class = AdminThematicPageSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = None
+
+    @action(detail=True, methods=["patch", "delete"], parser_classes=[MultiPartParser, FormParser])
+    def image(self, request, pk=None):
+        page = self.get_object()
+        if request.method == "DELETE":
+            if page.image:
+                page.image.delete(save=False)
+            page.image = None
+            page.save()
+            return Response(self.get_serializer(page).data)
+        uploaded = request.FILES.get("image")
+        if not uploaded:
+            return Response({"detail": "An 'image' file is required."}, status=status.HTTP_400_BAD_REQUEST)
+        page.image = uploaded
+        page.save()
+        return Response(self.get_serializer(page).data)

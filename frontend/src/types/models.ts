@@ -71,6 +71,7 @@ export interface ThematicPage {
   slug: string
   description: string
   icon: string
+  image: string | null
   filters: Record<string, string>
   order: number
 }
