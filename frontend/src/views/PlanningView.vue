@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
+import { Apple, ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import BaseModal from '../components/BaseModal.vue'
 import CalendarExportMenu from '../components/CalendarExportMenu.vue'
 import MealSlot from '../components/MealSlot.vue'
 import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
@@ -18,9 +19,10 @@ const router = useRouter()
 
 const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 
-type ViewMode = 'cards' | 'week' | 'month'
-const VIEW_MODES: ViewMode[] = ['cards', 'week', 'month']
-const viewMode = ref<ViewMode>('cards')
+type ViewMode = 'week' | 'month'
+const VIEW_MODES: ViewMode[] = ['week', 'month']
+const viewMode = ref<ViewMode>('week')
+const showNutrition = ref(false)
 const weekOffset = ref(0)
 const monthOffset = ref(0)
 const entries = ref<MealPlanEntry[]>([])
@@ -147,10 +149,7 @@ async function loadSharedAgendas() {
 
 watch(weekOffset, load)
 watch(monthOffset, load)
-watch(viewMode, (mode, previous) => {
-  // cards and week share the same date range: only month <-> others needs a reload
-  if ((mode === 'month') !== (previous === 'month')) load()
-})
+watch(viewMode, load)
 watch(selectedOwner, load)
 onMounted(load)
 onMounted(loadSharedAgendas)
@@ -229,20 +228,6 @@ const rangeLabel = computed(() => {
       </button>
     </div>
 
-    <div v-if="deficiencies.length" class="card deficiency-banner">
-      <strong>{{ $t('nutrition.weeklyAlertTitle') }}</strong>
-      <ul>
-        <li v-for="d in deficiencies" :key="d.nutrient">
-          {{ $t(NUTRIENT_LABEL_KEYS[d.nutrient] || d.nutrient) }} : {{ d.amount.toFixed(1) }} /
-          {{ d.minimum.toFixed(1) }} {{ d.unit }}
-        </li>
-      </ul>
-    </div>
-
-    <p v-if="carbonFootprint !== null" class="muted carbon-summary">
-      {{ $t('nutrition.carbonWeekly') }} : <strong>{{ carbonFootprint.toFixed(1) }} kg CO2e</strong>
-    </p>
-
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
 
     <div v-if="viewMode === 'week'" class="agenda-week">
@@ -292,23 +277,26 @@ const rangeLabel = computed(() => {
       </template>
     </div>
 
-    <div v-else class="week-grid">
-      <div v-for="date in weekDays" :key="toISODate(date)" class="card day-col">
-        <h3>{{ dayLabel(date) }}</h3>
-        <MealSlot
-          v-for="mealType in MEAL_TYPES"
-          :key="mealType"
-          :date="toISODate(date)"
-          :meal-type="mealType"
-          :entries="entriesFor(date, mealType)"
-          :owner="selectedOwner ?? undefined"
-          :read-only="isReadOnly"
-          @changed="load"
-        />
+
+    <BaseModal v-if="showNutrition" :title="$t('planning.nutritionIntake')" @close="showNutrition = false">
+      <div v-if="deficiencies.length" class="deficiency-banner">
+        <strong>{{ $t('nutrition.weeklyAlertTitle') }}</strong>
+        <ul>
+          <li v-for="d in deficiencies" :key="d.nutrient">
+            {{ $t(NUTRIENT_LABEL_KEYS[d.nutrient] || d.nutrient) }} : {{ d.amount.toFixed(1) }} /
+            {{ d.minimum.toFixed(1) }} {{ d.unit }}
+          </li>
+        </ul>
       </div>
-    </div>
+      <p v-if="carbonFootprint !== null" class="muted carbon-summary">
+        {{ $t('nutrition.carbonWeekly') }} : <strong>{{ carbonFootprint.toFixed(1) }} kg CO2e</strong>
+      </p>
+    </BaseModal>
 
     <div class="week-footer">
+      <button class="secondary nutrition-btn" type="button" @click="showNutrition = true">
+        <Apple :size="16" />{{ $t('planning.nutritionIntake') }}
+      </button>
       <button class="secondary" @click="handleDownloadWeekPdf">
         <Download :size="16" />{{ $t('planning.downloadWeekPdf') }}
       </button>
@@ -346,30 +334,13 @@ const rangeLabel = computed(() => {
   font-size: 0.8rem;
 }
 
-.deficiency-banner {
-  border: 1.5px solid var(--color-primary-soft);
-  margin-bottom: 1rem;
-}
-
 .deficiency-banner ul {
   margin: 0.5rem 0 0;
   padding-left: 1.1rem;
 }
 
 .carbon-summary {
-  margin: 0 0 1rem;
-}
-
-.week-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.75rem;
-}
-
-.day-col h3 {
-  margin: 0 0 0.25rem;
-  font-size: 0.9rem;
-  text-transform: capitalize;
+  margin: 1rem 0 0;
 }
 
 .week-footer {
@@ -474,11 +445,5 @@ const rangeLabel = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@media (max-width: 900px) {
-  .week-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

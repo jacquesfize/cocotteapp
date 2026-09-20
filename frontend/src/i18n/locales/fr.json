@@ -266,9 +266,9 @@
     "servingsUnit": "portions",
     "today": "Aujourd'hui",
     "previousWeek": "Semaine précédente",
+    "nutritionIntake": "Apports nutritionnels",
     "viewLabel": "Vue du calendrier",
     "view": {
-      "cards": "Cartes",
       "week": "Semaine",
       "month": "Mois"
     },

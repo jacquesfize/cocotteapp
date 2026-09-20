@@ -107,17 +107,14 @@ describe('PlanningView agenda sharing', () => {
 })
 
 describe('PlanningView calendar views', () => {
-  it('shows the card view by default and switches to week and month grids', async () => {
+  it('shows the week view by default and switches to the month grid', async () => {
     const wrapper = await mountPlanningView()
     await flushPromises()
 
-    expect(wrapper.find('.week-grid').exists()).toBe(true)
-    expect(wrapper.find('.agenda-week').exists()).toBe(false)
-
-    await wrapper.find('[data-view="week"]').trigger('click')
+    expect(wrapper.findAll('.view-btn')).toHaveLength(2)
+    expect(wrapper.find('[data-view="cards"]').exists()).toBe(false)
     expect(wrapper.find('.agenda-week').exists()).toBe(true)
     expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(28)
-    expect(wrapper.find('.week-grid').exists()).toBe(false)
 
     await wrapper.find('[data-view="month"]').trigger('click')
     await flushPromises()
@@ -143,5 +140,40 @@ describe('PlanningView calendar views', () => {
       }),
     )
     expect(wrapper.text()).toContain('PDF')
+  })
+})
+
+describe('PlanningView nutrition modal', () => {
+  it('opens from a button with the alerts and closes via Escape, outside click and close button', async () => {
+    vi.mocked(getNutritionSummary).mockResolvedValue({
+      totals: {} as never,
+      daily_average: {} as never,
+      deficiencies: [{ nutrient: 'iron', amount: 1, minimum: 2, unit: 'mg' }] as never,
+      carbon_footprint_kg_co2e: 3,
+      carbon_footprint_daily_average_kg_co2e: 0,
+    } as never)
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+
+    const open = async () => {
+      await wrapper.find('.nutrition-btn').trigger('click')
+      expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    }
+    await open()
+    expect(wrapper.find('.deficiency-banner').exists()).toBe(true)
+    expect(wrapper.find('[role="dialog"]').text()).toContain('3.0 kg CO2e')
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await flushPromises()
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+
+    await open()
+    await wrapper.find('.base-modal-overlay').trigger('mousedown')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+
+    await open()
+    await wrapper.find('.base-modal-close').trigger('click')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
   })
 })
