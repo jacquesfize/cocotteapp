@@ -41,6 +41,18 @@ describe('IngredientEditModal', () => {
     expect(wrapper.emitted('created')?.[0]).toEqual([created])
   })
 
+  it('always exposes English name and season months, and sends them', async () => {
+    vi.mocked(createIngredient).mockResolvedValue({ id: 1 } as Ingredient)
+    const wrapper = mountModal('poireau')
+    await wrapper.get('#ingredient-modal-name-en').setValue('leek')
+    await wrapper.findAll('.month input')[2].setValue(true)
+    await wrapper.get('form').trigger('submit')
+    await wrapper.vm.$nextTick()
+    expect(createIngredient).toHaveBeenCalledWith(
+      expect.objectContaining({ translations: { en: 'leek' }, available_months: [3] }),
+    )
+  })
+
   it('shows an error message when creation fails', async () => {
     vi.mocked(createIngredient).mockRejectedValue(new Error('boom'))
 

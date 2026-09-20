@@ -13,8 +13,6 @@ const props = defineProps<{
   initialName?: string
   // Mode édition (admin) : ingrédient existant à modifier. Sans lui, le modal crée.
   ingredient?: Ingredient | null
-  // Expose noms traduits + mois de saison (page admin uniquement).
-  advanced?: boolean
 }>()
 const emit = defineEmits<{
   created: [ingredient: Ingredient]
@@ -88,15 +86,11 @@ async function handleSubmit() {
   try {
     const { name_en, ...rest } = form.value
     const payload: Partial<Ingredient> = { ...rest }
-    if (props.advanced) {
-      // On conserve les autres langues déjà présentes ; seul "en" est édité ici.
-      const translations = { ...(props.ingredient?.translations ?? {}) }
-      if (name_en.trim()) translations.en = name_en.trim()
-      else delete translations.en
-      payload.translations = translations
-    } else {
-      delete payload.available_months
-    }
+    // On conserve les autres langues déjà présentes ; seul "en" est édité ici.
+    const translations = { ...(props.ingredient?.translations ?? {}) }
+    if (name_en.trim()) translations.en = name_en.trim()
+    else delete translations.en
+    payload.translations = translations
     if (props.ingredient) {
       emit('updated', await updateIngredient(props.ingredient.id, payload))
     } else {
@@ -149,7 +143,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
           </div>
           <p v-if="suggestMessage" class="muted">{{ suggestMessage }}</p>
         </div>
-        <div v-if="advanced" class="field">
+        <div class="field">
           <label for="ingredient-modal-name-en">{{ t('ingredientModal.nameEn') }}</label>
           <input id="ingredient-modal-name-en" v-model="form.name_en" />
         </div>
@@ -170,16 +164,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
           </div>
         </div>
 
-        <template v-if="advanced">
-          <h3>{{ t('ingredientModal.seasonTitle') }}</h3>
-          <p class="muted">{{ t('ingredientModal.seasonHint') }}</p>
-          <div class="months">
-            <label v-for="month in MONTHS" :key="month" class="month">
-              <input v-model="form.available_months" type="checkbox" :value="month" />
-              {{ t(`ingredientModal.months.${month}`) }}
-            </label>
-          </div>
-        </template>
+        <h3>{{ t('ingredientModal.seasonTitle') }}</h3>
+        <p class="muted">{{ t('ingredientModal.seasonHint') }}</p>
+        <div class="months">
+          <label v-for="month in MONTHS" :key="month" class="month">
+            <input v-model="form.available_months" type="checkbox" :value="month" />
+            {{ t(`ingredientModal.months.${month}`) }}
+          </label>
+        </div>
 
         <h3>{{ t('ingredientModal.nutritionTitle') }}</h3>
         <div class="nutrition-grid">

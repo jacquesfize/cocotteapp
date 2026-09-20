@@ -166,7 +166,6 @@ async function handleDelete(ingredient: Ingredient) {
     <IngredientEditModal
       v-if="showModal"
       :ingredient="editing"
-      advanced
       @created="handleSaved"
       @updated="handleSaved"
       @close="showModal = false"
