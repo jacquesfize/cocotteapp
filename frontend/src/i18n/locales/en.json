@@ -443,5 +443,14 @@
     "deleteConfirm": "Permanently delete ingredient \"{name}\"?",
     "deleteInUse": "Cannot delete \"{name}\": it is used by recipes or shopping lists. Remove it from them first.",
     "deleteError": "Could not delete this ingredient."
+  },
+  "theme": {
+    "title": "Appearance",
+    "accent": "Accent color",
+    "accentHelp": "Pick the accent color of the app. Stored on this device.",
+    "customAccent": "Custom",
+    "reset": "Default",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
   }
 }

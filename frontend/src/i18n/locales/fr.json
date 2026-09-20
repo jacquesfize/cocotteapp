@@ -443,5 +443,14 @@
     "deleteConfirm": "Supprimer définitivement l'ingrédient « {name} » ?",
     "deleteInUse": "Impossible de supprimer « {name} » : il est utilisé par des recettes ou des listes de courses. Retirez-le d'abord de celles-ci.",
     "deleteError": "Impossible de supprimer cet ingrédient."
+  },
+  "theme": {
+    "title": "Apparence",
+    "accent": "Couleur d'accent",
+    "accentHelp": "Choisissez la couleur d'accent de l'application. Enregistré sur cet appareil.",
+    "customAccent": "Personnalisée",
+    "reset": "Par défaut",
+    "switchToDark": "Passer en mode sombre",
+    "switchToLight": "Passer en mode clair"
   }
 }

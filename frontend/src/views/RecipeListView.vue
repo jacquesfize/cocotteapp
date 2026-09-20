@@ -200,7 +200,9 @@ async function handleImport() {
 
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
     <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>
-    <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" />
+    <div v-else class="card recipe-list">
+      <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" />
+    </div>
 
     <Pagination :page="page" :count="count" @update:page="goToPage" />
   </div>
@@ -211,5 +213,9 @@ async function handleImport() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+.recipe-list {
+  padding: 0;
+  overflow: hidden;
 }
 </style>
