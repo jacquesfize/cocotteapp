@@ -43,6 +43,20 @@ async function registerAndBuildShoppingList(page: Page, suffix: number) {
 }
 
 test.describe('PWA offline support', () => {
+  // La PWA peut être désactivée (`disable: true` de VitePWA dans vite.config.ts) : dans ce cas
+  // aucun service worker n'est enregistré et ces scénarios n'ont pas de sens.
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/')
+    const hasServiceWorker = await page.evaluate(async () => {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if ((await navigator.serviceWorker.getRegistrations()).length > 0) return true
+        await new Promise((resolve) => setTimeout(resolve, 300))
+      }
+      return false
+    })
+    test.skip(!hasServiceWorker, 'PWA désactivée (VitePWA disable: true) : aucun service worker enregistré')
+  })
+
   test('cached recipe and shopping list stay viewable when offline', async ({ page, context }) => {
     const suffix = Date.now()
     const { recipeTitle, ingredientName } = await registerAndBuildShoppingList(page, suffix)
