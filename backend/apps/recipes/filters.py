@@ -6,6 +6,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.ingredients.models import Ingredient
+from apps.ingredients.search import fuzzy_exact_ingredients
 from apps.nutrition.services import UNIT_TO_GRAMS
 
 from .models import Recipe, RecipeIngredient
@@ -61,7 +62,9 @@ class RecipeFilter(django_filters.FilterSet):
     def filter_ingredients(self, queryset, name, value):
         names = [n.strip() for n in value.split(",") if n.strip()]
         for ingredient_name in names:
-            queryset = queryset.filter(recipe_ingredients__ingredient__name__iexact=ingredient_name)
+            queryset = queryset.filter(
+                recipe_ingredients__ingredient__in=fuzzy_exact_ingredients(ingredient_name)
+            )
         return queryset.distinct()
 
     def filter_max_carbon(self, queryset, name, value):

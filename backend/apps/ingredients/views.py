@@ -2,11 +2,11 @@ from django.db.models import ProtectedError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from .filters import IngredientFilter
+from .search import FuzzySearchFilter
 from .models import Ingredient
 from .serializers import IngredientSerializer
 from .services import lookup_carbon_footprint, lookup_nutrition_suggestion
@@ -15,8 +15,7 @@ from .services import lookup_carbon_footprint, lookup_nutrition_suggestion
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    search_fields = ["name", "translations__en"]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
     filterset_class = IngredientFilter
 
     def get_permissions(self):
