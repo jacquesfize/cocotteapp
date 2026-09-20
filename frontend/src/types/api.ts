@@ -14,6 +14,8 @@ export interface RecipeListParams {
   max_cook_time?: number | string
   ingredients?: string
   in_season?: boolean
+  carbon_level?: 'low' | 'medium' | 'high' | ''
+  max_carbon?: number | string
   page?: number
 }
 

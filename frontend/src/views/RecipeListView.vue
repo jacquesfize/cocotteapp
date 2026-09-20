@@ -30,6 +30,7 @@ function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
     max_cook_time: (query.max_cook_time as string) || '',
     ingredients: (query.ingredients as string) || '',
     in_season: query.in_season === 'true',
+    carbon_level: (query.carbon_level as string) || '',
   }
 }
 

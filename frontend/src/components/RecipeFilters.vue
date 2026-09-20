@@ -9,6 +9,7 @@ export interface RecipeFilterValues {
   max_cook_time: string | number
   ingredients: string
   in_season: boolean
+  carbon_level: string
 }
 
 // Les filtres sont édités en place (v-model sur les propriétés de l'objet) : la vue parente
@@ -92,6 +93,15 @@ function reset() {
         <div class="field">
           <label for="max_cook">{{ $t('recipes.maxCookTime') }}</label>
           <input id="max_cook" v-model.number="filters.max_cook_time" type="number" min="0" />
+        </div>
+        <div class="field">
+          <label for="carbon_level">{{ $t('recipes.carbonLevel') }}</label>
+          <select id="carbon_level" v-model="filters.carbon_level">
+            <option value="">{{ $t('recipes.carbonAny') }}</option>
+            <option value="low">{{ $t('recipes.carbonLow') }}</option>
+            <option value="medium">{{ $t('recipes.carbonMedium') }}</option>
+            <option value="high">{{ $t('recipes.carbonHigh') }}</option>
+          </select>
         </div>
         <div class="field checkbox-field">
           <input id="in_season" v-model="filters.in_season" type="checkbox" style="width: auto" />

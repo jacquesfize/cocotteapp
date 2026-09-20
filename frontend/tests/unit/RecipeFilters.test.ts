@@ -12,6 +12,7 @@ function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilter
     max_cook_time: '',
     ingredients: '',
     in_season: false,
+    carbon_level: '',
     ...overrides,
   }
 }
