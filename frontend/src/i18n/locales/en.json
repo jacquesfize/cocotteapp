@@ -234,6 +234,14 @@
     "servingsUnit": "servings",
     "today": "Today",
     "previousWeek": "Previous week",
+    "viewLabel": "Calendar view",
+    "view": {
+      "cards": "Cards",
+      "week": "Week",
+      "month": "Month"
+    },
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
     "nextWeek": "Next week",
     "agendaSelectorLabel": "Displayed agenda",
     "myAgenda": "My agenda",

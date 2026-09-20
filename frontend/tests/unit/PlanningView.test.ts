@@ -105,3 +105,43 @@ describe('PlanningView agenda sharing', () => {
     expect(slot.attributes('data-readonly')).toBe('false')
   })
 })
+
+describe('PlanningView calendar views', () => {
+  it('shows the card view by default and switches to week and month grids', async () => {
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    expect(wrapper.find('.week-grid').exists()).toBe(true)
+    expect(wrapper.find('.agenda-week').exists()).toBe(false)
+
+    await wrapper.find('[data-view="week"]').trigger('click')
+    expect(wrapper.find('.agenda-week').exists()).toBe(true)
+    expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(28)
+    expect(wrapper.find('.week-grid').exists()).toBe(false)
+
+    await wrapper.find('[data-view="month"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.agenda-month').exists()).toBe(true)
+    const now = new Date()
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    expect(wrapper.findAll('.month-cell:not(.empty)')).toHaveLength(daysInMonth)
+  })
+
+  it('loads the whole month range in month view and keeps PDF/shopping actions', async () => {
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+    await wrapper.find('[data-view="month"]').trigger('click')
+    await flushPromises()
+
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    expect(listMealPlanEntries).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        date_after: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`,
+        date_before: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(last)}`,
+      }),
+    )
+    expect(wrapper.text()).toContain('PDF')
+  })
+})

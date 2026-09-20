@@ -234,6 +234,14 @@
     "servingsUnit": "portions",
     "today": "Aujourd'hui",
     "previousWeek": "Semaine précédente",
+    "viewLabel": "Vue du calendrier",
+    "view": {
+      "cards": "Cartes",
+      "week": "Semaine",
+      "month": "Mois"
+    },
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
     "nextWeek": "Semaine suivante",
     "agendaSelectorLabel": "Agenda affiché",
     "myAgenda": "Mon agenda",
