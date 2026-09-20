@@ -6,10 +6,6 @@ export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
-      // PWA désactivée : pas de service worker généré ni enregistré (dev ou build). Les
-      // imports `virtual:pwa-register` restent valides (no-op) grâce à ça — inutile de
-      // toucher main.ts ou StepTimerButton.vue, qui gèrent déjà l'absence de SW actif.
-      disable: true,
       registerType: 'autoUpdate',
       // Le service worker tourne aussi en `vite dev`, pour pouvoir tester le mode
       // hors ligne sans build de production (context.setOffline() en e2e, par ex.).
@@ -33,6 +29,10 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Le fallback de navigation (index.html) ne doit s'appliquer qu'aux routes de la SPA :
+        // /admin, /api, /static et /media sont servis par le backend (via le reverse proxy) et
+        // doivent toujours atteindre le réseau, sinon le service worker les remplace par la SPA.
+        navigateFallbackDenylist: [/^\/api\//, /^\/admin(\/|$)/, /^\/static\//, /^\/media\//],
         // Tout le reste (auth, création/édition, exports PDF/texte) passe en direct au
         // réseau : ne pas mettre en cache des écritures, ni des fichiers volumineux à
         // usage ponctuel.
