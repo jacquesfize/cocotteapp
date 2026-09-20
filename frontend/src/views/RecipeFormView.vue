@@ -375,7 +375,7 @@ async function handleSubmit() {
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.steps') }}</h2>
         <div v-for="(step, index) in stepRows" :key="index" class="row" style="align-items: flex-end">
-          <div class="field" style="flex: 1">
+          <div class="field" style="flex: 1; min-width: 0">
             <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
             <CooklangStepInput
               :id="`step-${index}`"

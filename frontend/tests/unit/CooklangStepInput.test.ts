@@ -158,3 +158,55 @@ describe('CooklangStepInput', () => {
     expect(wrapper.find('.mention-warning').exists()).toBe(false)
   })
 })
+
+describe('CooklangStepInput template buttons', () => {
+  function mountAttached(modelValue: string) {
+    const wrapper: ReturnType<typeof mount> = mount(CooklangStepInput, {
+      props: {
+        modelValue,
+        ingredientNames: [],
+        'onUpdate:modelValue': (value: string) => wrapper.setProps({ modelValue: value }),
+      },
+      global: { plugins: [i18n] },
+      attachTo: document.body,
+    })
+    return wrapper
+  }
+
+  it('inserts "@" at the cursor, keeps focus and opens the autocomplete', async () => {
+    const wrapper = mountAttached('Ajouter  puis servir')
+    const textarea = wrapper.get('textarea').element
+    textarea.focus()
+    textarea.setSelectionRange(8, 8)
+
+    await wrapper.get('[data-testid="insert-ingredient"]').trigger('click')
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['Ajouter @ puis servir'])
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(document.activeElement).toBe(textarea)
+    expect(textarea.selectionStart).toBe(9)
+    expect(listIngredients).toHaveBeenCalled()
+    expect(wrapper.find('.suggestions').exists()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('inserts a timer template at the cursor with the value selected', async () => {
+    const wrapper = mountAttached('Cuire  à feu doux')
+    const textarea = wrapper.get('textarea').element
+    textarea.setSelectionRange(6, 6)
+
+    await wrapper.get('[data-testid="insert-timer"]').trigger('click')
+    const next = 'Cuire ~{10%minutes} à feu doux'
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([next])
+    await vi.advanceTimersByTimeAsync(10)
+
+    expect(document.activeElement).toBe(textarea)
+    expect(next.slice(textarea.selectionStart, textarea.selectionEnd)).toBe('10')
+    wrapper.unmount()
+  })
+
+  it('template is parsed as a timer of 600 seconds', async () => {
+    const { parseTimerMentions } = await import('../../src/utils/cooklangTimers')
+    expect(parseTimerMentions('~{10%minutes}')[0].totalSeconds).toBe(600)
+  })
+})

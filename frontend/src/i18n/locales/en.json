@@ -120,6 +120,8 @@
     "step": "Step {n}",
     "addStep": "Add a step",
     "stepPlaceholder": "Type \\@ to link an ingredient from the recipe",
+    "insertIngredient": "Ingredient",
+    "insertTimer": "Duration",
     "mentionOrphan": "\"{name}\" isn't in the ingredient list above.",
     "missingIngredient": "Select an ingredient for each row (or remove the row).",
     "media": "Media & source",

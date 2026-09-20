@@ -120,6 +120,8 @@
     "step": "Étape {n}",
     "addStep": "Ajouter une étape",
     "stepPlaceholder": "Tapez \\@ pour lier un ingrédient de la recette",
+    "insertIngredient": "Ingrédient",
+    "insertTimer": "Durée",
     "mentionOrphan": "« {name} » n'est pas dans la liste des ingrédients ci-dessus.",
     "missingIngredient": "Sélectionnez un ingrédient pour chaque ligne (ou supprimez la ligne).",
     "media": "Média & source",
