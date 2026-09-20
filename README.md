@@ -72,18 +72,42 @@ All three seed commands are idempotent — safe to re-run any time without dupli
 ### 🔒 Production deployment
 
 `docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
-`frontend` built to static files and served by a plain `nginx` container) as one isolated stack meant to run
-behind a **shared, host-level reverse proxy** — a single Caddy instance on the server, its own
-stack, that owns ports 80/443 and automatically obtains/renews HTTPS certificates (Let's
-Encrypt) for every app on the box. This stack itself publishes no ports; it only joins an
-external Docker network (`proxy`) that the host Caddy also sits on, and is reached there as
-`cocotte-frontend`.
+`frontend` serving the built static SPA) and is **standalone by default**: `frontend` runs Caddy
+instead of nginx, so the same container serves the SPA, reverse-proxies `/api`/`/admin` to
+`backend`, *and* terminates HTTPS — no separate web server, no separate reverse-proxy container,
+no host-level dependency. An overlay file switches it to sit behind a shared host Caddy instead,
+for servers that already run several apps behind one reverse proxy.
 
-Server-side, one-time setup (see a general "Debian full Docker" deployment guide for the full
-walkthrough — installing Docker, the host Caddy stack, DNS, backups, etc.):
+#### Standalone (default) — this stack owns HTTPS
+
+Needs Docker + Docker Compose and a domain whose DNS (A/AAAA) already points at the server:
 
 ```bash
-docker network create proxy   # once per server, shared by every app stack
+cp .env.prod.example .env.prod
+# edit .env.prod — set DOMAIN and ACME_EMAIL (read by the bundled Caddy, see
+# deploy/Caddyfile.standalone), and see the Configuration section below for the rest
+
+docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+```
+
+`frontend` publishes `80`/`443` directly and gets/renews its own Let's Encrypt certificate for
+`DOMAIN`, storing it in a named volume (`caddy_data`) so it survives restarts and rebuilds.
+Nothing else to configure — no host-level reverse proxy needed.
+
+#### Behind a shared, host-level reverse proxy
+
+Use this when the server already hosts (or will host) several apps behind one Caddy instance
+that owns ports 80/443 for the whole box (see a general "Debian full Docker" deployment guide
+for the full walkthrough of that host Caddy stack — installing Docker, DNS, backups, etc.). The
+`docker-compose.prod.proxy.yml` overlay swaps `frontend`'s Caddy config for a plain-HTTP one
+(`deploy/Caddyfile.proxy` instead of `deploy/Caddyfile.standalone`), drops its published ports,
+and joins an external Docker network instead — reached from the host Caddy as
+`cocotte-frontend`.
+
+One-time setup on the host:
+
+```bash
+docker network create proxy   # once per server, shared by every app stack — name it however you like
 ```
 
 Add a block for this app to the host Caddy's `Caddyfile` (e.g. `/opt/docker/caddy/Caddyfile`)
@@ -99,16 +123,26 @@ cocotte.example.org {
 docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile   # in the host Caddy stack
 ```
 
-Then, in this project's own directory (e.g. `/opt/docker/cocotte/` on the server) — needs Docker
-+ Docker Compose and a domain whose DNS (A/AAAA) already points at the server:
+Then, in this project's own directory (e.g. `/opt/docker/cocotte/` on the server):
 
 ```bash
 cp .env.prod.example .env.prod
-# edit .env.prod — see the Configuration section below
+# edit .env.prod — set PROXY_NETWORK_NAME to match the network created above (defaults to
+# "proxy"), and see the Configuration section below for the rest; DOMAIN/ACME_EMAIL are unused
+# in this mode since the host Caddyfile is what declares the domain and handles TLS
 
-docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
+```
 
-# migrations run automatically on container start; still create the first admin account and seed data:
+The external network name doesn't have to be `proxy` on every server — `PROXY_NETWORK_NAME` in
+`.env.prod` lets each deployment point at whatever network the host's shared Caddy actually
+uses, without editing the compose file.
+
+#### Common to both modes
+
+```bash
+# migrations run automatically on container start; still create the first admin account and seed data
+# (add "-f docker-compose.prod.proxy.yml" before --env-file if using the shared-proxy mode)
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py createsuperuser
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
 docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
@@ -167,9 +201,9 @@ production stack — see `backend/.env.example` and `.env.prod.example`):
 | `DEFAULT_FROM_EMAIL` | `Cocotte <noreply@cocotte.app>` | "From" address for outgoing emails (password reset, etc.). |
 | `FRONTEND_URL` | `http://localhost:5173` | Base URL used to build links sent by email (e.g. the password-reset link). Must point at the public frontend URL in production. |
 
-Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml`). The public
-domain and its HTTPS certificate are configured on the *host's* shared Caddy stack, not here —
-see the Production deployment section above.
+Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml` and its
+overlays). See the Production deployment section above for which of `DOMAIN`/`ACME_EMAIL` vs.
+`PROXY_NETWORK_NAME` actually applies to your chosen mode.
 
 | Variable | Default | Description |
 |---|---|---|
@@ -177,6 +211,9 @@ see the Production deployment section above.
 | `SECURE_SSL_REDIRECT` | `True` | Redirect all HTTP requests to HTTPS. |
 | `SECURE_HSTS_SECONDS` | `604800` (1 week) | How long browsers should remember to only reach the site over HTTPS (HSTS). |
 | `POSTGRES_PASSWORD` | *(required)* | Password for the Postgres container's `postgres` user — must match the password embedded in `DATABASE_URL`. |
+| `DOMAIN` | *(required in standalone mode, the default)* | Public domain the bundled Caddy (`deploy/Caddyfile.standalone`) requests a Let's Encrypt certificate for. Unused with the `docker-compose.prod.proxy.yml` overlay. |
+| `ACME_EMAIL` | *(required in standalone mode, the default)* | Email given to Let's Encrypt by the bundled Caddy for expiry/renewal notices. Unused with the `docker-compose.prod.proxy.yml` overlay. |
+| `PROXY_NETWORK_NAME` | `proxy` | Name of the external Docker network the shared host Caddy sits on. Only used with the `docker-compose.prod.proxy.yml` overlay. |
 
 ## 🛠️ Dev mode (without Docker)
 

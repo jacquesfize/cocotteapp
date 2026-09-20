@@ -1,3 +1,17 @@
+# Stack de production — mode standalone par défaut (voir le README, section "Déploiement en
+# production"). Utilisable tel quel :
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+#
+# "frontend" sert la SPA, reverse-proxie /api et /admin vers "backend", et termine lui-même le
+# TLS via un Caddy interne qui obtient/renouvelle seul un certificat Let's Encrypt pour DOMAIN
+# (voir deploy/Caddyfile.standalone). C'est le mode à utiliser quand l'app est seule sur le
+# serveur.
+#
+# Pour s'appuyer à la place sur un Caddy déjà présent sur l'hôte, partagé par plusieurs apps,
+# combiner ce fichier avec l'overlay docker-compose.prod.proxy.yml :
+#
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
 services:
   db:
     image: postgres:16-alpine
@@ -35,31 +49,29 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  # nginx : sert la SPA et reverse-proxie /api et /admin vers "backend" en HTTP interne
-  # uniquement. Pas de "ports:" ni de TLS ici : le Caddy partagé de l'hôte (cf. guide de
-  # déploiement, /opt/docker/caddy) fait office de reverse proxy d'entrée et termine le HTTPS
-  # pour tous les sous-domaines du serveur, en atteignant ce conteneur via le réseau externe
-  # "proxy".
   frontend:
     build:
       context: ./frontend
       target: prod
     container_name: cocotte-frontend
+    env_file:
+      - .env.prod
+    ports:
+      - "80:80"
+      - "443:443"
     volumes:
       - static_data:/srv/static:ro
       - media_data:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./deploy/Caddyfile.standalone:/etc/caddy/Caddyfile:ro
     depends_on:
       - backend
-    networks:
-      - default
-      - proxy
     restart: unless-stopped
-
-networks:
-  proxy:
-    external: true
 
 volumes:
   postgres_data:
   static_data:
   media_data:
+  caddy_data:
+  caddy_config:

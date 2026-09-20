@@ -1,0 +1,28 @@
+# Overlay "reverse proxy externe partagé" — à combiner avec docker-compose.prod.yml :
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
+#
+# Bascule "frontend" du mode standalone (par défaut) vers ce mode : plus de ports publiés ni de
+# TLS géré ici (deploy/Caddyfile.proxy remplace deploy/Caddyfile.standalone), le stack rejoint à
+# la place un réseau Docker externe déjà créé sur l'hôte, sur lequel se trouve aussi un Caddy
+# partagé par toutes les apps du serveur (une seule instance, sa propre stack, qui gère
+# DNS/HTTPS pour tout le monde). Ce Caddy hôte atteint ce stack via le nom de conteneur
+# "cocotte-frontend" — voir le guide de déploiement dans le README pour l'exemple de bloc
+# Caddyfile côté hôte.
+#
+# Le nom du réseau externe est paramétrable via la variable d'env PROXY_NETWORK_NAME (défaut :
+# "proxy"), pour s'adapter à la convention déjà en place sur l'hôte.
+services:
+  frontend:
+    ports: !override []
+    volumes: !override
+      - static_data:/srv/static:ro
+      - media_data:/srv/media:ro
+      - ./deploy/Caddyfile.proxy:/etc/caddy/Caddyfile:ro
+    networks:
+      - default
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK_NAME:-proxy}
