@@ -16,7 +16,8 @@
     "accountSettings": "Mon compte",
     "admin": "Admin",
     "adminThematicPages": "Pages thématiques",
-    "administration": "Administration"
+    "administration": "Administration",
+    "adminIngredients": "Ingrédients"
   },
   "common": {
     "loading": "Chargement...",
@@ -210,7 +211,26 @@
     "suggestButton": "Suggérer les valeurs",
     "suggestLoading": "Recherche...",
     "suggestApplied": "Valeurs suggérées appliquées — à vérifier avant de créer l'ingrédient.",
-    "suggestNotFound": "Aucune suggestion trouvée pour cet ingrédient."
+    "suggestNotFound": "Aucune suggestion trouvée pour cet ingrédient.",
+    "editTitle": "Modifier l'ingrédient",
+    "nameEn": "Nom anglais",
+    "updateError": "Impossible d'enregistrer l'ingrédient.",
+    "seasonTitle": "Saisonnalité",
+    "seasonHint": "Mois de pleine saison. Aucun mois coché = disponible toute l'année.",
+    "months": {
+      "1": "janvier",
+      "2": "février",
+      "3": "mars",
+      "4": "avril",
+      "5": "mai",
+      "6": "juin",
+      "7": "juillet",
+      "8": "août",
+      "9": "septembre",
+      "10": "octobre",
+      "11": "novembre",
+      "12": "décembre"
+    }
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
@@ -406,5 +426,25 @@
     "tbsp": "c. à soupe",
     "tsp": "c. à café",
     "pinch": "pincée"
+  },
+  "adminIngredients": {
+    "title": "Ingrédients",
+    "subtitle": "Gérer la bibliothèque d'ingrédients : noms, nutrition, saisonnalité et empreinte carbone.",
+    "addButton": "Nouvel ingrédient",
+    "accessDenied": "Accès réservé aux administrateurs.",
+    "search": "Recherche",
+    "searchPlaceholder": "Nom français ou anglais...",
+    "noIngredients": "Aucun ingrédient ne correspond à cette recherche.",
+    "colName": "Nom",
+    "colNameEn": "Anglais",
+    "colCategory": "Catégorie",
+    "colCalories": "kcal /100 g",
+    "colCarbon": "kg CO2e/kg",
+    "colSeason": "Saison",
+    "allYear": "Toute l'année",
+    "deleteIngredient": "Supprimer cet ingrédient",
+    "deleteConfirm": "Supprimer définitivement l'ingrédient « {name} » ?",
+    "deleteInUse": "Impossible de supprimer « {name} » : il est utilisé par des recettes ou des listes de courses. Retirez-le d'abord de celles-ci.",
+    "deleteError": "Impossible de supprimer cet ingrédient."
   }
 }

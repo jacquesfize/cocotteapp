@@ -189,6 +189,14 @@ onBeforeUnmount(() => {
                 </svg>
                 <span>{{ $t('nav.adminThematicPages') }}</span>
               </RouterLink>
+              <RouterLink to="/admin/ingredients" class="account-link" @click="closeMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12c0-4 3-7 7-7 0 4-3 7-7 7Z" />
+                  <path d="M5 12c4 0 7 3 7 7-4 0-7-3-7-7Z" />
+                  <path d="M19 12c0 4-3 7-7 7 0-4 3-7 7-7Z" />
+                </svg>
+                <span>{{ $t('nav.adminIngredients') }}</span>
+              </RouterLink>
             </div>
 
             <div class="account-section">

@@ -45,6 +45,7 @@ export interface Ingredient {
   category: IngredientCategory
   default_unit: Unit
   available_months: number[]
+  translations?: Record<string, string>
   calories_kcal: number
   protein_g: number
   carbs_g: number

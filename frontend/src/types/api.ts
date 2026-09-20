@@ -23,6 +23,7 @@ export interface IngredientListParams {
   category?: string
   in_season?: boolean
   search?: string
+  page?: number
 }
 
 export interface MealPlanEntryListParams {

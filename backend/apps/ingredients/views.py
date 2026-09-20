@@ -1,8 +1,9 @@
+from django.db.models import ProtectedError
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from .filters import IngredientFilter
@@ -14,10 +15,25 @@ from .services import lookup_carbon_footprint, lookup_nutrition_suggestion
 class IngredientViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    search_fields = ["name", "translations__en"]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = IngredientFilter
-    search_fields = ["name"]
+
+    def get_permissions(self):
+        # Création ouverte aux utilisateurs connectés (création à la volée depuis le
+        # formulaire de recette) ; modification et suppression réservées au staff.
+        if self.action in ("update", "partial_update", "destroy"):
+            return [IsAdminUser()]
+        return [IsAuthenticatedOrReadOnly()]
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"detail": "Cet ingrédient est utilisé par des recettes ou des listes de courses."},
+                status=status.HTTP_409_CONFLICT,
+            )
 
     @action(detail=False, methods=["get"], url_path="nutrition-suggestion")
     def nutrition_suggestion(self, request):

@@ -10,6 +10,14 @@ export function createIngredient(payload: Partial<Ingredient>): Promise<Ingredie
   return client.post('ingredients/', payload).then((r) => r.data)
 }
 
+export function updateIngredient(id: number, payload: Partial<Ingredient>): Promise<Ingredient> {
+  return client.patch(`ingredients/${id}/`, payload).then((r) => r.data)
+}
+
+export function deleteIngredient(id: number) {
+  return client.delete(`ingredients/${id}/`)
+}
+
 export interface NutritionSuggestionResponse {
   found: boolean
   suggestion?: Partial<NutrientTotals> & { carbon_kg_co2e_per_kg?: number }
