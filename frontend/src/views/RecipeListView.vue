@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
 import RecipeCard from '../components/RecipeCard.vue'
+import RecipeFilters, { type RecipeFilterValues } from '../components/RecipeFilters.vue'
 import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -21,7 +22,7 @@ const recipes = ref<Recipe[]>([])
 const count = ref(0)
 const isLoading = ref(false)
 
-function filtersFromQuery(query: LocationQuery) {
+function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
   return {
     search: (query.search as string) || '',
     diet_type: (query.diet_type as string) || '',
@@ -51,7 +52,7 @@ function queryMatches(current: LocationQuery, next: Record<string, unknown>) {
 
 // Les filtres vivent dans l'URL (query string) : /recipes?ingredients=Tomate ou
 // /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
-const filters = ref(filtersFromQuery(route.query))
+const filters = ref<RecipeFilterValues>(filtersFromQuery(route.query))
 const page = ref(pageFromQuery(route.query))
 
 async function load() {
@@ -194,41 +195,7 @@ async function handleImport() {
       <p v-if="importError" class="muted">{{ importError }}</p>
     </div>
 
-    <div class="card filters">
-      <div class="row">
-        <div class="field" style="flex: 2; min-width: 200px">
-          <label for="search">{{ $t('recipes.search') }}</label>
-          <input id="search" v-model="filters.search" :placeholder="$t('recipes.searchPlaceholder')" />
-        </div>
-        <div class="field">
-          <label for="diet_type">{{ $t('recipes.dietFilter') }}</label>
-          <select id="diet_type" v-model="filters.diet_type">
-            <option value="">{{ $t('recipes.allDiets') }}</option>
-            <option value="omnivore">{{ $t('diet.omnivore') }}</option>
-            <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
-            <option value="vegan">{{ $t('diet.vegan') }}</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="ingredients">{{ $t('recipes.ingredientsFilter') }}</label>
-          <input id="ingredients" v-model="filters.ingredients" :placeholder="$t('recipes.ingredientsPlaceholder')" />
-        </div>
-      </div>
-      <div class="row">
-        <div class="field">
-          <label for="max_prep">{{ $t('recipes.maxPrepTime') }}</label>
-          <input id="max_prep" v-model.number="filters.max_prep_time" type="number" min="0" />
-        </div>
-        <div class="field">
-          <label for="max_cook">{{ $t('recipes.maxCookTime') }}</label>
-          <input id="max_cook" v-model.number="filters.max_cook_time" type="number" min="0" />
-        </div>
-        <div class="field checkbox-field">
-          <input id="in_season" v-model="filters.in_season" type="checkbox" style="width: auto" />
-          <label for="in_season" style="margin: 0">{{ $t('recipes.inSeasonOnly') }}</label>
-        </div>
-      </div>
-    </div>
+    <RecipeFilters v-model="filters" />
 
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
     <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>
@@ -243,15 +210,5 @@ async function handleImport() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-}
-
-.checkbox-field {
-  align-self: center;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-.filters{
-  margin-bottom: 1em;
 }
 </style>
