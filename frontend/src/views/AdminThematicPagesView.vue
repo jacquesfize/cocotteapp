@@ -6,7 +6,9 @@ import {
   createThematicPage,
   deleteThematicPage,
   listThematicPages,
+  removeThematicPageImage,
   updateThematicPage,
+  uploadThematicPageImage,
 } from '../api/adminThematicPages'
 import type { AdminThematicPageInput } from '../types/api'
 import type { AdminThematicPage } from '../types/models'
@@ -55,6 +57,33 @@ function emptyForm(): FormState {
 
 const form = ref<FormState>(emptyForm())
 
+// Image : fichier choisi (envoyé après l'enregistrement de la page), aperçu, et retrait demandé.
+const imageFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(null)
+const removeImage = ref(false)
+
+function onImageChange(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null
+  imageFile.value = file
+  removeImage.value = false
+  imagePreview.value = file ? URL.createObjectURL(file) : editingImage.value
+}
+
+const editingImage = ref<string | null>(null)
+
+function clearImage() {
+  imageFile.value = null
+  imagePreview.value = null
+  removeImage.value = true
+}
+
+function resetImageState(current: string | null) {
+  imageFile.value = null
+  removeImage.value = false
+  editingImage.value = current
+  imagePreview.value = current
+}
+
 // Clés reconnues par les sélecteurs structurés ci-dessous — si les filtres d'une page en
 // contiennent d'autres (saisis via l'admin Django, ou l'éditeur JSON avancé), on les affiche
 // telles quelles dans le textarea avancé plutôt que d'en perdre une partie silencieusement.
@@ -83,12 +112,14 @@ function summarizeFilters(filters: Record<string, string>) {
 function openCreateForm() {
   editingId.value = null
   form.value = emptyForm()
+  resetImageState(null)
   error.value = ''
   showForm.value = true
 }
 
 function openEditForm(page: AdminThematicPage) {
   editingId.value = page.id
+  resetImageState(page.image)
   error.value = ''
   const filters = page.filters || {}
   const hasUnknownKeys = Object.keys(filters).some((key) => !KNOWN_FILTER_KEYS.includes(key))
@@ -149,11 +180,11 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    if (editingId.value) {
-      await updateThematicPage(editingId.value, payload)
-    } else {
-      await createThematicPage(payload)
-    }
+    const saved = editingId.value
+      ? await updateThematicPage(editingId.value, payload)
+      : await createThematicPage(payload)
+    if (imageFile.value) await uploadThematicPageImage(saved.id, imageFile.value)
+    else if (removeImage.value) await removeThematicPageImage(saved.id)
     showForm.value = false
     await load()
   } catch {
@@ -211,6 +242,16 @@ async function handleDelete(page: AdminThematicPage) {
             <div class="field" style="width: 120px">
               <label for="tp-order">{{ $t('adminThematicPages.formOrder') }}</label>
               <input id="tp-order" v-model.number="form.order" type="number" min="0" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="tp-image">{{ $t('adminThematicPages.formImage') }}</label>
+            <div class="row" style="align-items: center">
+              <img v-if="imagePreview" :src="imagePreview" class="image-preview" alt="" />
+              <input id="tp-image" type="file" accept="image/*" @change="onImageChange" />
+              <button v-if="imagePreview" type="button" class="secondary" @click="clearImage">
+                {{ $t('adminThematicPages.formImageRemove') }}
+              </button>
             </div>
           </div>
           <div class="field">
@@ -277,7 +318,7 @@ async function handleDelete(page: AdminThematicPage) {
         <table class="admin-table">
           <thead>
             <tr>
-              <th>{{ $t('adminThematicPages.colIcon') }}</th>
+              <th>{{ $t('adminThematicPages.colImage') }}</th>
               <th>{{ $t('adminThematicPages.colTitle') }}</th>
               <th>{{ $t('adminThematicPages.colOrder') }}</th>
               <th>{{ $t('adminThematicPages.colFilters') }}</th>
@@ -287,7 +328,10 @@ async function handleDelete(page: AdminThematicPage) {
           </thead>
           <tbody>
             <tr v-for="page in pages" :key="page.id">
-              <td>{{ page.icon }}</td>
+              <td>
+                <img v-if="page.image" :src="page.image" class="image-thumb" alt="" />
+                <span v-else>{{ page.icon }}</span>
+              </td>
               <td>{{ page.title }}</td>
               <td>{{ page.order }}</td>
               <td>{{ summarizeFilters(page.filters) }}</td>
@@ -321,6 +365,14 @@ async function handleDelete(page: AdminThematicPage) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.image-preview,
+.image-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .checkbox-field {

@@ -15,10 +15,20 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "kind"]
 
 
+class RelativeImageField(serializers.ImageField):
+    """Renvoie l'URL de l'image relative (`/media/...`) plutôt qu'absolue : l'hôte vu par Django
+    derrière un reverse proxy / Docker (ex. `backend:8000`) n'est pas joignable par le navigateur."""
+
+    def to_representation(self, value):
+        return value.url if value else None
+
+
 class ThematicPageSerializer(serializers.ModelSerializer):
+    image = RelativeImageField(read_only=True)
+
     class Meta:
         model = ThematicPage
-        fields = ["id", "title", "slug", "description", "icon", "filters", "order"]
+        fields = ["id", "title", "slug", "description", "icon", "image", "filters", "order"]
 
 
 class AdminThematicPageSerializer(serializers.ModelSerializer):
@@ -26,6 +36,8 @@ class AdminThematicPageSerializer(serializers.ModelSerializer):
     `ThematicPageSerializer` (lecture seule, publique, réservée aux pages actives), celle-ci
     expose aussi `is_active` et `created_at` et autorise l'écriture pour permettre la gestion
     complète des pages thématiques depuis l'interface staff."""
+
+    image = RelativeImageField(read_only=True)
 
     class Meta:
         model = ThematicPage
@@ -35,12 +47,13 @@ class AdminThematicPageSerializer(serializers.ModelSerializer):
             "slug",
             "description",
             "icon",
+            "image",
             "filters",
             "order",
             "is_active",
             "created_at",
         ]
-        read_only_fields = ["slug", "created_at"]
+        read_only_fields = ["slug", "image", "created_at"]
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):

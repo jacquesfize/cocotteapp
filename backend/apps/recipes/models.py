@@ -96,6 +96,7 @@ class ThematicPage(models.Model):
     slug = models.SlugField(max_length=140, unique=True, blank=True)
     description = models.TextField(blank=True)
     icon = models.CharField(max_length=8, blank=True, help_text="Un emoji, ex. 🌱")
+    image = models.ImageField(upload_to="thematic_pages/", blank=True, null=True)
     filters = models.JSONField(
         default=dict,
         blank=True,

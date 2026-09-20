@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.core.files import File
 from django.core.management.base import BaseCommand
 
 from apps.recipes.models import ThematicPage
@@ -5,6 +8,9 @@ from apps.recipes.models import ThematicPage
 # Quelques pages thématiques de base, éditables ensuite depuis l'admin Django
 # (django-admin > Recipes > Thematic pages) : ajouter/retirer un filtre, changer l'ordre
 # d'affichage sur la page d'accueil, désactiver une page sans la supprimer.
+# Images par défaut, livrées avec le code : `seed_data/thematic_pages/<slug>.jpg`.
+IMAGES_DIR = Path(__file__).resolve().parent / "seed_data" / "thematic_pages"
+
 THEMATIC_PAGES = [
     {
         "title": "Produits de saison",
@@ -37,7 +43,7 @@ class Command(BaseCommand):
         created_count = 0
         updated_count = 0
         for entry in THEMATIC_PAGES:
-            _, was_created = ThematicPage.objects.update_or_create(
+            page, was_created = ThematicPage.objects.update_or_create(
                 title=entry["title"],
                 defaults={
                     "icon": entry["icon"],
@@ -46,6 +52,11 @@ class Command(BaseCommand):
                     "order": entry["order"],
                 },
             )
+            # N'écrase jamais une image téléversée depuis l'admin.
+            image_path = IMAGES_DIR / f"{page.slug}.jpg"
+            if not page.image and image_path.exists():
+                with image_path.open("rb") as fh:
+                    page.image.save(image_path.name, File(fh), save=True)
             if was_created:
                 created_count += 1
             else:
