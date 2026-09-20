@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.template.loader import render_to_string
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions, status, viewsets
@@ -27,6 +28,7 @@ from .serializers import (
     ThematicPageSerializer,
 )
 from .throttles import CommentCreateAnonThrottle
+from .transfer import ArchiveError, build_export_archive, import_archive
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -129,6 +131,43 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         recipe = create_recipe_from_cooklang(author=request.user, **serializer.validated_data)
         return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["get"], url_path="export", permission_classes=[IsAuthenticated])
+    def export_library(self, request):
+        """Archive ZIP rejouable (`import-archive`) des recettes de l'utilisateur ; avec
+        `?scope=all`, réservé au staff, de toutes les recettes de l'instance."""
+        recipes = Recipe.objects.all()
+        scope = "toutes" if request.query_params.get("scope") == "all" else "mes"
+        if scope == "toutes":
+            if not request.user.is_staff:
+                return Response(
+                    {"detail": "Réservé aux administrateurs."}, status=status.HTTP_403_FORBIDDEN
+                )
+        else:
+            recipes = recipes.filter(author=request.user)
+        content = build_export_archive(recipes)
+        response = HttpResponse(content, content_type="application/zip")
+        date_str = timezone.now().strftime("%Y-%m-%d")
+        name = "cocotte-base-recettes" if scope == "toutes" else "cocotte-recettes"
+        response["Content-Disposition"] = f'attachment; filename="{name}-{date_str}.zip"'
+        return response
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="import-archive",
+        permission_classes=[IsAuthenticated],
+        parser_classes=[MultiPartParser],
+    )
+    def import_library(self, request):
+        uploaded = request.FILES.get("file")
+        if not uploaded:
+            return Response({"detail": "A 'file' upload is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            result = import_archive(uploaded, request.user)
+        except ArchiveError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result, status=status.HTTP_201_CREATED if result["created"] else status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="pdf")
     def download_pdf(self, request, pk=None):

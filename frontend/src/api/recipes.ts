@@ -86,3 +86,20 @@ export function hideRecipeComment(
 ): Promise<RecipeComment> {
   return client.post(`recipes/${recipeId}/comments/${commentId}/hide/`).then((r) => r.data)
 }
+
+export interface RecipeArchiveImportResult {
+  created: number
+  skipped: number
+  errors: { title: string; detail: string }[]
+}
+
+export function exportRecipeLibrary(scope: 'mine' | 'all' = 'mine'): Promise<Blob> {
+  const params = scope === 'all' ? { scope } : {}
+  return client.get('recipes/export/', { params, responseType: 'blob' }).then((r) => r.data)
+}
+
+export function importRecipeLibrary(file: File): Promise<RecipeArchiveImportResult> {
+  const body = new FormData()
+  body.append('file', file)
+  return client.post('recipes/import-archive/', body).then((r) => r.data)
+}
