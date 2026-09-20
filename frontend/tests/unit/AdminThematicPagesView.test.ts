@@ -45,6 +45,7 @@ function page(overrides?: Partial<AdminThematicPage>): AdminThematicPage {
     slug: 'produits-de-saison',
     description: '',
     icon: '🌱',
+    image: null,
     filters: { in_season: 'true' },
     order: 1,
     is_active: true,

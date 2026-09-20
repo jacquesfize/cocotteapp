@@ -72,6 +72,7 @@ describe('HomeView', () => {
         title: 'Produits de saison',
         slug: 'produits-de-saison',
         icon: '🌱',
+        image: null,
         description: 'En ce moment.',
         filters: { in_season: 'true' },
         order: 0,
