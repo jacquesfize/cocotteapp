@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('homepage shows the intro and the recipe just created', async ({ page }) => {
   const suffix = Date.now()

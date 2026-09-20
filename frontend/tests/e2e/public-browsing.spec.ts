@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('anonymous visitors can browse the homepage, the recipe list and a recipe page, but cannot manage it or reach account-only pages', async ({
   page,

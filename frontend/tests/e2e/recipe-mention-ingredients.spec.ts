@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('mentioning an ingredient not yet in the recipe adds it automatically, and creating a brand new one works too', async ({
   page,

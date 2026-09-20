@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('paginates the recipe list once there are more than one page of results', async ({ page }) => {
   const suffix = Date.now()

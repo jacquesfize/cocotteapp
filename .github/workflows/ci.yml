@@ -110,6 +110,16 @@ jobs:
         working-directory: backend
         run: uv run python manage.py migrate --noinput
 
+      # Compte staff réservé aux tests e2e : la fixture (tests/e2e/fixtures.ts) s'en sert pour
+      # supprimer les ingrédients créés pendant les tests.
+      - name: Create e2e staff account
+        working-directory: backend
+        run: uv run python manage.py createsuperuser --noinput
+        env:
+          DJANGO_SUPERUSER_USERNAME: e2e-admin
+          DJANGO_SUPERUSER_EMAIL: e2e-admin@example.com
+          DJANGO_SUPERUSER_PASSWORD: e2e-admin-password
+
       - name: Start backend server
         working-directory: backend
         run: uv run python manage.py runserver 0.0.0.0:8000 &
@@ -147,6 +157,9 @@ jobs:
       - name: Run e2e tests
         working-directory: frontend
         run: npx playwright test
+        env:
+          E2E_ADMIN_EMAIL: e2e-admin@example.com
+          E2E_ADMIN_PASSWORD: e2e-admin-password
 
       - name: Upload Playwright report
         if: failure()

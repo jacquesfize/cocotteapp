@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test('a user can update their profile, export their data and delete their account', async ({ page }) => {
   const suffix = Date.now()
