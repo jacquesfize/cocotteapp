@@ -69,7 +69,7 @@ docker compose up --build      # backend :8000, frontend :5173
 
 `docker-compose.prod.yml` is the production stack (`db`, `backend` on Gunicorn, `frontend`) and
 is **standalone by default**: `frontend` runs Caddy (not nginx) as its `prod` target, so the same
-container serves the built static SPA, reverse-proxies `/api` and `/admin` to `backend`, *and*
+container serves the built static SPA, reverse-proxies `/api` and `/django-admin` to `backend`, *and*
 terminates TLS — it publishes `80`/`443` directly and obtains/renews its own Let's Encrypt
 certificate for `DOMAIN`/`ACME_EMAIL`, using `deploy/Caddyfile.standalone` (bind-mounted, not
 baked into the image, so it's editable without a rebuild). Use this mode when the app is the

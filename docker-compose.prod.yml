@@ -3,7 +3,7 @@
 #
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
 #
-# "frontend" sert la SPA, reverse-proxie /api et /admin vers "backend", et termine lui-même le
+# "frontend" sert la SPA, reverse-proxie /api et /django-admin vers "backend", et termine lui-même le
 # TLS via un Caddy interne qui obtient/renouvelle seul un certificat Let's Encrypt pour DOMAIN
 # (voir deploy/Caddyfile.standalone). C'est le mode à utiliser quand l'app est seule sur le
 # serveur.

@@ -13,7 +13,7 @@ CMD ["npm", "run", "dev", "--", "--host"]
 FROM base AS build
 RUN npm run build
 
-# --- Image de production : Caddy sert la SPA, reverse-proxie /api et /admin vers le backend, et
+# --- Image de production : Caddy sert la SPA, reverse-proxie /api et /django-admin vers le backend, et
 # (en mode standalone) termine le TLS lui-même via Let's Encrypt. Pas de Caddyfile embarqué ici :
 # il est toujours fourni par bind-mount depuis docker-compose.prod.yml / .prod.proxy.yml (voir
 # deploy/Caddyfile.standalone et deploy/Caddyfile.proxy) pour rester modifiable sans rebuild.

@@ -16,7 +16,7 @@
 		file_server
 	}
 
-	@backend path /api/* /admin/*
+	@backend path /api/* /django-admin/*
 	handle @backend {
 		reverse_proxy backend:8000 {
 			# Le Caddy hôte a déjà terminé le TLS : on peut affirmer "https" ici sans se soucier du

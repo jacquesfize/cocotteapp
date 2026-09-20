@@ -1,6 +1,6 @@
 # Caddyfile du mode standalone (défaut de docker-compose.prod.yml — voir le README, section
 # "Déploiement en production"). Monté directement dans le conteneur "frontend", qui sert la SPA,
-# reverse-proxie /api et /admin vers "backend", et termine lui-même le TLS : DOMAIN étant un vrai
+# reverse-proxie /api et /django-admin vers "backend", et termine lui-même le TLS : DOMAIN étant un vrai
 # nom de domaine, Caddy active automatiquement HTTPS et obtient/renouvelle seul le certificat
 # Let's Encrypt (email de contact : ACME_EMAIL).
 {
@@ -20,7 +20,7 @@
 		file_server
 	}
 
-	@backend path /api/* /admin/*
+	@backend path /api/* /django-admin/*
 	handle @backend {
 		reverse_proxy backend:8000
 	}

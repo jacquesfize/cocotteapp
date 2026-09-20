@@ -52,7 +52,7 @@ docker compose up --build
 
 - Frontend: `http://localhost:5173/`
 - API: `http://localhost:8000/api/`
-- Django admin: `http://localhost:8000/admin/`
+- Django admin: `http://localhost:8000/django-admin/`
 
 The first time you start the stack, the database is empty — **you must run migrations, create an
 admin account, and seed reference data before the app is usable** (nutrient thresholds and the
@@ -101,7 +101,7 @@ docker compose down -v             # stop the stack and wipe the database (re-se
 
 `docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
 `frontend` serving the built static SPA) and is **standalone by default**: `frontend` runs Caddy
-instead of nginx, so the same container serves the SPA, reverse-proxies `/api`/`/admin` to
+instead of nginx, so the same container serves the SPA, reverse-proxies `/api`/`/django-admin` to
 `backend`, *and* terminates HTTPS — no separate web server, no separate reverse-proxy container,
 no host-level dependency. An overlay file switches it to sit behind a shared host Caddy instead,
 for servers that already run several apps behind one reverse proxy.

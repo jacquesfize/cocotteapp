@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const apiTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000'
+
 export default defineConfig({
   plugins: [
     vue(),
@@ -30,9 +32,9 @@ export default defineConfig({
       },
       workbox: {
         // Le fallback de navigation (index.html) ne doit s'appliquer qu'aux routes de la SPA :
-        // /admin, /api, /static et /media sont servis par le backend (via le reverse proxy) et
+        // /django-admin, /api, /static et /media sont servis par le backend (via le reverse proxy) et
         // doivent toujours atteindre le réseau, sinon le service worker les remplace par la SPA.
-        navigateFallbackDenylist: [/^\/api\//, /^\/admin(\/|$)/, /^\/static\//, /^\/media\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/django-admin(\/|$)/, /^\/static\//, /^\/media\//],
         // Tout le reste (auth, création/édition, exports PDF/texte) passe en direct au
         // réseau : ne pas mettre en cache des écritures, ni des fichiers volumineux à
         // usage ponctuel.
@@ -86,8 +88,12 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    // Comme le reverse proxy de prod : l'API, l'admin Django et ses fichiers statiques
+    // (/static) sont servis par le backend, pas par la SPA.
     proxy: {
-      '/api': process.env.VITE_API_PROXY_TARGET || 'http://localhost:8000',
+      '/api': apiTarget,
+      '/django-admin': apiTarget,
+      '/static': apiTarget,
     },
   },
   test: {
