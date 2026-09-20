@@ -25,6 +25,24 @@ export function downloadWeekPdf(params: MealPlanEntryListParams = {}): Promise<B
   return client.get('meal-plan-entries/week-pdf/', { params, responseType: 'blob' }).then((r) => r.data)
 }
 
+export interface CalendarFeed {
+  token: string
+  url: string
+  webcal_url: string
+}
+
+export function downloadWeekIcs(params: MealPlanEntryListParams = {}): Promise<Blob> {
+  return client.get('meal-plan-entries/ics/', { params, responseType: 'blob' }).then((r) => r.data)
+}
+
+export function getCalendarFeed(): Promise<CalendarFeed> {
+  return client.get('planning/calendar-feed/').then((r) => r.data)
+}
+
+export function regenerateCalendarFeed(): Promise<CalendarFeed> {
+  return client.post('planning/calendar-feed/').then((r) => r.data)
+}
+
 export function listPlanningShares(): Promise<PlanningShare[]> {
   return client.get('planning-shares/').then((r) => r.data)
 }

@@ -215,6 +215,18 @@
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
   },
+  "calendarExport": {
+    "button": "Exporter vers l'agenda",
+    "downloadIcs": "Télécharger le fichier .ics de la semaine",
+    "subscription": "Abonnement (se met à jour automatiquement)",
+    "copyUrl": "Copier l'URL d'abonnement",
+    "copied": "URL copiée !",
+    "addToGoogle": "Ajouter à Google Agenda",
+    "regenerate": "Régénérer l'URL",
+    "regenerateConfirm": "Les agendas déjà abonnés cesseront de se mettre à jour. Continuer ?",
+    "secretHint": "Cette URL est secrète : toute personne qui la possède peut lire votre planning.",
+    "error": "Impossible de charger l'URL d'abonnement."
+  },
   "planning": {
     "title": "Agenda",
     "planRecipe": "Planifier une recette",

@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import CalendarExportMenu from '../components/CalendarExportMenu.vue'
 import MealSlot from '../components/MealSlot.vue'
 import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
@@ -311,6 +312,7 @@ const rangeLabel = computed(() => {
       <button class="secondary" @click="handleDownloadWeekPdf">
         <Download :size="16" />{{ $t('planning.downloadWeekPdf') }}
       </button>
+      <CalendarExportMenu :params="currentParams()" />
       <button :disabled="!entries.length" @click="handleGenerateShoppingList">
         <ShoppingCart :size="16" />{{ $t('planning.generateShoppingList', { n: entries.length }) }}
       </button>

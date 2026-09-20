@@ -215,6 +215,18 @@
   "recipePicker": {
     "placeholder": "Search a recipe..."
   },
+  "calendarExport": {
+    "button": "Export to calendar",
+    "downloadIcs": "Download the week as .ics file",
+    "subscription": "Subscription (updates automatically)",
+    "copyUrl": "Copy subscription URL",
+    "copied": "URL copied!",
+    "addToGoogle": "Add to Google Calendar",
+    "regenerate": "Regenerate URL",
+    "regenerateConfirm": "Calendars already subscribed will stop updating. Continue?",
+    "secretHint": "This URL is secret: anyone who has it can read your meal plan.",
+    "error": "Could not load the subscription URL."
+  },
   "planning": {
     "title": "Planner",
     "planRecipe": "Plan a recipe",

@@ -1,3 +1,5 @@
+import secrets
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -56,3 +58,24 @@ class PlanningShare(models.Model):
 
     def __str__(self):
         return f"{self.owner} -> {self.shared_with} ({self.permission})"
+
+
+def generate_feed_token():
+    return secrets.token_urlsafe(32)
+
+
+class CalendarFeedToken(models.Model):
+    """Secret token giving read-only access to a user's agenda as a subscribable ICS feed."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="calendar_feed_token"
+    )
+    token = models.CharField(max_length=64, unique=True, default=generate_feed_token)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def regenerate(self):
+        self.token = generate_feed_token()
+        self.save(update_fields=["token"])
+
+    def __str__(self):
+        return f"Calendar feed for {self.user}"
