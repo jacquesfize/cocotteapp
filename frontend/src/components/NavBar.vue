@@ -525,6 +525,16 @@ onBeforeUnmount(() => {
     gap: 0.5rem;
   }
 
+  /* Le nom de la marque cède la place aux actions plutôt que de faire déborder la page. */
+  .brand {
+    min-width: 0;
+  }
+
+  .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .nav-actions {
     gap: 0.35rem;
     min-width: 0;
