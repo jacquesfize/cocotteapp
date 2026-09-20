@@ -96,3 +96,4 @@ export const test = base.extend<{ cleanup: void }>({
 })
 
 export { expect }
+export type { Page } from '@playwright/test'
