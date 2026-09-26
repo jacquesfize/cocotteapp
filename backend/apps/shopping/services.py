@@ -3,7 +3,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from apps.ingredients.models import Unit
-from apps.ingredients.templatetags.unit_labels import unit_label
+from apps.ingredients.templatetags.unit_labels import format_quantity, unit_label
 
 from .models import ShoppingList, ShoppingListItem
 
@@ -46,5 +46,5 @@ def mark_owned(shopping_list, owned_ingredient_ids):
 def export_as_text(shopping_list):
     lines = [shopping_list.name, ""]
     for item in shopping_list.items.filter(is_owned=False).select_related("ingredient"):
-        lines.append(f"- {item.quantity} {unit_label(item.unit)} {item.ingredient.name}")
+        lines.append(f"- {format_quantity(item.quantity, item.unit)} {unit_label(item.unit)} {item.ingredient.name}")
     return "\n".join(lines)

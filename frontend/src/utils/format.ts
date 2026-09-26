@@ -15,3 +15,18 @@ export function formatUnit(unit: string | null | undefined): string {
   const key = `units.${unit}`
   return i18n.global.te(key) ? i18n.global.t(key) : unit
 }
+
+/** Unités qui ne se comptent qu'en entier (pas de "1.5 pièce" ni de "0.5 pincée"). */
+const INTEGER_UNITS = new Set(['piece', 'pinch'])
+
+/**
+ * Quantité d'ingrédient lisible : entier (arrondi au supérieur) pour les unités entières,
+ * sinon au plus 2 décimales sans zéros inutiles ("2.00" → "2", "1.50" → "1.5").
+ */
+export function formatQuantity(quantity: number | string | null | undefined, unit?: string | null): string {
+  if (quantity === null || quantity === undefined || quantity === '') return ''
+  const numeric = Number(quantity)
+  if (!Number.isFinite(numeric)) return String(quantity)
+  if (unit && INTEGER_UNITS.has(unit)) return String(Math.ceil(numeric))
+  return String(Math.round(numeric * 100) / 100)
+}
