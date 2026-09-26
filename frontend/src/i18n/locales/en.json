@@ -174,7 +174,15 @@
     "cooklangHint": "Use the \\@ingredient{'{'}quantity%unit{'}'} syntax, e.g. \\@olive_oil{'{'}2%tbsp{'}'}.",
     "cooklangPlaceholder": "Fry the \\@onion{'{'}1%piece{'}'} in \\@olive_oil{'{'}2%tbsp{'}'}...",
     "cooklangImportButton": "Import",
-    "cooklangImportError": "Failed to import the Cooklang text."
+    "cooklangImportError": "Failed to import the Cooklang text.",
+    "cookMode": "Cook mode",
+    "cookModeStep": "Step {current} / {total}",
+    "cookModeIngredients": "Show ingredients",
+    "cookModePrev": "Previous step",
+    "cookModeNext": "Next step",
+    "cookModeGoToStep": "Go to step {n}",
+    "cookModeWatchVideo": "Watch the video",
+    "cookModeTimerDefaultLabel": "Timer"
   },
   "comments": {
     "title": "Comments",

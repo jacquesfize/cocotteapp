@@ -11,6 +11,16 @@ current state of the `main` branch.
 
 ### Added
 
+- **Cook mode**: a full-screen, swipeable view of a recipe's steps (one step per screen, with
+  Previous/Next buttons, a swipe gesture on touch devices, or the arrow keys, animated with a
+  directional slide transition), designed for reading a recipe on a phone while cooking. The
+  ingredient list stays one tap away in a toggleable panel that closes on an outside click or
+  Escape, and tapping a highlighted ingredient in a step opens its quantity in a small popup
+  instead of jumping away from the step. A timer started from a step is automatically pinned to a
+  dock at the bottom of the screen with its own controls, so it keeps counting down and stays
+  visible and controllable even after swiping to another step; several timers running at once
+  each get their own row. A discreet link to the recipe's YouTube video (when there is one) sits
+  next to the step counter.
 - **Documentation website**: user, administrator and contributor documentation built with MkDocs
   Material, published to [GitHub Pages](https://jacquesfize.github.io/cocotteapp/), with
   generated screenshots, this changelog and a contributing guide.

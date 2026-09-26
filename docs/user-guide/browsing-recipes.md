@@ -148,6 +148,34 @@ In the **Steps** card:
 
 ![The Ingredients and Steps cards: ingredient names highlighted in the steps, and 5 min and 50 min timer buttons](../assets/screenshots/recipe-detail-steps.png)
 
+### Cook mode
+
+If the recipe has steps, a prominent **Cook mode** button appears above the diet/servings/time
+badges (next to a small **Download as PDF** icon). It opens a full-screen, one-step-at-a-time
+view, with an animated slide as you move between steps, meant for following along on a phone
+while cooking:
+
+![Cook mode showing one step, with highlighted ingredient names](../assets/screenshots/mobile-cookmode-step.png)
+
+- Move between steps with the **‹** / **›** buttons on the sides, a swipe left/right on a touch
+  screen, the dots at the bottom, or the ← / → arrow keys.
+- The **ingredients** button (top right) slides up a panel with every ingredient and its
+  quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
+  by tapping outside it.
+- Tapping a highlighted ingredient name in a step opens its quantity in a small popup, closable
+  the same ways.
+- If the recipe has a YouTube video, a small play icon next to the step counter opens it in a
+  new tab.
+- Starting a timer in a step pins it to a dock at the bottom of the screen with its own
+  pause/resume and reset buttons. It keeps counting down, and stays in the dock, even after you
+  move to another step — so a "rest 10 min" timer from step 2 is still visible and controllable
+  while you're reading step 5. Several timers running at once each get their own row in the dock.
+- Close cook mode with the **✕** button or the **Escape** key.
+
+![A running timer, shown both inline in the step and pinned to the dock at the bottom](../assets/screenshots/mobile-cookmode-timer-dock.png)
+
+![The ingredients panel open over a step, with a dimmed backdrop behind it](../assets/screenshots/mobile-cookmode-ingredients.png)
+
 ### Use a step timer
 
 1. Click the timer button in the step. The countdown starts.

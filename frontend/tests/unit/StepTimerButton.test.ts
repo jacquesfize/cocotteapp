@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
+import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import StepTimerButton from '../../src/components/StepTimerButton.vue'
+import { useStepTimer } from '../../src/composables/useStepTimer'
 import { i18n } from '../../src/i18n'
 
 function mountTimer(seconds: number, label?: string) {
@@ -8,6 +10,20 @@ function mountTimer(seconds: number, label?: string) {
     props: { seconds, label },
     global: { plugins: [i18n] },
   })
+}
+
+// Deux pastilles pilotant le même minuteur partagé (cas du mode cuisine, où la pastille inline
+// et le dock affichent/contrôlent la même instance) : construite via un composant hôte, puisque
+// useStepTimer() a besoin d'un contexte de composant actif (useI18n/onBeforeUnmount).
+function mountSharedTimer(seconds: number, label?: string) {
+  const Host = defineComponent({
+    setup() {
+      const handle = useStepTimer(seconds, label)
+      return () =>
+        h('div', [h(StepTimerButton, { handle, label, ref: 'a' }), h(StepTimerButton, { handle, label, ref: 'b' })])
+    },
+  })
+  return mount(Host, { global: { plugins: [i18n] } })
 }
 
 beforeEach(() => {
@@ -95,6 +111,23 @@ describe('StepTimerButton', () => {
 
     expect(wrapper.find('[role="timer"]').exists()).toBe(false)
     expect(wrapper.find('button').text()).toContain('2 min')
+  })
+
+  it('shares state between two instances given the same handle', async () => {
+    const wrapper = mountSharedTimer(120, 'repos')
+    const [chipA, chipB] = wrapper.findAllComponents(StepTimerButton)
+
+    await chipA.find('button').trigger('click')
+
+    expect(chipA.find('[role="timer"]').exists()).toBe(true)
+    expect(chipB.find('[role="timer"]').exists()).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(chipA.find('[role="timer"]').text()).toContain('1:57')
+    expect(chipB.find('[role="timer"]').text()).toContain('1:57')
+
+    await chipB.get('[aria-label="Mettre en pause"]').trigger('click')
+    expect(chipA.find('[aria-label="Reprendre"]').exists()).toBe(true)
   })
 })
 

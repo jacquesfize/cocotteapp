@@ -351,6 +351,27 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
   await expect(page.locator('.recipe-photo')).toBeVisible()
   await shotPage(page, 'mobile-recipe-detail')
 
+  await test.step('cook mode', async () => {
+    await page.getByRole('button', { name: 'Cook mode' }).click()
+    const cookMode = page.locator('.cook-mode')
+    await expect(cookMode).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-step')
+
+    await cookMode.locator('.cook-mode-nav.next').click()
+    await page.waitForTimeout(500) // let the out-in step transition settle
+    await cookMode.locator('.timer-chip').first().click()
+    await expect(cookMode.locator('.cook-mode-timer-dock')).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-timer-dock')
+
+    await cookMode.getByRole('button', { name: 'Show ingredients' }).click()
+    await expect(cookMode.locator('.cook-mode-ingredients')).toHaveClass(/open/)
+    await shotElement(cookMode, 'mobile-cookmode-ingredients')
+
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(cookMode).toBeHidden()
+  })
+
   await page.goto(`/shopping-lists/${data.shoppingListId}`)
   await expect(page.locator('.item-row').first()).toBeVisible()
   await settle(page)

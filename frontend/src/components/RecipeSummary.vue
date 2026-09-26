@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { Clock, Download, Flame, Link2, Users, Utensils } from '@lucide/vue'
-import { computed } from 'vue'
+import { Clock, Download, Flame, Link2, Maximize2, Users, Utensils } from '@lucide/vue'
+import { computed, ref } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
 import NutritionCard from './NutritionCard.vue'
+import RecipeCookMode from './RecipeCookMode.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../api/recipes'
-import { parseIngredientMentions } from '../utils/cooklangMentions'
-import { parseTimerMentions } from '../utils/cooklangTimers'
+import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
 import { downloadBlob } from '../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../utils/format'
 import { imageCreditDomain } from '../utils/imageCredit'
-import type { Recipe, RecipeIngredient } from '../types/models'
+import type { Recipe } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
 }>()
+
+const showCookMode = ref(false)
 
 // Crédit ("image via <domaine>") affiché sous l'image dès qu'une recette importée en a une,
 // que son contenu soit restreint ou non (voir RecipeRestrictedNotice.vue pour l'équivalent côté
@@ -24,71 +26,11 @@ const imageCredit = computed(() =>
   !props.recipe.image && props.recipe.image_url ? imageCreditDomain(props.recipe.source_url) : null,
 )
 
-interface IngredientGroup {
-  name: string | null
-  items: RecipeIngredient[]
-}
+// Voir frontend/src/utils/recipeSteps.ts (partagé avec le mode cuisine plein écran).
+const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredients))
 
-// Les ingrédients sont ordonnés côté backend (RecipeIngredient.order) : on regroupe donc les
-// group_name identiques et consécutifs sous un même intertitre plutôt que de le répéter en
-// texte entre parenthèses sur chaque ligne.
-const ingredientGroups = computed<IngredientGroup[]>(() => {
-  const groups: IngredientGroup[] = []
-  for (const item of props.recipe.ingredients) {
-    const name = item.group_name || null
-    const last = groups[groups.length - 1]
-    if (last && last.name === name) {
-      last.items.push(item)
-    } else {
-      groups.push({ name, items: [item] })
-    }
-  }
-  return groups
-})
-
-interface StepSegment {
-  text: string
-  ingredientId?: number
-  timerSeconds?: number
-  timerLabel?: string
-}
-
-// Découpe le texte d'une étape en segments pour mettre en évidence les "@mentions"
-// d'ingrédients (reliées à l'ingrédient correspondant dans la liste ci-contre) et les
-// minuteurs "~{quantité%unité}" (voir frontend/src/utils/cooklangMentions.ts et
-// cooklangTimers.ts pour la syntaxe).
-function stepSegments(instruction: string): StepSegment[] {
-  const mentions = parseIngredientMentions(instruction).map((mention) => ({ kind: 'mention' as const, ...mention }))
-  const timers = parseTimerMentions(instruction)
-    .filter((timer) => timer.totalSeconds !== null)
-    .map((timer) => ({ kind: 'timer' as const, ...timer }))
-  const ranges = [...mentions, ...timers].sort((a, b) => a.start - b.start)
-  if (!ranges.length) return [{ text: instruction }]
-
-  const segments: StepSegment[] = []
-  let cursor = 0
-  for (const range of ranges) {
-    if (range.start > cursor) {
-      segments.push({ text: instruction.slice(cursor, range.start) })
-    }
-    if (range.kind === 'mention') {
-      const match = props.recipe.ingredients.find(
-        (item) => item.ingredient.name.toLowerCase() === range.displayName.toLowerCase(),
-      )
-      segments.push({ text: range.displayName, ingredientId: match?.ingredient.id })
-    } else {
-      segments.push({
-        text: instruction.slice(range.start, range.end),
-        timerSeconds: range.totalSeconds ?? undefined,
-        timerLabel: range.displayName || undefined,
-      })
-    }
-    cursor = range.end
-  }
-  if (cursor < instruction.length) {
-    segments.push({ text: instruction.slice(cursor) })
-  }
-  return segments
+function stepSegments(instruction: string) {
+  return buildStepSegments(instruction, props.recipe.ingredients)
 }
 
 async function handleDownloadPdf() {
@@ -100,15 +42,25 @@ async function handleDownloadPdf() {
 <template>
   <div>
     <div class="row summary-header">
+      <div class="row header-actions">
+        <button
+          v-if="recipe.steps.length"
+          class="cook-mode-button"
+          :aria-label="$t('recipes.cookMode')"
+          @click="showCookMode = true"
+        >
+          <Maximize2 :size="16" /><span class="cook-mode-label">{{ $t('recipes.cookMode') }}</span>
+        </button>
+        <button class="secondary download-button" :aria-label="$t('recipes.downloadPdf')" @click="handleDownloadPdf">
+          <Download :size="16" />
+        </button>
+      </div>
       <div class="meta-chips">
         <span class="meta-chip"><Utensils :size="14" />{{ $t(`diet.${recipe.diet_type}`) }}</span>
         <span class="meta-chip"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</span>
         <span class="meta-chip"><Clock :size="14" />{{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }}</span>
         <span class="meta-chip"><Flame :size="14" />{{ $t('recipes.cook') }} {{ formatDuration(recipe.cook_time_minutes) }}</span>
       </div>
-      <button class="secondary download-button" :aria-label="$t('recipes.downloadPdf')" @click="handleDownloadPdf">
-        <Download :size="16" /><span class="download-label">{{ $t('recipes.downloadPdf') }}</span>
-      </button>
     </div>
 
     <AllergenBadges
@@ -188,6 +140,8 @@ async function handleDownloadPdf() {
     </div>
 
     <NutritionCard :recipe-id="recipe.id" style="margin-top: 1rem" />
+
+    <RecipeCookMode v-if="showCookMode" :recipe="recipe" @close="showCookMode = false" />
   </div>
 </template>
 
@@ -197,11 +151,26 @@ async function handleDownloadPdf() {
 }
 
 .summary-header {
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+@media (min-width: 700px) {
+  .summary-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .meta-chips {
+    order: 1;
+  }
+
+  .header-actions {
+    order: 2;
+  }
 }
 
 .meta-chips {
@@ -209,6 +178,11 @@ async function handleDownloadPdf() {
   flex-wrap: wrap;
   gap: 0.5rem;
   min-width: 0;
+}
+
+.header-actions {
+  justify-content: flex-start;
+  flex-shrink: 0;
 }
 
 .meta-chip {
@@ -229,12 +203,22 @@ async function handleDownloadPdf() {
   flex-shrink: 0;
 }
 
-.download-button {
+.download-button,
+.cook-mode-button {
   flex-shrink: 0;
 }
 
+.download-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-height: auto;
+  padding: 0;
+  border-radius: 999px;
+  justify-content: center;
+}
+
 @media (max-width: 480px) {
-  .download-button {
+  .cook-mode-button {
     width: 2.75rem;
     height: 2.75rem;
     min-height: auto;
@@ -243,7 +227,7 @@ async function handleDownloadPdf() {
     justify-content: center;
   }
 
-  .download-label {
+  .cook-mode-label {
     display: none;
   }
 }

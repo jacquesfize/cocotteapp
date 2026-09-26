@@ -174,7 +174,15 @@
     "cooklangHint": "Utilisez la syntaxe \\@ingrédient{'{'}quantité%unité{'}'}, par ex. \\@huile_olive{'{'}2%cs{'}'}.",
     "cooklangPlaceholder": "Faire revenir \\@oignon{'{'}1%piece{'}'} dans \\@huile_olive{'{'}2%cs{'}'}...",
     "cooklangImportButton": "Importer",
-    "cooklangImportError": "Échec de l'import du texte Cooklang."
+    "cooklangImportError": "Échec de l'import du texte Cooklang.",
+    "cookMode": "Mode cuisine",
+    "cookModeStep": "Étape {current} / {total}",
+    "cookModeIngredients": "Voir les ingrédients",
+    "cookModePrev": "Étape précédente",
+    "cookModeNext": "Étape suivante",
+    "cookModeGoToStep": "Aller à l'étape {n}",
+    "cookModeWatchVideo": "Voir la vidéo",
+    "cookModeTimerDefaultLabel": "Minuteur"
   },
   "comments": {
     "title": "Commentaires",
