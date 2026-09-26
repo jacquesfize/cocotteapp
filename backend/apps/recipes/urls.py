@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RecipeCommentHideView,
     RecipeCommentListCreateView,
+    RecipeRatingView,
     RecipeViewSet,
     TagViewSet,
     ThematicPageViewSet,
@@ -24,5 +25,10 @@ urlpatterns = [
         "recipes/<int:recipe_id>/comments/<int:pk>/hide/",
         RecipeCommentHideView.as_view(),
         name="recipe-comment-hide",
+    ),
+    path(
+        "recipes/<int:recipe_id>/rate/",
+        RecipeRatingView.as_view(),
+        name="recipe-rate",
     ),
 ] + router.urls

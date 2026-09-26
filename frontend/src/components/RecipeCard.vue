@@ -81,6 +81,13 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
       </p>
       <ul v-else class="meta">
         <li class="diet-badge" :class="`diet-${recipe.diet_type}`">{{ $t(`diet.${recipe.diet_type}`) }}</li>
+        <li
+          v-if="recipe.average_rating != null"
+          class="rating-badge"
+          :title="$t('ratings.average', { value: recipe.average_rating.toFixed(1), count: recipe.ratings_count })"
+        >
+          ★ {{ recipe.average_rating.toFixed(1) }}
+        </li>
         <li :title="timeDetail"><Clock :size="14" />{{ formatDuration(recipe.total_time_minutes) }}</li>
         <li v-if="recipe.servings"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</li>
         <li v-if="carbon" class="carbon" :class="`carbon-${carbon.level}`" :title="$t('recipes.carbonFootprint')">
@@ -247,6 +254,11 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 .diet-vegan {
   background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
   color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+}
+
+.rating-badge {
+  color: var(--color-primary-dark);
+  font-weight: 600;
 }
 
 .carbon-low {

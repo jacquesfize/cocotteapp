@@ -200,6 +200,15 @@
     "hideError": "Impossible de modifier ce commentaire.",
     "hiddenBadge": "masqué"
   },
+  "ratings": {
+    "average": "{value} ★ ({count})",
+    "none": "Pas encore noté",
+    "rateAction": "Noter cette recette",
+    "starLabel": "{count} étoile(s)",
+    "yours": "Votre note : {value}/5",
+    "submitError": "Impossible d'enregistrer votre note.",
+    "throttled": "Trop de votes récents, réessayez plus tard."
+  },
   "home": {
     "title": "Cocotte",
     "tagline": "Rangez vos recettes, planifiez votre semaine et voyez la valeur nutritionnelle et l'empreinte carbone de chaque repas.",

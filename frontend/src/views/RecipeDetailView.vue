@@ -5,9 +5,11 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeComments from '../components/RecipeComments.vue'
+import RecipeRating from '../components/RecipeRating.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
+import type { RecipeRatingResult } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
 import { isImportedRecipe } from '../utils/recipeOrigin'
 import type { Recipe } from '../types/models'
@@ -44,6 +46,13 @@ const canFork = computed(
   () => Boolean(recipe.value) && (!recipe.value?.content_restricted || isOwner.value),
 )
 const hasActions = computed(() => isOwner.value || canFork.value)
+
+function handleRated(result: RecipeRatingResult) {
+  if (!recipe.value) return
+  recipe.value.average_rating = result.average_rating
+  recipe.value.ratings_count = result.ratings_count
+  recipe.value.my_rating = result.my_rating
+}
 
 function closeActionsMenu() {
   showActionsMenu.value = false
@@ -117,6 +126,14 @@ async function handleFork() {
         <p v-if="authorLine" class="byline muted" data-testid="recipe-byline">
           <Download v-if="isImported" :size="14" /><span>{{ authorLine }}</span>
         </p>
+        <RecipeRating
+          :key="recipe.id"
+          :recipe-id="recipe.id"
+          :average-rating="recipe.average_rating"
+          :ratings-count="recipe.ratings_count"
+          :my-rating="recipe.my_rating"
+          @rated="handleRated"
+        />
       </div>
       <div v-if="authStore.isAuthenticated && hasActions" ref="actionsEl" class="actions-menu">
         <button

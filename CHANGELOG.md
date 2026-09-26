@@ -58,6 +58,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - **Comments**: anyone can comment on a recipe without an account (rate-limited); the recipe
   author or staff can hide abusive comments
   ([#12](https://github.com/jacquesfize/cocotteapp/pull/12)).
+- **Anonymous star ratings**: rate any recipe 1-5 stars without an account and without giving a
+  name — separate from comments. An anonymous vote is deduplicated by a salted hash of the
+  voter's IP (never stored in the clear) so re-voting updates their own rating instead of padding
+  the average; a signed-in vote is tied to the account instead. Rate-limited like comments.
 - **Random recipe** page, honouring the same filters as the search, with a direct "add to
   planner" form.
 - **Search and filters**: by ingredient, season, diet, preparation/cooking time and carbon

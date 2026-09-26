@@ -200,6 +200,15 @@
     "hideError": "Could not update this comment.",
     "hiddenBadge": "hidden"
   },
+  "ratings": {
+    "average": "{value} ★ ({count})",
+    "none": "Not rated yet",
+    "rateAction": "Rate this recipe",
+    "starLabel": "{count} star(s)",
+    "yours": "Your rating: {value}/5",
+    "submitError": "Could not save your rating.",
+    "throttled": "Too many recent votes, try again later."
+  },
   "home": {
     "title": "Cocotte",
     "tagline": "Store your recipes, plan your week, and see the nutrition and carbon footprint of every meal.",
