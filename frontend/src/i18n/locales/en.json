@@ -390,7 +390,8 @@
     "shareListTitle": "People with access to my agenda",
     "shareListEmpty": "You haven't shared your agenda with anyone.",
     "shareRevoke": "Revoke",
-    "shareRevokeConfirm": "Do you really want to revoke this person's access to your agenda?"
+    "shareRevokeConfirm": "Do you really want to revoke this person's access to your agenda?",
+    "version": "Cocotte v{version}"
   },
   "admin": {
     "usersTitle": "Users",

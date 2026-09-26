@@ -195,3 +195,8 @@ recipes, your planner and your shopping lists. It cannot be undone.
 > [!CAUTION]
 > Your recipes are deleted too, including recipes other people may have planned. Download
 > **Export my data** and **Export my recipes** first if you might want them later.
+
+### App version
+
+At the very bottom of the page, below the Danger zone card, Cocotte shows the version it's
+running (for example *Cocotte v0.1.0*) — useful if you're reporting a bug.

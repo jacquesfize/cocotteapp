@@ -16,6 +16,7 @@ import type { ActivityLevel, Allergen, DietType, PlanningPermission, PlanningSha
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const appVersion = __APP_VERSION__
 
 const profile = ref<{
   username: string
@@ -435,6 +436,8 @@ async function handleDeleteAccount() {
         <Trash2 :size="16" />{{ $t('account.deleteAccountButton') }}
       </button>
     </div>
+
+    <p class="app-version">{{ $t('account.version', { version: appVersion }) }}</p>
   </div>
 </template>
 
@@ -514,6 +517,13 @@ async function handleDeleteAccount() {
 
 .danger-zone {
   border: 1.5px solid var(--color-danger-soft);
+}
+
+.app-version {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-muted);
 }
 
 .share-list {
