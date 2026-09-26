@@ -8,7 +8,7 @@ import { downloadRecipePdf } from '../api/recipes'
 import { parseIngredientMentions } from '../utils/cooklangMentions'
 import { parseTimerMentions } from '../utils/cooklangTimers'
 import { downloadBlob } from '../utils/download'
-import { formatDuration, formatUnit } from '../utils/format'
+import { formatDuration, formatQuantity, formatUnit } from '../utils/format'
 import { imageCreditDomain } from '../utils/imageCredit'
 import type { Recipe, RecipeIngredient } from '../types/models'
 
@@ -155,7 +155,7 @@ async function handleDownloadPdf() {
           <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
           <ul class="ingredient-list">
             <li v-for="item in group.items" :key="item.id" :id="`ingredient-${item.ingredient.id}`" class="ingredient-row">
-              <span class="ingredient-qty">{{ item.quantity }} {{ formatUnit(item.unit) }}</span>
+              <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
               <RouterLink
                 :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
                 class="ingredient-name"

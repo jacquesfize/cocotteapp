@@ -463,6 +463,10 @@
     "tsp": "c. à café",
     "pinch": "pincée"
   },
+  "unitsPlural": {
+    "piece": "pièces",
+    "pinch": "pincées"
+  },
   "adminIngredients": {
     "title": "Ingrédients",
     "subtitle": "Gérer la bibliothèque d'ingrédients : noms, nutrition, saisonnalité et empreinte carbone.",
