@@ -199,3 +199,23 @@ describe('RecipeDetailView byline', () => {
     expect(wrapper.find('[data-testid="recipe-byline"]').exists()).toBe(false)
   })
 })
+
+describe('RecipeDetailView source link', () => {
+  it('puts the Source button on the photo when the recipe has an image', async () => {
+    vi.mocked(getRecipe).mockResolvedValue(
+      baseRecipe({ source_url: 'https://example.com/curry', image_url: 'https://example.com/curry.jpg' }),
+    )
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('.photo-source-button').attributes('href')).toBe('https://example.com/curry')
+    expect(wrapper.find('.source-link').exists()).toBe(false)
+  })
+
+  it('keeps the standalone Source link when there is no photo', async () => {
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe({ source_url: 'https://example.com/curry' }))
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('.source-link').exists()).toBe(true)
+    expect(wrapper.find('.photo-source-button').exists()).toBe(false)
+  })
+})

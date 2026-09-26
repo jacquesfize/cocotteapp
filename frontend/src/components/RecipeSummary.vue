@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Clock, Download, Flame, Users, Utensils } from '@lucide/vue'
+import { Clock, Download, Flame, Link2, Users, Utensils } from '@lucide/vue'
 import { computed } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
 import NutritionCard from './NutritionCard.vue'
@@ -119,7 +119,20 @@ async function handleDownloadPdf() {
 
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
       <div v-if="recipe.image || recipe.image_url" class="recipe-photo-wrapper">
-        <img :src="recipe.image || recipe.image_url" class="recipe-photo" alt="" />
+        <!-- Même bouton "Source" centré sur la photo que RecipeRestrictedNotice.vue ; sans photo,
+             RecipeDetailView.vue affiche le lien Source au-dessus du contenu. -->
+        <div class="recipe-photo-frame">
+          <img :src="recipe.image || recipe.image_url" class="recipe-photo" alt="" />
+          <a
+            v-if="recipe.source_url"
+            :href="recipe.source_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="photo-source-button"
+          >
+            <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
+          </a>
+        </div>
         <p v-if="imageCredit" class="image-credit muted">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</p>
       </div>
 
@@ -253,6 +266,34 @@ async function handleDownloadPdf() {
   height: 320px;
   object-fit: cover;
   border-radius: 20px;
+}
+
+.recipe-photo-frame {
+  position: relative;
+}
+
+.photo-source-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+  white-space: nowrap;
+}
+
+.photo-source-button:hover {
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .image-credit {
