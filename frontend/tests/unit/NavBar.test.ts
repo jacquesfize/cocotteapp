@@ -16,25 +16,39 @@ function mountNavBar() {
   return mount(NavBar, { global: { plugins: [i18n, router] } })
 }
 
-describe('NavBar mobile auth buttons', () => {
+describe('NavBar header actions', () => {
   beforeEach(() => {
     localStorage.clear()
     setActivePinia(createPinia())
   })
 
-  it('renders login and register links in the header actions when logged out', () => {
+  it('renders a single login icon link instead of the account menu when logged out', () => {
     const wrapper = mountNavBar()
-    const block = wrapper.find('[data-testid="mobile-auth"]')
-    expect(block.exists()).toBe(true)
-    expect(block.findAll('a').map((a) => a.attributes('href'))).toEqual(['/login', '/register'])
+    const login = wrapper.find('[data-testid="login-button"]')
+    expect(login.attributes('href')).toBe('/login')
+    expect(login.attributes('aria-label')).toBe('Connexion')
+    expect(wrapper.find('#account-panel').exists()).toBe(false)
   })
 
-  it('hides them when authenticated', () => {
+  it('shows the account menu instead of the login link when authenticated', () => {
     localStorage.setItem('access_token', 'token')
     setActivePinia(createPinia())
     const store = useAuthStore()
     expect(store.isAuthenticated).toBe(true)
     const wrapper = mountNavBar()
-    expect(wrapper.find('[data-testid="mobile-auth"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="login-button"]').exists()).toBe(false)
+    expect(wrapper.find('#account-panel').exists()).toBe(true)
+  })
+
+  it('switches language from the locale button, whether logged in or not', async () => {
+    const wrapper = mountNavBar()
+    const button = wrapper.find('[data-testid="locale-button"]')
+    expect(button.attributes('aria-label')).toBe('Langue : Français')
+    await button.trigger('click')
+    const english = wrapper.findAll('.locale-option').find((o) => o.text().includes('English'))!
+    await english.trigger('click')
+    expect(i18n.global.locale.value).toBe('en')
+    expect(button.attributes('aria-label')).toBe('Language: English')
+    i18n.global.locale.value = 'fr'
   })
 })
