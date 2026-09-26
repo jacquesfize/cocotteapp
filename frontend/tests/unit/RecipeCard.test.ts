@@ -87,4 +87,52 @@ describe('RecipeCard', () => {
 
     expect(wrapper.find('.thumb').exists()).toBe(false)
   })
+
+  it('shows a compact image credit under the thumbnail in row variant', () => {
+    const wrapper = mountCard({
+      id: 5,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 40,
+      image_url: 'https://x/tarte.jpg',
+      source_url: 'https://cuisine.example/tarte',
+    })
+
+    expect(wrapper.find('.thumb-credit').exists()).toBe(true)
+    expect(wrapper.find('.thumb-credit').text()).toBe('cuisine.example')
+  })
+
+  it('shows a full image credit line in tile variant', () => {
+    const wrapper = mount(RecipeCard, {
+      props: {
+        recipe: {
+          id: 6,
+          title: 'Tarte',
+          diet_type: 'omnivore',
+          total_time_minutes: 40,
+          image_url: 'https://x/tarte.jpg',
+          source_url: 'https://cuisine.example/tarte',
+        } as Recipe,
+        variant: 'tile',
+      },
+      global: { plugins: [i18n, createPinia()], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+    })
+
+    expect(wrapper.find('.tile-credit').exists()).toBe(true)
+    expect(wrapper.find('.tile-credit').text()).toContain('cuisine.example')
+    expect(wrapper.find('.thumb-credit').exists()).toBe(false)
+  })
+
+  it('does not show a credit for a self-uploaded image', () => {
+    const wrapper = mountCard({
+      id: 7,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 40,
+      image: 'https://x/tarte-uploaded.jpg',
+      source_url: 'https://cuisine.example/tarte',
+    })
+
+    expect(wrapper.find('.thumb-credit').exists()).toBe(false)
+  })
 })

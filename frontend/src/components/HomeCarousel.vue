@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { formatDuration } from '../utils/format'
+import { imageCreditDomain } from '../utils/imageCredit'
 import type { Recipe } from '../types/models'
 
 defineProps<{ recipes: Recipe[] }>()
+
+function creditFor(recipe: Recipe) {
+  return !recipe.image && recipe.image_url ? imageCreditDomain(recipe.source_url) : null
+}
 
 const track = ref<HTMLElement | null>(null)
 const active = ref(0)
@@ -48,6 +53,7 @@ function goTo(index: number) {
           <p>{{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}</p>
         </div>
         <span class="pill">{{ $t('home.viewRecipe') }}</span>
+        <span v-if="creditFor(recipe)" class="credit">{{ $t('recipes.imageCredit', { domain: creditFor(recipe) }) }}</span>
       </RouterLink>
     </div>
     <div class="dots" role="tablist">
@@ -143,6 +149,15 @@ function goTo(index: number) {
   color: #241f1d;
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.credit {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 1.4rem;
+  color: inherit;
+  opacity: 0.75;
+  font-size: 0.7rem;
 }
 
 .dots {
