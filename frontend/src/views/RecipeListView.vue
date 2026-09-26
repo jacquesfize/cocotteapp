@@ -7,7 +7,7 @@ import Pagination from '../components/Pagination.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import RecipeFilters, { type RecipeFilterValues } from '../components/RecipeFilters.vue'
 import { previewImportFromUrl } from '../api/importer'
-import { listRecipes } from '../api/recipes'
+import { deleteRecipe, listRecipes } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
 import { setPendingImportDraft } from '../utils/pendingImportDraft'
 import type { RecipeListParams } from '../types/api'
@@ -84,6 +84,22 @@ async function load() {
   } finally {
     isLoading.value = false
   }
+}
+
+const deleteError = ref('')
+
+async function handleDelete(recipe: Recipe) {
+  if (!confirm(t('recipes.deleteNamedConfirm', { title: recipe.title }))) return
+  deleteError.value = ''
+  try {
+    await deleteRecipe(recipe.id)
+  } catch {
+    deleteError.value = t('recipes.deleteError')
+    return
+  }
+  // Si l'on vient de vider la dernière page, on recule d'une page plutôt que d'afficher une liste vide.
+  if (recipes.value.length === 1 && page.value > 1) page.value -= 1
+  await load()
 }
 
 function goToPage(newPage: number) {
@@ -209,10 +225,17 @@ async function handleImport() {
 
     <RecipeFilters v-model="filters" :my-allergens="myAllergens" />
 
+    <p v-if="deleteError" class="error">{{ deleteError }}</p>
     <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
     <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>
     <div v-else class="card recipe-list">
-      <RecipeCard v-for="recipe in recipes" :key="recipe.id" :recipe="recipe" />
+      <RecipeCard
+        v-for="recipe in recipes"
+        :key="recipe.id"
+        :recipe="recipe"
+        manageable
+        @delete="handleDelete"
+      />
     </div>
 
     <Pagination :page="page" :count="count" @update:page="goToPage" />
