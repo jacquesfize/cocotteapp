@@ -58,8 +58,6 @@
     "username": "Username",
     "password": "Password",
     "loginButton": "Log in",
-    "noAccount": "No account yet?",
-    "signUp": "Sign up",
     "invalidCredentials": "Invalid credentials.",
     "registerTitle": "Sign up",
     "email": "Email",
@@ -76,7 +74,14 @@
     "resetPasswordTitle": "Choose a new password",
     "resetPasswordButton": "Set the new password",
     "resetPasswordError": "This reset link is invalid or has expired.",
-    "resetPasswordSuccess": "Password changed, you can now log in."
+    "resetPasswordSuccess": "Password changed, you can now log in.",
+    "or": "Or",
+    "browseWithoutAccount": "Browse recipes without an account",
+    "showInput": "Show input",
+    "hideInput": "Hide input",
+    "loginTab": "Log in",
+    "registerTab": "Sign up",
+    "tabsLabel": "Log in or sign up"
   },
   "recipes": {
     "title": "Recipes",

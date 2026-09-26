@@ -18,13 +18,15 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/LoginView.vue'),
+    component: () => import('../views/AuthView.vue'),
+    props: { mode: 'login' },
     meta: { public: true },
   },
   {
     path: '/register',
     name: 'register',
-    component: () => import('../views/RegisterView.vue'),
+    component: () => import('../views/AuthView.vue'),
+    props: { mode: 'register' },
     meta: { public: true },
   },
   {
