@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeComments from '../components/RecipeComments.vue'
+import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -88,8 +89,9 @@ async function handleFork() {
   try {
     const created = await forkRecipe(recipe.value.id, forkLabel.value.trim())
     router.push({ name: 'recipe-edit', params: { id: created.id } })
-  } catch {
-    forkError.value = t('recipes.forkError')
+  } catch (err) {
+    const status = (err as { response?: { status?: number } }).response?.status
+    forkError.value = status === 403 ? t('recipes.restrictedForkError') : t('recipes.forkError')
   } finally {
     forking.value = false
   }
@@ -139,7 +141,7 @@ async function handleFork() {
             </button>
           </template>
           <button
-            v-if="!showForkForm"
+            v-if="!showForkForm && (!recipe.content_restricted || isOwner)"
             class="actions-link"
             @click="showForkForm = true; closeActionsMenu()"
           >
@@ -166,7 +168,8 @@ async function handleFork() {
     </div>
     <p v-if="forkError" class="error">{{ forkError }}</p>
 
-    <RecipeSummary :recipe="recipe" />
+    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
+    <RecipeRestrictedNotice v-else :recipe="recipe" />
     <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
 
     <div v-if="recipe.versions.length" class="versions-section">

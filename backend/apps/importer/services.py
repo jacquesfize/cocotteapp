@@ -45,6 +45,24 @@ def _parse_servings(scraper):
         return 4
 
 
+def fetch_og_image(url: str) -> str | None:
+    """Best-effort fetch of the source page's `og:image` `<meta>` tag, used as a fallback when
+    the recipe scraper itself couldn't find an image. Never raises: any network/parsing failure
+    (timeout, non-2xx, missing tag) just means no image, not a broken import."""
+    import requests
+    from bs4 import BeautifulSoup
+
+    try:
+        response = requests.get(url, timeout=8, headers={"User-Agent": "Mozilla/5.0"})
+        response.raise_for_status()
+    except Exception:
+        return None
+    soup = BeautifulSoup(response.text, "html.parser")
+    tag = soup.find("meta", property="og:image") or soup.find("meta", attrs={"name": "og:image"})
+    content = tag.get("content") if tag else None
+    return content.strip() if content else None
+
+
 def build_import_preview(url: str) -> dict:
     """Scrape et parse une recette sans rien écrire en base : chaque ligne d'ingrédient est
     rapprochée du catalogue existant (`find_matching_ingredient`) si possible, laissant à
@@ -66,11 +84,13 @@ def build_import_preview(url: str) -> dict:
             }
         )
 
+    image_url = data.get("image_url", "") or (fetch_og_image(url) or "")
+
     return {
         "title": data["title"],
         "servings": data["servings"],
         "cook_time_minutes": data["cook_time_minutes"],
-        "image_url": data.get("image_url", ""),
+        "image_url": image_url,
         "source_url": url,
         "steps": [
             {"order": order, "instruction": instruction.strip()}

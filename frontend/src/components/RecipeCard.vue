@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Lock } from '@lucide/vue'
 import { formatDuration } from '../utils/format'
 import AllergenBadges from './AllergenBadges.vue'
 import type { Recipe } from '../types/models'
@@ -15,7 +16,10 @@ defineProps<{
     <div v-else-if="variant === 'tile'" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
     <div v-if="variant === 'tile'" class="scrim" />
     <div class="recipe-card-body">
-      <h3>{{ recipe.title }}</h3>
+      <h3>
+        {{ recipe.title }}
+        <Lock v-if="recipe.content_restricted" :size="14" class="restricted-icon" :aria-label="$t('recipes.restrictedNotice')" />
+      </h3>
       <p class="muted">
         {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
       </p>
@@ -57,6 +61,12 @@ defineProps<{
 
 .recipe-card h3 {
   margin: 0 0 0.25rem;
+}
+
+.restricted-icon {
+  vertical-align: middle;
+  margin-left: 0.3rem;
+  color: var(--color-muted);
 }
 
 .card-allergens {

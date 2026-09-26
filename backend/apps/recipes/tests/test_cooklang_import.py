@@ -136,6 +136,52 @@ def test_import_cooklang_endpoint_creates_recipe():
 
 
 @pytest.mark.django_db
+def test_create_recipe_from_cooklang_with_video_url_sets_youtube_source_type():
+    user = UserFactory()
+
+    recipe = create_recipe_from_cooklang(
+        author=user,
+        title="Tarte au citron",
+        raw_cooklang="Ajouter @citron{2%piece}.",
+        video_url="https://www.youtube.com/watch?v=abc123",
+        source_url="https://www.youtube.com/watch?v=abc123",
+        image_url="https://img.youtube.com/vi/abc123/hqdefault.jpg",
+    )
+
+    assert recipe.source_type == SourceType.YOUTUBE
+    assert recipe.video_url == "https://www.youtube.com/watch?v=abc123"
+    assert recipe.source_url == "https://www.youtube.com/watch?v=abc123"
+    assert recipe.image_url == "https://img.youtube.com/vi/abc123/hqdefault.jpg"
+    assert recipe.content_publicly_licensed is False
+
+
+@pytest.mark.django_db
+def test_import_cooklang_endpoint_creates_youtube_recipe_in_a_single_call():
+    user = UserFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    payload = {
+        "title": "Tarte au citron",
+        "raw_cooklang": "Ajouter @citron{2%piece}.",
+        "video_url": "https://www.youtube.com/watch?v=abc123",
+        "source_url": "https://www.youtube.com/watch?v=abc123",
+        "image_url": "https://img.youtube.com/vi/abc123/hqdefault.jpg",
+    }
+    response = client.post("/api/recipes/import-cooklang/", payload, format="json")
+
+    assert response.status_code == 201
+    assert response.data["source_type"] == SourceType.YOUTUBE
+    assert response.data["video_url"] == payload["video_url"]
+    assert response.data["content_publicly_licensed"] is False
+    # The response is seen by its own author here (force_authenticate(user) == recipe author),
+    # so it's not restricted for *this* viewer even though content_publicly_licensed is False --
+    # see test_imported_recipe_hides_content_for_anonymous_and_other_users in test_api.py for
+    # the restricted-for-others case.
+    assert response.data["content_restricted"] is False
+
+
+@pytest.mark.django_db
 def test_import_cooklang_endpoint_requires_authentication():
     client = APIClient()
     response = client.post(

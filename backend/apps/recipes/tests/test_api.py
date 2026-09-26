@@ -208,6 +208,11 @@ def test_fork_recipe_creates_linked_version_with_copied_content():
         diet_type="vegan",
         image_url="https://example.com/photo.jpg",
         source_url="https://example.com/recette",
+        # Libérée : ce test porte sur ce que le fork copie ou non (image/source non copiés),
+        # pas sur la restriction de visibilité (couverte séparément par les tests
+        # test_fork_restricted_recipe_*) -- sans ce flag, le forker (un autre utilisateur)
+        # se heurterait au 403 protégeant une recette importée non libérée.
+        content_publicly_licensed=True,
     )
     source.tags.add(tag)
     RecipeIngredientFactory(recipe=source, ingredient=ingredient, quantity="150", unit="g", order=1)
@@ -335,3 +340,145 @@ def test_recipe_detail_has_no_versions_when_not_forked():
 
     assert response.status_code == 200
     assert response.data["versions"] == []
+
+
+@pytest.mark.django_db
+def test_manual_recipe_is_always_fully_visible_to_anonymous():
+    recipe = RecipeFactory(source_url="")
+    RecipeStep.objects.create(recipe=recipe, order=1, instruction="Couper les légumes.")
+    client = APIClient()
+
+    response = client.get(f"/api/recipes/{recipe.id}/")
+
+    assert response.status_code == 200
+    assert response.data["content_restricted"] is False
+    assert "description" in response.data
+    assert "ingredients" in response.data
+    assert "steps" in response.data
+
+
+@pytest.mark.django_db
+def test_imported_recipe_hides_content_for_anonymous_and_other_users():
+    author = UserFactory()
+    other = UserFactory()
+    recipe = RecipeFactory(
+        author=author,
+        source_url="https://example.com/recette",
+        description="Une description copiée depuis la source.",
+    )
+    RecipeStep.objects.create(recipe=recipe, order=1, instruction="Couper les légumes.")
+    client = APIClient()
+
+    anon_response = client.get(f"/api/recipes/{recipe.id}/")
+    assert anon_response.status_code == 200
+    assert anon_response.data["content_restricted"] is True
+    assert "description" not in anon_response.data
+    assert "ingredients" not in anon_response.data
+    assert "steps" not in anon_response.data
+    # Métadonnées neutres toujours visibles.
+    assert anon_response.data["title"] == recipe.title
+    assert anon_response.data["diet_type"] == recipe.diet_type
+    assert anon_response.data["total_time_minutes"] == recipe.total_time_minutes
+    assert "allergens" in anon_response.data
+    assert "carbon_footprint_kg_co2e" in anon_response.data
+
+    client.force_authenticate(other)
+    other_response = client.get(f"/api/recipes/{recipe.id}/")
+    assert other_response.data["content_restricted"] is True
+    assert "description" not in other_response.data
+
+
+@pytest.mark.django_db
+def test_imported_recipe_is_fully_visible_to_author_and_staff():
+    author = UserFactory()
+    staff = UserFactory(is_staff=True)
+    recipe = RecipeFactory(author=author, source_url="https://example.com/recette")
+    RecipeStep.objects.create(recipe=recipe, order=1, instruction="Couper les légumes.")
+    client = APIClient()
+
+    client.force_authenticate(author)
+    author_response = client.get(f"/api/recipes/{recipe.id}/")
+    assert author_response.data["content_restricted"] is False
+    assert "ingredients" in author_response.data
+
+    client.force_authenticate(staff)
+    staff_response = client.get(f"/api/recipes/{recipe.id}/")
+    assert staff_response.data["content_restricted"] is False
+    assert "ingredients" in staff_response.data
+
+
+@pytest.mark.django_db
+def test_imported_recipe_becomes_fully_visible_after_owner_opts_in():
+    author = UserFactory()
+    recipe = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+
+    anon_before = client.get(f"/api/recipes/{recipe.id}/")
+    assert anon_before.data["content_restricted"] is True
+
+    client.force_authenticate(author)
+    patch_response = client.patch(
+        f"/api/recipes/{recipe.id}/", {"content_publicly_licensed": True}, format="json"
+    )
+    assert patch_response.status_code == 200
+    assert patch_response.data["content_restricted"] is False
+
+    client.force_authenticate(None)
+    anon_after = client.get(f"/api/recipes/{recipe.id}/")
+    assert anon_after.status_code == 200
+    assert anon_after.data["content_restricted"] is False
+    assert "ingredients" in anon_after.data
+
+
+@pytest.mark.django_db
+def test_recipe_list_mixes_manual_and_restricted_imported_recipes():
+    manual = RecipeFactory(title="Manuelle", source_url="")
+    imported = RecipeFactory(title="Importée", source_url="https://example.com/recette")
+    client = APIClient()
+
+    response = client.get("/api/recipes/")
+
+    assert response.status_code == 200
+    by_id = {item["id"]: item for item in response.data["results"]}
+    assert by_id[manual.id]["content_restricted"] is False
+    assert "ingredients" in by_id[manual.id]
+    assert by_id[imported.id]["content_restricted"] is True
+    assert "ingredients" not in by_id[imported.id]
+
+
+@pytest.mark.django_db
+def test_fork_restricted_recipe_forbidden_for_non_owner():
+    author = UserFactory()
+    other = UserFactory()
+    source = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+    client.force_authenticate(other)
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Variante"}, format="json")
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_fork_restricted_recipe_allowed_for_owner():
+    author = UserFactory()
+    source = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+    client.force_authenticate(author)
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Variante"}, format="json")
+
+    assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_fork_restricted_recipe_allowed_for_staff():
+    author = UserFactory()
+    staff = UserFactory(is_staff=True)
+    source = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+    client.force_authenticate(staff)
+
+    response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Variante"}, format="json")
+
+    assert response.status_code == 201

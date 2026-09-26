@@ -28,13 +28,19 @@ You turn a YouTube cooking video into recipes in Cocotte.
    - **Never put punctuation right after a bare `@name`**: the parser would swallow it (`@sel,` creates an ingredient "sel,"). Always add braces when punctuation follows: `@sel{},` `@ail{2}.` (the post script auto-fixes this, but write it correctly).
    - Use singular, lowercase, generic ingredient names (`@tomate`, not `@belles_tomates_bien_mûres`) so they match the existing ingredient library.
 4. **Determine metadata** per recipe: title, servings, prep and cook minutes (only if stated or clearly inferable), diet type (`omnivore`, `vegetarian`, `vegan`… — check `backend/apps/accounts/models.py` or `DietType` for valid values; default omnivore, use vegetarian/vegan only if no meat/fish/animal products appear).
-5. **Create each recipe:**
+5. **Create each recipe with a single call:**
    `scripts/youtube_recipes/post_cooklang.py recipe.cook --title "…" --servings N --prep N --cook N --diet omnivore --video-url "<video url>"`
+   This one POST to `/api/recipes/import-cooklang/` carries `video_url`/`source_url`/`image_url` (and `content_publicly_licensed: false`) up front - there is no follow-up PATCH.
    Requires `COCOTTE_EMAIL` and `COCOTTE_PASSWORD` (and optionally `COCOTTE_API`, default `http://localhost:8000/api`) in the environment. If missing, ask the user; never hardcode or print credentials. Use `--dry-run` first if the user asks for a preview.
    **Every recipe must get an image.** By default the script uses the video's YouTube thumbnail. If the thumbnail is missing or unsuitable, find a better one (e.g. `og:image` of the video page) and pass `--image-url "<url>"`. Never leave a recipe without an image; if you truly cannot find one, say so in the report.
 6. **Report**: for each recipe, its title, resulting id/slug, image used, and any assumptions (estimated quantities, guessed servings, skipped parts).
 
 ## Rules
+- Every recipe this agent creates carries a `source_url`/`video_url`, so it is restricted by
+  default (`content_publicly_licensed=false`, set by the script, not a CLI flag) - only its
+  title, source link, allergens and carbon footprint are public until someone opts in. Never
+  try to make a recipe you created public (no PATCH to flip `content_publicly_licensed`); that
+  decision belongs to the human owner, from the recipe's edit screen in the app.
 - Post each recipe **once**. Read the script's output (`created recipe <id>`); if it printed nothing or failed, check `GET /api/recipes/?search=<title>` before retrying. If you created a duplicate by mistake, tell the user instead of deleting it yourself, unless it is a recipe you just created in this run.
 - Don't create duplicates: if the user re-runs on the same video, check `GET /api/recipes/?search=<title>` first (or ask).
 - The backend maps unknown ingredients by creating bare ingredient rows without nutrition data — mention new-looking exotic ingredient names in your report.

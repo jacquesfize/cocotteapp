@@ -58,6 +58,7 @@ const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
   cook_time_minutes: 20,
   diet_type: 'omnivore' as DietType,
   is_public: true,
+  content_publicly_licensed: false,
   source_url: '',
   video_url: '',
   image_url: '',
@@ -115,6 +116,7 @@ onMounted(async () => {
       cook_time_minutes: recipe.cook_time_minutes,
       diet_type: recipe.diet_type,
       is_public: recipe.is_public,
+      content_publicly_licensed: recipe.content_publicly_licensed,
       source_url: recipe.source_url,
       video_url: recipe.video_url,
       image_url: recipe.image_url,
@@ -426,6 +428,11 @@ async function handleSubmit() {
             />
           </div>
         </div>
+        <label v-if="form.source_url" class="checkbox-field">
+          <input type="checkbox" v-model="form.content_publicly_licensed" />
+          {{ $t('recipes.publicLicenseOptIn') }}
+        </label>
+        <p v-if="form.source_url" class="muted">{{ $t('recipes.publicLicenseHint') }}</p>
       </div>
 
       <p v-if="error" class="error">{{ error }}</p>

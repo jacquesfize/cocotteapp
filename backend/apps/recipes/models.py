@@ -10,6 +10,7 @@ class SourceType(models.TextChoices):
     MANUAL = "manual", "Saisie manuelle"
     URL = "url", "Import depuis une URL"
     COOKLANG = "cooklang", "Import Cooklang"
+    YOUTUBE = "youtube", "Import vidéo YouTube"
 
 
 class TagKind(models.TextChoices):
@@ -42,6 +43,14 @@ class Recipe(models.Model):
     image = models.ImageField(upload_to="recipes/", blank=True, null=True)
     image_url = models.URLField(blank=True, help_text="Image externe, utilisée si aucun fichier n'est téléversé.")
     is_public = models.BooleanField(default=True)
+    content_publicly_licensed = models.BooleanField(
+        default=False,
+        help_text=(
+            "Coché par l'auteur d'une recette importée (source_url renseignée) pour libérer "
+            "l'accès public à son contenu rédactionnel (description/ingrédients/étapes). Sans "
+            "effet sur une recette sans source_url, déjà pleinement publique."
+        ),
+    )
     tags = models.ManyToManyField(Tag, blank=True, related_name="recipes")
     root_recipe = models.ForeignKey(
         "self",
@@ -74,6 +83,18 @@ class Recipe(models.Model):
         """
         slugs = {a.slug for ri in self.recipe_ingredients.all() for a in ri.ingredient.allergens.all()}
         return sorted(slugs)
+
+    def is_content_restricted(self, user):
+        """True si le contenu rédactionnel (description/ingrédients/étapes) de cette recette
+        doit être masqué pour `user` : réservé aux recettes importées (source_url non vide)
+        non explicitement libérées par leur auteur, sauf pour l'auteur lui-même ou un membre
+        du staff. Point de vérité unique, réutilisé par le serializer et la vue `fork`."""
+        if not self.source_url or self.content_publicly_licensed:
+            return False
+        if user is not None and getattr(user, "is_authenticated", False):
+            if user.is_staff or self.author_id == user.id:
+                return False
+        return True
 
     def root(self):
         return self.root_recipe or self
