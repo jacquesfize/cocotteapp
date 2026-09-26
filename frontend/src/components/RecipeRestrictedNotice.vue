@@ -32,10 +32,6 @@ const imageCredit = computed(() =>
       <span class="value">{{ recipe.carbon_footprint_kg_co2e.toFixed(2) }} kg CO2e</span>
       <span class="label">{{ $t('recipes.carbonFootprint') }}</span>
     </p>
-
-    <a v-if="recipe.source_url" :href="recipe.source_url" target="_blank" rel="noopener noreferrer" class="secondary source-link">
-      {{ $t('recipes.source') }}
-    </a>
   </div>
 </template>
 
@@ -82,9 +78,5 @@ const imageCredit = computed(() =>
 .carbon-footprint .label {
   font-size: 0.72rem;
   color: var(--color-muted);
-}
-
-.source-link {
-  align-self: flex-start;
 }
 </style>

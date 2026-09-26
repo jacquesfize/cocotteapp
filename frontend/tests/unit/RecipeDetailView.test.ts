@@ -146,3 +146,31 @@ describe('RecipeDetailView versioning', () => {
     expect(wrapper.text()).not.toContain('Autres versions de cette recette')
   })
 })
+
+describe('RecipeDetailView actions menu', () => {
+  it('hides the actions menu for a logged-in non-owner viewing a restricted recipe', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 99, username: 'someoneelse' } as unknown as User
+    authStore.accessToken = 'test-token'
+
+    vi.mocked(getRecipe).mockResolvedValue(
+      baseRecipe({ author_id: 1, content_restricted: true } as Partial<Recipe>),
+    )
+
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('button.actions-toggle').exists()).toBe(false)
+  })
+
+  it('shows the actions menu for the recipe owner', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 42, username: 'chef' } as unknown as User
+    authStore.accessToken = 'test-token'
+
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe())
+
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('button.actions-toggle').exists()).toBe(true)
+  })
+})
