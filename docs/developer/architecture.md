@@ -1,0 +1,363 @@
+# Architecture
+
+Cocotte is a single-page application (Vue 3 + TypeScript) talking to a JSON API (Django 5 +
+Django REST Framework) backed by PostgreSQL. This page explains how the pieces fit together, so
+you know where a change belongs before you start writing it.
+
+## Repository layout
+
+```text
+cocotteapp/
+├── backend/                     Django project (managed with uv)
+│   ├── config/
+│   │   ├── settings/            base.py, dev.py, prod.py
+│   │   └── urls.py              mounts every app under /api/, plus JWT and /django-admin/
+│   ├── apps/                    one Django app per domain (see below)
+│   ├── Dockerfile               multi-stage: "dev" (runserver) and "prod" (Gunicorn)
+│   ├── docker-entrypoint.sh     migrate + collectstatic before Gunicorn starts
+│   └── pyproject.toml, uv.lock  dependencies, pytest and ruff configuration
+├── frontend/                    Vue 3 + Vite + TypeScript SPA
+│   ├── src/
+│   │   ├── api/                 one module per backend resource, on a shared axios client
+│   │   ├── views/               route-level components (fetch their own data)
+│   │   ├── components/          reusable components
+│   │   ├── stores/auth.ts       the only Pinia store
+│   │   ├── router/index.ts      routes and the global auth guard
+│   │   ├── i18n/                vue-i18n setup and fr/en locale files
+│   │   ├── offline/             IndexedDB write queue for offline shopping-list check-off
+│   │   ├── types/               TypeScript types mirroring the DRF serializers
+│   │   └── utils/               Cooklang mention/timer parsing, formatting, theme, ...
+│   ├── tests/unit/              Vitest
+│   ├── tests/e2e/               Playwright (against a real backend)
+│   ├── tests/docs/              Playwright scenarios generating documentation screenshots
+│   ├── vite.config.ts           dev proxy + PWA/Workbox configuration
+│   └── Dockerfile               multi-stage: "dev" (Vite) and "prod" (Caddy serving dist/)
+├── deploy/                      Caddyfile.standalone and Caddyfile.proxy (production)
+├── docker-compose.yml           development stack
+├── docker-compose.prod.yml      production stack (standalone, automatic HTTPS)
+├── docker-compose.prod.proxy.yml  overlay: run behind a shared host-level Caddy
+├── scripts/youtube_recipes/     helper scripts for the YouTube importer subagent
+├── .claude/agents/              Claude Code subagents (YouTube recipe importer)
+├── docs/, mkdocs.yml            this documentation site
+└── .github/workflows/           ci.yml (tests) and docs.yml (documentation site)
+```
+
+## Backend
+
+### One app per domain
+
+Every domain lives in its own Django app under `backend/apps/`, with a consistent internal shape:
+`models.py`, `serializers.py`, `views.py`, `urls.py`, `filters.py`, `factories.py` (factory-boy
+test factories) and `tests/`. Business logic that belongs neither on a model nor in a
+view/serializer lives in the app's `services.py`, or in a dedicated module for larger features.
+
+| App | Responsibility | Notable modules |
+|---|---|---|
+| `accounts` | Custom `User` (login by email), allergy/intolerance profile, registration, `/auth/me/` (profile, password change, data export, account deletion), password reset by email, staff user administration | `admin_urls.py` (mounted at `/api/admin/`) |
+| `ingredients` | `Ingredient` library (nutrition per 100 g, carbon footprint, seasonality, translations, allergens) and the `Allergen` reference table | `search.py` (fuzzy `unaccent` + trigram search), `services.py` (Open Food Facts / Agribalyse suggestions), `allergen_tags.py`, `templatetags/unit_labels.py`, seed commands |
+| `recipes` | `Recipe`, ingredients, steps, tags, versions (forks), comments, thematic pages, PDF export, ZIP export/import, Cooklang import | `cooklang.py`, `cooklang_import.py`, `transfer.py`, `permissions.py`, `throttles.py`, `youtube.py` |
+| `nutrition` | `NutrientRequirement` thresholds; nutrition and carbon computations | `services.py` (`compute_recipe_nutrition`, `compute_recipe_carbon_footprint`, `find_deficiencies`) |
+| `planning` | `MealPlanEntry`, planner sharing, weekly nutrition summary, week PDF, calendar export | `ics.py` (iCalendar), `CalendarFeedToken` |
+| `shopping` | `ShoppingList` generated from planner entries | `services.py` (aggregation, owned items, text export) |
+| `importer` | Recipe import from a URL (preview only, nothing written) | `services.py` (scraping, `og:image`), `ingredient_parsing.py` |
+
+All app URLs are mounted under `/api/` in `config/urls.py`. JWT endpoints
+(`/api/auth/token/`, `/api/auth/token/refresh/`) are wired directly there with SimpleJWT views,
+not through `apps.accounts.urls`. The health check `/api/health/` is defined inline too.
+
+### Data model
+
+The diagram shows the key models and their relations (field lists trimmed to the essentials).
+
+```mermaid
+erDiagram
+    User ||--o{ Recipe : "authors"
+    User ||--o{ UserAllergen : "declares"
+    Allergen ||--o{ UserAllergen : "declared as"
+    Ingredient }o--o{ Allergen : "contains"
+    Recipe ||--o{ RecipeIngredient : "has"
+    Ingredient ||--o{ RecipeIngredient : "used in (PROTECT)"
+    Recipe ||--o{ RecipeStep : "has"
+    Recipe }o--o{ Tag : "tagged"
+    Recipe |o--o{ Recipe : "root_recipe (versions)"
+    Recipe ||--o{ RecipeComment : "receives"
+    User |o--o{ RecipeComment : "optionally posted by"
+    User ||--o{ MealPlanEntry : "plans"
+    Recipe ||--o{ MealPlanEntry : "scheduled as"
+    User ||--o{ PlanningShare : "owner"
+    User ||--o{ PlanningShare : "shared_with"
+    User ||--o| CalendarFeedToken : "has"
+    User ||--o{ ShoppingList : "owns"
+    ShoppingList }o--o{ MealPlanEntry : "built from"
+    ShoppingList ||--o{ ShoppingListItem : "contains"
+    Ingredient ||--o{ ShoppingListItem : "listed as (PROTECT)"
+
+    User {
+        string email "USERNAME_FIELD, unique"
+        string username "display name"
+        string diet_type
+        string activity_level
+    }
+    UserAllergen {
+        string severity "allergy | intolerance"
+    }
+    Ingredient {
+        string name
+        string category
+        string default_unit
+        json available_months "months in season"
+        json translations
+        bool allergens_reviewed
+        decimal carbon_kg_co2e_per_kg
+    }
+    Recipe {
+        string title
+        int servings
+        string diet_type
+        string source_type "manual | url | cooklang | youtube"
+        string source_url
+        bool content_publicly_licensed
+        string version_label
+    }
+    RecipeIngredient {
+        decimal quantity
+        string unit
+        string group_name
+    }
+    MealPlanEntry {
+        date date
+        string meal_type
+        int servings
+    }
+    PlanningShare {
+        string permission "read | write"
+    }
+    ShoppingListItem {
+        decimal quantity
+        string unit
+        bool is_owned
+    }
+```
+
+Two models stand on their own, with no foreign keys:
+
+- `NutrientRequirement` (`nutrition`): a daily minimum per `(diet_type, activity_level,
+  nutrient)`, compared against the user's profile to raise deficiency alerts.
+- `ThematicPage` (`recipes`): a title, icon, image and a `filters` JSON object holding the same
+  query parameters `/api/recipes/` accepts (e.g. `{"diet_type": "vegan"}`); the home page links to
+  the recipe list with those filters applied.
+
+A few rules worth knowing:
+
+- `User` extends `AbstractUser` with `USERNAME_FIELD = "email"`: people log in with their email;
+  `username` is still required at registration but only used as a public display name.
+- Deleting a user cascades to their recipes, planner, shopping lists and shares. Ingredients are
+  `PROTECT`ed: an ingredient used by a recipe or a shopping list cannot be deleted (the API
+  returns `409`).
+- Recipe allergens are **derived** from their ingredients (`Recipe.allergen_slugs()`). An
+  ingredient with `allergens_reviewed = False` makes the recipe "unverified" rather than safe.
+- `Recipe.is_content_restricted(user)` is the single source of truth for copyright protection:
+  a recipe with a `source_url` and without `content_publicly_licensed` only exposes its title,
+  source, allergens and carbon footprint to anyone but its owner and staff. The serializer, the
+  `fork` action and the PDF export all go through it.
+- Versions: a fork's `root_recipe` always points at the family's root (never at an intermediate
+  fork), so `family_versions()` is a single query.
+
+### Business logic
+
+- **Nutrition** (`nutrition/services.py`): ingredient values are per 100 g/100 ml; quantities are
+  converted to grams with an approximate table (`piece` = 100 g, `tbsp` = 15 g, ...), summed per
+  recipe, then divided by servings. The weekly summary averages the displayed week per day and
+  compares it with the `NutrientRequirement` rows for the user's diet and activity level.
+- **Carbon footprint**: the same conversion multiplied by `carbon_kg_co2e_per_kg`, exposed per
+  recipe (`/api/recipes/{id}/nutrition/`) and summed for the week.
+- **Shopping lists** (`shopping/services.py`): each entry's ingredients are scaled by
+  `entry.servings / recipe.servings`, aggregated per `(ingredient, unit)`, and integer-only units
+  (`piece`, `pinch`) are rounded up.
+- **Permissions**: `IsAuthorOrReadOnly` (author or staff may write a recipe),
+  `IsRecipeAuthorOrStaff` (comment moderation), DRF's `IsAdminUser` for everything under
+  `/api/admin/` and for ingredient update/delete. Anonymous comment creation is throttled
+  (`comment_create`, 10/hour).
+- **Planner sharing**: `MealPlanEntryViewSet` accepts an `?owner=` parameter resolved through a
+  single helper that checks the `PlanningShare` permission; entries created through a write
+  share belong to the planner's owner.
+
+### Recipe import paths
+
+There are three independent ways to create a recipe from outside content:
+
+```mermaid
+flowchart LR
+    URL["Recipe page URL"] -->|"POST /api/import/url/"| Preview["importer: scrape + parse<br/>(no DB write)"]
+    Preview --> Form["RecipeFormView pre-filled<br/>(user reviews ingredients)"]
+    Form -->|"POST /api/recipes/"| Recipe[(Recipe)]
+    Paste["Pasted Cooklang"] -->|"POST /api/recipes/import-cooklang/"| Convert["cooklang.py + cooklang_import.py"]
+    YT["YouTube video"] -->|"subagent + post_cooklang.py"| Convert
+    Convert --> Recipe
+    Convert -.->|"then"| Edit["/recipes/:id/edit for review"]
+```
+
+1. **URL import** (`apps.importer`): `POST /api/import/url/` scrapes the page synchronously with
+   [`recipe-scrapers`](https://github.com/hhursev/recipe-scrapers), falls back to the page's
+   `og:image` for the picture, parses each ingredient line (`ingredient_parsing.py`) and matches it
+   against the library, including `Ingredient.translations` so an English recipe maps onto French
+   ingredients. It returns a **preview only**: the frontend stores it in memory
+   (`utils/pendingImportDraft.ts`) and opens the recipe form, where the user fixes unmatched
+   ingredients before saving with a normal `POST /api/recipes/`.
+2. **Cooklang paste**: the recipe form's "Cooklang" mode (creation only) posts raw markup to
+   `POST /api/recipes/import-cooklang/`, which creates the recipe (`source_type = cooklang`,
+   `raw_cooklang` kept) and redirects to the edit view for review.
+3. **YouTube**: the Claude Code subagent (`.claude/agents/youtube-recipe-importer.md`) writes
+   Cooklang from a video transcript and posts it to the same endpoint with
+   `scripts/youtube_recipes/post_cooklang.py`, in one call carrying the video/source/image URLs.
+
+### Cooklang: two parsers
+
+Cocotte uses a small subset of the [Cooklang](https://cooklang.org/) markup: `@ingredient{qty%unit}`
+(multi-word names joined with an underscore, e.g. `@huile_olive{2%cs}`), `#cookware{}` and timers
+`~{10%minutes}`.
+
+- **Backend** (`apps/recipes/cooklang.py`): a self-contained parser producing a `ParsedRecipe`.
+  It **is wired in**: `apps/recipes/cooklang_import.py` turns the parse result into `Recipe`,
+  `RecipeIngredient` and `RecipeStep` rows (case-insensitive ingredient lookup or creation,
+  best-effort mapping of free-text units onto the `Unit` enum, quantity defaulting to 1), behind
+  `POST /api/recipes/import-cooklang/`. Steps keep their `@`/`~` tags so the frontend can render
+  them; only `#cookware` is flattened.
+- **Frontend** (`src/utils/cooklangMentions.ts`, `src/utils/cooklangTimers.ts`): an independent
+  client-side re-implementation of the same regular expressions (no code is shared). Step text is
+  stored as free text; the frontend parses it when editing (`CooklangStepInput.vue`:
+  autocomplete on `@` over the whole ingredient library, with on-the-fly creation) and when
+  displaying (`RecipeSummary.vue`: mentions become links to the ingredient list, timers become
+  `StepTimerButton` countdowns).
+
+If you change the supported syntax, update **both** parsers and their tests
+(`backend/apps/recipes/tests/test_cooklang*.py`, `frontend/tests/unit/cooklang*.test.ts`).
+
+### PDF export
+
+PDFs are rendered **server-side** with [WeasyPrint](https://weasyprint.org/) from Django
+templates, not by a client-side library:
+
+- `GET /api/recipes/{id}/pdf/` renders `apps/recipes/templates/pdf/recipe.html`;
+- `GET /api/meal-plan-entries/week-pdf/?date_after=…&date_before=…` renders
+  `apps/planning/templates/pdf/week.html` (week grid, then every recipe of the week).
+
+The templates are in French and use the `unit_labels` template tags for unit labels. WeasyPrint
+needs Pango/HarfBuzz/fontconfig at runtime (installed in the backend image).
+
+### Settings
+
+Settings are split into `config/settings/base.py` (everything), `dev.py` (`DEBUG`, CSRF trust
+for the Vite proxy) and `prod.py` (HTTPS behind a proxy: `SECURE_PROXY_SSL_HEADER`, secure
+cookies, HSTS, `CSRF_TRUSTED_ORIGINS`). Values come from environment variables through
+`django-environ` (`backend/.env` in development); see
+[Configuration](../admin-guide/configuration.md) for the full list. `DJANGO_SETTINGS_MODULE` is
+`config.settings.dev` for `runserver` and pytest, and `config.settings.prod` in the production
+image.
+
+## Frontend
+
+### Views own their data
+
+Route-level components in `src/views/` fetch their own data in `onMounted`/`watch` by calling
+functions from `src/api/*` (one module per backend resource: `recipes.ts`, `planning.ts`,
+`shopping.ts`, `ingredients.ts`, ...). There is **no global store** for recipes, planning or
+shopping data; the only Pinia store is `stores/auth.ts` (tokens + current user).
+
+Lists that can grow without bound (recipes, shopping lists, admin users) share
+`components/Pagination.vue` and keep their filters and page number in the URL query string, so a
+filtered, paginated view is a shareable link. `RecipeListView.vue` is the reference
+implementation (`filters`/`page` refs synced from `route.query`, `router.replace` after each
+fetch).
+
+### Authentication flow
+
+```mermaid
+sequenceDiagram
+    participant V as View
+    participant C as api/client.ts (axios)
+    participant S as stores/auth.ts
+    participant A as Django API
+    V->>C: listRecipes()
+    C->>A: GET /api/recipes/ (Authorization: Bearer access)
+    A-->>C: 401 (access token expired)
+    C->>S: refreshAccessToken()
+    S->>A: POST /api/auth/token/refresh/ {refresh}
+    A-->>S: {access}
+    C->>A: retry once with the new token
+    A-->>C: 200
+    C-->>V: data
+    Note over C,S: if the refresh fails, the store logs out
+```
+
+- `POST /api/auth/token/` (email + password) returns an access token (1 hour) and a refresh token
+  (7 days). Both are kept in `localStorage`.
+- `api/client.ts` attaches `Authorization: Bearer <access>` to every request. On a `401` it asks
+  the store to refresh the token and **retries the request once**; if the refresh fails, it logs
+  out.
+- On startup, `main.ts` calls `fetchMe()` when a token exists, so the user profile survives a
+  page reload.
+- Logging out also clears the private offline caches (planner, shopping lists), since the device
+  may be shared.
+
+### Routing
+
+`src/router/index.ts` uses two route-meta flags checked in a single global `beforeEach`:
+
+- `meta.public`: the route is reachable without being logged in (home, recipe list and detail,
+  random recipe, login/register, password reset). Everything else redirects to `/login`.
+- `meta.requiresStaff`: staff-only pages (`/admin/users`, `/admin/thematic-pages`,
+  `/admin/ingredients`). This is a client-side hint only, to avoid flashing a page before
+  redirecting: the API itself enforces staff-only access.
+
+### Offline and PWA
+
+Offline support is **deliberately narrow**:
+
+- `vite-plugin-pwa` (configured in `vite.config.ts`, active under both `vite dev` and production
+  builds) generates a Workbox service worker that caches GET responses: recipes and thematic
+  pages (network-first), planner and shopping lists (network-first, per-user cache), and images
+  (cache-first). PDFs and exports are never cached.
+- The **only offline write** is marking a shopping-list item as owned: the UI updates
+  optimistically and the write goes into an IndexedDB queue (`src/offline/db.ts`,
+  `src/offline/sync.ts`) replayed on the `online` event and at startup. The Background Sync API
+  isn't used because Safari/iOS doesn't support it.
+
+> [!WARNING]
+> Don't extend offline writes to other mutations without discussing it first. Offline editing of
+> recipes and planning was scoped out on purpose: there is no conflict resolution.
+
+### Internationalisation and theming
+
+All user-facing strings go through vue-i18n (`src/i18n/`), with `fr.json` and `en.json` kept in
+lockstep; see [Translations](i18n.md). Light/dark theme and the accent colour are applied by
+`utils/theme.ts` through CSS variables (`[data-theme='dark']`, `--color-primary`) and remembered
+in `localStorage`.
+
+## Production topology
+
+```mermaid
+flowchart LR
+    Browser -->|"HTTPS :443"| Caddy
+    subgraph stack["docker-compose.prod.yml"]
+        Caddy["frontend<br/>(Caddy: SPA + TLS)"]
+        Backend["backend<br/>(Gunicorn + Django)"]
+        DB[("db<br/>PostgreSQL 16")]
+        Caddy -->|"/api/*, /django-admin/*"| Backend
+        Caddy -.->|"/static/*, /media/* (shared volumes)"| Files[("static_data<br/>media_data")]
+        Backend --> DB
+        Backend --> Files
+    end
+```
+
+- **Standalone (default)**: the `frontend` container runs Caddy, which serves the built SPA
+  (falling back to `index.html` for client-side routes), serves `/static` and `/media` from
+  volumes shared with the backend, reverse-proxies `/api` and `/django-admin` to `backend`, and
+  obtains its own Let's Encrypt certificate for `DOMAIN` (`deploy/Caddyfile.standalone`).
+- **Behind a shared proxy**: the `docker-compose.prod.proxy.yml` overlay swaps in
+  `deploy/Caddyfile.proxy` (plain HTTP), drops the published ports and joins an external Docker
+  network where a host-level Caddy terminates TLS for every app on the server.
+- The backend container runs `migrate` and `collectstatic` on start, then Gunicorn with three
+  workers. There is no background worker: URL import and PDF rendering happen within the request.
+
+See [Production deployment](../admin-guide/deployment.md) for the operational side.

@@ -1,0 +1,117 @@
+site_name: Cocotte
+site_description: User, administrator and contributor documentation for Cocotte, the open-source recipe manager and weekly meal planner.
+site_url: https://jacquesfize.github.io/cocotteapp/
+repo_url: https://github.com/jacquesfize/cocotteapp
+repo_name: jacquesfize/cocotteapp
+edit_uri: edit/main/docs/
+copyright: Cocotte — open-source recipe manager
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.svg
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Inter
+    code: JetBrains Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.instant
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - content.action.edit
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - glightbox:
+      shadow: true
+      zoomable: true
+      skip_classes:
+        - no-lightbox
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+  - github-callouts
+  - pymdownx.details
+  - pymdownx.blocks.tab:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - First run: getting-started/first-run.md
+  - User guide:
+      - user-guide/index.md
+      - Your account: user-guide/account.md
+      - Browsing recipes: user-guide/browsing-recipes.md
+      - Creating recipes: user-guide/creating-recipes.md
+      - Meal planning: user-guide/planning.md
+      - Shopping lists: user-guide/shopping-lists.md
+      - Nutrition & carbon: user-guide/nutrition-and-carbon.md
+      - Install & offline: user-guide/offline-and-install.md
+  - Admin guide:
+      - Production deployment: admin-guide/deployment.md
+      - Configuration: admin-guide/configuration.md
+      - Maintenance: admin-guide/maintenance.md
+      - Users: admin-guide/users.md
+      - Ingredient library: admin-guide/ingredients.md
+      - Thematic pages: admin-guide/thematic-pages.md
+      - Moderation: admin-guide/moderation.md
+      - Django admin: admin-guide/django-admin.md
+  - Contributing:
+      - How to contribute: developer/contributing.md
+      - Development environment: developer/dev-environment.md
+      - Architecture: developer/architecture.md
+      - Testing: developer/testing.md
+      - Translations: developer/i18n.md
+      - Writing documentation: developer/documentation.md
+  - Changelog: changelog.md

@@ -1,0 +1,194 @@
+# Meal planning
+
+The **Planner** is where you organise your meals over the week or the month. From it you can
+check your nutrition and carbon footprint, print the week, add your meals to your calendar
+app and generate a shopping list. You need to be logged in.
+
+Click **Planner** in the top bar (or in the bottom tab bar on a phone).
+
+```mermaid
+flowchart LR
+    R[Recipe] -->|Add to planner| P[Planner]
+    P --> N[Nutritional intake]
+    P --> PDF[Download the week as PDF]
+    P --> C[Export to calendar]
+    P -->|Generate shopping list| S[Shopping list]
+```
+
+## Week and month views
+
+![The planner in week view](../assets/screenshots/planning-week.png)
+
+The **Week** / **Month** buttons at the top switch between the two views.
+
+**Week view**
+:   A grid with the seven days of the week (Monday to Sunday) as columns, and **Breakfast**,
+    **Lunch**, **Dinner** and **Snack** as rows. Each cell lists the recipes planned for that
+    meal. Click a recipe to open it.
+
+**Month view**
+:   A calendar of the whole month, listing the recipes planned each day. Click a **day number**
+    to jump to the week view of that week.
+
+![The planner in month view](../assets/screenshots/planning-month.png)
+
+Use the **‹** and **›** arrows around the date range to move to the previous or next week (or
+month). When you are not on the current period, a **Today** button brings you back.
+
+> [!IMPORTANT]
+> The buttons at the bottom of the planner apply to **the period currently displayed**: the week
+> in week view, the **whole month** in month view. This covers the nutrition summary, the PDF,
+> the .ics download and the shopping list.
+
+## Add a meal
+
+### From the planner
+
+1. In week view, click the **+** button (**Add a meal**) in the cell for the day and meal you
+   want.
+2. Type part of a recipe's title in **Search a recipe...** and pick it from the list.
+3. Set the number of **servings** (default 2).
+4. Click **Add**. Use the **×** button to cancel.
+
+![Adding a meal in a planner cell: typing a recipe title shows matching recipes to pick from](../assets/screenshots/planning-add-meal.png)
+
+You can plan several recipes for the same meal, for example a main course and a dessert.
+You can't add the same recipe twice to the same meal on the same day. If you try, you see
+*Could not add this entry (date already planned for this recipe and meal?).*
+
+### From a recipe
+
+Every recipe page has an **Add to planner** card. Pick a **Date**, a **Meal** and the
+**Servings**, then click **Add**. See
+[Add to the planner](browsing-recipes.md#add-to-the-planner). The
+[Random recipe](browsing-recipes.md#random-recipe) page has the same card.
+
+### Servings
+
+The servings you set for a meal are what count for nutrition, carbon and shopping lists.
+Cocotte scales each recipe by *planned servings ÷ recipe servings*. For example, a recipe
+written for 4 and planned for 2 counts as half the recipe.
+
+To change the servings of a planned meal, remove it and add it again with the new number.
+
+## Remove a meal
+
+Click the small **×** (**Remove**) next to the recipe in its cell. It's removed immediately,
+without confirmation.
+
+## Allergen warnings
+
+If a recipe contains one of the allergies or intolerances from your profile, a warning appears:
+
+- under the recipe in the planner cell,
+- in the add form as soon as you pick the recipe.
+
+**Contains:** lists your allergies and **May bother you:** lists your intolerances. The warning
+doesn't stop you from planning the meal. Set your allergens in
+[Your account](account.md#allergies-and-intolerances).
+
+## Nutritional intake and carbon footprint
+
+Click **Nutritional intake** at the bottom of the planner to open a summary of the displayed
+period:
+
+- **Possibly insufficient intake this week** lists each nutrient whose **daily average** falls
+  below your daily minimum, as *nutrient : your average / minimum unit*.
+- **This week's carbon footprint** is the total kg CO₂e of all the planned meals, scaled to
+  their servings.
+
+![The Nutritional intake dialog with deficiency alerts and the carbon total](../assets/screenshots/planning-nutrition.png)
+
+> [!NOTE]
+> The daily average is spread over **every day of the period**, including days with nothing
+> planned. If you only plan dinners, or only a few days, you will see alerts: the summary only
+> knows about what's in the planner. Minimums depend on the diet and activity level in your
+> profile. See [Nutrition & carbon](nutrition-and-carbon.md#weekly-deficiency-alerts).
+
+The home page's **This week** strip also shows a badge with the number of alerts for the next
+seven days.
+
+## Download the week as PDF
+
+Click **Download the week as PDF** to get a printable PDF of the displayed period
+(`agenda-START-END.pdf`). It contains the meal grid plus the full detail of every recipe in it.
+You can take it to the kitchen or to the shop.
+
+## Export to calendar
+
+Click **Export to calendar** to add your meals to Google Calendar, Apple Calendar, Outlook or
+any calendar app that reads iCalendar (.ics).
+
+![The Export to calendar menu](../assets/screenshots/planning-calendar-export.png)
+
+Each meal becomes a one-hour event titled with the recipe's name, at a fixed time:
+
+| Meal | Time |
+|---|---|
+| Breakfast | 08:00 |
+| Lunch | 12:30 |
+| Snack | 16:00 |
+| Dinner | 19:30 |
+
+### One-off download
+
+**Download the week as .ics file** saves the displayed period as a file. Open it with your
+calendar app to import the events. This is a snapshot: later changes in Cocotte don't reach
+your calendar.
+
+### Subscription (updates automatically)
+
+A subscription keeps your calendar in sync with your **whole** planner, past and future.
+
+- **Copy subscription URL** copies your personal feed address. In your calendar app, add a
+  calendar "from URL" or "by subscription" and paste it.
+- **Add to Google Calendar** opens Google Calendar with the subscription ready to confirm.
+
+Calendar apps refresh subscriptions on their own schedule, which can take from a few minutes to
+a day, depending on the app.
+
+> [!WARNING]
+> This URL is secret: anyone who has it can read your meal plan, without logging in. Don't
+> share it.
+
+### Regenerate the URL
+
+If the URL has leaked, or you want to disconnect every calendar using it, click **Regenerate
+URL** and confirm. The old address stops working immediately. Calendars subscribed with it
+stop updating, so subscribe again with the new one.
+
+## Shared agendas
+
+Other people can share their planner with you, and you can share yours. Sharing is set up in
+**My account** → **Share my agenda** (see
+[Your account](account.md#share-my-agenda)).
+
+When someone has shared their agenda with you, a **Displayed agenda** selector appears at the
+top of your planner:
+
+- **My agenda**: your own planner,
+- ***Name*'s agenda (read only)**: you can see their meals, nutrition summary and PDF, but not
+  change anything. The add and remove buttons are hidden.
+- ***Name*'s agenda (read & write)**: you can also add and remove meals in their planner.
+
+The nutrition alerts of a shared agenda are computed with **its owner's** diet and activity
+level.
+
+> [!NOTE]
+> Shopping lists can only be generated from **your own** agenda. With someone else's agenda
+> selected, the generated list comes out empty. Ask the owner to generate it, or plan the meals
+> in your own agenda. Likewise, **Export to calendar** subscriptions always cover your own
+> planner.
+
+## Generate a shopping list
+
+Click **Generate shopping list (N)** at the bottom of the planner. *N* is the number of meals in
+the displayed period. The button is disabled when there are none.
+
+Cocotte creates a new shopping list from **all the meals of the displayed period** and opens
+it. Ingredients are added up across recipes and scaled to the servings you planned. See
+[Shopping lists](shopping-lists.md).
+
+> [!TIP]
+> To shop for only part of the week, remove the meals you don't need yet, generate the list,
+> then add them back. Or shop from the month view to cover several weeks at once.

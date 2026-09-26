@@ -1,0 +1,358 @@
+import { expect, test, type Page } from '../e2e/fixtures'
+import { CAMILLE, isoDate, obtainTokens, seedDemoData, type DemoData } from './demoData'
+import { loginWithTokens, settle, shotAround, shotElement, shotPage } from './shots'
+
+// Captures d'écran de la documentation utilisateur (docs/assets/screenshots/).
+//   E2E_ADMIN_EMAIL=... E2E_ADMIN_PASSWORD=... npm run docs:screenshots
+// Un seul long test par projet (desktop / mobile) : les données de démo sont créées une fois
+// au début, puis supprimées par la fixture de nettoyage (tests/e2e/fixtures.ts).
+
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD
+
+test.beforeEach(async ({ page, context, baseURL }) => {
+  // Derrière le proxy Vite du stack Docker de dev, l'API renvoie les images téléversées avec
+  // une URL absolue sur l'hôte interne (http://backend:8000/media/...), injoignable depuis le
+  // navigateur : on les resert via le proxy /media du frontend.
+  await context.route(/^https?:\/\/backend(:\d+)?\/media\//, async (route) => {
+    const url = new URL(route.request().url())
+    const response = await route.fetch({ url: new URL(url.pathname, baseURL).toString() })
+    await route.fulfill({ response })
+  })
+  await page.addInitScript(() => {
+    localStorage.setItem('locale', 'en')
+    if (!localStorage.getItem('theme-mode')) localStorage.setItem('theme-mode', 'light')
+  })
+})
+
+async function loginAsCamille(page: Page, data: DemoData, path = '/') {
+  await loginWithTokens(page, data.camilleToken, data.camilleRefresh, path)
+}
+
+test('desktop documentation screenshots', async ({ page, context }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'desktop-only shots')
+
+  await test.step('public pages', async () => {
+    await page.goto('/')
+    await expect(page.locator('.thematic-card').first()).toBeVisible()
+    await shotPage(page, 'home-public', { fullPage: true })
+
+    await page.goto('/login')
+    await shotPage(page, 'login')
+    await page.goto('/register')
+    await shotPage(page, 'register')
+    await page.goto('/forgot-password')
+    await shotPage(page, 'forgot-password')
+  })
+
+  const data = await seedDemoData(page)
+  const gratinUrl = `/recipes/${data.recipes.gratin}`
+
+  await test.step('home', async () => {
+    await loginAsCamille(page, data)
+    await expect(page.locator('.week-strip')).toBeVisible()
+    await expect(page.getByText('Creamy sweet potato gratin').first()).toBeVisible()
+    await shotPage(page, 'home', { fullPage: true })
+
+    await page.getByRole('button', { name: 'Import' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByLabel('Import from a URL').fill('https://www.example.com/recipes/french-onion-soup')
+    await shotElement(dialog, 'recipe-import-url')
+    await dialog.getByRole('button', { name: 'Close' }).click()
+  })
+
+  await test.step('recipe list', async () => {
+    await page.goto('/recipes')
+    await expect(page.locator('.recipe-list')).toBeVisible()
+    await shotPage(page, 'recipe-list')
+
+    await page.goto('/recipes?diet_type=vegan&max_prep_time=20&ingredients=Pois%20chiches')
+    await page.getByRole('button', { name: /Filters/ }).click()
+    await expect(page.locator('#recipe-filters-panel')).toBeVisible()
+    await shotElement(page.locator('#recipe-filters-panel'), 'recipe-list-filters')
+  })
+
+  await test.step('random recipe', async () => {
+    // Le tirage est aléatoire sur toute la base : on le fige sur une recette de démo.
+    await page.route(/\/api\/recipes\/random\//, async (route) => {
+      const response = await route.fetch({
+        url: new URL(`/api/recipes/${data.recipes.ratatouille}/`, route.request().url()).toString(),
+      })
+      await route.fulfill({ response })
+    })
+    await page.goto('/recipes/random')
+    await expect(page.getByRole('heading', { name: 'Provençal ratatouille' })).toBeVisible()
+    await shotPage(page, 'random-recipe')
+    await page.unroute(/\/api\/recipes\/random\//)
+  })
+
+  await test.step('recipe detail', async () => {
+    await page.goto(gratinUrl)
+    await expect(page.getByRole('heading', { name: 'Creamy sweet potato gratin' })).toBeVisible()
+    await expect(page.locator('.recipe-photo')).toBeVisible()
+    await shotPage(page, 'recipe-detail')
+
+    await shotElement(page.locator('.ingredients-steps-row'), 'recipe-detail-steps')
+    const nutrition = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Nutrition facts' }) })
+    await expect(nutrition).toBeVisible()
+    await shotElement(nutrition, 'recipe-detail-nutrition')
+
+    const planCard = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Add to planner' }) })
+    await planCard.getByLabel('Date').fill(isoDate(new Date(data.weekStart.getTime() + 8 * 86_400_000)))
+    await planCard.getByLabel('Meal').selectOption('dinner')
+    await planCard.getByLabel('Date').blur()
+    await expect(planCard.getByTestId('warning-allergy')).toBeVisible()
+    await shotElement(planCard, 'recipe-add-to-planning')
+
+    await shotElement(page.locator('.versions-section'), 'recipe-versions')
+
+    const comments = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Comments' }) })
+    await expect(comments.locator('.comment').first()).toBeVisible()
+    await shotElement(comments, 'recipe-comments')
+
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.getByRole('button', { name: 'Actions' }).click()
+    const panel = page.locator('#recipe-actions-panel')
+    await expect(panel.getByText('Create a variant')).toBeVisible()
+    await shotAround(page, [page.locator('.page-header'), panel], 'recipe-actions-menu')
+
+    await panel.getByText('Create a variant').click()
+    await page.getByPlaceholder('Variant name (e.g. Gluten-free)').fill('Dairy-free')
+    await shotAround(page, [page.locator('.page-header'), page.locator('.fork-form')], 'recipe-fork-dialog')
+    await page.locator('.fork-form').getByRole('button', { name: 'Cancel' }).click()
+  })
+
+  await test.step('recipe form', async () => {
+    await page.goto('/recipes/new')
+    await page.getByLabel('Title').fill('Stuffed courgettes')
+    await page
+      .getByLabel('Description')
+      .fill('Round courgettes filled with a garlicky tomato and feta stuffing, baked until tender.')
+    await page.getByLabel('Servings').fill('4')
+    await page.getByLabel('Prep time (min)').fill('20')
+    await page.getByLabel('Cook time (min)').fill('35')
+    await page.getByLabel('Diet').selectOption('vegetarian')
+
+    const addIngredient = async (index: number, name: string, quantity: string) => {
+      if (index > 0) await page.getByRole('button', { name: 'Add an ingredient' }).click()
+      const picker = page.locator(`#ingredient-${index}`)
+      await picker.fill(name)
+      await page
+        .locator('.picker .suggestions li', { hasText: new RegExp(`^\\s*${name}\\s*$`) })
+        .first()
+        .click()
+      await page.locator(`#quantity-${index}`).fill(quantity)
+    }
+    await addIngredient(0, 'Courgette', '600')
+    await addIngredient(1, 'Tomate', '200')
+    await addIngredient(2, 'Feta', '100')
+
+    const step1 = page.locator('#step-0')
+    await step1.fill('Halve the @Courgette and scoop out the flesh. Bake for ~{10%minutes}.')
+    await page.getByRole('button', { name: 'Add a step' }).click()
+    await page.locator('body').click({ position: { x: 5, y: 5 } })
+    await shotPage(page, 'recipe-form', { fullPage: true })
+
+    const step2 = page.locator('#step-1')
+    await step2.click()
+    await step2.pressSequentially('Fill with the tomato and feta mixture, then top with @Basil', { delay: 20 })
+    const stepsCard = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Steps' }) })
+    const suggestions = stepsCard.locator('.suggestions')
+    await expect(suggestions).toBeVisible()
+    await shotAround(page, [stepsCard, suggestions], 'recipe-form-mention', 12)
+
+    await step2.fill('')
+    await step2.pressSequentially('Crumble the @smoked_tofu', { delay: 20 })
+    const create = stepsCard.locator('.suggestions .create')
+    await expect(create).toBeVisible()
+    await create.dispatchEvent('mousedown')
+    const modal = page.getByRole('dialog')
+    await expect(modal).toBeVisible()
+    await modal.locator('#ingredient-modal-name').blur()
+    await shotElement(modal, 'ingredient-create-modal')
+    await modal.getByRole('button', { name: 'Cancel' }).first().click()
+
+    await page.goto('/recipes/new')
+    await page.getByRole('tab', { name: 'Paste Cooklang' }).click()
+    await page.locator('#cooklang-title').fill('Garlic mushrooms on toast')
+    await page.locator('#cooklang-servings').fill('2')
+    await page
+      .locator('#cooklang-text')
+      .fill(
+        [
+          "Slice the @Champignon_de_Paris{250%g} and fry them in @Huile_d'olive{2%tbsp} for ~{8%minutes}.",
+          'Add the chopped @Ail{2%piece} and @Persil{1%tbsp}, then season with @Sel{1%pinch}.',
+          'Toast the @Pain_complet{2%piece} for ~{3%minutes} and pile the mushrooms on top.',
+        ].join('\n'),
+      )
+    await page.locator('body').click({ position: { x: 5, y: 5 } })
+    await shotPage(page, 'recipe-form-cooklang')
+  })
+
+  await test.step('planning', async () => {
+    // À 1280 px la grille de la semaine déborde (défilement horizontal) : on élargit le viewport
+    // le temps des captures du planning pour que lundi → dimanche soient visibles.
+    const defaultViewport = page.viewportSize()!
+    await page.setViewportSize({ width: 1600, height: 1000 })
+    await page.goto('/planning')
+    // Le conteneur principal reste limité en largeur : on le desserre (pour ces captures
+    // uniquement) afin que la grille tienne sans barre de défilement.
+    await page.addStyleTag({ content: 'main.container { max-width: 1520px; }' })
+    await expect(page.locator('.agenda-cell a').first()).toBeVisible()
+    await shotPage(page, 'planning-week', { fullPage: true })
+
+    const snackCell = page.locator(`.agenda-cell[data-meal-type="snack"][data-date="${isoDate(data.weekStart)}"]`)
+    await snackCell.getByRole('button', { name: 'Add a meal' }).click()
+    const pickerInput = snackCell.locator('.picker input')
+    await pickerInput.fill('gratin')
+    await snackCell.locator('.suggestions li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
+    // La recherche (avec délai) relancée par la sélection rouvre la liste : on attend
+    // qu'elle ait eu lieu avant de quitter le champ.
+    await page.waitForTimeout(800)
+    await pickerInput.blur()
+    await expect(snackCell.locator('.suggestions')).toBeHidden()
+    await snackCell
+      .locator('.add-form .allergen-warning')
+      .waitFor({ timeout: 3000 })
+      .catch(() => {})
+    const dinnerCell = page.locator(`.agenda-cell[data-meal-type="dinner"][data-date="${isoDate(data.weekStart)}"]`)
+    const snackRow = page.locator('.agenda-cell[data-meal-type="snack"]')
+    await shotAround(page, [dinnerCell, snackCell, snackRow.nth(3)], 'planning-add-meal', 12)
+    await snackCell.getByRole('button', { name: 'Cancel' }).click()
+
+    await page.getByRole('button', { name: 'Nutritional intake' }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog.locator('.carbon-summary')).toBeVisible()
+    await shotElement(dialog, 'planning-nutrition')
+    await dialog.getByRole('button', { name: 'Close' }).click()
+
+    await page.getByRole('button', { name: 'Export to calendar' }).click()
+    const menu = page.locator('.calendar-export .menu')
+    await expect(menu.getByText('Add to Google Calendar')).toBeVisible()
+    await shotAround(page, [page.locator('.calendar-export'), menu], 'planning-calendar-export')
+    await page.getByRole('button', { name: 'Export to calendar' }).click()
+
+    await page.getByRole('button', { name: 'Month' }).click()
+    await expect(page.locator('.month-entries a').first()).toBeVisible()
+    await shotPage(page, 'planning-month', { fullPage: true })
+    await page.setViewportSize(defaultViewport)
+  })
+
+  await test.step('shopping lists', async () => {
+    await page.goto('/shopping-lists')
+    await expect(page.locator('.list-row').first()).toBeVisible()
+    await shotPage(page, 'shopping-lists')
+
+    await page.goto(`/shopping-lists/${data.shoppingListId}`)
+    await expect(page.locator('.item-row').first()).toBeVisible()
+    await shotPage(page, 'shopping-list-detail')
+
+    await context.setOffline(true)
+    await expect(page.locator('.offline-banner')).toBeVisible()
+    await shotPage(page, 'offline-banner')
+    await context.setOffline(false)
+    await expect(page.locator('.offline-banner')).toBeHidden()
+  })
+
+  await test.step('account', async () => {
+    // Navigation côté client : le formulaire de profil est initialisé depuis l'utilisateur
+    // courant, qui doit donc être déjà chargé (après un rechargement complet il l'est en différé).
+    await page.goto('/')
+    await expect(page.locator('.week-strip')).toBeVisible()
+    await page.getByRole('button', { name: 'Account' }).click()
+    await page.locator('#account-panel').getByRole('link', { name: 'My account' }).click()
+    const card = (title: string) =>
+      page.locator('.card').filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+    await expect(page.getByTestId('allergies-gluten')).toBeChecked()
+    await shotElement(card('Profile'), 'account-profile')
+    await shotElement(page.locator('.allergen-fieldset'), 'account-allergens')
+    await shotElement(page.getByTestId('appearance-card'), 'account-theme')
+    await expect(card('Share my agenda').locator('.share-list li')).toHaveCount(1)
+    await shotElement(card('Share my agenda'), 'account-sharing')
+    await shotAround(page, [card('Export my data'), page.locator('.danger-zone')], 'account-data')
+  })
+
+  await test.step('dark mode', async () => {
+    await page.goto('/')
+    await page.getByTestId('theme-toggle').click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('.week-strip')).toBeVisible()
+    await shotPage(page, 'dark-mode-home')
+    await page.getByTestId('theme-toggle').click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  })
+
+  await test.step('admin', async () => {
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      console.warn('E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD not set: admin screenshots skipped.')
+      return
+    }
+    const tokens = await obtainTokens(page.request, ADMIN_EMAIL!, ADMIN_PASSWORD!)
+    if (!tokens) throw new Error('Could not log in as the admin account')
+    await loginWithTokens(page, tokens.access, tokens.refresh, '/')
+    await expect(page.locator('.thematic-card').first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Account' }).click()
+    const panel = page.locator('#account-panel')
+    await expect(panel.getByText('Administration')).toBeVisible()
+    await shotAround(page, [page.getByRole('button', { name: 'Account' }), panel], 'navbar-account-menu', 12)
+    await page.keyboard.press('Escape')
+
+    await page.goto('/admin/users')
+    await page.getByLabel('Search').fill('example.com')
+    await expect(page.getByRole('cell', { name: CAMILLE.email })).toBeVisible()
+    await shotPage(page, 'admin-users')
+
+    await page.goto('/admin/ingredients')
+    await expect(page.locator('.admin-table tbody tr').first()).toBeVisible()
+    await shotPage(page, 'admin-ingredients')
+
+    await page.getByLabel('Search').fill('Tomate')
+    const tomato = page
+      .locator('.admin-table tbody tr')
+      .filter({ has: page.getByRole('cell', { name: 'Tomate', exact: true }) })
+    await tomato.getByRole('button', { name: 'Edit' }).click()
+    const modal = page.getByRole('dialog')
+    await expect(modal).toBeVisible()
+    await modal.locator('#ingredient-modal-name').blur()
+    await shotElement(modal, 'admin-ingredient-modal')
+    await modal.getByRole('button', { name: 'Cancel' }).first().click()
+
+    await page.goto('/admin/thematic-pages')
+    await expect(page.locator('.admin-table tbody tr').first()).toBeVisible()
+    await shotPage(page, 'admin-thematic-pages')
+    await page.locator('.admin-table tbody tr').first().getByRole('button', { name: 'Edit' }).click()
+    const form = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Edit thematic page' }) })
+    await expect(form).toBeVisible()
+    await shotElement(form, 'admin-thematic-page-form')
+    await form.getByRole('button', { name: 'Cancel' }).click()
+
+    const djangoAdmin = await context.newPage()
+    await djangoAdmin.goto('http://localhost:8000/django-admin/login/?next=/django-admin/')
+    await djangoAdmin.locator('#id_username').fill(ADMIN_EMAIL!)
+    await djangoAdmin.locator('#id_password').fill(ADMIN_PASSWORD!)
+    await djangoAdmin.locator('input[type="submit"]').click()
+    await expect(djangoAdmin.locator('#content-main')).toBeVisible()
+    await shotPage(djangoAdmin, 'django-admin')
+    await djangoAdmin.close()
+  })
+})
+
+test('mobile documentation screenshots', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'mobile-only shots')
+  const data = await seedDemoData(page)
+
+  await loginAsCamille(page, data)
+  await expect(page.locator('.week-strip')).toBeVisible()
+  await expect(page.locator('.tabbar')).toBeVisible()
+  await shotPage(page, 'mobile-home')
+
+  await page.goto(`/recipes/${data.recipes.ratatouille}`)
+  await expect(page.locator('.recipe-photo')).toBeVisible()
+  await shotPage(page, 'mobile-recipe-detail')
+
+  await page.goto(`/shopping-lists/${data.shoppingListId}`)
+  await expect(page.locator('.item-row').first()).toBeVisible()
+  await settle(page)
+  await shotPage(page, 'mobile-shopping-list')
+})

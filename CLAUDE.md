@@ -7,9 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Cocotte: a recipe-management app (recipe search/filters, weekly meal planning with nutrition
 tracking, shopping-list generation, recipe import from a URL or manual/Cooklang entry, PDF export,
 account management, admin). Django/DRF backend, Vue 3 frontend, French/English UI, PWA with
-limited offline support. See `README.md` for full feature documentation (nutrition rules,
-pagination, i18n, PWA/offline behavior, etc.) — this file focuses on commands and architecture
-rather than duplicating it.
+limited offline support. See `docs/` (published with GitHub Pages) for full user, admin and contributor documentation
+(nutrition rules, pagination, i18n, PWA/offline behavior, deployment, etc.) — this file focuses on
+commands and architecture rather than duplicating it.
 
 ## Commands
 
@@ -81,7 +81,7 @@ the box): it swaps in `deploy/Caddyfile.proxy` (plain HTTP, no TLS — it always
 sits in front of it, standalone or host Caddy, has already terminated TLS), drops the published
 ports, and joins an external Docker network (name set by `PROXY_NETWORK_NAME`, default `proxy`)
 on which the host Caddy also sits, reaching this stack as `cocotte-frontend`. Use this mode when
-several apps share one host Caddy. See the README's deployment section for the exact commands
+several apps share one host Caddy. See `docs/admin-guide/deployment.md` for the exact commands
 and required `.env.prod` variables per mode.
 
 ## Architecture
@@ -149,9 +149,27 @@ Offline support (`src/offline/db.js`, `src/offline/sync.js`) is deliberately nar
 (configured in `vite.config.js`, active under both `vite dev` and production build) caches GET
 responses for read-only offline access; the *only* offline write path is marking a shopping-list
 item as owned, via an optimistic UI update + an IndexedDB queue replayed on the `online` event.
-Don't extend this pattern to other mutations without re-reading `README.md`'s "PWA / hors ligne"
-section — offline editing of recipes/planning was deliberately scoped out (no conflict
+Don't extend this pattern to other mutations without re-reading `docs/user-guide/offline-and-install.md` — offline editing of recipes/planning was deliberately scoped out (no conflict
 resolution for a single-user app).
 
 i18n (`src/i18n/`) uses vue-i18n with `locales/fr.json`/`locales/en.json` kept in lockstep — when
 adding a user-facing string, add the key to both files.
+
+## Documentation
+
+User, admin and contributor docs live in `docs/` (MkDocs Material, nav in `mkdocs.yml`), are
+published to GitHub Pages by `.github/workflows/docs.yml`, and must stay readable in GitHub's
+file browser. **Every new feature or fix must update the documentation when it changes
+something a user, admin or contributor sees or does** — in the same PR, not later:
+
+- the matching page(s) in `docs/user-guide/`, `docs/admin-guide/`, `docs/getting-started/` or
+  `docs/developer/` (new UI labels quoted exactly as in `locales/en.json`; new env vars in
+  `admin-guide/configuration.md`; new management commands in `getting-started/first-run.md` and
+  `admin-guide/deployment.md`);
+- an entry under `## [Unreleased]` in `CHANGELOG.md` for any user-visible change;
+- regenerated screenshots if the UI changed visibly (`cd frontend && npm run docs:screenshots`
+  against a running, seeded stack; images are Git LFS-tracked under `docs/assets/`).
+
+Authoring conventions (see `docs/developer/documentation.md`): relative `.md` links, GitHub
+alerts (`> [!NOTE]`) for callouts, `/// tab | Docker` / `/// tab | Classic` blocks for command
+variants. Check with `uvx --with-requirements docs/requirements.txt mkdocs build --strict`.

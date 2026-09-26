@@ -10,11 +10,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/jacquesfize/testrecetteapp/actions/workflows/ci.yml"><img src="https://github.com/jacquesfize/testrecetteapp/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/jacquesfize/cocotteapp/actions/workflows/ci.yml"><img src="https://github.com/jacquesfize/cocotteapp/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
   <img src="https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js&logoColor=white" alt="Vue 3">
   <img src="https://img.shields.io/badge/Django-5-092E20?logo=django&logoColor=white" alt="Django 5">
+  <a href="https://jacquesfize.github.io/cocotteapp/"><img src="https://img.shields.io/badge/docs-online-FF6A3D?logo=materialformkdocs&logoColor=white" alt="Documentation"></a>
 </p>
+
+> 📖 **Documentation:** the full user, administrator and contributor guide lives at
+> **[jacquesfize.github.io/cocotteapp](https://jacquesfize.github.io/cocotteapp/)**
+> (sources in [`docs/`](docs/)).
 
 ## What is Cocotte?
 
@@ -42,253 +47,38 @@ Cocotte is built as a free, open-source alternative focused on
 
 An important reason is environmental. Diet is one of the largest levers an individual has on their carbon footprint, and that impact is almost never visible at the point where the decision is actually made — while picking what to cook. Cocotte surfaces the carbon footprint of every ingredient and recipe next to its nutrition facts, so a dietary shift (e.g. eating less meat and dairy) is something you can see and track over a week, not an abstract statistic. The season filter pushes the same idea further: cooking with vegetables that are actually in season usually means less energy-intensive production and transport. This environmental dimension is a core design goal of the app, not an add-on.
 
-## 🚀 Get started
+## 🚀 Quick start
 
-Docker Compose is the fastest way to get a full stack (Postgres + backend + frontend) running.
+The fastest way to try Cocotte is Docker Compose (Postgres + backend + frontend):
 
 ```bash
 cp backend/.env.example backend/.env
 docker compose up --build
-```
 
-- Frontend: `http://localhost:5173/`
-- API: `http://localhost:8000/api/`
-- Django admin: `http://localhost:8000/django-admin/`
-
-The first time you start the stack, the database is empty — **you must run migrations, create an
-admin account, and seed reference data before the app is usable** (nutrient thresholds and the
-carbon-footprint ingredient library in particular are what make nutrition/carbon tracking work at
-all):
-
-```bash
+# in a second terminal, the first time only
 docker compose exec backend python manage.py migrate
 docker compose exec backend python manage.py createsuperuser
-docker compose exec backend python manage.py seed_nutrient_requirements
+docker compose exec backend python manage.py seed_allergens
 docker compose exec backend python manage.py seed_common_ingredients
+docker compose exec backend python manage.py seed_nutrient_requirements
 docker compose exec backend python manage.py seed_thematic_pages
 ```
 
-All three seed commands are idempotent — safe to re-run any time without duplicating data.
+Then open <http://localhost:5173/>. Installing without Docker (uv + npm + local Postgres) is
+covered in the [installation guide](https://jacquesfize.github.io/cocotteapp/getting-started/installation/).
 
-### 🧪 Everyday commands (Docker dev)
+## 📖 Documentation
 
-This is the *dev* compose file (`docker-compose.yml`, distinct from `docker-compose.prod.yml`):
-`backend` runs `manage.py runserver` and `frontend` runs the Vite dev server, both with the repo
-bind-mounted in (`./backend:/app`, `./frontend:/app`) so code edits apply immediately — no
-rebuild needed unless you change a dependency (`pyproject.toml`/`uv.lock` or
-`package.json`/`package-lock.json`), in which case re-run `docker compose up --build`.
+| I want to… | Read |
+|---|---|
+| Install Cocotte and load its reference data | [Getting started](https://jacquesfize.github.io/cocotteapp/getting-started/installation/) |
+| Learn how to use the app (recipes, planning, shopping, offline…) | [User guide](https://jacquesfize.github.io/cocotteapp/user-guide/) |
+| Deploy to production (Docker standalone, behind a shared proxy, or classic) | [Production deployment](https://jacquesfize.github.io/cocotteapp/admin-guide/deployment/) |
+| Look up an environment variable | [Configuration](https://jacquesfize.github.io/cocotteapp/admin-guide/configuration/) |
+| Update, back up or monitor an instance | [Maintenance](https://jacquesfize.github.io/cocotteapp/admin-guide/maintenance/) |
+| Set up a dev environment, run the tests, understand the architecture | [Contributing](https://jacquesfize.github.io/cocotteapp/developer/dev-environment/) |
 
-```bash
-# backend tests & lint
-docker compose exec backend uv run pytest
-docker compose exec backend uv run pytest apps/shopping/tests/test_api.py   # single file
-docker compose exec backend uv run ruff check .
-
-# frontend unit tests
-docker compose exec frontend npm run test:unit
-```
-
-Playwright e2e tests aren't run inside the containers — `backend` (`:8000`) and `frontend`
-(`:5173`) already publish to the host, so run them from the host instead, same as native dev
-(`cd frontend && npm run test:e2e`, see below).
-
-```bash
-docker compose logs -f backend     # tail logs (swap "backend" for "frontend" or "db")
-docker compose down                # stop the stack, keep the database
-docker compose down -v             # stop the stack and wipe the database (re-seed needed after)
-```
-
-### 🔒 Production deployment
-
-`docker-compose.prod.yml` builds three production images (`db`, `backend` served by Gunicorn,
-`frontend` serving the built static SPA) and is **standalone by default**: `frontend` runs Caddy
-instead of nginx, so the same container serves the SPA, reverse-proxies `/api`/`/django-admin` to
-`backend`, *and* terminates HTTPS — no separate web server, no separate reverse-proxy container,
-no host-level dependency. An overlay file switches it to sit behind a shared host Caddy instead,
-for servers that already run several apps behind one reverse proxy.
-
-#### Standalone (default) — this stack owns HTTPS
-
-Needs Docker + Docker Compose and a domain whose DNS (A/AAAA) already points at the server:
-
-```bash
-cp .env.prod.example .env.prod
-# edit .env.prod — set DOMAIN and ACME_EMAIL (read by the bundled Caddy, see
-# deploy/Caddyfile.standalone), and see the Configuration section below for the rest
-
-docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
-```
-
-`frontend` publishes `80`/`443` directly and gets/renews its own Let's Encrypt certificate for
-`DOMAIN`, storing it in a named volume (`caddy_data`) so it survives restarts and rebuilds.
-Nothing else to configure — no host-level reverse proxy needed.
-
-#### Behind a shared, host-level reverse proxy
-
-Use this when the server already hosts (or will host) several apps behind one Caddy instance
-that owns ports 80/443 for the whole box (see a general "Debian full Docker" deployment guide
-for the full walkthrough of that host Caddy stack — installing Docker, DNS, backups, etc.). The
-`docker-compose.prod.proxy.yml` overlay swaps `frontend`'s Caddy config for a plain-HTTP one
-(`deploy/Caddyfile.proxy` instead of `deploy/Caddyfile.standalone`), drops its published ports,
-and joins an external Docker network instead — reached from the host Caddy as
-`cocotte-frontend`.
-
-One-time setup on the host:
-
-```bash
-docker network create proxy   # once per server, shared by every app stack — name it however you like
-```
-
-Add a block for this app to the host Caddy's `Caddyfile` (e.g. `/opt/docker/caddy/Caddyfile`)
-and reload it:
-
-```caddyfile
-cocotte.example.org {
-    reverse_proxy cocotte-frontend:80
-}
-```
-
-```bash
-docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile   # in the host Caddy stack
-```
-
-Then, in this project's own directory (e.g. `/opt/docker/cocotte/` on the server):
-
-```bash
-cp .env.prod.example .env.prod
-# edit .env.prod — set PROXY_NETWORK_NAME to match the network created above (defaults to
-# "proxy"), and see the Configuration section below for the rest; DOMAIN/ACME_EMAIL are unused
-# in this mode since the host Caddyfile is what declares the domain and handles TLS
-
-docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
-```
-
-The external network name doesn't have to be `proxy` on every server — `PROXY_NETWORK_NAME` in
-`.env.prod` lets each deployment point at whatever network the host's shared Caddy actually
-uses, without editing the compose file.
-
-#### Common to both modes
-
-```bash
-# migrations run automatically on container start; still create the first admin account and seed data
-# (add "-f docker-compose.prod.proxy.yml" before --env-file if using the shared-proxy mode)
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py createsuperuser
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
-docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
-```
-
-Uploaded images/PDFs (`media/`) and static files (`staticfiles/`) live in named Docker volumes,
-so they survive a repeated `docker compose up --build`. `POSTGRES_PASSWORD` and the password
-embedded in `DATABASE_URL` must stay identical.
-
-## 🧑‍🍳 How to use it
-
-**Create a recipe.** Either write one by hand (title, servings, prep/cook time, steps,
-ingredients) or paste a URL from a supported recipe site — Cocotte scrapes the title, ingredients,
-steps and picture automatically, so you can review and adjust before saving. From an existing
-recipe you can also create a **version**: a fork (e.g. a gluten-free or spicier variant) that
-stays linked to the original so all variations stay discoverable together.
-
-**Add ingredients.** While typing a recipe step, `@ingredient` opens an autocomplete over the
-whole ingredient database, not just what's already in the recipe — picking one adds it to the
-recipe automatically. If nothing matches, "+ Create" opens a small form (name, category, default
-unit, nutrition, carbon footprint) that can pre-fill itself from Open Food Facts and Agribalyse
-lookups, so you don't have to hunt down nutrition values by hand.
-
-**Search.** The recipe list filters by ingredient, season, diet and total time, and the current
-filters live in the URL — so a filtered view is a link you can bookmark or share. The homepage
-also surfaces a few themed shortcuts (seasonal produce, vegan, ready in 30 minutes) that are just
-pre-set filters, editable from the Django admin without touching any code.
-
-**Plan your week & shop.** Add recipes to the weekly planner grid, scale servings per meal, and
-generate a shopping list from the whole week in one click — ingredients are aggregated and scaled
-automatically across every recipe you planned.
-
-**Export PDFs.** Any recipe page has a "Download as PDF" button; the weekly planner has a
-"Download the week's PDF" button that bundles the week grid with the full detail of every recipe
-in it — handy to print and take to a vegan association, a store, or just the kitchen.
-
-## ⚙️ Configuration
-
-Environment variables read by the backend (`backend/.env` in dev, `.env.prod` for the Docker
-production stack — see `backend/.env.example` and `.env.prod.example`):
-
-| Variable | Default | Description |
-|---|---|---|
-| `DJANGO_SECRET_KEY` | `change-me-in-production` | Django's cryptographic secret key. Always set a long random value outside of local dev. |
-| `DEBUG` | `False` | Django debug mode. `.env.example` sets it to `True` for local development. |
-| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated hostnames the backend will serve. |
-| `DATABASE_URL` | `postgres://postgres:postgres@localhost:5432/cocotte` | Postgres connection string (`postgres://user:password@host:port/dbname`). |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` | Comma-separated origins allowed to call the API from a browser (the frontend's origin). |
-| `EMAIL_BACKEND` | `django.core.mail.backends.console.EmailBackend` | Django email backend. The console backend prints password-reset emails to the backend logs instead of sending them — fine for dev, must be changed for production. |
-| `EMAIL_HOST` | `localhost` | SMTP server host (only used with the SMTP backend). |
-| `EMAIL_PORT` | `25` | SMTP server port. |
-| `EMAIL_HOST_USER` | *(empty)* | SMTP username. |
-| `EMAIL_HOST_PASSWORD` | *(empty)* | SMTP password. |
-| `EMAIL_USE_TLS` | `False` | Whether to use TLS for the SMTP connection. |
-| `DEFAULT_FROM_EMAIL` | `Cocotte <noreply@cocotte.app>` | "From" address for outgoing emails (password reset, etc.). |
-| `FRONTEND_URL` | `http://localhost:5173` | Base URL used to build links sent by email (e.g. the password-reset link). Must point at the public frontend URL in production. |
-
-Production-only variables (`config/settings/prod.py`, `docker-compose.prod.yml` and its
-overlays). See the Production deployment section above for which of `DOMAIN`/`ACME_EMAIL` vs.
-`PROXY_NETWORK_NAME` actually applies to your chosen mode.
-
-| Variable | Default | Description |
-|---|---|---|
-| `CSRF_TRUSTED_ORIGINS` | *(empty)* | Comma-separated origins allowed to pass Django's CSRF check (your public HTTPS domain). |
-| `SECURE_SSL_REDIRECT` | `True` | Redirect all HTTP requests to HTTPS. |
-| `SECURE_HSTS_SECONDS` | `604800` (1 week) | How long browsers should remember to only reach the site over HTTPS (HSTS). |
-| `POSTGRES_PASSWORD` | *(required)* | Password for the Postgres container's `postgres` user — must match the password embedded in `DATABASE_URL`. |
-| `DOMAIN` | *(required in standalone mode, the default)* | Public domain the bundled Caddy (`deploy/Caddyfile.standalone`) requests a Let's Encrypt certificate for. Unused with the `docker-compose.prod.proxy.yml` overlay. |
-| `ACME_EMAIL` | *(required in standalone mode, the default)* | Email given to Let's Encrypt by the bundled Caddy for expiry/renewal notices. Unused with the `docker-compose.prod.proxy.yml` overlay. |
-| `PROXY_NETWORK_NAME` | `proxy` | Name of the external Docker network the shared host Caddy sits on. Only used with the `docker-compose.prod.proxy.yml` overlay. |
-
-## 🛠️ Dev mode (without Docker)
-
-### 🐍 Backend
-
-Uses [uv](https://docs.astral.sh/uv/) for dependency management (`pyproject.toml` + `uv.lock`,
-no `requirements.txt`):
-
-```bash
-cd backend
-uv sync --group dev
-cp .env.example .env   # point DATABASE_URL at your local Postgres
-uv run python manage.py migrate
-uv run python manage.py createsuperuser
-uv run python manage.py seed_nutrient_requirements
-uv run python manage.py seed_common_ingredients
-uv run python manage.py seed_thematic_pages
-uv run python manage.py runserver
-```
-
-Tests and linting:
-
-```bash
-uv run pytest                    # full suite
-uv run pytest --cov=apps         # with coverage
-uv run ruff check .              # lint
-```
-
-### 💻 Frontend
-
-Needs the backend running on `:8000` (Vite proxies `/api` there — see `vite.config.js`):
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open `http://localhost:5173/`.
-
-```bash
-npm run test:unit                # Vitest
-npx playwright install           # once
-npm run test:e2e                 # Playwright — needs backend AND frontend already running
-npm run build                    # production build
-```
+The documentation sources live in [`docs/`](docs/) and are readable directly on GitHub.
 
 ## 🙏 Acknowledgments
 
@@ -298,9 +88,11 @@ Nutrition and carbon-footprint data come from:
 
 - [Open Food Facts](https://world.openfoodfacts.org/) — packaged-product nutrition facts, used to
   suggest macronutrients when creating an ingredient.
+- [Ciqual](https://ciqual.anses.fr/) (ANSES) and USDA food composition tables — rounded nutrition
+  values of the seeded ingredient library.
 - [Agribalyse](https://agribalyse.ademe.fr/) (ADEME/INRAE) — life-cycle environmental impact data
-  for food products, used for carbon-footprint suggestions and as the main source for the seeded
-  ingredient library.
+  for food products, used for carbon-footprint suggestions and as the main source for the carbon
+  values of the seeded ingredient library.
 - [Poore & Nemecek (2018)](https://www.science.org/doi/10.1126/science.aaq0216), via
   [Our World in Data](https://ourworldindata.org/environmental-impacts-of-food) — used as a
   secondary reference for category-level carbon footprint averages in the seeded ingredient
@@ -310,3 +102,8 @@ These are category-level averages, not lab measurements or a certified carbon au
 
 Recipe import is powered by [recipe-scrapers](https://github.com/hhursev/recipe-scrapers), and
 PDF export by [WeasyPrint](https://weasyprint.org/).
+
+## 🤝 Contributing
+
+Contributions are welcome! Read [CONTRIBUTING.md](CONTRIBUTING.md) to get started, and see
+[CHANGELOG.md](CHANGELOG.md) for what has changed.
