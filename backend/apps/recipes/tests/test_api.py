@@ -482,3 +482,51 @@ def test_fork_restricted_recipe_allowed_for_staff():
     response = client.post(f"/api/recipes/{source.id}/fork/", {"version_label": "Variante"}, format="json")
 
     assert response.status_code == 201
+
+
+@pytest.mark.django_db
+def test_pdf_download_forbidden_for_anonymous_on_restricted_recipe():
+    author = UserFactory()
+    recipe = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+
+    response = client.get(f"/api/recipes/{recipe.id}/pdf/")
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_pdf_download_forbidden_for_other_user_on_restricted_recipe():
+    author = UserFactory()
+    other = UserFactory()
+    recipe = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+    client.force_authenticate(other)
+
+    response = client.get(f"/api/recipes/{recipe.id}/pdf/")
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_pdf_download_allowed_for_owner_on_restricted_recipe():
+    author = UserFactory()
+    recipe = RecipeFactory(author=author, source_url="https://example.com/recette")
+    client = APIClient()
+    client.force_authenticate(author)
+
+    response = client.get(f"/api/recipes/{recipe.id}/pdf/")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
+
+
+@pytest.mark.django_db
+def test_pdf_download_allowed_for_manual_recipe_anonymous():
+    recipe = RecipeFactory(source_url="")
+    client = APIClient()
+
+    response = client.get(f"/api/recipes/{recipe.id}/pdf/")
+
+    assert response.status_code == 200
+    assert response["Content-Type"] == "application/pdf"
