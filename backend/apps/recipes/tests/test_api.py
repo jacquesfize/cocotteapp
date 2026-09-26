@@ -530,3 +530,46 @@ def test_pdf_download_allowed_for_manual_recipe_anonymous():
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/pdf"
+
+
+@pytest.mark.django_db
+def test_staff_can_update_another_users_recipe():
+    author = UserFactory()
+    staff = UserFactory(is_staff=True)
+    recipe = RecipeFactory(author=author, title="Original")
+    client = APIClient()
+    client.force_authenticate(staff)
+
+    response = client.patch(f"/api/recipes/{recipe.id}/", {"title": "Modifié par un admin"}, format="json")
+
+    assert response.status_code == 200
+    recipe.refresh_from_db()
+    assert recipe.title == "Modifié par un admin"
+
+
+@pytest.mark.django_db
+def test_staff_can_delete_another_users_recipe():
+    author = UserFactory()
+    staff = UserFactory(is_staff=True)
+    recipe = RecipeFactory(author=author)
+    client = APIClient()
+    client.force_authenticate(staff)
+
+    response = client.delete(f"/api/recipes/{recipe.id}/")
+
+    assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_non_author_non_staff_cannot_update_recipe():
+    author = UserFactory()
+    other = UserFactory()
+    recipe = RecipeFactory(author=author, title="Original")
+    client = APIClient()
+    client.force_authenticate(other)
+
+    response = client.patch(f"/api/recipes/{recipe.id}/", {"title": "Piraté"}, format="json")
+
+    assert response.status_code == 403
+    recipe.refresh_from_db()
+    assert recipe.title == "Original"
