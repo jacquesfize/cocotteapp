@@ -51,7 +51,10 @@ const imageCredit = computed(() =>
 
     <div class="restricted-banner" role="note">
       <Lock :size="18" />
-      <p>{{ $t('recipes.restrictedNotice') }}</p>
+      <i18n-t keypath="recipes.restrictedNotice" tag="p" scope="global">
+        <template #copyright><strong>{{ $t('recipes.restrictedNoticeCopyright') }}</strong></template>
+        <template #visibility><strong>{{ $t('recipes.restrictedNoticeVisibility') }}</strong></template>
+      </i18n-t>
     </div>
 
     <AllergenBadges :allergens="recipe.allergens ?? []" :unverified="recipe.allergens_unverified" />

@@ -50,12 +50,17 @@ describe('RecipeRestrictedNotice', () => {
     expect(credit.text()).toContain('cuisine.example')
   })
 
-  it('shows the restriction notice in a framed banner', () => {
+  it('shows the restriction notice in a framed banner, with the key points in bold', () => {
     const wrapper = mountNotice({})
 
     const banner = wrapper.find('.restricted-banner')
     expect(banner.exists()).toBe(true)
-    expect(banner.text()).toContain('importée depuis une source tierce')
+    expect(banner.text()).toContain('droits d\'auteur')
+    const bolded = banner.findAll('strong').map((el) => el.text())
+    expect(bolded).toContain('peut être protégée par des droits d\'auteur')
+    expect(bolded).toContain(
+      'sa description, ses ingrédients et ses étapes ne sont visibles que par l\'utilisateur qui l\'a importée et les administrateurs',
+    )
   })
 
   it('falls back to a plain source link when there is neither image nor video', () => {
