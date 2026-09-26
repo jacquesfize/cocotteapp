@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Moon, Sun } from '@lucide/vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { Check, Moon, Sun } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { i18n, setLocale, SUPPORTED_LOCALES, type Locale } from '../i18n'
 import { useAuthStore } from '../stores/auth'
 import { themeMode, toggleThemeMode } from '../utils/theme'
+import LocaleFlag from './LocaleFlag.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -13,6 +14,11 @@ const router = useRouter()
 
 const isMenuOpen = ref(false)
 const accountEl = ref<HTMLElement | null>(null)
+const isLocaleMenuOpen = ref(false)
+const localeEl = ref<HTMLElement | null>(null)
+const currentLocaleLabel = computed(
+  () => SUPPORTED_LOCALES.find((l) => l.code === i18n.global.locale.value)?.label ?? '',
+)
 
 function toggleMenu() {
   isMenuOpen.value = !isMenuOpen.value
@@ -20,6 +26,11 @@ function toggleMenu() {
 
 function closeMenu() {
   isMenuOpen.value = false
+  isLocaleMenuOpen.value = false
+}
+
+function toggleLocaleMenu() {
+  isLocaleMenuOpen.value = !isLocaleMenuOpen.value
 }
 
 function handleLogout() {
@@ -28,14 +39,18 @@ function handleLogout() {
   router.push({ name: 'login' })
 }
 
-function handleLocaleChange(event: Event) {
-  setLocale((event.target as HTMLSelectElement).value as Locale)
+function handleLocaleChange(code: Locale) {
+  setLocale(code)
   closeMenu()
 }
 
 function handleOutsideClick(event: MouseEvent) {
-  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(event.target as Node)) {
-    closeMenu()
+  const target = event.target as Node
+  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(target)) {
+    isMenuOpen.value = false
+  }
+  if (isLocaleMenuOpen.value && localeEl.value && !localeEl.value.contains(target)) {
+    isLocaleMenuOpen.value = false
   }
 }
 
@@ -111,32 +126,9 @@ onBeforeUnmount(() => {
             <span>{{ $t('nav.shopping') }}</span>
           </RouterLink>
         </template>
-        <template v-else>
-          <RouterLink to="/login">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />
-              <path d="M10 8l4 4-4 4" />
-              <path d="M14 12H3" />
-            </svg>
-            <span>{{ $t('nav.login') }}</span>
-          </RouterLink>
-          <RouterLink to="/register">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="8.5" cy="8" r="3.2" />
-              <path d="M2.5 20c1-3.3 3.6-5 6-5s5 1.7 6 5" />
-              <path d="M18 8v4M16 10h4" />
-            </svg>
-            <span>{{ $t('nav.register') }}</span>
-          </RouterLink>
-        </template>
       </nav>
 
       <div class="nav-actions">
-        <div v-if="!authStore.isAuthenticated" class="mobile-auth" data-testid="mobile-auth">
-          <RouterLink to="/login" class="mobile-auth-login">{{ $t('nav.login') }}</RouterLink>
-          <RouterLink to="/register" class="mobile-auth-register">{{ $t('nav.register') }}</RouterLink>
-        </div>
-
         <RouterLink to="/recipes/random" class="dice-button" :aria-label="t('nav.random')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <rect x="4" y="4" width="16" height="16" rx="4" />
@@ -145,6 +137,35 @@ onBeforeUnmount(() => {
             <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
           </svg>
         </RouterLink>
+
+        <div ref="localeEl" class="locale">
+          <button
+            class="locale-button"
+            type="button"
+            data-testid="locale-button"
+            :aria-expanded="isLocaleMenuOpen"
+            aria-controls="locale-panel"
+            :aria-label="t('nav.language', { name: currentLocaleLabel })"
+            :title="currentLocaleLabel"
+            @click="toggleLocaleMenu"
+          >
+            <LocaleFlag :code="i18n.global.locale.value" class="locale-flag" />
+          </button>
+          <div id="locale-panel" class="dropdown-panel locale-panel" :class="{ 'is-open': isLocaleMenuOpen }">
+            <button
+              v-for="locale in SUPPORTED_LOCALES"
+              :key="locale.code"
+              type="button"
+              class="locale-option"
+              :aria-pressed="locale.code === i18n.global.locale.value"
+              @click="handleLocaleChange(locale.code)"
+            >
+              <LocaleFlag :code="locale.code" class="locale-option-flag" />
+              <span class="locale-option-label">{{ locale.label }}</span>
+              <Check v-if="locale.code === i18n.global.locale.value" :size="16" />
+            </button>
+          </div>
+        </div>
 
         <button
           class="theme-toggle"
@@ -157,7 +178,21 @@ onBeforeUnmount(() => {
           <Moon v-else :size="20" />
         </button>
 
-        <div ref="accountEl" class="account">
+        <RouterLink
+          v-if="!authStore.isAuthenticated"
+          to="/login"
+          class="account-button"
+          data-testid="login-button"
+          :aria-label="t('nav.login')"
+          :title="t('nav.login')"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <circle cx="12" cy="8.5" r="3.5" />
+            <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
+          </svg>
+        </RouterLink>
+
+        <div v-else ref="accountEl" class="account">
           <button
             class="account-button"
             type="button"
@@ -172,7 +207,7 @@ onBeforeUnmount(() => {
             </svg>
           </button>
 
-          <div id="account-panel" class="account-panel" :class="{ 'is-open': isMenuOpen }">
+          <div id="account-panel" class="dropdown-panel account-panel" :class="{ 'is-open': isMenuOpen }">
             <p v-if="authStore.user" class="account-username">{{ authStore.user.username }}</p>
 
             <div v-if="authStore.isAuthenticated" class="account-section">
@@ -213,12 +248,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="account-section">
-              <select class="locale-select" :value="i18n.global.locale.value" @change="handleLocaleChange">
-                <option v-for="locale in SUPPORTED_LOCALES" :key="locale.code" :value="locale.code">
-                  {{ locale.label }}
-                </option>
-              </select>
-              <button v-if="authStore.isAuthenticated" class="secondary account-link-button" @click="handleLogout">
+              <button class="secondary account-link-button" @click="handleLogout">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />
                   <path d="M14 16l4-4-4-4" />
@@ -375,11 +405,13 @@ onBeforeUnmount(() => {
   background: var(--color-primary-soft);
 }
 
-.account {
+.account,
+.locale {
   position: relative;
   flex-shrink: 0;
 }
 
+.locale-button,
 .theme-toggle,
 .account-button {
   background: var(--color-surface-muted);
@@ -399,12 +431,25 @@ onBeforeUnmount(() => {
   height: 20px;
 }
 
+.locale-flag {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.account-button.router-link-active {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.locale-button:hover,
 .theme-toggle:hover,
 .account-button:hover {
   background: var(--color-primary-soft);
 }
 
-.account-panel {
+.dropdown-panel {
   display: none;
   position: absolute;
   top: calc(100% + 0.5rem);
@@ -419,7 +464,7 @@ onBeforeUnmount(() => {
   z-index: 30;
 }
 
-.account-panel.is-open {
+.dropdown-panel.is-open {
   display: flex;
 }
 
@@ -474,16 +519,45 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.locale-select {
-  min-height: auto;
+.locale-panel {
+  min-width: 160px;
+  padding: 0.4rem;
+  gap: 0.15rem;
+}
+
+.locale-option {
+  justify-content: flex-start;
+  background: none;
+  color: var(--color-text);
+  border-radius: 10px;
+  min-height: 2.25rem;
   padding: 0.4rem 0.6rem;
+  font-weight: 500;
+}
+
+.locale-option:hover {
+  background: var(--color-surface-muted);
+}
+
+.locale-option[aria-pressed='true'] {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+.locale-option-flag {
+  width: 22px;
+  height: 15px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--color-border);
+  flex-shrink: 0;
+}
+
+.locale-option-label {
+  flex: 1;
+  text-align: left;
 }
 
 .tabbar {
-  display: none;
-}
-
-.mobile-auth {
   display: none;
 }
 
@@ -494,31 +568,6 @@ onBeforeUnmount(() => {
 
   .dice-button {
     display: none;
-  }
-
-  .mobile-auth {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .mobile-auth a {
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 0.45rem 0.7rem;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-
-  .mobile-auth-login {
-    color: var(--color-primary-dark);
-    background: var(--color-surface-muted);
-  }
-
-  .mobile-auth-register {
-    color: var(--color-on-primary);
-    background: var(--color-primary);
   }
 
   .navbar-inner {
@@ -540,14 +589,11 @@ onBeforeUnmount(() => {
     min-width: 0;
   }
 
+  .locale-button,
   .theme-toggle,
   .account-button {
     width: 2.25rem;
     height: 2.25rem;
-  }
-
-  .mobile-auth a {
-    padding: 0.4rem 0.55rem;
   }
 
   .tabbar {

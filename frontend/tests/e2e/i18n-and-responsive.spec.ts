@@ -39,12 +39,12 @@ test('shows a bottom tab bar on mobile, inline links on desktop, and an account 
   await expect(page.locator('nav.top-links').getByRole('link', { name: 'Agenda' })).toBeVisible()
 })
 
-test('switches language from the account menu and persists the choice across reloads', async ({ page }) => {
+test('switches language from the header locale button and persists the choice across reloads', async ({ page }) => {
   await page.goto('/login')
   await expect(page.locator('h1')).toHaveText('Connexion')
 
-  await page.locator('.account-button').click()
-  await page.locator('select.locale-select').selectOption('en')
+  await page.getByTestId('locale-button').click()
+  await page.locator('.locale-option', { hasText: 'English' }).click()
   await expect(page.locator('h1')).toHaveText('Log in')
 
   await page.reload()

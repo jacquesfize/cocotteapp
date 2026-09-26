@@ -17,7 +17,8 @@
     "admin": "Admin",
     "adminThematicPages": "Pages thématiques",
     "administration": "Administration",
-    "adminIngredients": "Ingrédients"
+    "adminIngredients": "Ingrédients",
+    "language": "Langue : {name}"
   },
   "common": {
     "loading": "Chargement...",
@@ -58,8 +59,6 @@
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
     "loginButton": "Se connecter",
-    "noAccount": "Pas encore de compte ?",
-    "signUp": "S'inscrire",
     "invalidCredentials": "Identifiants invalides.",
     "registerTitle": "Inscription",
     "email": "Email",
@@ -76,7 +75,14 @@
     "resetPasswordTitle": "Choisir un nouveau mot de passe",
     "resetPasswordButton": "Valider le nouveau mot de passe",
     "resetPasswordError": "Ce lien de réinitialisation est invalide ou a expiré.",
-    "resetPasswordSuccess": "Mot de passe modifié, vous pouvez vous connecter."
+    "resetPasswordSuccess": "Mot de passe modifié, vous pouvez vous connecter.",
+    "or": "Ou",
+    "browseWithoutAccount": "Parcourir les recettes sans compte",
+    "showInput": "Afficher la saisie",
+    "hideInput": "Masquer la saisie",
+    "loginTab": "Connexion",
+    "registerTab": "Inscription",
+    "tabsLabel": "Connexion ou inscription"
   },
   "recipes": {
     "title": "Recettes",
