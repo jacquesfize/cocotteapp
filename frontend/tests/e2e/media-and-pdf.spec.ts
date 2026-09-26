@@ -54,7 +54,7 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   // Thematic page: clicking the ingredient jumps to a filtered, shareable recipe list.
   await page.getByRole('link', { name: ingredientName }).click()
   await expect(page).toHaveURL(new RegExp(`/recipes\\?ingredients=${ingredientName}`))
-  await expect(page.getByRole('link', { name: new RegExp(recipeTitle) })).toBeVisible()
+  await expect(page.getByRole('link', { name: recipeTitle, exact: true })).toBeVisible()
 })
 
 test('downloads a PDF of the current week from the planner', async ({ page }) => {
