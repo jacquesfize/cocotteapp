@@ -1,0 +1,76 @@
+/* Cocotte brand palette, mirrored from frontend/src/assets/base.css */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #ff6a3d;
+  --md-primary-fg-color--light: #ff8a66;
+  --md-primary-fg-color--dark: #cc5531;
+  --md-primary-bg-color: #ffffff;
+  --md-accent-fg-color: #e25a30;
+  --md-default-bg-color: #fbf6f3;
+  --md-typeset-a-color: #d9542b;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #ff6a3d;
+  --md-primary-fg-color--light: #ff8a66;
+  --md-primary-fg-color--dark: #cc5531;
+  --md-accent-fg-color: #ff8a66;
+  --md-typeset-a-color: #ff8a66;
+  --md-default-bg-color: #171412;
+  --md-hue: 20;
+}
+
+/* Warm header instead of flat orange text on orange */
+.md-header,
+.md-tabs {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-header__title {
+  font-weight: 700;
+}
+
+/* Screenshots: rounded, soft shadow, framed like app cards */
+.md-typeset img:not(.twemoji):not(.no-frame) {
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(36, 31, 29, 0.06), 0 8px 24px rgba(36, 31, 29, 0.1);
+  border: 1px solid rgba(36, 31, 29, 0.08);
+}
+
+[data-md-color-scheme="slate"] .md-typeset img:not(.twemoji):not(.no-frame) {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Home page hero */
+.md-typeset .cocotte-hero {
+  text-align: center;
+  margin: 1rem 0 2rem;
+}
+
+.md-typeset .cocotte-hero img:not(.twemoji) {
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Bolder headings, closer to the app's typography */
+.md-typeset h1 {
+  font-weight: 800;
+  color: var(--md-default-fg-color);
+  letter-spacing: -0.01em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+}
+
+/* Buttons a bit rounder, like the app */
+.md-typeset .md-button {
+  border-radius: 999px;
+}
+
+/* Tabs (Docker | Classic) — make the active label pop */
+.md-typeset .tabbed-labels > label {
+  font-weight: 600;
+}

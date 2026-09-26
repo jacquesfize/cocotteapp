@@ -11,3 +11,6 @@ node_modules/
 dist/
 .venv/
 venv/
+
+# MkDocs build output
+site/
