@@ -108,20 +108,27 @@ def get_or_create_ingredient(name: str) -> Ingredient:
 
 @transaction.atomic
 def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, prep_time_minutes=None,
-                                 cook_time_minutes=None, diet_type=None) -> Recipe:
+                                 cook_time_minutes=None, diet_type=None, source_url=None, video_url=None,
+                                 image_url=None, content_publicly_licensed=False) -> Recipe:
     """Parse `raw_cooklang` and persist the resulting Recipe + children.
 
     `raw_cooklang` is kept verbatim on the created recipe (so it can be
     displayed/re-parsed later) even though the parsed ingredients/steps are
     what's actually rendered.
+
+    `video_url`/`source_url`/`image_url` let a YouTube import create the recipe in a single
+    call (see `scripts/youtube_recipes/post_cooklang.py`): a `video_url` marks `source_type` as
+    `SourceType.YOUTUBE` (purely descriptive/admin - no visibility logic reads `source_type`;
+    see `Recipe.is_content_restricted`, which only looks at `source_url`).
     """
     parsed: ParsedRecipe = parse(raw_cooklang)
 
     recipe_kwargs = {
         "author": author,
         "title": title,
-        "source_type": SourceType.COOKLANG,
+        "source_type": SourceType.YOUTUBE if video_url else SourceType.COOKLANG,
         "raw_cooklang": raw_cooklang,
+        "content_publicly_licensed": content_publicly_licensed,
     }
     if servings is not None:
         recipe_kwargs["servings"] = servings
@@ -131,6 +138,12 @@ def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, p
         recipe_kwargs["cook_time_minutes"] = cook_time_minutes
     if diet_type is not None:
         recipe_kwargs["diet_type"] = diet_type
+    if source_url is not None:
+        recipe_kwargs["source_url"] = source_url
+    if video_url is not None:
+        recipe_kwargs["video_url"] = video_url
+    if image_url is not None:
+        recipe_kwargs["image_url"] = image_url
 
     recipe = Recipe.objects.create(**recipe_kwargs)
 

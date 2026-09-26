@@ -5,8 +5,11 @@
 # ///
 """Create a Cocotte recipe from a .cook file via the API.
 
-Logs in with COCOTTE_EMAIL / COCOTTE_PASSWORD (JWT), POSTs to
-/api/recipes/import-cooklang/, then PATCHes video_url/source_url (and the video thumbnail as image_url) onto the recipe.
+Logs in with COCOTTE_EMAIL / COCOTTE_PASSWORD (JWT) and POSTs to
+/api/recipes/import-cooklang/ in a single call carrying video_url/source_url (and the video
+thumbnail as image_url). `content_publicly_licensed` is always sent as `False`: a recipe created
+by this pipeline always has a source_url/video_url, so it's restricted by default until the
+human owner opts in from the app's edit screen -- this script never decides that for them.
 
 Usage: post_cooklang.py recipe.cook --title "Tarte" [--servings 4] [--prep 15] [--cook 30]
        [--diet omnivore] [--video-url URL] [--image-url URL] [--dry-run]
@@ -57,11 +60,17 @@ def main():
     args = ap.parse_args()
 
     raw = sanitize_cooklang(open(args.file, encoding="utf-8").read())
-    payload = {"title": args.title, "raw_cooklang": raw}
+    payload = {"title": args.title, "raw_cooklang": raw, "content_publicly_licensed": False}
     for key, val in [("servings", args.servings), ("prep_time_minutes", args.prep),
                      ("cook_time_minutes", args.cook), ("diet_type", args.diet)]:
         if val is not None:
             payload[key] = val
+
+    if args.video_url:
+        payload["video_url"] = args.video_url
+        payload["source_url"] = args.video_url
+        if image := args.image_url or youtube_thumbnail(args.video_url):
+            payload["image_url"] = image
 
     if args.dry_run:
         print(payload)
@@ -81,14 +90,6 @@ def main():
         if r.status_code >= 400:
             sys.exit(f"import failed {r.status_code}: {r.text}")
         recipe = r.json()
-
-        if args.video_url:
-            patch = {"video_url": args.video_url, "source_url": args.video_url}
-            if image := args.image_url or youtube_thumbnail(args.video_url):
-                patch["image_url"] = image
-            r = c.patch(f"/recipes/{recipe['id']}/", json=patch)
-            if r.status_code >= 400:
-                print(f"warning: recipe created but video_url patch failed: {r.text}", file=sys.stderr)
 
     print(f"created recipe {recipe['id']} slug={recipe.get('slug')}")
 

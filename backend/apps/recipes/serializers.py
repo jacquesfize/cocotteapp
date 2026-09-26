@@ -4,6 +4,7 @@ from rest_framework import serializers
 from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient, Unit
 from apps.ingredients.serializers import IngredientSerializer
+from apps.nutrition.services import compute_recipe_carbon_footprint
 
 from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
 from .youtube import extract_youtube_id
@@ -100,6 +101,12 @@ class RecipeSerializer(serializers.ModelSerializer):
     versions = serializers.SerializerMethodField()
     allergens = serializers.SerializerMethodField()
     allergens_unverified = serializers.SerializerMethodField()
+    content_restricted = serializers.SerializerMethodField()
+    carbon_footprint_kg_co2e = serializers.SerializerMethodField()
+
+    # Champs retirés de la réponse par `to_representation` quand `content_restricted` est vrai
+    # pour le visiteur : le contenu rédactionnel copié de la source, pas les métadonnées neutres.
+    RESTRICTED_HIDDEN_FIELDS = ("description", "ingredients", "steps")
 
     class Meta:
         model = Recipe
@@ -122,6 +129,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             "image",
             "image_url",
             "is_public",
+            "content_publicly_licensed",
+            "content_restricted",
+            "carbon_footprint_kg_co2e",
             "tags",
             "ingredients",
             "allergens",
@@ -145,6 +155,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     def get_youtube_id(self, obj):
         return extract_youtube_id(obj.video_url)
 
+    def get_content_restricted(self, obj):
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        return obj.is_content_restricted(user)
+
+    def get_carbon_footprint_kg_co2e(self, obj):
+        return float(compute_recipe_carbon_footprint(obj))
+
     def get_versions(self, obj):
         if obj.root_recipe_id is None and not obj.versions.exists():
             return []
@@ -155,6 +173,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             .select_related("author")
         )
         return RecipeVersionSerializer(siblings, many=True).data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data["content_restricted"]:
+            for field in self.RESTRICTED_HIDDEN_FIELDS:
+                data.pop(field, None)
+        return data
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", [])
@@ -251,3 +276,7 @@ class CooklangImportSerializer(serializers.Serializer):
     prep_time_minutes = serializers.IntegerField(required=False, min_value=0)
     cook_time_minutes = serializers.IntegerField(required=False, min_value=0)
     diet_type = serializers.ChoiceField(choices=DietType.choices, required=False)
+    source_url = serializers.URLField(required=False, allow_blank=True)
+    video_url = serializers.URLField(required=False, allow_blank=True)
+    image_url = serializers.URLField(required=False, allow_blank=True)
+    content_publicly_licensed = serializers.BooleanField(required=False, default=False)

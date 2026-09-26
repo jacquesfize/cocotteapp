@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.importer.services import build_import_preview
+from apps.importer.services import build_import_preview, fetch_og_image
 from apps.ingredients.factories import IngredientFactory
 from apps.ingredients.models import Ingredient
 from apps.recipes.models import Recipe
@@ -17,7 +17,9 @@ def test_build_import_preview_uses_scraper_data():
     scraper.ingredients.return_value = ["2 poireaux", "1 pâte brisée"]
     scraper.instructions.return_value = "Préchauffer le four.\nCuire 30 minutes."
 
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": scraper.title(),
             "servings": 6,
@@ -51,7 +53,9 @@ def test_build_import_preview_captures_scraped_image():
 
 @pytest.mark.django_db
 def test_build_import_preview_without_image_defaults_to_blank():
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Tarte aux poireaux",
             "servings": 6,
@@ -63,6 +67,44 @@ def test_build_import_preview_without_image_defaults_to_blank():
         preview = build_import_preview("https://example.com/recipe")
 
     assert preview["image_url"] == ""
+
+
+@pytest.mark.django_db
+def test_build_import_preview_falls_back_to_og_image_when_scraper_finds_none():
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value="https://example.com/og.jpg"
+    ) as og_image:
+        scrape_url.return_value = {
+            "title": "Tarte aux poireaux",
+            "servings": 6,
+            "cook_time_minutes": 45,
+            "ingredients": ["1 pâte brisée"],
+            "instructions": ["Cuire 30 minutes."],
+            "image_url": "",
+        }
+        preview = build_import_preview("https://example.com/recipe")
+
+    og_image.assert_called_once_with("https://example.com/recipe")
+    assert preview["image_url"] == "https://example.com/og.jpg"
+
+
+@pytest.mark.django_db
+def test_build_import_preview_does_not_use_og_image_fallback_when_scraper_found_one():
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image"
+    ) as og_image:
+        scrape_url.return_value = {
+            "title": "Tarte aux poireaux",
+            "servings": 6,
+            "cook_time_minutes": 45,
+            "ingredients": ["1 pâte brisée"],
+            "instructions": ["Cuire 30 minutes."],
+            "image_url": "https://example.com/tarte.jpg",
+        }
+        preview = build_import_preview("https://example.com/recipe")
+
+    og_image.assert_not_called()
+    assert preview["image_url"] == "https://example.com/tarte.jpg"
 
 
 def test_scrape_url_extracts_image_when_available():
@@ -99,9 +141,42 @@ def test_scrape_url_defaults_to_blank_when_scraper_has_no_image():
     assert data["image_url"] == ""
 
 
+def test_fetch_og_image_returns_content_when_meta_tag_present():
+    response = MagicMock()
+    response.text = '<html><head><meta property="og:image" content="https://example.com/og.jpg"></head></html>'
+    response.raise_for_status.return_value = None
+
+    with patch("requests.get", return_value=response):
+        assert fetch_og_image("https://example.com/recipe") == "https://example.com/og.jpg"
+
+
+def test_fetch_og_image_returns_none_when_tag_missing():
+    response = MagicMock()
+    response.text = "<html><head></head></html>"
+    response.raise_for_status.return_value = None
+
+    with patch("requests.get", return_value=response):
+        assert fetch_og_image("https://example.com/recipe") is None
+
+
+def test_fetch_og_image_returns_none_on_network_failure():
+    with patch("requests.get", side_effect=Exception("connection refused")):
+        assert fetch_og_image("https://example.com/recipe") is None
+
+
+def test_fetch_og_image_returns_none_on_http_error_status():
+    response = MagicMock()
+    response.raise_for_status.side_effect = Exception("404")
+
+    with patch("requests.get", return_value=response):
+        assert fetch_og_image("https://example.com/recipe") is None
+
+
 @pytest.mark.django_db
 def test_build_import_preview_parses_quantity_and_unit():
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
@@ -126,7 +201,9 @@ def test_build_import_preview_does_not_write_to_database():
     recipe_count_before = Recipe.objects.count()
     ingredient_count_before = Ingredient.objects.count()
 
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
@@ -145,7 +222,9 @@ def test_build_import_preview_does_not_write_to_database():
 def test_build_import_preview_matches_existing_ingredient_by_exact_name():
     existing = IngredientFactory(name="pois chiches")
 
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
@@ -165,7 +244,9 @@ def test_build_import_preview_matches_existing_ingredient_by_exact_name():
 def test_build_import_preview_matches_existing_ingredient_by_translation(raw_line):
     ail = IngredientFactory(name="Ail", translations={"en": "garlic", "de": "Knoblauch", "es": "ajo"})
 
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Recipe",
             "servings": 4,
@@ -186,7 +267,9 @@ def test_build_import_preview_matches_existing_ingredient_by_translation(raw_lin
 def test_build_import_preview_matches_existing_ingredient_by_close_match():
     existing = IngredientFactory(name="pois chiche")
 
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
@@ -203,7 +286,9 @@ def test_build_import_preview_matches_existing_ingredient_by_close_match():
 
 @pytest.mark.django_db
 def test_build_import_preview_leaves_unmatched_ingredient_null():
-    with patch("apps.importer.services.scrape_url") as scrape_url:
+    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
+        "apps.importer.services.fetch_og_image", return_value=None
+    ):
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,

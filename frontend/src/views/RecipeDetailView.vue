@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeComments from '../components/RecipeComments.vue'
+import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -32,6 +33,10 @@ const isOwner = computed(
   () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
 const canModerateComments = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
+const canFork = computed(
+  () => Boolean(recipe.value) && (!recipe.value?.content_restricted || isOwner.value),
+)
+const hasActions = computed(() => isOwner.value || canFork.value)
 
 function closeActionsMenu() {
   showActionsMenu.value = false
@@ -88,8 +93,9 @@ async function handleFork() {
   try {
     const created = await forkRecipe(recipe.value.id, forkLabel.value.trim())
     router.push({ name: 'recipe-edit', params: { id: created.id } })
-  } catch {
-    forkError.value = t('recipes.forkError')
+  } catch (err) {
+    const status = (err as { response?: { status?: number } }).response?.status
+    forkError.value = status === 403 ? t('recipes.restrictedForkError') : t('recipes.forkError')
   } finally {
     forking.value = false
   }
@@ -100,20 +106,9 @@ async function handleFork() {
   <div v-if="recipe">
     <div class="row page-header">
       <div class="title-block">
-        <h1>
-          {{ recipe.title }}
-          <a
-            v-if="recipe.source_url"
-            :href="recipe.source_url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="source-badge"
-          >
-            <Link2 :size="14" /><span>{{ $t('recipes.source') }}</span>
-          </a>
-        </h1>
+        <h1>{{ recipe.title }}</h1>
       </div>
-      <div v-if="authStore.isAuthenticated" ref="actionsEl" class="actions-menu">
+      <div v-if="authStore.isAuthenticated && hasActions" ref="actionsEl" class="actions-menu">
         <button
           class="actions-toggle secondary"
           type="button"
@@ -139,7 +134,7 @@ async function handleFork() {
             </button>
           </template>
           <button
-            v-if="!showForkForm"
+            v-if="!showForkForm && canFork"
             class="actions-link"
             @click="showForkForm = true; closeActionsMenu()"
           >
@@ -148,6 +143,15 @@ async function handleFork() {
         </div>
       </div>
     </div>
+    <a
+      v-if="recipe.source_url && !recipe.content_restricted"
+      :href="recipe.source_url"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="source-link"
+    >
+      <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
+    </a>
     <p v-if="deleteError" class="error">{{ deleteError }}</p>
 
     <div v-if="showForkForm" class="row fork-form">
@@ -166,7 +170,8 @@ async function handleFork() {
     </div>
     <p v-if="forkError" class="error">{{ forkError }}</p>
 
-    <RecipeSummary :recipe="recipe" />
+    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
+    <RecipeRestrictedNotice v-else :recipe="recipe" />
     <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
 
     <div v-if="recipe.versions.length" class="versions-section">
@@ -202,25 +207,24 @@ async function handleFork() {
 }
 
 
-.source-badge {
-  display: inline-flex;
+.source-link {
+  display: flex;
+  width: fit-content;
   align-items: center;
-  gap: 0.35rem;
-  vertical-align: middle;
-  margin-left: 0.6rem;
-  padding: 0.3rem 0.75rem;
+  gap: 0.5rem;
+  margin: 0 auto 1.5rem;
+  padding: 0.75rem 1.75rem;
   border-radius: 999px;
-  background: var(--color-surface-muted);
-  color: var(--color-muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.source-badge:hover {
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.source-link:hover {
+  background: var(--color-primary);
+  color: #fff;
 }
 
 .actions-menu {

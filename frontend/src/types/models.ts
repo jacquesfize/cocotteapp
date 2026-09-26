@@ -147,6 +147,9 @@ export interface Recipe {
   image: string | null
   image_url: string
   is_public: boolean
+  content_publicly_licensed: boolean
+  content_restricted: boolean
+  carbon_footprint_kg_co2e: number
   tags: Tag[]
   ingredients: RecipeIngredient[]
   allergens: string[]
@@ -180,6 +183,7 @@ export interface RecipeInput {
   cook_time_minutes: number
   diet_type: DietType
   is_public: boolean
+  content_publicly_licensed: boolean
   source_url: string
   video_url: string
   image_url: string

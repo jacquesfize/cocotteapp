@@ -27,4 +27,25 @@ describe('HomeCarousel', () => {
     expect(wrapper.text()).toContain('Voir la recette')
     expect(wrapper.findAll('.dot')[0].attributes('aria-selected')).toBe('true')
   })
+
+  it('shows an image credit for a recipe imported with an external image', () => {
+    const wrapper = mount(HomeCarousel, {
+      props: {
+        recipes: [
+          {
+            id: 3,
+            title: 'Tarte',
+            diet_type: 'vegan',
+            total_time_minutes: 30,
+            image_url: 'http://x/tarte.jpg',
+            source_url: 'https://cuisine.example/tarte',
+          } as Recipe,
+        ],
+      },
+      global: { plugins: [i18n], stubs: { RouterLink: { template: '<a class="carousel-slide"><slot /></a>' } } },
+    })
+
+    expect(wrapper.find('.credit').exists()).toBe(true)
+    expect(wrapper.find('.credit').text()).toContain('cuisine.example')
+  })
 })

@@ -9,11 +9,20 @@ import { parseIngredientMentions } from '../utils/cooklangMentions'
 import { parseTimerMentions } from '../utils/cooklangTimers'
 import { downloadBlob } from '../utils/download'
 import { formatDuration, formatUnit } from '../utils/format'
+import { imageCreditDomain } from '../utils/imageCredit'
 import type { Recipe, RecipeIngredient } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
 }>()
+
+// Crédit ("image via <domaine>") affiché sous l'image dès qu'une recette importée en a une,
+// que son contenu soit restreint ou non (voir RecipeRestrictedNotice.vue pour l'équivalent côté
+// recette restreinte). Seule l'image externe (`image_url`, potentiellement récupérée via
+// og:image) porte un crédit -- un fichier téléversé par l'utilisateur (`image`) est le sien.
+const imageCredit = computed(() =>
+  !props.recipe.image && props.recipe.image_url ? imageCreditDomain(props.recipe.source_url) : null,
+)
 
 interface IngredientGroup {
   name: string | null
@@ -109,12 +118,10 @@ async function handleDownloadPdf() {
     />
 
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
-      <img
-        v-if="recipe.image || recipe.image_url"
-        :src="recipe.image || recipe.image_url"
-        class="recipe-photo"
-        alt=""
-      />
+      <div v-if="recipe.image || recipe.image_url" class="recipe-photo-wrapper">
+        <img :src="recipe.image || recipe.image_url" class="recipe-photo" alt="" />
+        <p v-if="imageCredit" class="image-credit muted">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</p>
+      </div>
 
       <div v-if="recipe.youtube_id" class="video-wrapper">
         <iframe
@@ -235,14 +242,22 @@ async function handleDownloadPdf() {
   margin-bottom: 1rem;
 }
 
-.recipe-photo {
-  display: block;
+.recipe-photo-wrapper {
   flex: 1;
   min-width: 260px;
+}
+
+.recipe-photo {
+  display: block;
   width: 100%;
   height: 320px;
   object-fit: cover;
   border-radius: 20px;
+}
+
+.image-credit {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
 }
 
 .video-wrapper {

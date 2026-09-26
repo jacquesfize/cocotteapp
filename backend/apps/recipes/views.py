@@ -52,6 +52,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def fork(self, request, pk=None):
         source = self.get_object()
+        if source.is_content_restricted(request.user):
+            return Response(
+                {"detail": "Cette recette est protégée : seul l'auteur peut la dupliquer."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         version_label = (request.data.get("version_label") or "").strip()
         if not version_label:
             return Response(
@@ -172,6 +177,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], url_path="pdf")
     def download_pdf(self, request, pk=None):
         recipe = self.get_object()
+        if recipe.is_content_restricted(request.user):
+            return Response(
+                {"detail": "Cette recette est protégée : seul l'auteur peut en télécharger le PDF."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         image_src = recipe.image.url if recipe.image else (recipe.image_url or None)
         html = render_to_string("pdf/recipe.html", {"recipe": recipe, "image_src": image_src})
         pdf_bytes = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
