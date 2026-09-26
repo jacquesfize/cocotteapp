@@ -3,13 +3,17 @@
 All notable changes to Cocotte are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
-will follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once releases start.
-No version has been released yet: everything below lives under **Unreleased** and describes the
-current state of the `main` branch.
+follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
+
+- The app version is now shown discreetly at the bottom of the **My account** page.
+
+## [0.1.0] "Tiramisu" 🍰 - 2026-09-27
+
+### ✨ Added
 
 - **Cook mode**: a full-screen, swipeable view of a recipe's steps (one step per screen, with
   Previous/Next buttons, a swipe gesture on touch devices, or the arrow keys, animated with a
@@ -115,8 +119,6 @@ current state of the `main` branch.
   Playwright end-to-end job ([#9](https://github.com/jacquesfize/cocotteapp/pull/9)) that
   cleans up the data it creates ([#26](https://github.com/jacquesfize/cocotteapp/pull/26)).
 
-### Changed
-
 - Login and signup are merged into a single split-screen page with tabs, password visibility
   toggle and a "browse without an account" link; logged-out visitors get a login icon button and
   the language picker becomes a flag button available to everyone
@@ -146,8 +148,6 @@ current state of the `main` branch.
   ([#4](https://github.com/jacquesfize/cocotteapp/pull/4)).
 - Python dependencies are managed with `uv` (`pyproject.toml` + `uv.lock`).
 
-### Fixed
-
 - A PDF export could reveal the full content of a copyright-restricted recipe
   ([#27](https://github.com/jacquesfize/cocotteapp/pull/27)).
 - The random recipe page crashed on a copyright-restricted recipe
@@ -163,9 +163,8 @@ current state of the `main` branch.
 - The logged-in user's name disappeared from the navigation after a page reload.
 - Form labels were not associated with their fields, hurting accessibility.
 
-### Removed
-
 - Celery and Redis: URL import runs synchronously and no background worker is needed any more.
 - The separate `requirements/*.txt` files, replaced by `pyproject.toml` and `uv.lock`.
 
-[Unreleased]: https://github.com/jacquesfize/cocotteapp/commits/main
+[Unreleased]: https://github.com/jacquesfize/cocotteapp/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jacquesfize/cocotteapp/releases/tag/v0.1.0
