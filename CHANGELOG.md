@@ -101,6 +101,9 @@ current state of the `main` branch.
 - **Production deployment** with Docker Compose: Gunicorn backend, Caddy serving the SPA with
   automatic HTTPS, a health-check endpoint, and an overlay to run behind a shared host-level
   Caddy ([#21](https://github.com/jacquesfize/cocotteapp/pull/21)).
+- **Bundled SMTP relay**: optional send-only Postfix service (`mail` Compose profile) for
+  password-reset emails, with an auto-generated DKIM key, direct delivery or forwarding through
+  an SMTP provider, usable in both standalone and shared-proxy modes.
 - **Continuous integration**: backend lint and tests, frontend typecheck and unit tests, and a
   Playwright end-to-end job ([#9](https://github.com/jacquesfize/cocotteapp/pull/9)) that
   cleans up the data it creates ([#26](https://github.com/jacquesfize/cocotteapp/pull/26)).

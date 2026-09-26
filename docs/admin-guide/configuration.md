@@ -144,6 +144,72 @@ EMAIL_PORT=25
 DEFAULT_FROM_EMAIL=Cocotte <noreply@cocotte.example.org>
 ```
 
+### Bundled Postfix relay (Docker)
+
+`docker-compose.prod.yml` includes an optional send-only Postfix relay
+([`boky/postfix`](https://github.com/bokysan/docker-postfix)), enabled by the `mail` profile. It
+works in both the standalone and shared-proxy modes. It publishes no ports, so only `backend`
+reaches it over the stack's internal network. It accepts unauthenticated mail from private networks
+only, so it is not an open relay.
+
+In `.env.prod`, point Django at it and set the `MAIL_*` variables (see
+[Docker-only variables](#docker-only-variables)):
+
+```ini
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=mail
+EMAIL_PORT=587
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_USE_TLS=False
+DEFAULT_FROM_EMAIL=Cocotte <noreply@cocotte.example.org>
+
+MAIL_DOMAIN=cocotte.example.org
+MAIL_HOSTNAME=mail.cocotte.example.org
+```
+
+`EMAIL_USE_TLS=False` only concerns the hop from `backend` to `mail`, which never leaves the Docker
+network. Postfix still uses TLS towards the receiving servers when they offer it.
+
+Add `--profile mail` to every `docker compose` command:
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod --profile mail up --build -d
+```
+
+By default Postfix delivers directly to the recipients' servers. To be delivered and stay out of
+spam folders, this needs:
+
+- **Outbound port 25 open.** Many VPS providers block it by default. Check with
+  `nc -vz gmail-smtp-in.l.google.com 25` from the server, and ask your provider to unblock it if
+  needed.
+- **Reverse DNS (PTR)** of the server's IP set to `MAIL_HOSTNAME`, in your hosting provider's panel.
+- **DNS records** on `MAIL_DOMAIN`:
+
+| Type | Name | Value |
+|---|---|---|
+| A | `mail.cocotte.example.org` | The server's IP |
+| TXT (SPF) | `cocotte.example.org` | `v=spf1 ip4:<server IP> -all` |
+| TXT (DKIM) | `mail._domainkey.cocotte.example.org` | Generated key (see below) |
+| TXT (DMARC) | `_dmarc.cocotte.example.org` | `v=DMARC1; p=quarantine; rua=mailto:admin@example.org` |
+
+The DKIM key is generated on first start and kept in the `postfix_dkim` volume. Print the record to
+publish with:
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod --profile mail exec mail cat /etc/opendkim/keys/cocotte.example.org.txt
+```
+
+After [testing](#test-the-configuration), check deliverability by sending the test email to the
+address given by [mail-tester.com](https://www.mail-tester.com/). In Gmail, *Show original* should
+report SPF, DKIM and DMARC as `PASS`.
+
+> [!TIP]
+> If port 25 stays blocked or emails keep landing in spam, keep the relay but have it forward
+> through an SMTP provider: set `MAIL_RELAYHOST` (for example `[smtp-relay.brevo.com]:587`),
+> `MAIL_RELAYHOST_USERNAME` and `MAIL_RELAYHOST_PASSWORD`. Django's settings stay the same, and the
+> PTR and port-25 requirements no longer apply. The SPF and DKIM records are then the provider's.
+
 ### Test the configuration
 
 Send a test email from the backend:
@@ -193,13 +259,18 @@ Fixed settings (not configurable through the environment):
 
 ## Docker-only variables
 
-These are read by the compose files and the bundled Caddy, not by Django.
+These are read by the compose files, the bundled Caddy and the optional Postfix relay, not by Django.
 
 | Variable | Default | Mode | Description |
 |---|---|---|---|
 | `DOMAIN` | *(none, required)* | Standalone | Public domain served by the bundled Caddy (`deploy/Caddyfile.standalone`), which requests a Let's Encrypt certificate for it. |
 | `ACME_EMAIL` | *(none, required)* | Standalone | Contact email given to Let's Encrypt (expiry and renewal notices). |
 | `PROXY_NETWORK_NAME` | `proxy` | Shared proxy | Name of the existing external Docker network the host Caddy is attached to (`docker-compose.prod.proxy.yml`). |
+| `MAIL_DOMAIN` | *(none)* | `mail` profile | Sender domain accepted by the bundled Postfix relay (the domain of `DEFAULT_FROM_EMAIL`). Also used for its DKIM key. |
+| `MAIL_HOSTNAME` | `mail.<MAIL_DOMAIN>` | `mail` profile | Host name announced by Postfix. Must match the reverse DNS (PTR) of the server's IP. |
+| `MAIL_RELAYHOST` | *(empty: direct delivery)* | `mail` profile | Optional upstream SMTP provider, for example `[smtp-relay.brevo.com]:587`. |
+| `MAIL_RELAYHOST_USERNAME` | *(empty)* | `mail` profile | User name for `MAIL_RELAYHOST`. |
+| `MAIL_RELAYHOST_PASSWORD` | *(empty)* | `mail` profile | Password for `MAIL_RELAYHOST`. |
 
 `DOMAIN` and `ACME_EMAIL` are unused in the shared-proxy mode, and `PROXY_NETWORK_NAME` is
 unused in standalone mode.

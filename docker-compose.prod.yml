@@ -12,6 +12,14 @@
 # combiner ce fichier avec l'overlay docker-compose.prod.proxy.yml :
 #
 #   docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod up --build -d
+#
+# Relais SMTP Postfix optionnel (envoi seul, pour les emails de réinitialisation de mot de passe),
+# activé par le profil "mail" — combinable avec les deux modes ci-dessus :
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod --profile mail up --build -d
+#
+# Voir MAIL_* dans .env.prod.example et la section "Email (SMTP)" de la doc de configuration
+# (enregistrements DNS SPF/DKIM/DMARC, reverse DNS, port 25 sortant).
 services:
   db:
     image: postgres:16-alpine
@@ -69,9 +77,31 @@ services:
       - backend
     restart: unless-stopped
 
+  mail:
+    image: boky/postfix:latest
+    profiles: ["mail"]
+    environment:
+      # Seuls les expéditeurs de ce domaine sont acceptés (celui de DEFAULT_FROM_EMAIL).
+      ALLOWED_SENDER_DOMAINS: ${MAIL_DOMAIN:-}
+      # Nom annoncé en HELO : doit correspondre au reverse DNS (PTR) de l'IP du serveur.
+      POSTFIX_myhostname: ${MAIL_HOSTNAME:-mail.${MAIL_DOMAIN:-localhost}}
+      # Clé DKIM générée au premier démarrage, conservée dans le volume postfix_dkim.
+      DKIM_AUTOGENERATE: "true"
+      # Optionnel : relayer via un fournisseur SMTP plutôt que livrer en direct (port 25 sortant
+      # bloqué, IP à mauvaise réputation...), ex. "[smtp-relay.brevo.com]:587".
+      RELAYHOST: ${MAIL_RELAYHOST:-}
+      RELAYHOST_USERNAME: ${MAIL_RELAYHOST_USERNAME:-}
+      RELAYHOST_PASSWORD: ${MAIL_RELAYHOST_PASSWORD:-}
+    # Aucun port publié : seul "backend" l'atteint, via le réseau interne du stack. Le relais
+    # n'accepte sans authentification que les réseaux privés, ce n'est donc pas un relais ouvert.
+    volumes:
+      - postfix_dkim:/etc/opendkim/keys
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   static_data:
   media_data:
   caddy_data:
   caddy_config:
+  postfix_dkim:
