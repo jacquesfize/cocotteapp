@@ -78,7 +78,7 @@ async function handleExport() {
             @change="toggleOwned(item)"
           />
           <span :class="{ owned: item.is_owned }">
-            {{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit) }} — {{ item.ingredient.name }}
+            {{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }} — {{ item.ingredient.name }}
           </span>
           <span v-if="item.pendingSync" class="pending-sync" :title="$t('offline.pendingSync')">
             <CloudOff :size="14" />

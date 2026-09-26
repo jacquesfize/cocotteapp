@@ -46,5 +46,5 @@ def mark_owned(shopping_list, owned_ingredient_ids):
 def export_as_text(shopping_list):
     lines = [shopping_list.name, ""]
     for item in shopping_list.items.filter(is_owned=False).select_related("ingredient"):
-        lines.append(f"- {format_quantity(item.quantity, item.unit)} {unit_label(item.unit)} {item.ingredient.name}")
+        lines.append(f"- {format_quantity(item.quantity, item.unit)} {unit_label(item.unit, item.quantity)} {item.ingredient.name}")
     return "\n".join(lines)

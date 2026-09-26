@@ -55,3 +55,19 @@ def test_recipe_pdf_template_strips_useless_decimals():
     assert "200 g" in html
     assert "200.00" not in html
 
+
+@pytest.mark.parametrize(
+    ("unit", "quantity", "expected"),
+    [
+        ("piece", Decimal("1"), "pièce"),
+        ("piece", Decimal("2"), "pièces"),
+        ("piece", Decimal("1.5"), "pièces"),  # affiché "2" (arrondi au supérieur)
+        ("pinch", Decimal("1"), "pincée"),
+        ("pinch", Decimal("3"), "pincées"),
+        ("tbsp", Decimal("3"), "c. à soupe"),
+        ("g", Decimal("200"), "g"),
+        ("piece", None, "pièce"),
+    ],
+)
+def test_unit_label_agrees_with_quantity(unit, quantity, expected):
+    assert unit_label(unit, quantity) == expected

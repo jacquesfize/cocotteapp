@@ -36,6 +36,25 @@ describe('formatUnit', () => {
     expect(formatUnit('piece')).toBe('piece')
   })
 
+  it('agrees with the displayed quantity in French (plural from 2)', () => {
+    i18n.global.locale.value = 'fr'
+    expect(formatUnit('piece', 1)).toBe('pièce')
+    expect(formatUnit('piece', '2.00')).toBe('pièces')
+    expect(formatUnit('piece', '1.50')).toBe('pièces') // affiché "2"
+    expect(formatUnit('pinch', 1)).toBe('pincée')
+    expect(formatUnit('pinch', 3)).toBe('pincées')
+    expect(formatUnit('tbsp', 3)).toBe('c. à soupe')
+    expect(formatUnit('g', 200)).toBe('g')
+  })
+
+  it('agrees with the displayed quantity in English (plural unless 1)', () => {
+    i18n.global.locale.value = 'en'
+    expect(formatUnit('piece', 1)).toBe('piece')
+    expect(formatUnit('piece', 2)).toBe('pieces')
+    expect(formatUnit('pinch', 2)).toBe('pinches')
+    expect(formatUnit('tbsp', 2)).toBe('tbsp')
+  })
+
   it('falls back to the raw value when unknown, empty when missing', () => {
     expect(formatUnit('bunch')).toBe('bunch')
     expect(formatUnit(null)).toBe('')

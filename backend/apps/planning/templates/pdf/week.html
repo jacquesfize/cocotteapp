@@ -41,7 +41,7 @@
       <h2>Ingrédients</h2>
       <ul>
         {% for ri in item.recipe.recipe_ingredients.all %}
-        <li>{{ ri.quantity|quantity:ri.unit }} {{ ri.unit|unit_label }} — {{ ri.ingredient.name }}</li>
+        <li>{{ ri.quantity|quantity:ri.unit }} {{ ri.unit|unit_label:ri.quantity }} — {{ ri.ingredient.name }}</li>
         {% endfor %}
       </ul>
     </div>

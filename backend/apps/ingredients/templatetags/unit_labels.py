@@ -21,11 +21,27 @@ UNIT_LABELS_FR = {
 }
 
 
-def unit_label(value):
+# Formes plurielles, uniquement pour les unités qui s'accordent (les abréviations restent invariables).
+UNIT_PLURAL_LABELS_FR = {
+    Unit.PIECE: "pièces",
+    Unit.PINCH: "pincées",
+}
+
+
+def unit_label(value, quantity=None):
+    """Libellé français de l'unité, accordé au pluriel si la quantité affichée est >= 2
+    (règle française : "1,5 pincée" reste au singulier)."""
     try:
-        return UNIT_LABELS_FR[Unit(value)]
+        unit = Unit(value)
     except ValueError:
         return value
+    if quantity is not None and unit in UNIT_PLURAL_LABELS_FR:
+        try:
+            if Decimal(format_quantity(quantity, unit)) >= 2:
+                return UNIT_PLURAL_LABELS_FR[unit]
+        except InvalidOperation:
+            pass
+    return UNIT_LABELS_FR[unit]
 
 
 register.filter("unit_label", unit_label)

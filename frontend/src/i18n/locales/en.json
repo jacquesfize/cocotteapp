@@ -463,6 +463,10 @@
     "tsp": "tsp",
     "pinch": "pinch"
   },
+  "unitsPlural": {
+    "piece": "pieces",
+    "pinch": "pinches"
+  },
   "adminIngredients": {
     "title": "Ingredients",
     "subtitle": "Manage the ingredient library: names, nutrition, seasonality and carbon footprint.",

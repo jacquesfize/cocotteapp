@@ -9,9 +9,23 @@ export function formatDuration(minutes: number | null | undefined): string {
   return i18n.global.t('duration.hoursMinutes', { h: hours, m: rest })
 }
 
-/** Libellé traduit d'une unité (valeur stockée inchangée) ; retombe sur la valeur brute si inconnue. */
-export function formatUnit(unit: string | null | undefined): string {
+/** En français le pluriel commence à 2 ("1,5 pincée") ; en anglais tout sauf 1 est pluriel. */
+function isPlural(count: number): boolean {
+  return i18n.global.locale.value === 'fr' ? count >= 2 : count !== 1
+}
+
+/**
+ * Libellé traduit d'une unité (valeur stockée inchangée) ; retombe sur la valeur brute si inconnue.
+ * Avec une quantité, accorde le libellé au pluriel pour les unités qui en ont un (`unitsPlural`),
+ * en se basant sur la quantité telle qu'affichée par `formatQuantity`.
+ */
+export function formatUnit(unit: string | null | undefined, quantity?: number | string | null): string {
   if (!unit) return ''
+  const pluralKey = `unitsPlural.${unit}`
+  if (quantity !== undefined && quantity !== null && i18n.global.te(pluralKey)) {
+    const count = Number(formatQuantity(quantity, unit))
+    if (Number.isFinite(count) && isPlural(count)) return i18n.global.t(pluralKey)
+  }
   const key = `units.${unit}`
   return i18n.global.te(key) ? i18n.global.t(key) : unit
 }

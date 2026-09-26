@@ -155,7 +155,7 @@ async function handleDownloadPdf() {
           <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
           <ul class="ingredient-list">
             <li v-for="item in group.items" :key="item.id" :id="`ingredient-${item.ingredient.id}`" class="ingredient-row">
-              <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit) }}</span>
+              <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
               <RouterLink
                 :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
                 class="ingredient-name"
