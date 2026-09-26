@@ -37,6 +37,7 @@ const imageCredit = computed(() =>
       >
         <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
       </a>
+      <span v-if="imageCredit" class="hero-credit">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</span>
     </div>
     <a
       v-else-if="recipe.source_url"
@@ -47,12 +48,11 @@ const imageCredit = computed(() =>
     >
       <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
     </a>
-    <p v-if="imageCredit" class="image-credit muted">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</p>
 
-    <p class="restricted-message">
-      <Lock :size="16" />
-      {{ $t('recipes.restrictedNotice') }}
-    </p>
+    <div class="restricted-banner" role="note">
+      <Lock :size="18" />
+      <p>{{ $t('recipes.restrictedNotice') }}</p>
+    </div>
 
     <AllergenBadges :allergens="recipe.allergens ?? []" :unverified="recipe.allergens_unverified" />
 
@@ -81,8 +81,17 @@ const imageCredit = computed(() =>
   width: 100%;
   height: 320px;
   object-fit: cover;
-  filter: blur(14px) brightness(0.7);
-  transform: scale(1.08);
+}
+
+.hero-credit {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.7rem;
 }
 
 .hero-source-button {
@@ -134,18 +143,21 @@ const imageCredit = computed(() =>
   border: none;
 }
 
-.image-credit {
-  margin: 0.35rem 0 0;
-  font-size: 0.78rem;
-  text-align: center;
-}
-
-.restricted-message {
+.restricted-banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   margin: 0;
-  color: var(--color-muted);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-primary-soft);
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.restricted-banner p {
+  margin: 0;
+  font-weight: 600;
 }
 
 .carbon-footprint {

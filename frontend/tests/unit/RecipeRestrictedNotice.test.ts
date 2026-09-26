@@ -33,7 +33,7 @@ describe('RecipeRestrictedNotice', () => {
     expect(wrapper.find('.hero-photo').exists()).toBe(false)
   })
 
-  it('shows a blurred hero image with a centered source button when there is no video', () => {
+  it('shows a sharp hero image with a centered source button and an on-image credit when there is no video', () => {
     const wrapper = mountNotice({
       source_url: 'https://cuisine.example/recette',
       image_url: 'https://example.com/photo.jpg',
@@ -45,6 +45,17 @@ describe('RecipeRestrictedNotice', () => {
     const button = wrapper.find('.hero-source-button')
     expect(button.exists()).toBe(true)
     expect(button.attributes('href')).toBe('https://cuisine.example/recette')
+    const credit = wrapper.find('.hero-credit')
+    expect(credit.exists()).toBe(true)
+    expect(credit.text()).toContain('cuisine.example')
+  })
+
+  it('shows the restriction notice in a framed banner', () => {
+    const wrapper = mountNotice({})
+
+    const banner = wrapper.find('.restricted-banner')
+    expect(banner.exists()).toBe(true)
+    expect(banner.text()).toContain('importée depuis une source tierce')
   })
 
   it('falls back to a plain source link when there is neither image nor video', () => {
