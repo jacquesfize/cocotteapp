@@ -144,7 +144,7 @@ async function handleFork() {
       </div>
     </div>
     <a
-      v-if="recipe.source_url"
+      v-if="recipe.source_url && !recipe.content_restricted"
       :href="recipe.source_url"
       target="_blank"
       rel="noopener noreferrer"
