@@ -184,6 +184,19 @@ describe('RecipeCard actions', () => {
     expect(wrapper.emitted('delete')?.[0]).toEqual([recipe])
   })
 
+  it('shows "importé par" for an imported recipe, even the owner\'s own', () => {
+    const wrapper = mountManageable({
+      id: 11,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 20,
+      author_id: 1,
+      author: 'alice',
+      source_type: 'youtube',
+    })
+    expect(wrapper.find('.author').text()).toBe('importé par alice')
+  })
+
   it('hides the actions on someone else\'s recipe', () => {
     const wrapper = mountManageable({ id: 10, title: 'Tarte', diet_type: 'omnivore', total_time_minutes: 20, author_id: 2 })
     expect(wrapper.find('.card-actions').exists()).toBe(false)

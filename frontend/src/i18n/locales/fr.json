@@ -108,6 +108,7 @@
     "cook": "cuisson",
     "servings": "portions",
     "byAuthor": "par {author}",
+    "importedBy": "importé par {author}",
     "privateBadge": "Privée",
     "carbonPerServing": "{kg} kg CO₂e / portion",
     "deleteNamedConfirm": "Supprimer « {title} » ?",

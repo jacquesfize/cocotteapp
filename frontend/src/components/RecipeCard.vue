@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Clock, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
+import { Clock, Download, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { imageCreditDomain } from '../utils/imageCredit'
+import { isImportedRecipe } from '../utils/recipeOrigin'
 import AllergenBadges from './AllergenBadges.vue'
 import type { Recipe } from '../types/models'
 
@@ -24,6 +25,14 @@ const MAX_TAGS = 3
 
 const isRow = computed(() => props.variant !== 'tile')
 const isOwner = computed(() => Boolean(authStore.user) && props.recipe.author_id === authStore.user?.id)
+const isImported = computed(() => isImportedRecipe(props.recipe))
+// "importé par X" toujours affiché (même pour ses propres recettes) ; "par X" seulement pour
+// les recettes des autres.
+const authorLine = computed(() => {
+  if (!props.recipe.author) return null
+  if (isImported.value) return t('recipes.importedBy', { author: props.recipe.author })
+  return isOwner.value ? null : t('recipes.byAuthor', { author: props.recipe.author })
+})
 const showActions = computed(() => isRow.value && props.manageable && isOwner.value)
 
 const credit = computed(() =>
@@ -78,7 +87,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
           <Leaf :size="14" />{{ carbon.label }}
         </li>
         <li v-if="recipe.is_public === false" class="private-badge"><EyeOff :size="14" />{{ $t('recipes.privateBadge') }}</li>
-        <li v-if="recipe.author && !isOwner" class="author">{{ $t('recipes.byAuthor', { author: recipe.author }) }}</li>
+        <li v-if="authorLine" class="author"><Download v-if="isImported" :size="14" />{{ authorLine }}</li>
       </ul>
 
       <ul v-if="isRow && (visibleTags.length || recipe.version_label)" class="tags">

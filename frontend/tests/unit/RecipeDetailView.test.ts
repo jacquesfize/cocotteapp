@@ -174,3 +174,28 @@ describe('RecipeDetailView actions menu', () => {
     expect(wrapper.find('button.actions-toggle').exists()).toBe(true)
   })
 })
+
+describe('RecipeDetailView byline', () => {
+  it('shows "Importé par <auteur>" for a recipe imported from a URL', async () => {
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe({ source_url: 'https://example.com/curry' }))
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('[data-testid="recipe-byline"]').text()).toBe('importé par chef')
+  })
+
+  it('shows "par <auteur>" for a manual recipe viewed by someone else', async () => {
+    useAuthStore().user = { id: 99, username: 'someoneelse' } as unknown as User
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe())
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('[data-testid="recipe-byline"]').text()).toBe('par chef')
+  })
+
+  it('shows no byline on the owner\'s own manual recipe', async () => {
+    useAuthStore().user = { id: 42, username: 'chef' } as unknown as User
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe())
+    const { wrapper } = await mountDetail()
+
+    expect(wrapper.find('[data-testid="recipe-byline"]').exists()).toBe(false)
+  })
+})

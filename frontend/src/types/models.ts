@@ -15,7 +15,7 @@ export type IngredientCategory =
   | 'fat'
   | 'condiment'
   | 'other'
-export type RecipeSourceType = 'manual' | 'url' | 'cooklang'
+export type RecipeSourceType = 'manual' | 'url' | 'cooklang' | 'youtube'
 export type TagKind = 'meal_type' | 'cuisine' | 'other'
 
 export interface Allergen {

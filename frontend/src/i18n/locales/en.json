@@ -108,6 +108,7 @@
     "cook": "cook",
     "servings": "servings",
     "byAuthor": "by {author}",
+    "importedBy": "imported by {author}",
     "privateBadge": "Private",
     "carbonPerServing": "{kg} kg CO₂e / serving",
     "deleteNamedConfirm": "Delete \"{title}\"?",
