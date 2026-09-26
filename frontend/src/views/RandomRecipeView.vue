@@ -2,6 +2,7 @@
 import { Dices } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
+import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { getRandomRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -67,7 +68,10 @@ onMounted(draw)
       <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="random-title-link">
         <h2>{{ recipe.title }}</h2>
       </RouterLink>
-      <RecipeSummary :recipe="recipe" />
+      <!-- Une recette restreinte arrive sans ingrédients ni étapes : RecipeSummary n'en
+           supporte pas l'absence (comme dans RecipeDetailView.vue). -->
+      <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
+      <RecipeRestrictedNotice v-else :recipe="recipe" />
       <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
     </template>
   </div>

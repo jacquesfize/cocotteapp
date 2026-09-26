@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EllipsisVertical, GitFork, Link2, Pencil, Trash2 } from '@lucide/vue'
+import { Download, EllipsisVertical, GitFork, Link2, Pencil, Trash2 } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -9,6 +9,7 @@ import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import { isImportedRecipe } from '../utils/recipeOrigin'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
@@ -32,6 +33,12 @@ const actionsEl = ref<HTMLElement | null>(null)
 const isOwner = computed(
   () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
+const isImported = computed(() => Boolean(recipe.value) && isImportedRecipe(recipe.value!))
+const authorLine = computed(() => {
+  if (!recipe.value?.author) return null
+  if (isImported.value) return t('recipes.importedBy', { author: recipe.value.author })
+  return isOwner.value ? null : t('recipes.byAuthor', { author: recipe.value.author })
+})
 const canModerateComments = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
 const canFork = computed(
   () => Boolean(recipe.value) && (!recipe.value?.content_restricted || isOwner.value),
@@ -107,6 +114,9 @@ async function handleFork() {
     <div class="row page-header">
       <div class="title-block">
         <h1>{{ recipe.title }}</h1>
+        <p v-if="authorLine" class="byline muted" data-testid="recipe-byline">
+          <Download v-if="isImported" :size="14" /><span>{{ authorLine }}</span>
+        </p>
       </div>
       <div v-if="authStore.isAuthenticated && hasActions" ref="actionsEl" class="actions-menu">
         <button
@@ -144,7 +154,7 @@ async function handleFork() {
       </div>
     </div>
     <a
-      v-if="recipe.source_url && !recipe.content_restricted"
+      v-if="recipe.source_url && !recipe.content_restricted && !(recipe.image || recipe.image_url)"
       :href="recipe.source_url"
       target="_blank"
       rel="noopener noreferrer"
@@ -204,6 +214,18 @@ async function handleFork() {
   h1{
     margin-top: 0;
   }
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: -0.5rem 0 1rem;
+  font-size: 0.9rem;
+}
+
+.byline span::first-letter {
+  text-transform: uppercase;
 }
 
 

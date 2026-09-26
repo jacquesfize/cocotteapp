@@ -1,52 +1,137 @@
 <script setup lang="ts">
-import { Lock } from '@lucide/vue'
+import { Clock, Download, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { imageCreditDomain } from '../utils/imageCredit'
+import { isImportedRecipe } from '../utils/recipeOrigin'
 import AllergenBadges from './AllergenBadges.vue'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
   variant?: 'row' | 'tile'
+  // Affiche les boutons Modifier/Supprimer (variante ligne, recettes de l'utilisateur uniquement).
+  manageable?: boolean
 }>()
+
+const emit = defineEmits<{ delete: [recipe: Recipe] }>()
+
+const { t, locale } = useI18n()
+const authStore = useAuthStore()
+
+const MAX_TAGS = 3
+
+const isRow = computed(() => props.variant !== 'tile')
+const isOwner = computed(() => Boolean(authStore.user) && props.recipe.author_id === authStore.user?.id)
+const isImported = computed(() => isImportedRecipe(props.recipe))
+// "importé par X" toujours affiché (même pour ses propres recettes) ; "par X" seulement pour
+// les recettes des autres.
+const authorLine = computed(() => {
+  if (!props.recipe.author) return null
+  if (isImported.value) return t('recipes.importedBy', { author: props.recipe.author })
+  return isOwner.value ? null : t('recipes.byAuthor', { author: props.recipe.author })
+})
+const showActions = computed(() => isRow.value && props.manageable && isOwner.value)
 
 const credit = computed(() =>
   !props.recipe.image && props.recipe.image_url ? imageCreditDomain(props.recipe.source_url) : null,
 )
+
+const timeDetail = computed(() => {
+  const { prep_time_minutes: prep, cook_time_minutes: cook } = props.recipe
+  if (!prep || !cook) return undefined
+  return `${formatDuration(prep)} ${t('recipes.prep')} · ${formatDuration(cook)} ${t('recipes.cook')}`
+})
+
+// Mêmes seuils que le filtre "Impact carbone par portion" (RecipeFilters.vue).
+const carbon = computed(() => {
+  const kg = props.recipe.carbon_footprint_kg_co2e
+  if (kg === undefined || kg === null) return null
+  const level = kg <= 0.5 ? 'low' : kg <= 1.5 ? 'medium' : 'high'
+  const formatted = new Intl.NumberFormat(locale.value, { maximumFractionDigits: 1 }).format(kg)
+  return { level, label: t('recipes.carbonPerServing', { kg: formatted }) }
+})
+
+const visibleTags = computed(() => (props.recipe.tags ?? []).slice(0, MAX_TAGS))
+const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 0) - MAX_TAGS))
 </script>
 
 <template>
-  <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="recipe-card" :class="{ tile: variant === 'tile' }">
+  <article class="recipe-card" :class="{ tile: !isRow }">
     <div v-if="recipe.image || recipe.image_url" class="thumb-wrapper">
-      <img :src="recipe.image || recipe.image_url" class="thumb" alt="" />
-      <span v-if="credit && variant !== 'tile'" class="thumb-credit">{{ credit }}</span>
+      <img :src="recipe.image || recipe.image_url" class="thumb" alt="" loading="lazy" />
+      <span v-if="credit && isRow" class="thumb-credit">{{ credit }}</span>
     </div>
-    <div v-else-if="variant === 'tile'" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
-    <div v-if="variant === 'tile'" class="scrim" />
+    <div v-else-if="!isRow" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
+    <div v-if="!isRow" class="scrim" />
     <div class="recipe-card-body">
       <h3>
-        {{ recipe.title }}
+        <!-- Lien "étiré" (::after) sur toute la carte : la carte reste cliquable partout sans
+             imbriquer les boutons d'action dans un <a>, ce qui serait du HTML invalide. -->
+        <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="card-link">
+          {{ recipe.title }}
+        </RouterLink>
         <Lock v-if="recipe.content_restricted" :size="14" class="restricted-icon" :aria-label="$t('recipes.restrictedNotice')" />
       </h3>
-      <p class="muted">
+
+      <p v-if="!isRow" class="muted">
         {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
       </p>
+      <ul v-else class="meta">
+        <li class="diet-badge" :class="`diet-${recipe.diet_type}`">{{ $t(`diet.${recipe.diet_type}`) }}</li>
+        <li :title="timeDetail"><Clock :size="14" />{{ formatDuration(recipe.total_time_minutes) }}</li>
+        <li v-if="recipe.servings"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</li>
+        <li v-if="carbon" class="carbon" :class="`carbon-${carbon.level}`" :title="$t('recipes.carbonFootprint')">
+          <Leaf :size="14" />{{ carbon.label }}
+        </li>
+        <li v-if="recipe.is_public === false" class="private-badge"><EyeOff :size="14" />{{ $t('recipes.privateBadge') }}</li>
+        <li v-if="authorLine" class="author"><Download v-if="isImported" :size="14" />{{ authorLine }}</li>
+      </ul>
+
+      <ul v-if="isRow && (visibleTags.length || recipe.version_label)" class="tags">
+        <li v-if="recipe.version_label" class="tag version-tag">{{ recipe.version_label }}</li>
+        <li v-for="tag in visibleTags" :key="tag.id" class="tag">{{ tag.name }}</li>
+        <li v-if="hiddenTagCount" class="tag more-tag">+{{ hiddenTagCount }}</li>
+      </ul>
+
       <AllergenBadges :allergens="recipe.allergens ?? []" only-mine class="card-allergens" />
       <p v-if="recipe.description" class="description">{{ recipe.description }}</p>
-      <p v-if="credit && variant === 'tile'" class="tile-credit">{{ $t('recipes.imageCredit', { domain: credit }) }}</p>
+      <p v-if="credit && !isRow" class="tile-credit">{{ $t('recipes.imageCredit', { domain: credit }) }}</p>
     </div>
-  </RouterLink>
+
+    <div v-if="showActions" class="card-actions">
+      <RouterLink
+        :to="{ name: 'recipe-edit', params: { id: recipe.id } }"
+        class="action-btn"
+        :title="$t('common.edit')"
+        :aria-label="`${$t('common.edit')} — ${recipe.title}`"
+      >
+        <Pencil :size="16" />
+      </RouterLink>
+      <button
+        type="button"
+        class="action-btn danger-btn"
+        :title="$t('common.delete')"
+        :aria-label="`${$t('common.delete')} — ${recipe.title}`"
+        @click="emit('delete', recipe)"
+      >
+        <Trash2 :size="16" />
+      </button>
+    </div>
+  </article>
 </template>
 
 <style scoped>
 .recipe-card {
+  position: relative;
   display: flex;
   gap: 1rem;
-  align-items: center;
-  text-decoration: none;
+  align-items: flex-start;
   color: inherit;
-  padding: 0.85rem 1.25rem;
+  padding: 1rem 1.25rem;
+  transition: background-color 0.15s ease;
 }
 
 .recipe-card:not(:last-child) {
@@ -55,6 +140,27 @@ const credit = computed(() =>
 
 .recipe-card:hover {
   background: var(--color-surface-hover, rgba(127, 127, 127, 0.08));
+}
+
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card-link:focus-visible {
+  outline: none;
+}
+
+.card-link:focus-visible::after {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 
 .thumb-wrapper {
@@ -66,15 +172,15 @@ const credit = computed(() =>
 }
 
 .thumb {
-  width: 64px;
-  height: 64px;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
 .thumb-credit {
-  max-width: 64px;
+  max-width: 88px;
   font-size: 0.6rem;
   color: var(--color-muted);
   overflow: hidden;
@@ -90,11 +196,13 @@ const credit = computed(() =>
 }
 
 .recipe-card-body {
+  flex: 1;
   min-width: 0;
 }
 
 .recipe-card h3 {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.4rem;
+  line-height: 1.3;
 }
 
 .restricted-icon {
@@ -103,12 +211,86 @@ const credit = computed(() =>
   color: var(--color-muted);
 }
 
+.meta,
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.diet-badge {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.diet-vegetarian {
+  background: color-mix(in srgb, #3fa34d 15%, var(--color-surface));
+  color: color-mix(in srgb, #3fa34d 75%, var(--color-text));
+}
+
+.diet-vegan {
+  background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
+  color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+}
+
+.carbon-low {
+  color: color-mix(in srgb, #3fa34d 80%, var(--color-text));
+}
+
+.carbon-medium {
+  color: color-mix(in srgb, #d9922b 85%, var(--color-text));
+}
+
+.carbon-high {
+  color: var(--color-danger);
+}
+
+.private-badge {
+  font-style: italic;
+}
+
+.tags {
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.tag {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem;
+}
+
+.version-tag {
+  border-color: transparent;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
 .card-allergens {
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
 }
 
 .description {
   margin: 0.5rem 0 0;
+  font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -116,9 +298,74 @@ const credit = computed(() =>
   -webkit-box-orient: vertical;
 }
 
-.recipe-card.tile {
+/* Au-dessus du lien étiré pour rester cliquables. */
+.card-actions {
   position: relative;
-  display: block;
+  z-index: 1;
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.recipe-card:hover .card-actions,
+.card-actions:focus-within {
+  opacity: 1;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  min-height: 2.25rem;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background: var(--color-primary-soft-hover);
+  color: var(--color-primary-dark);
+}
+
+.action-btn.danger-btn:hover {
+  background: var(--color-danger-soft-hover);
+  color: var(--color-danger);
+}
+
+@media (max-width: 600px) {
+  .recipe-card {
+    padding: 0.85rem 1rem;
+    gap: 0.75rem;
+  }
+
+  .thumb {
+    width: 64px;
+    height: 64px;
+  }
+
+  .thumb-credit {
+    max-width: 64px;
+  }
+
+  /* Pas de survol sur mobile : actions toujours visibles. */
+  .card-actions {
+    flex-direction: column;
+    opacity: 1;
+  }
+}
+
+/* Variante tuile (accueil) : le corps reste un élément flex non positionné pour que le
+   ::after du lien s'étende sur toute la tuile ; z-index sur un élément flex suffit à le
+   peindre au-dessus de l'image positionnée. */
+.recipe-card.tile {
+  display: flex;
+  align-items: flex-end;
   aspect-ratio: 1;
   padding: 0;
   overflow: hidden;
@@ -126,6 +373,10 @@ const credit = computed(() =>
   border-bottom: 0;
   color: #fff;
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+}
+
+.tile .thumb-wrapper {
+  width: 0;
 }
 
 .tile .thumb {
@@ -151,10 +402,8 @@ const credit = computed(() =>
 }
 
 .tile .recipe-card-body {
-  position: absolute;
-  left: 0.85rem;
-  right: 0.85rem;
-  bottom: 0.75rem;
+  z-index: 1;
+  padding: 0 0.85rem 0.75rem;
 }
 
 .tile h3 {

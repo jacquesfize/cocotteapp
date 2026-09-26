@@ -9,14 +9,15 @@ vi.mock('../../src/api/importer', () => ({
 }))
 vi.mock('../../src/api/recipes', () => ({
   listRecipes: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
+  deleteRecipe: vi.fn().mockResolvedValue({}),
 }))
 
 import { previewImportFromUrl } from '../../src/api/importer'
 import RecipeListView from '../../src/views/RecipeListView.vue'
-import { listRecipes } from '../../src/api/recipes'
+import { deleteRecipe, listRecipes } from '../../src/api/recipes'
 import { useAuthStore } from '../../src/stores/auth'
 import { takePendingImportDraft } from '../../src/utils/pendingImportDraft'
-import type { ImportPreview, User } from '../../src/types/models'
+import type { ImportPreview, Recipe, User } from '../../src/types/models'
 
 function preview(overrides?: Partial<ImportPreview>): ImportPreview {
   return {
@@ -40,6 +41,8 @@ async function mountList() {
     routes: [
       { path: '/recipes', name: 'recipes', component: RecipeListView },
       { path: '/recipes/new', name: 'recipe-new', component: { template: '<div />' } },
+      { path: '/recipes/:id', name: 'recipe-detail', component: { template: '<div />' } },
+      { path: '/recipes/:id/edit', name: 'recipe-edit', component: { template: '<div />' } },
     ],
   })
   router.push('/recipes')
@@ -140,5 +143,22 @@ describe('RecipeListView filters', () => {
     await flushPromises()
 
     expect(listRecipes).toHaveBeenLastCalledWith({})
+  })
+})
+
+describe('RecipeListView delete', () => {
+  it('deletes an owned recipe after confirmation and reloads the list', async () => {
+    const recipe = { id: 7, title: 'Tarte', diet_type: 'omnivore', total_time_minutes: 20, author_id: 1 } as Recipe
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe], count: 1, next: null, previous: null })
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    const { wrapper } = await mountList()
+    vi.mocked(listRecipes).mockClear()
+    await wrapper.find('button.danger-btn').trigger('click')
+    await flushPromises()
+
+    expect(deleteRecipe).toHaveBeenCalledWith(7)
+    expect(listRecipes).toHaveBeenCalledTimes(1)
+    vi.mocked(listRecipes).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
   })
 })

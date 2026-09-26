@@ -1,9 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import RecipeCard from '../../src/components/RecipeCard.vue'
+import { useAuthStore } from '../../src/stores/auth'
 import { i18n } from '../../src/i18n'
-import type { Recipe } from '../../src/types/models'
+import type { Recipe, User } from '../../src/types/models'
 
 function mountCard(recipe: Partial<Recipe>) {
   return mount(RecipeCard, {
@@ -134,5 +135,70 @@ describe('RecipeCard', () => {
     })
 
     expect(wrapper.find('.thumb-credit').exists()).toBe(false)
+  })
+
+  it('shows servings, carbon footprint, tags and the author of someone else\'s recipe', () => {
+    const wrapper = mountCard({
+      id: 8,
+      title: 'Dahl',
+      diet_type: 'vegan',
+      total_time_minutes: 30,
+      servings: 4,
+      carbon_footprint_kg_co2e: 0.42,
+      author: 'bob',
+      author_id: 99,
+      tags: [
+        { id: 1, name: 'Rapide', kind: 'other' },
+        { id: 2, name: 'Indien', kind: 'other' },
+        { id: 3, name: 'Épicé', kind: 'other' },
+        { id: 4, name: 'Hiver', kind: 'other' },
+      ] as Recipe['tags'],
+    })
+
+    expect(wrapper.text()).toContain('4 portions')
+    expect(wrapper.text()).toContain('0,4 kg CO₂e / portion')
+    expect(wrapper.find('.carbon').classes()).toContain('carbon-low')
+    expect(wrapper.text()).toContain('par bob')
+    expect(wrapper.findAll('.tag').map((t) => t.text())).toEqual(['Rapide', 'Indien', 'Épicé', '+1'])
+  })
+})
+
+describe('RecipeCard actions', () => {
+  function mountManageable(recipe: Partial<Recipe>) {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    useAuthStore().user = { id: 1, username: 'alice' } as unknown as User
+    return mount(RecipeCard, {
+      props: { recipe: recipe as Recipe, manageable: true },
+      global: { plugins: [i18n, pinia], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+    })
+  }
+
+  it('shows edit/delete for the owner and emits delete', async () => {
+    const recipe = { id: 9, title: 'Tarte', diet_type: 'omnivore', total_time_minutes: 20, author_id: 1, author: 'alice' } as Recipe
+    const wrapper = mountManageable(recipe)
+
+    expect(wrapper.find('.card-actions').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('par alice')
+    await wrapper.find('button.danger-btn').trigger('click')
+    expect(wrapper.emitted('delete')?.[0]).toEqual([recipe])
+  })
+
+  it('shows "importé par" for an imported recipe, even the owner\'s own', () => {
+    const wrapper = mountManageable({
+      id: 11,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 20,
+      author_id: 1,
+      author: 'alice',
+      source_type: 'youtube',
+    })
+    expect(wrapper.find('.author').text()).toBe('importé par alice')
+  })
+
+  it('hides the actions on someone else\'s recipe', () => {
+    const wrapper = mountManageable({ id: 10, title: 'Tarte', diet_type: 'omnivore', total_time_minutes: 20, author_id: 2 })
+    expect(wrapper.find('.card-actions').exists()).toBe(false)
   })
 })
