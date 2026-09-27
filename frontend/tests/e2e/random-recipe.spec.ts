@@ -19,7 +19,7 @@ test('draws a random recipe, can reroll, and can add it to the planner', async (
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('300')
+  await page.locator('input[id^="quantity-"]').fill('300')
   await page.getByLabel('Étape 1').fill('Mixer le potiron avec le bouillon.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
