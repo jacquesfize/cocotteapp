@@ -7,6 +7,7 @@ import type {
   RecipeCommentInput,
   RecipeInput,
   RecipeNutrition,
+  RecipeStep,
   Tag,
 } from '../types/models'
 
@@ -55,10 +56,39 @@ export function listTags(): Promise<Paginated<Tag>> {
   return client.get('tags/').then((r) => r.data)
 }
 
-export function uploadRecipeImage(id: number | string, file: File): Promise<Recipe> {
+export interface ImageCreditInput {
+  image_license: string
+  image_credit_author?: string
+  image_credit_source_url?: string
+  image_credit_license_url?: string
+  image_credit_note?: string
+}
+
+function appendCredit(formData: FormData, credit: ImageCreditInput) {
+  formData.append('image_license', credit.image_license)
+  if (credit.image_credit_author) formData.append('image_credit_author', credit.image_credit_author)
+  if (credit.image_credit_source_url) formData.append('image_credit_source_url', credit.image_credit_source_url)
+  if (credit.image_credit_license_url) formData.append('image_credit_license_url', credit.image_credit_license_url)
+  if (credit.image_credit_note) formData.append('image_credit_note', credit.image_credit_note)
+}
+
+export function uploadRecipeImage(id: number | string, file: File, credit: ImageCreditInput): Promise<Recipe> {
   const formData = new FormData()
   formData.append('image', file)
+  appendCredit(formData, credit)
   return client.patch(`recipes/${id}/image/`, formData).then((r) => r.data)
+}
+
+export function uploadStepImage(
+  recipeId: number | string,
+  stepId: number | string,
+  file: File,
+  credit: ImageCreditInput,
+): Promise<RecipeStep> {
+  const formData = new FormData()
+  formData.append('image', file)
+  appendCredit(formData, credit)
+  return client.patch(`recipes/${recipeId}/steps/${stepId}/image/`, formData).then((r) => r.data)
 }
 
 export function downloadRecipePdf(id: number | string): Promise<Blob> {

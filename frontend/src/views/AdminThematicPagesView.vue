@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Plus, Trash2 } from '@lucide/vue'
+import { LayoutGrid, Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PageHeader from '../components/PageHeader.vue'
 import {
   createThematicPage,
   deleteThematicPage,
@@ -211,7 +212,7 @@ async function handleDelete(page: AdminThematicPage) {
   <div>
     <div class="row page-header">
       <div>
-        <h1>{{ $t('adminThematicPages.title') }}</h1>
+        <PageHeader :icon="LayoutGrid" :title="$t('adminThematicPages.title')" />
         <p class="muted">{{ $t('adminThematicPages.subtitle') }}</p>
       </div>
       <button v-if="!accessDenied" type="button" @click="openCreateForm">

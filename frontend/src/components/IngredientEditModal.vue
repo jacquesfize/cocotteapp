@@ -98,8 +98,27 @@ async function handleSuggest() {
   }
 }
 
+// Validation JS explicite (en plus de `novalidate` sur le formulaire) : sur mobile, la bulle de
+// validation native du navigateur peut s'afficher hors écran ou derrière le clavier virtuel, donc
+// `required`/`min` seuls ne suffisent pas comme retour utilisateur.
+function validateForm(): string {
+  if (!form.value.name.trim()) return t('ingredientModal.nameRequired')
+  for (const field of NUTRIENT_FIELDS) {
+    if (!Number.isFinite(form.value[field]) || form.value[field] < 0) return t('ingredientModal.invalidValue')
+  }
+  if (!Number.isFinite(form.value.carbon_kg_co2e_per_kg) || form.value.carbon_kg_co2e_per_kg < 0) {
+    return t('ingredientModal.invalidValue')
+  }
+  return ''
+}
+
 async function handleSubmit() {
   error.value = ''
+  const validationError = validateForm()
+  if (validationError) {
+    error.value = validationError
+    return
+  }
   isSubmitting.value = true
   try {
     const { name_en, ...rest } = form.value
@@ -144,7 +163,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
         </button>
       </div>
 
-      <form @submit.prevent="handleSubmit">
+      <form novalidate @submit.prevent="handleSubmit">
         <div class="field">
           <label for="ingredient-modal-name">{{ t('ingredientModal.name') }}</label>
           <div class="row" style="align-items: center">

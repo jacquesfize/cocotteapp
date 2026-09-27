@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Trash2 } from '@lucide/vue'
+import { ShoppingCart, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 import type { ShoppingList } from '../types/models'
@@ -38,7 +39,7 @@ async function handleDelete(id: number) {
 
 <template>
   <div>
-    <h1>{{ $t('shopping.title') }}</h1>
+    <PageHeader :icon="ShoppingCart" :title="$t('shopping.title')" />
     <p v-if="!shoppingLists.length" class="muted">{{ $t('shopping.noLists') }}</p>
     <div v-for="list in shoppingLists" :key="list.id" class="card list-row">
       <RouterLink :to="{ name: 'shopping-list-detail', params: { id: list.id } }">

@@ -381,7 +381,12 @@ export async function seedDemoData(page: Page): Promise<DemoData> {
     await ok(
       api.patch(`/api/recipes/${recipeId}/image/`, {
         headers,
-        multipart: { image: { name: `recipe-${recipeId}.jpg`, mimeType: 'image/jpeg', buffer } },
+        multipart: {
+          image: { name: `recipe-${recipeId}.jpg`, mimeType: 'image/jpeg', buffer },
+          // Photos de démo générées synthétiquement (voir renderCrop) : domaine public, aucun
+          // champ de crédit supplémentaire requis (voir apps/recipes/image_credit.py).
+          image_license: 'public_domain',
+        },
       }),
       'Image upload',
     )

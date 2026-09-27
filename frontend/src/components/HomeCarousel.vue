@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ImageWithCredit from './ImageWithCredit.vue'
 import { formatDuration } from '../utils/format'
-import { imageCreditDomain } from '../utils/imageCredit'
 import type { Recipe } from '../types/models'
 
 defineProps<{ recipes: Recipe[] }>()
-
-function creditFor(recipe: Recipe) {
-  return !recipe.image && recipe.image_url ? imageCreditDomain(recipe.source_url) : null
-}
 
 const track = ref<HTMLElement | null>(null)
 const active = ref(0)
@@ -46,14 +42,25 @@ function goTo(index: number) {
         :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
         class="carousel-slide"
       >
-        <img v-if="recipe.image || recipe.image_url" :src="recipe.image || recipe.image_url" alt="" />
+        <ImageWithCredit
+          v-if="recipe.image || recipe.image_url"
+          class="carousel-slide-image"
+          :image-url="recipe.image || recipe.image_url"
+          :source-url="recipe.image ? null : recipe.source_url"
+          :license="recipe.image_license"
+          :credit-author="recipe.image_credit_author"
+          :credit-source-url="recipe.image_credit_source_url"
+          :credit-license-url="recipe.image_credit_license_url"
+          :credit-note="recipe.image_credit_note"
+          overlay
+          overlay-align="right"
+        />
         <div class="scrim" />
         <div class="caption">
           <h2>{{ recipe.title }}</h2>
           <p>{{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}</p>
         </div>
         <span class="pill">{{ $t('home.viewRecipe') }}</span>
-        <span v-if="creditFor(recipe)" class="credit">{{ $t('recipes.imageCredit', { domain: creditFor(recipe) }) }}</span>
       </RouterLink>
     </div>
     <div class="dots" role="tablist">
@@ -104,12 +111,24 @@ function goTo(index: number) {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
 }
 
-.carousel-slide img {
+.carousel-slide-image {
   position: absolute;
   inset: 0;
+}
+
+.carousel-slide-image :deep(.image-with-credit-frame) {
+  height: 100%;
+}
+
+.carousel-slide-image :deep(img) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.carousel-slide-image :deep(.credit-badge) {
+  bottom: 1.4rem;
+  opacity: 0.75;
 }
 
 .scrim {
@@ -149,15 +168,6 @@ function goTo(index: number) {
   color: #241f1d;
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.credit {
-  position: absolute;
-  right: 1.5rem;
-  bottom: 1.4rem;
-  color: inherit;
-  opacity: 0.75;
-  font-size: 0.7rem;
 }
 
 .dots {

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { KeyRound } from '@lucide/vue'
 import { ref } from 'vue'
+import PageHeader from '../components/PageHeader.vue'
 import { requestPasswordReset } from '../api/auth'
 
 const email = ref('')
@@ -20,7 +22,7 @@ async function handleSubmit() {
 
 <template>
   <div class="card auth-card">
-    <h1>{{ $t('auth.forgotPasswordTitle') }}</h1>
+    <PageHeader :icon="KeyRound" :title="$t('auth.forgotPasswordTitle')" />
 
     <p v-if="isDone" class="muted">{{ $t('auth.forgotPasswordSent') }}</p>
 

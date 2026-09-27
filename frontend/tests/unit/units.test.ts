@@ -40,7 +40,7 @@ describe('formatUnit', () => {
     i18n.global.locale.value = 'fr'
     expect(formatUnit('piece', 1)).toBe('pièce')
     expect(formatUnit('piece', '2.00')).toBe('pièces')
-    expect(formatUnit('piece', '1.50')).toBe('pièces') // affiché "2"
+    expect(formatUnit('piece', '1.50')).toBe('pièce') // affiché "1.5", encore singulier (< 2)
     expect(formatUnit('pinch', 1)).toBe('pincée')
     expect(formatUnit('pinch', 3)).toBe('pincées')
     expect(formatUnit('tbsp', 3)).toBe('c. à soupe')

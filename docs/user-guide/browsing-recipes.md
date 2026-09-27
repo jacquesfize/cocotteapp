@@ -133,8 +133,10 @@ intolerances highlighted. *Allergens not verified for some ingredients* appears 
 one ingredient hasn't had its allergens checked.
 
 Then comes the picture, with a **Source** button on it when the recipe comes from a website,
-and the YouTube video if there is one. If the picture came from the source website, a small
-*image via …* credit is shown under it.
+and the YouTube video if there is one. A credit line is shown under the picture — the author and
+license (see [Image credit and license](creating-recipes.md#image-credit-and-license)) when
+they're set, an *image via …* domain for an older picture that predates that feature and never
+got one, or *Credit not specified* when there's truly no credit information at all.
 
 ### Ingredients and steps
 
@@ -144,7 +146,9 @@ sub-headings. Click an ingredient name to see other recipes that use it.
 In the **Steps** card:
 
 - **highlighted ingredient names** are links to the ingredient in the list (handy on a phone),
-- **timer buttons** (for example ⏱ *10 min* or ⏱ *rest · 1 h*) start a countdown.
+- **timer buttons** (for example ⏱ *10 min* or ⏱ *rest · 1 h*) start a countdown,
+- a small **photo icon** at the end of a step's text means that step has its own picture — click
+  it to view it (with its credit) in a dialog.
 
 ![The Ingredients and Steps cards: ingredient names highlighted in the steps, and 5 min and 50 min timer buttons](../assets/screenshots/recipe-detail-steps.png)
 
@@ -158,7 +162,11 @@ while cooking:
 ![Cook mode showing one step, with highlighted ingredient names](../assets/screenshots/mobile-cookmode-step.png)
 
 - Move between steps with the **‹** / **›** buttons on the sides, a swipe left/right on a touch
-  screen, the dots at the bottom, or the ← / → arrow keys.
+  screen, the dots at the bottom, or the ← / → arrow keys. On the last step, the **›** button
+  turns into a checkmark — pressing it (or swiping/pressing → again) exits cook mode instead of
+  doing nothing.
+- A step with its own photo (see [Add a photo to a step](creating-recipes.md#add-a-photo-to-a-step))
+  shows it above the instruction text.
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
   by tapping outside it.

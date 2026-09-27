@@ -42,8 +42,8 @@ Each row has three fields:
 - **Ingredient**: start typing and pick an ingredient from the suggestions. You can use the
   arrow keys and Enter. The search ignores case and accents, tolerates typos and also finds
   ingredients by their English name.
-- **Quantity**: a number. With the **piece** unit, only whole numbers are allowed (switching to
-  *piece* rounds the quantity).
+- **Quantity**: a number. Decimals are allowed for every unit, including **piece** (for example
+  `0.5` for half a camembert).
 - **Unit**: **g**, **kg**, **ml**, **l**, **piece**, **tbsp**, **tsp** or **pinch**.
 
 Click **Add an ingredient** for another row, and the bin button to remove a row.
@@ -147,6 +147,17 @@ Laisser mijoter ~{20%minutes}, puis laisser reposer ~repos{1%heure}.
 
 See [Use a step timer](browsing-recipes.md#use-a-step-timer) for how timers work when cooking.
 
+#### Add a photo to a step
+
+Each step can optionally have its own photo. Since most steps don't need one, it's hidden by
+default: click **Add an image** below the step's text box to reveal the same picker as the
+recipe's own photo (see [Media & source](#media-source) below) — pick a file or paste an image
+URL, then choose a license and fill in the credit fields it requires.
+
+On the recipe page, a step with a photo shows a small photo icon at the end of its text; click it
+to view the picture (with its credit) in a dialog. In cook mode, the current step's photo is shown
+directly above its instruction text.
+
 ### Media & source
 
 | Field | Notes |
@@ -155,6 +166,32 @@ See [Use a step timer](browsing-recipes.md#use-a-step-timer) for how timers work
 | **Or upload a file** | Upload a picture from your device. An uploaded file is shown instead of the image URL. |
 | **Source (link to the original recipe)** | Where the recipe comes from. Shown as a **Source** button on the recipe page. |
 | **Video (YouTube link)** | A YouTube link, for example `https://www.youtube.com/watch?v=…`. The video is embedded on the recipe page. |
+
+#### Image credit and license
+
+Setting a recipe's (or a step's) photo for the first time, or replacing it, requires picking a
+**license** so Cocotte can display proper credit next to the picture. The **Image license**
+dropdown offers:
+
+| License | Requires |
+|---|---|
+| **CC BY (Attribution)** | Author, source URL |
+| **CC BY-SA (Attribution — Share Alike)** | Author, source URL |
+| **Public domain** | Nothing else |
+| **Personal photo** | Author |
+| **Used with permission** | Author, note |
+| **Not specified** | Nothing else |
+
+Only the fields required by the chosen license are shown. For a CC license, the **License URL**
+field is pre-filled with the standard license text URL (you can still edit it, and Cocotte fills
+it in automatically if you leave it blank). **Not specified** is what recipes imported from a URL
+get automatically for their picture, with a note such as *Image imported from example.com* — it's
+a normal, valid choice, not just an internal placeholder.
+
+> [!NOTE]
+> Recipes (and their pictures) created before this feature existed have no credit information.
+> Their photo shows *Credit not specified* until you next change that picture — editing anything
+> else about the recipe never asks for a credit.
 
 #### Publicly licensed content
 

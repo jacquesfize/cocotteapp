@@ -1,25 +1,18 @@
 <script setup lang="ts">
 import { Link2, Lock } from '@lucide/vue'
-import { computed } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
+import ImageWithCredit from './ImageWithCredit.vue'
 import RecipeRating from './RecipeRating.vue'
-import { imageCreditDomain } from '../utils/imageCredit'
 import type { RecipeRatingResult } from '../api/recipes'
 import type { Recipe } from '../types/models'
 
-const props = defineProps<{
+defineProps<{
   recipe: Recipe
 }>()
 
 const emit = defineEmits<{
   rated: [result: RecipeRatingResult]
 }>()
-
-const imageCredit = computed(() =>
-  !props.recipe.youtube_id && !props.recipe.image && props.recipe.image_url
-    ? imageCreditDomain(props.recipe.source_url)
-    : null,
-)
 </script>
 
 <template>
@@ -32,8 +25,18 @@ const imageCredit = computed(() =>
         allowfullscreen
       />
     </div>
-    <div v-else-if="recipe.image || recipe.image_url" class="hero-photo-wrapper">
-      <img :src="recipe.image || recipe.image_url" class="hero-photo" alt="" />
+    <ImageWithCredit
+      v-else-if="recipe.image || recipe.image_url"
+      class="hero-photo-wrapper"
+      :image-url="recipe.image || recipe.image_url"
+      :source-url="recipe.image ? null : recipe.source_url"
+      :license="recipe.image_license"
+      :credit-author="recipe.image_credit_author"
+      :credit-source-url="recipe.image_credit_source_url"
+      :credit-license-url="recipe.image_credit_license_url"
+      :credit-note="recipe.image_credit_note"
+      overlay
+    >
       <a
         v-if="recipe.source_url"
         :href="recipe.source_url"
@@ -43,8 +46,7 @@ const imageCredit = computed(() =>
       >
         <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
       </a>
-      <span v-if="imageCredit" class="hero-credit">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</span>
-    </div>
+    </ImageWithCredit>
     <a
       v-else-if="recipe.source_url"
       :href="recipe.source_url"
@@ -89,27 +91,15 @@ const imageCredit = computed(() =>
 }
 
 .hero-photo-wrapper {
-  position: relative;
   border-radius: 20px;
   overflow: hidden;
 }
 
-.hero-photo {
+.hero-photo-wrapper :deep(img) {
   display: block;
   width: 100%;
   height: 320px;
   object-fit: cover;
-}
-
-.hero-credit {
-  position: absolute;
-  left: 0.75rem;
-  bottom: 0.75rem;
-  padding: 0.25rem 0.65rem;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 0.7rem;
 }
 
 .hero-source-button {

@@ -10,6 +10,33 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 
 - The app version is now shown discreetly at the bottom of the **My account** page.
+- Recipe cover images and individual recipe steps can now carry an image license and credit (CC
+  BY, CC BY-SA, public domain, personal photo, used with permission, or not specified) — required
+  for a new or changed image, shown as attribution wherever the image appears, and never
+  retroactively required for images that already existed.
+- Each recipe step can optionally have its own photo, added via an "Add an image" button and
+  viewable by tapping a small photo icon next to the step (on the recipe page and in cook mode).
+
+### Changed
+
+- The "pièce" (piece) unit now accepts decimal quantities on a recipe (e.g. 0.5 for half a
+  camembert); shopping lists still round up to a whole piece when aggregating.
+- Cook mode's button now uses a chef's hat icon instead of a generic expand icon, and reaching the
+  last step and pressing "next" now exits cook mode instead of doing nothing.
+- Images imported from a URL are credited as "Not specified" with a note citing the source,
+  editable before saving.
+- Adding a recipe to a planner slot now opens in a dialog instead of an inline form squeezed into
+  the calendar cell, which also fixes the recipe-search dropdown being clipped in narrow agenda
+  cells.
+- The planner's calendar grid now has a white background, and page titles across the app now show
+  a small icon next to them for quicker visual scanning.
+- Form fields now have a white background with a subtle colored border and less rounded corners.
+
+### Fixed
+
+- Form validation errors (recipe details, ingredients, planner entries) are now shown consistently
+  via inline messages instead of relying on the browser's native validation bubbles, which could be
+  invisible or badly positioned on mobile.
 
 ## [0.1.0] "Tiramisu" 🍰 - 2026-09-27
 

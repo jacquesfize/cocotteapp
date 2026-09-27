@@ -38,7 +38,9 @@ def test_author_can_upload_recipe_image():
     client = APIClient()
     client.force_authenticate(recipe.author)
     response = client.patch(
-        f"/api/recipes/{recipe.id}/image/", {"image": _fake_image_file()}, format="multipart"
+        f"/api/recipes/{recipe.id}/image/",
+        {"image": _fake_image_file(), "image_license": "public_domain"},
+        format="multipart",
     )
 
     assert response.status_code == 200
@@ -54,7 +56,9 @@ def test_non_author_cannot_upload_recipe_image():
     client = APIClient()
     client.force_authenticate(other_user)
     response = client.patch(
-        f"/api/recipes/{recipe.id}/image/", {"image": _fake_image_file()}, format="multipart"
+        f"/api/recipes/{recipe.id}/image/",
+        {"image": _fake_image_file(), "image_license": "public_domain"},
+        format="multipart",
     )
 
     assert response.status_code == 403

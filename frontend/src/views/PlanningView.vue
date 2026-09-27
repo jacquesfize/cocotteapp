@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Apple, ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
+import { Apple, Calendar, ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import BaseModal from '../components/BaseModal.vue'
 import CalendarExportMenu from '../components/CalendarExportMenu.vue'
 import MealSlot from '../components/MealSlot.vue'
+import PageHeader from '../components/PageHeader.vue'
 import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../utils/dates'
@@ -177,7 +178,7 @@ const rangeLabel = computed(() => {
 
 <template>
   <div>
-    <h1>{{ $t('planning.title') }}</h1>
+    <PageHeader :icon="Calendar" :title="$t('planning.title')" />
 
     <div v-if="sharedAgendas.length" class="field agenda-switcher">
       <label for="agenda-select">{{ $t('planning.agendaSelectorLabel') }}</label>
@@ -375,6 +376,7 @@ const rangeLabel = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow-x: auto;
+  background: var(--color-surface);
 }
 
 .agenda-month {
@@ -383,6 +385,7 @@ const rangeLabel = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow-x: auto;
+  background: var(--color-surface);
 }
 
 .agenda-day-head {

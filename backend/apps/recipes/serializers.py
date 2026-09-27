@@ -2,11 +2,12 @@ from django.db import models
 from rest_framework import serializers
 
 from apps.accounts.models import DietType
-from apps.ingredients.models import Ingredient, Unit
+from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
 from apps.nutrition.services import compute_recipe_carbon_footprint
 
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
+from .image_credit import validate_image_credit
+from .models import ImageLicense, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
 from .rating_utils import voter_hash_for_request
 from .youtube import extract_youtube_id
 
@@ -68,18 +69,30 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
         model = RecipeIngredient
         fields = ["id", "ingredient", "ingredient_id", "quantity", "unit", "group_name", "order"]
 
-    def validate(self, attrs):
-        unit = attrs.get("unit", getattr(self.instance, "unit", None))
-        quantity = attrs.get("quantity", getattr(self.instance, "quantity", None))
-        if unit == Unit.PIECE and quantity is not None and quantity % 1 != 0:
-            raise serializers.ValidationError({"quantity": "La quantité doit être un nombre entier pour l'unité pièce."})
-        return attrs
-
 
 class RecipeStepSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False)
+    image = RelativeImageField(read_only=True)
+
     class Meta:
         model = RecipeStep
-        fields = ["id", "order", "instruction"]
+        fields = [
+            "id",
+            "order",
+            "instruction",
+            "image",
+            "image_url",
+            "image_license",
+            "image_credit_author",
+            "image_credit_source_url",
+            "image_credit_license_url",
+            "image_credit_note",
+        ]
+
+    def validate(self, attrs):
+        if attrs.get("image_url"):
+            validate_image_credit(attrs)
+        return attrs
 
 
 class RecipeVersionSerializer(serializers.ModelSerializer):
@@ -132,6 +145,11 @@ class RecipeSerializer(serializers.ModelSerializer):
             "youtube_id",
             "image",
             "image_url",
+            "image_license",
+            "image_credit_author",
+            "image_credit_source_url",
+            "image_credit_license_url",
+            "image_credit_note",
             "is_public",
             "content_publicly_licensed",
             "content_restricted",
@@ -212,32 +230,93 @@ class RecipeSerializer(serializers.ModelSerializer):
                 data.pop(field, None)
         return data
 
+    def validate(self, attrs):
+        # Grandfathering boundary: credit is only required when `image_url` is actually being
+        # set/changed to a new non-blank value, never for an untouched pre-existing image (e.g.
+        # editing just the recipe's title must never trigger this check).
+        new_image_url = attrs.get("image_url")
+        if new_image_url and new_image_url != getattr(self.instance, "image_url", ""):
+            validate_image_credit(attrs)
+        return attrs
+
     def create(self, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", [])
         steps_data = validated_data.pop("steps", [])
         recipe = Recipe.objects.create(**validated_data)
-        self._sync_children(recipe, ingredients_data, steps_data)
+        self._sync_children(recipe, ingredients_data, replace=False)
+        self._sync_steps(recipe, steps_data)
         return recipe
 
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", None)
         steps_data = validated_data.pop("steps", None)
+        if steps_data is not None:
+            provided_ids = {data["id"] for data in steps_data if data.get("id")}
+            unknown_ids = provided_ids - set(instance.steps.values_list("id", flat=True))
+            if unknown_ids:
+                raise serializers.ValidationError(
+                    {"steps": f"Étape(s) inconnue(s) pour cette recette : {sorted(unknown_ids)}."}
+                )
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-        if ingredients_data is not None or steps_data is not None:
-            self._sync_children(instance, ingredients_data or [], steps_data or [], replace=True)
+        if ingredients_data is not None:
+            self._sync_children(instance, ingredients_data, replace=True)
+        if steps_data is not None:
+            self._sync_steps(instance, steps_data)
         return instance
 
     @staticmethod
-    def _sync_children(recipe, ingredients_data, steps_data, replace=False):
+    def _sync_children(recipe, ingredients_data, replace=False):
         if replace:
             recipe.recipe_ingredients.all().delete()
-            recipe.steps.all().delete()
         for data in ingredients_data:
             RecipeIngredient.objects.create(recipe=recipe, **data)
+
+    @staticmethod
+    def _sync_steps(recipe, steps_data):
+        """Upsert-by-id, never delete-and-recreate: a step referencing an existing `id` is
+        updated in place so an uploaded step image (a real file on disk, tied to that PK) isn't
+        orphaned by an unrelated recipe edit. A step missing from `steps_data` is deleted, along
+        with its image file if any; a step with no `id` is genuinely new."""
+        keep_ids = {data["id"] for data in steps_data if data.get("id")}
+        stale = recipe.steps.exclude(id__in=keep_ids)
+        for step in stale:
+            if step.image:
+                step.image.delete(save=False)
+        stale.delete()
         for data in steps_data:
-            RecipeStep.objects.create(recipe=recipe, **data)
+            step_id = data.pop("id", None)
+            if step_id:
+                RecipeStep.objects.filter(id=step_id, recipe=recipe).update(**data)
+            else:
+                RecipeStep.objects.create(recipe=recipe, **data)
+
+
+class RecipeImageUploadSerializer(serializers.Serializer):
+    """Backs `PATCH /api/recipes/{id}/image/`: a file upload always requires credit info (there is
+    no grandfathering for a brand-new upload, only for an untouched pre-existing image)."""
+
+    image = serializers.ImageField()
+    image_license = serializers.ChoiceField(choices=ImageLicense.choices)
+    image_credit_author = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    image_credit_source_url = serializers.URLField(required=False, allow_blank=True)
+    image_credit_license_url = serializers.URLField(required=False, allow_blank=True)
+    image_credit_note = serializers.CharField(required=False, allow_blank=True, max_length=300)
+
+    def validate(self, attrs):
+        return validate_image_credit(attrs)
+
+    def validate_image(self, value):
+        max_size = 8 * 1024 * 1024
+        if value.size > max_size:
+            raise serializers.ValidationError("L'image ne doit pas dépasser 8 Mo.")
+        return value
+
+
+class RecipeStepImageUploadSerializer(RecipeImageUploadSerializer):
+    """Identical validation to `RecipeImageUploadSerializer`, semantically for a `RecipeStep`
+    (backs `PATCH /api/recipes/{id}/steps/{step_id}/image/`)."""
 
 
 class RecipeCommentSerializer(serializers.ModelSerializer):

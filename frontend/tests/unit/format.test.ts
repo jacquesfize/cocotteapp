@@ -30,9 +30,9 @@ describe('formatQuantity', () => {
     expect(formatQuantity(333.3333, 'g')).toBe('333.33')
   })
 
-  it('rounds integer-only units up', () => {
+  it('keeps decimals for piece (now allowed) but rounds pinch up', () => {
     expect(formatQuantity('2.00', 'piece')).toBe('2')
-    expect(formatQuantity('1.50', 'piece')).toBe('2')
+    expect(formatQuantity('1.50', 'piece')).toBe('1.5')
     expect(formatQuantity('0.50', 'pinch')).toBe('1')
   })
 

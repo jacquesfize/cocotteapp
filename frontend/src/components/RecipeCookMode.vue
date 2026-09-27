@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, RotateCcw, X } from '@lucide/vue'
+import { Check, ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, RotateCcw, X } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from './BaseModal.vue'
+import ImageWithCredit from './ImageWithCredit.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../utils/format'
@@ -75,11 +76,16 @@ function goPrev() {
   }
 }
 
+// Depuis la dernière étape, "passer à la suivante" quitte le mode cuisine plutôt que de rester
+// bloqué sans rien faire — cohérent que ce soit déclenché par le bouton, la flèche clavier ou un
+// swipe (tous passent par cette fonction).
 function goNext() {
-  if (!isLastStep.value) {
-    direction.value = 'next'
-    currentIndex.value += 1
+  if (isLastStep.value) {
+    emit('close')
+    return
   }
+  direction.value = 'next'
+  currentIndex.value += 1
 }
 
 function goToStep(index: number) {
@@ -178,7 +184,20 @@ onBeforeUnmount(() => {
       </button>
 
       <div class="cook-mode-step">
-        <Transition :name="direction === 'next' ? 'cook-step-next' : 'cook-step-prev'" mode="out-in">
+        <div class="cook-mode-step-content">
+          <ImageWithCredit
+            v-if="currentStep && (currentStep.image || currentStep.image_url)"
+            :key="`img-${currentStep.id}`"
+            class="cook-mode-step-photo"
+            :image-url="currentStep.image || currentStep.image_url"
+            :license="currentStep.image_license"
+            :credit-author="currentStep.image_credit_author"
+            :credit-source-url="currentStep.image_credit_source_url"
+            :credit-license-url="currentStep.image_credit_license_url"
+            :credit-note="currentStep.image_credit_note"
+            compact
+          />
+          <Transition :name="direction === 'next' ? 'cook-step-next' : 'cook-step-prev'" mode="out-in">
           <p v-if="currentStep" :key="currentStep.id" class="cook-mode-step-text">
             <template v-for="(segment, index) in currentSegments" :key="index">
               <button
@@ -195,17 +214,18 @@ onBeforeUnmount(() => {
               <template v-else>{{ segment.text }}</template>
             </template>
           </p>
-        </Transition>
+          </Transition>
+        </div>
       </div>
 
       <button
-        v-if="!isLastStep"
         type="button"
         class="secondary icon-btn cook-mode-nav next"
-        :aria-label="t('recipes.cookModeNext')"
+        :aria-label="isLastStep ? t('recipes.cookModeFinish') : t('recipes.cookModeNext')"
         @click="goNext"
       >
-        <ChevronRight :size="22" />
+        <Check v-if="isLastStep" :size="22" />
+        <ChevronRight v-else :size="22" />
       </button>
     </div>
 
@@ -349,6 +369,27 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   padding: 1rem 3.5rem;
+}
+
+.cook-mode-step-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.cook-mode-step-photo {
+  max-width: 320px;
+  width: 100%;
+}
+
+.cook-mode-step-photo :deep(img) {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 16px;
 }
 
 .cook-mode-step-text {

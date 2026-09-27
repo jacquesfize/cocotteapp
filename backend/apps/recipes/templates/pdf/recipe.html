@@ -10,7 +10,10 @@
   prépa {{ recipe.prep_time_minutes }} min · cuisson {{ recipe.cook_time_minutes }} min
 </p>
 
-{% if image_src %}<img class="recipe-image" src="{{ image_src }}" alt="">{% endif %}
+{% if image_src %}
+<img class="recipe-image" src="{{ image_src }}" alt="">
+{% if recipe.image_credit_author %}<p class="meta">Photo : {{ recipe.image_credit_author }}</p>{% endif %}
+{% endif %}
 
 {% if recipe.description %}<p>{{ recipe.description }}</p>{% endif %}
 

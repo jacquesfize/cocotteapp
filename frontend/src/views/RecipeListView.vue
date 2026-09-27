@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Link2, Plus, X } from '@lucide/vue'
+import { BookOpen, Link2, Plus, X } from '@lucide/vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import Pagination from '../components/Pagination.vue'
+import PageHeader from '../components/PageHeader.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import RecipeFilters, { type RecipeFilterValues } from '../components/RecipeFilters.vue'
 import { previewImportFromUrl } from '../api/importer'
@@ -185,7 +186,7 @@ async function handleImport() {
 <template>
   <div>
     <div class="row page-header">
-      <h1>{{ $t('recipes.title') }}</h1>
+      <PageHeader :icon="BookOpen" :title="$t('recipes.title')" />
       <div class="row">
         <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
           <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>

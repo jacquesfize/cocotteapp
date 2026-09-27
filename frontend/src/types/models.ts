@@ -103,6 +103,13 @@ export interface RecipeStep {
   id: number
   order: number
   instruction: string
+  image: string | null
+  image_url: string
+  image_license: string
+  image_credit_author: string
+  image_credit_source_url: string
+  image_credit_license_url: string
+  image_credit_note: string
 }
 
 export interface RecipeVersion {
@@ -146,6 +153,11 @@ export interface Recipe {
   youtube_id: string | null
   image: string | null
   image_url: string
+  image_license: string
+  image_credit_author: string
+  image_credit_source_url: string
+  image_credit_license_url: string
+  image_credit_note: string
   is_public: boolean
   content_publicly_licensed: boolean
   content_restricted: boolean
@@ -174,8 +186,15 @@ export interface RecipeIngredientInput {
 }
 
 export interface RecipeStepInput {
+  id?: number
   instruction: string
   order: number
+  image_url?: string
+  image_license?: string
+  image_credit_author?: string
+  image_credit_source_url?: string
+  image_credit_license_url?: string
+  image_credit_note?: string
 }
 
 export interface RecipeInput {
@@ -190,6 +209,11 @@ export interface RecipeInput {
   source_url: string
   video_url: string
   image_url: string
+  image_license?: string
+  image_credit_author?: string
+  image_credit_source_url?: string
+  image_credit_license_url?: string
+  image_credit_note?: string
   ingredients: RecipeIngredientInput[]
   steps: RecipeStepInput[]
 }

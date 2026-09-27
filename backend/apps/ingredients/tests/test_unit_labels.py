@@ -36,7 +36,7 @@ def test_recipe_pdf_template_renders_translated_units():
         (Decimal("0.25"), "l", "0.25"),
         (Decimal("333.333"), "g", "333.33"),
         (Decimal("2.00"), "piece", "2"),
-        (Decimal("1.50"), "piece", "2"),
+        (Decimal("1.50"), "piece", "1.5"),
         (Decimal("0.50"), "pinch", "1"),
         (Decimal("10"), "g", "10"),
     ],
@@ -61,7 +61,7 @@ def test_recipe_pdf_template_strips_useless_decimals():
     [
         ("piece", Decimal("1"), "pièce"),
         ("piece", Decimal("2"), "pièces"),
-        ("piece", Decimal("1.5"), "pièces"),  # affiché "2" (arrondi au supérieur)
+        ("piece", Decimal("1.5"), "pièce"),  # affiché "1.5" (fractionnaire, plus arrondi au supérieur)
         ("pinch", Decimal("1"), "pincée"),
         ("pinch", Decimal("3"), "pincées"),
         ("tbsp", Decimal("3"), "c. à soupe"),

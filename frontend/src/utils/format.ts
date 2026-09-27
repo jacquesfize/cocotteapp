@@ -30,8 +30,9 @@ export function formatUnit(unit: string | null | undefined, quantity?: number | 
   return i18n.global.te(key) ? i18n.global.t(key) : unit
 }
 
-/** Unités qui ne se comptent qu'en entier (pas de "1.5 pièce" ni de "0.5 pincée"). */
-const INTEGER_UNITS = new Set(['piece', 'pinch'])
+/** Unités qui ne se comptent qu'en entier (pas de "0.5 pincée") — "piece" accepte désormais les
+ * décimales (ex. "0.5 pièce" pour un demi-camembert). */
+const INTEGER_UNITS = new Set(['pinch'])
 
 /**
  * Quantité d'ingrédient lisible : entier (arrondi au supérieur) pour les unités entières,
