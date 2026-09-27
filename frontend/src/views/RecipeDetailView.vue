@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import RecipeComments from '../components/RecipeComments.vue'
-import RecipeRating from '../components/RecipeRating.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
@@ -126,14 +125,6 @@ async function handleFork() {
         <p v-if="authorLine" class="byline muted" data-testid="recipe-byline">
           <Download v-if="isImported" :size="14" /><span>{{ authorLine }}</span>
         </p>
-        <RecipeRating
-          :key="recipe.id"
-          :recipe-id="recipe.id"
-          :average-rating="recipe.average_rating"
-          :ratings-count="recipe.ratings_count"
-          :my-rating="recipe.my_rating"
-          @rated="handleRated"
-        />
       </div>
       <div v-if="authStore.isAuthenticated && hasActions" ref="actionsEl" class="actions-menu">
         <button
@@ -197,8 +188,8 @@ async function handleFork() {
     </div>
     <p v-if="forkError" class="error">{{ forkError }}</p>
 
-    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
-    <RecipeRestrictedNotice v-else :recipe="recipe" />
+    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" @rated="handleRated" />
+    <RecipeRestrictedNotice v-else :recipe="recipe" @rated="handleRated" />
     <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
 
     <div v-if="recipe.versions.length" class="versions-section">

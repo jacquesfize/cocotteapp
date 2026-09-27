@@ -4,8 +4,10 @@ import { computed, ref } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
 import NutritionCard from './NutritionCard.vue'
 import RecipeCookMode from './RecipeCookMode.vue'
+import RecipeRating from './RecipeRating.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../api/recipes'
+import type { RecipeRatingResult } from '../api/recipes'
 import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
 import { downloadBlob } from '../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../utils/format'
@@ -14,6 +16,10 @@ import type { Recipe } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
+}>()
+
+const emit = defineEmits<{
+  rated: [result: RecipeRatingResult]
 }>()
 
 const showCookMode = ref(false)
@@ -67,6 +73,15 @@ async function handleDownloadPdf() {
       :allergens="recipe.allergens ?? []"
       :unverified="recipe.allergens_unverified"
       class="summary-allergens"
+    />
+
+    <RecipeRating
+      :key="recipe.id"
+      :recipe-id="recipe.id"
+      :average-rating="recipe.average_rating"
+      :ratings-count="recipe.ratings_count"
+      :my-rating="recipe.my_rating"
+      @rated="emit('rated', $event)"
     />
 
     <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">

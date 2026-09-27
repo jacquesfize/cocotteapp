@@ -107,7 +107,6 @@ async function rate(value: number) {
 }
 
 .rating-mine {
-  width: 100%;
   margin: 0;
   font-size: 0.85rem;
 }
