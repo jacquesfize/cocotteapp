@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { CloudOff, Download } from '@lucide/vue'
+import { CloudOff, Download, ShoppingCart } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
@@ -62,7 +63,7 @@ async function handleExport() {
 <template>
   <div v-if="shoppingList">
     <div class="row page-header">
-      <h1>{{ shoppingList.name }}</h1>
+      <PageHeader :icon="ShoppingCart">{{ shoppingList.name }}</PageHeader>
       <button @click="handleExport"><Download :size="16" />{{ $t('shopping.export') }}</button>
     </div>
     <p class="muted">{{ $t('shopping.checkOwned') }}</p>

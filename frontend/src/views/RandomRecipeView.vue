@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Dices } from '@lucide/vue'
+import { Dices, Shuffle } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
+import PageHeader from '../components/PageHeader.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { getRandomRecipe } from '../api/recipes'
@@ -39,7 +40,7 @@ onMounted(draw)
 <template>
   <div>
     <div class="row page-header">
-      <h1>{{ $t('random.title') }}</h1>
+      <PageHeader :icon="Shuffle" :title="$t('random.title')" />
       <button :disabled="isLoading" @click="draw"><Dices :size="16" />{{ $t('random.another') }}</button>
     </div>
 

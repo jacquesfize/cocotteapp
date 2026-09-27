@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { KeyRound } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import PageHeader from '../components/PageHeader.vue'
 import { confirmPasswordReset } from '../api/auth'
 
 const props = defineProps<{
@@ -37,7 +39,7 @@ async function handleSubmit() {
 
 <template>
   <div class="card auth-card">
-    <h1>{{ $t('auth.resetPasswordTitle') }}</h1>
+    <PageHeader :icon="KeyRound" :title="$t('auth.resetPasswordTitle')" />
     <form @submit.prevent="handleSubmit">
       <div class="field">
         <label for="new-password">{{ $t('account.newPassword') }}</label>

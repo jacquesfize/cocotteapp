@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Download, Save, Trash2, Upload } from '@lucide/vue'
+import { Download, Save, Trash2, Upload, User } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { listAllergens } from '../api/allergens'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import PageHeader from '../components/PageHeader.vue'
 import { changePassword, exportMyData } from '../api/auth'
 import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
@@ -198,7 +199,7 @@ async function handleDeleteAccount() {
 
 <template>
   <div>
-    <h1>{{ $t('account.title') }}</h1>
+    <PageHeader :icon="User" :title="$t('account.title')" />
 
     <div class="card" style="margin-bottom: 1rem" data-testid="appearance-card">
       <h2>{{ $t('theme.title') }}</h2>

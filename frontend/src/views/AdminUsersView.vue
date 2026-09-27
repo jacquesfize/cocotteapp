@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Trash2 } from '@lucide/vue'
+import { Shield, Trash2 } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import { deleteUser, listUsers, updateUser } from '../api/admin'
 import { useAuthStore } from '../stores/auth'
@@ -70,7 +71,7 @@ async function handleDelete(user: AdminUser) {
 
 <template>
   <div>
-    <h1>{{ $t('admin.usersTitle') }}</h1>
+    <PageHeader :icon="Shield" :title="$t('admin.usersTitle')" />
 
     <p v-if="accessDenied" class="error">{{ $t('admin.accessDenied') }}</p>
 

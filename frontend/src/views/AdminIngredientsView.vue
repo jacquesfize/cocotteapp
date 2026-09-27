@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Plus, Trash2 } from '@lucide/vue'
+import { Carrot, Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import IngredientEditModal from '../components/IngredientEditModal.vue'
+import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import { deleteIngredient, listIngredients } from '../api/ingredients'
 import type { IngredientListParams } from '../types/api'
@@ -100,7 +101,7 @@ async function handleDelete(ingredient: Ingredient) {
   <div>
     <div class="row page-header">
       <div>
-        <h1>{{ $t('adminIngredients.title') }}</h1>
+        <PageHeader :icon="Carrot" :title="$t('adminIngredients.title')" />
         <p class="muted">{{ $t('adminIngredients.subtitle') }}</p>
       </div>
       <button v-if="!accessDenied" type="button" @click="openCreate">

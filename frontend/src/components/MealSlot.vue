@@ -3,6 +3,7 @@ import { Plus, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AllergenWarning from './AllergenWarning.vue'
+import BaseModal from './BaseModal.vue'
 import RecipePicker from './RecipePicker.vue'
 import { createMealPlanEntry, deleteMealPlanEntry } from '../api/planning'
 import type { MealPlanEntry, MealType, Recipe } from '../types/models'
@@ -39,6 +40,10 @@ function closeForm() {
 async function handleAdd() {
   if (!newRecipe.value) {
     error.value = t('planning.chooseRecipe')
+    return
+  }
+  if (!newServings.value || newServings.value < 1) {
+    error.value = t('planning.invalidServings')
     return
   }
   try {
@@ -96,18 +101,20 @@ async function handleRemove(entryId: number) {
       >
         <Plus :size="14" />
       </button>
-      <form v-else class="add-form" @submit.prevent="handleAdd">
-        <RecipePicker v-model="newRecipe" />
-        <AllergenWarning :allergens="newRecipe?.allergens" />
-        <div class="row" style="align-items: center; gap: 0.4rem">
-          <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
-          <button type="submit">{{ $t('common.add') }}</button>
-          <button type="button" class="secondary icon-btn" :aria-label="$t('common.cancel')" @click="closeForm">
-            <X :size="14" />
-          </button>
-        </div>
-        <p v-if="error" class="error" style="margin: 0">{{ error }}</p>
-      </form>
+      <BaseModal v-if="isAdding" :title="$t('planning.addEntry')" @close="closeForm">
+        <form novalidate @submit.prevent="handleAdd">
+          <RecipePicker v-model="newRecipe" />
+          <AllergenWarning :allergens="newRecipe?.allergens" />
+          <div class="row" style="align-items: center; gap: 0.4rem">
+            <input v-model.number="newServings" type="number" min="1" style="width: 4.5rem" />
+            <button type="submit">{{ $t('common.add') }}</button>
+            <button type="button" class="secondary icon-btn" :aria-label="$t('common.cancel')" @click="closeForm">
+              <X :size="14" />
+            </button>
+          </div>
+          <p v-if="error" class="error" style="margin: 0">{{ error }}</p>
+        </form>
+      </BaseModal>
     </template>
   </div>
 </template>
@@ -187,9 +194,9 @@ async function handleRemove(entryId: number) {
   padding: 0;
 }
 
-.add-form {
+.meal-slot form {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.6rem;
 }
 </style>
