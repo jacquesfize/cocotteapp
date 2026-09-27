@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Download, EllipsisVertical, GitFork, Link2, Pencil, Trash2 } from '@lucide/vue'
+import { Download, EllipsisVertical, GitFork, Link2, Pencil, Trash2, Utensils } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
+import PageHeader from '../components/PageHeader.vue'
 import RecipeComments from '../components/RecipeComments.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
@@ -121,7 +122,7 @@ async function handleFork() {
   <div v-if="recipe">
     <div class="row page-header">
       <div class="title-block">
-        <h1>{{ recipe.title }}</h1>
+        <PageHeader :icon="Utensils">{{ recipe.title }}</PageHeader>
         <p v-if="authorLine" class="byline muted" data-testid="recipe-byline">
           <Download v-if="isImported" :size="14" /><span>{{ authorLine }}</span>
         </p>

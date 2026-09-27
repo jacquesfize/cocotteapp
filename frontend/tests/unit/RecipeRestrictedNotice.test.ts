@@ -30,7 +30,7 @@ describe('RecipeRestrictedNotice', () => {
     const iframe = wrapper.find('iframe')
     expect(iframe.exists()).toBe(true)
     expect(iframe.attributes('src')).toBe('https://www.youtube-nocookie.com/embed/abc123')
-    expect(wrapper.find('.hero-photo').exists()).toBe(false)
+    expect(wrapper.find('.hero-photo-wrapper').exists()).toBe(false)
   })
 
   it('shows a sharp hero image with a centered source button and an on-image credit when there is no video', () => {
@@ -41,11 +41,11 @@ describe('RecipeRestrictedNotice', () => {
     })
 
     expect(wrapper.find('iframe').exists()).toBe(false)
-    expect(wrapper.find('.hero-photo').exists()).toBe(true)
+    expect(wrapper.find('.hero-photo-wrapper img').exists()).toBe(true)
     const button = wrapper.find('.hero-source-button')
     expect(button.exists()).toBe(true)
     expect(button.attributes('href')).toBe('https://cuisine.example/recette')
-    const credit = wrapper.find('.hero-credit')
+    const credit = wrapper.find('.credit-badge')
     expect(credit.exists()).toBe(true)
     expect(credit.text()).toContain('cuisine.example')
   })

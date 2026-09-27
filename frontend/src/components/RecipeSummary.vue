@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Clock, Download, Flame, Link2, Maximize2, Users, Utensils } from '@lucide/vue'
+import { ChefHat, Clock, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
+import BaseModal from './BaseModal.vue'
+import ImageWithCredit from './ImageWithCredit.vue'
 import NutritionCard from './NutritionCard.vue'
 import RecipeCookMode from './RecipeCookMode.vue'
 import RecipeRating from './RecipeRating.vue'
@@ -11,7 +13,6 @@ import type { RecipeRatingResult } from '../api/recipes'
 import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
 import { downloadBlob } from '../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../utils/format'
-import { imageCreditDomain } from '../utils/imageCredit'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
@@ -23,14 +24,10 @@ const emit = defineEmits<{
 }>()
 
 const showCookMode = ref(false)
-
-// Crédit ("image via <domaine>") affiché sous l'image dès qu'une recette importée en a une,
-// que son contenu soit restreint ou non (voir RecipeRestrictedNotice.vue pour l'équivalent côté
-// recette restreinte). Seule l'image externe (`image_url`, potentiellement récupérée via
-// og:image) porte un crédit -- un fichier téléversé par l'utilisateur (`image`) est le sien.
-const imageCredit = computed(() =>
-  !props.recipe.image && props.recipe.image_url ? imageCreditDomain(props.recipe.source_url) : null,
-)
+// Id de l'étape dont la photo est actuellement affichée en grand (bouton icône -> BaseModal),
+// pour éviter d'afficher l'image en flux dans la liste (casse la numérotation, voir capture
+// utilisateur) : au plus une modale ouverte à la fois.
+const openStepImageId = ref<number | null>(null)
 
 // Voir frontend/src/utils/recipeSteps.ts (partagé avec le mode cuisine plein écran).
 const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredients))
@@ -55,7 +52,7 @@ async function handleDownloadPdf() {
           :aria-label="$t('recipes.cookMode')"
           @click="showCookMode = true"
         >
-          <Maximize2 :size="16" /><span class="cook-mode-label">{{ $t('recipes.cookMode') }}</span>
+          <ChefHat :size="16" /><span class="cook-mode-label">{{ $t('recipes.cookMode') }}</span>
         </button>
         <button class="secondary download-button" :aria-label="$t('recipes.downloadPdf')" @click="handleDownloadPdf">
           <Download :size="16" />
@@ -88,8 +85,16 @@ async function handleDownloadPdf() {
       <div v-if="recipe.image || recipe.image_url" class="recipe-photo-wrapper">
         <!-- Même bouton "Source" centré sur la photo que RecipeRestrictedNotice.vue ; sans photo,
              RecipeDetailView.vue affiche le lien Source au-dessus du contenu. -->
-        <div class="recipe-photo-frame">
-          <img :src="recipe.image || recipe.image_url" class="recipe-photo" alt="" />
+        <ImageWithCredit
+          class="recipe-photo-frame"
+          :image-url="recipe.image || recipe.image_url"
+          :source-url="recipe.image ? null : recipe.source_url"
+          :license="recipe.image_license"
+          :credit-author="recipe.image_credit_author"
+          :credit-source-url="recipe.image_credit_source_url"
+          :credit-license-url="recipe.image_credit_license_url"
+          :credit-note="recipe.image_credit_note"
+        >
           <a
             v-if="recipe.source_url"
             :href="recipe.source_url"
@@ -99,8 +104,7 @@ async function handleDownloadPdf() {
           >
             <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
           </a>
-        </div>
-        <p v-if="imageCredit" class="image-credit muted">{{ $t('recipes.imageCredit', { domain: imageCredit }) }}</p>
+        </ImageWithCredit>
       </div>
 
       <div v-if="recipe.youtube_id" class="video-wrapper">
@@ -149,6 +153,31 @@ async function handleDownloadPdf() {
               />
               <template v-else>{{ segment.text }}</template>
             </template>
+            <button
+              v-if="step.image || step.image_url"
+              type="button"
+              class="step-image-btn"
+              :aria-label="$t('recipes.viewStepImage')"
+              @click="openStepImageId = step.id"
+            >
+              <ImageIcon :size="15" />
+            </button>
+
+            <BaseModal
+              v-if="openStepImageId === step.id"
+              :title="$t('recipes.stepImage')"
+              @close="openStepImageId = null"
+            >
+              <ImageWithCredit
+                class="step-photo-modal-frame"
+                :image-url="step.image || step.image_url"
+                :license="step.image_license"
+                :credit-author="step.image_credit_author"
+                :credit-source-url="step.image_credit_source_url"
+                :credit-license-url="step.image_credit_license_url"
+                :credit-note="step.image_credit_note"
+              />
+            </BaseModal>
           </li>
         </ol>
       </div>
@@ -259,16 +288,12 @@ async function handleDownloadPdf() {
   min-width: 260px;
 }
 
-.recipe-photo {
+.recipe-photo-frame :deep(img) {
   display: block;
   width: 100%;
   height: 320px;
   object-fit: cover;
   border-radius: 20px;
-}
-
-.recipe-photo-frame {
-  position: relative;
 }
 
 .photo-source-button {
@@ -293,11 +318,6 @@ async function handleDownloadPdf() {
 .photo-source-button:hover {
   background: var(--color-primary);
   color: #fff;
-}
-
-.image-credit {
-  margin: 0.35rem 0 0;
-  font-size: 0.78rem;
 }
 
 .video-wrapper {
@@ -386,5 +406,32 @@ async function handleDownloadPdf() {
 
 .ingredient-mention:hover {
   text-decoration: underline;
+}
+
+.step-image-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  min-height: 1.7rem;
+  padding: 0;
+  margin: 0 0 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-primary-dark);
+  vertical-align: middle;
+}
+
+.step-image-btn:hover {
+  background: var(--color-primary-soft);
+}
+
+.step-photo-modal-frame :deep(img) {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  border-radius: 12px;
+  object-fit: contain;
 }
 </style>

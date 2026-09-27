@@ -2,7 +2,20 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RecipeCookMode from '../../src/components/RecipeCookMode.vue'
 import { i18n } from '../../src/i18n'
-import type { Recipe } from '../../src/types/models'
+import type { Recipe, RecipeStep } from '../../src/types/models'
+
+function step(overrides: Pick<RecipeStep, 'id' | 'order' | 'instruction'>): RecipeStep {
+  return {
+    image: null,
+    image_url: '',
+    image_license: '',
+    image_credit_author: '',
+    image_credit_source_url: '',
+    image_credit_license_url: '',
+    image_credit_note: '',
+    ...overrides,
+  }
+}
 
 function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
   return {
@@ -52,8 +65,8 @@ function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
       },
     ],
     steps: [
-      { id: 1, order: 0, instruction: 'Ajouter le @sel puis mélanger.' },
-      { id: 2, order: 1, instruction: 'Servir chaud.' },
+      step({ id: 1, order: 0, instruction: 'Ajouter le @sel puis mélanger.' }),
+      step({ id: 2, order: 1, instruction: 'Servir chaud.' }),
     ],
     ...overrides,
   } as Recipe
@@ -83,10 +96,18 @@ describe('RecipeCookMode', () => {
     await wrapper.find('.cook-mode-nav.next').trigger('click')
     expect(wrapper.text()).toContain('Étape 2 / 2')
     expect(wrapper.text()).toContain('Servir chaud.')
-    expect(wrapper.find('.cook-mode-nav.next').exists()).toBe(false)
 
     await wrapper.find('.cook-mode-nav.prev').trigger('click')
     expect(wrapper.text()).toContain('Étape 1 / 2')
+  })
+
+  it('exits cook mode when "next" is pressed on the last step', async () => {
+    const wrapper = mountCookMode(baseRecipe())
+    await wrapper.find('.cook-mode-nav.next').trigger('click')
+    expect(wrapper.text()).toContain('Étape 2 / 2')
+
+    await wrapper.find('.cook-mode-nav.next').trigger('click')
+    expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
   it('navigates between steps with a swipe gesture', async () => {
@@ -186,8 +207,8 @@ describe('RecipeCookMode timer dock', () => {
   const recipeWithTimer = () =>
     baseRecipe({
       steps: [
-        { id: 1, order: 0, instruction: 'Laisser reposer ~{2%minutes}.' },
-        { id: 2, order: 1, instruction: 'Servir chaud.' },
+        step({ id: 1, order: 0, instruction: 'Laisser reposer ~{2%minutes}.' }),
+        step({ id: 2, order: 1, instruction: 'Servir chaud.' }),
       ],
     })
 
@@ -225,7 +246,7 @@ describe('RecipeCookMode timer dock', () => {
   it('shows one dock row per simultaneously active timer', async () => {
     const wrapper = mountCookMode(
       baseRecipe({
-        steps: [{ id: 1, order: 0, instruction: 'Cuire ~{2%minutes} puis attendre ~{5%minutes}.' }],
+        steps: [step({ id: 1, order: 0, instruction: 'Cuire ~{2%minutes} puis attendre ~{5%minutes}.' })],
       }),
     )
 

@@ -4,9 +4,9 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
-import { imageCreditDomain } from '../utils/imageCredit'
 import { isImportedRecipe } from '../utils/recipeOrigin'
 import AllergenBadges from './AllergenBadges.vue'
+import ImageWithCredit from './ImageWithCredit.vue'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
@@ -35,10 +35,6 @@ const authorLine = computed(() => {
 })
 const showActions = computed(() => isRow.value && props.manageable && isOwner.value)
 
-const credit = computed(() =>
-  !props.recipe.image && props.recipe.image_url ? imageCreditDomain(props.recipe.source_url) : null,
-)
-
 const timeDetail = computed(() => {
   const { prep_time_minutes: prep, cook_time_minutes: cook } = props.recipe
   if (!prep || !cook) return undefined
@@ -60,10 +56,20 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
 <template>
   <article class="recipe-card" :class="{ tile: !isRow }">
-    <div v-if="recipe.image || recipe.image_url" class="thumb-wrapper">
-      <img :src="recipe.image || recipe.image_url" class="thumb" alt="" loading="lazy" />
-      <span v-if="credit && isRow" class="thumb-credit">{{ credit }}</span>
-    </div>
+    <ImageWithCredit
+      v-if="recipe.image || recipe.image_url"
+      class="thumb-wrapper"
+      :image-url="recipe.image || recipe.image_url"
+      :source-url="recipe.image ? null : recipe.source_url"
+      :license="recipe.image_license"
+      :credit-author="recipe.image_credit_author"
+      :credit-source-url="recipe.image_credit_source_url"
+      :credit-license-url="recipe.image_credit_license_url"
+      :credit-note="recipe.image_credit_note"
+      :compact="isRow"
+      :overlay="!isRow"
+      overlay-align="right"
+    />
     <div v-else-if="!isRow" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
     <div v-if="!isRow" class="scrim" />
     <div class="recipe-card-body">
@@ -105,7 +111,6 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
       <AllergenBadges :allergens="recipe.allergens ?? []" only-mine class="card-allergens" />
       <p v-if="recipe.description" class="description">{{ recipe.description }}</p>
-      <p v-if="credit && !isRow" class="tile-credit">{{ $t('recipes.imageCredit', { domain: credit }) }}</p>
     </div>
 
     <div v-if="showActions" class="card-actions">
@@ -178,7 +183,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   gap: 0.15rem;
 }
 
-.thumb {
+.thumb-wrapper :deep(img) {
   width: 88px;
   height: 88px;
   object-fit: cover;
@@ -186,20 +191,18 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   flex-shrink: 0;
 }
 
-.thumb-credit {
+.thumb-wrapper :deep(.image-credit-line) {
   max-width: 88px;
   font-size: 0.6rem;
-  color: var(--color-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.tile-credit {
-  margin: 0.35rem 0 0;
-  font-size: 0.68rem;
-  color: inherit;
-  opacity: 0.8;
+/* Utilisé uniquement par le placeholder (pas de photo) : la vraie photo est stylée via
+   `.thumb-wrapper :deep(img)` ci-dessus, car l'<img> vit dans ImageWithCredit. */
+.thumb {
+  width: 88px;
+  height: 88px;
+  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .recipe-card-body {
@@ -356,13 +359,18 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
     gap: 0.75rem;
   }
 
-  .thumb {
+  .thumb-wrapper :deep(img) {
     width: 64px;
     height: 64px;
   }
 
-  .thumb-credit {
+  .thumb-wrapper :deep(.image-credit-line) {
     max-width: 64px;
+  }
+
+  .thumb {
+    width: 64px;
+    height: 64px;
   }
 
   /* Pas de survol sur mobile : actions toujours visibles. */
@@ -388,7 +396,19 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 }
 
 .tile .thumb-wrapper {
-  width: 0;
+  position: absolute;
+  inset: 0;
+}
+
+.tile .thumb-wrapper :deep(.image-with-credit-frame) {
+  height: 100%;
+}
+
+.tile .thumb-wrapper :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
 }
 
 .tile .thumb {

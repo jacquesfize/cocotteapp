@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { Plus, Trash2 } from '@lucide/vue'
+import { ChefHat, Plus, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../components/CooklangStepInput.vue'
+import ImageUploadWithCredit from '../components/ImageUploadWithCredit.vue'
 import IngredientPicker from '../components/IngredientPicker.vue'
+import PageHeader from '../components/PageHeader.vue'
 import {
   createRecipe,
   getRecipe,
   importRecipeFromCooklang,
   updateRecipe,
   uploadRecipeImage,
+  uploadStepImage,
 } from '../api/recipes'
 import { formatUnit } from '../utils/format'
+import { imageCreditDomain } from '../utils/imageCredit'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
 import { takePendingImportDraft } from '../utils/pendingImportDraft'
@@ -33,8 +37,22 @@ const cooklangForm = ref({ title: '', servings: 4, raw_cooklang: '' })
 const cooklangError = ref('')
 const isImportingCooklang = ref(false)
 
+function validateCooklangForm(): string {
+  if (!cooklangForm.value.title.trim()) return t('recipes.missingTitle')
+  if (!Number.isFinite(cooklangForm.value.servings) || cooklangForm.value.servings < 1) {
+    return t('recipes.invalidServings')
+  }
+  if (!cooklangForm.value.raw_cooklang.trim()) return t('recipes.cooklangTextRequired')
+  return ''
+}
+
 async function handleCooklangSubmit() {
   cooklangError.value = ''
+  const validationError = validateCooklangForm()
+  if (validationError) {
+    cooklangError.value = validationError
+    return
+  }
   isImportingCooklang.value = true
   try {
     const recipe = await importRecipeFromCooklang({
@@ -62,7 +80,17 @@ const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
   source_url: '',
   video_url: '',
   image_url: '',
+  image_license: '',
+  image_credit_author: '',
+  image_credit_source_url: '',
+  image_credit_license_url: '',
+  image_credit_note: '',
 })
+// Valeur de `image_url` telle que chargée depuis l'API (ou vide pour une nouvelle recette) :
+// sert à ImageUploadWithCredit pour ne réclamer une licence/crédit que si l'image change
+// réellement (voir CLAUDE.md "grandfathering" — modifier le reste d'une recette existante ne
+// doit jamais réclamer un crédit pour une image déjà en place avant cette fonctionnalité).
+const originalImageUrl = ref('')
 
 interface IngredientRow {
   ingredient: Ingredient | null
@@ -79,14 +107,49 @@ interface IngredientRow {
 }
 
 interface StepRow {
+  id?: number
   instruction: string
   order: number
+  // Photo de l'étape en cours d'édition : soit un fichier à téléverser après la sauvegarde de la
+  // recette (une fois l'id réel de l'étape connu), soit une URL directe.
+  imageFile: File | null
+  imageUrl: string
+  // Aperçu de l'image déjà enregistrée côté serveur (relative /media/...), pour l'affichage.
+  currentImage: string
+  // Valeur de `imageUrl` telle que chargée depuis l'API, pour la détection de changement (voir
+  // `originalImageUrl` ci-dessus, même logique par étape).
+  originalImageUrl: string
+  image_license: string
+  image_credit_author: string
+  image_credit_source_url: string
+  image_credit_license_url: string
+  image_credit_note: string
+  // L'image d'étape est facultative : le formulaire crédit/licence ne s'affiche qu'à la demande
+  // (bouton "Ajouter une image"), sauf si l'étape en a déjà une au chargement.
+  showImageForm: boolean
+}
+
+function emptyStepRow(order: number): StepRow {
+  return {
+    instruction: '',
+    order,
+    imageFile: null,
+    imageUrl: '',
+    currentImage: '',
+    originalImageUrl: '',
+    image_license: '',
+    image_credit_author: '',
+    image_credit_source_url: '',
+    image_credit_license_url: '',
+    image_credit_note: '',
+    showImageForm: false,
+  }
 }
 
 const ingredientRows = ref<IngredientRow[]>([
   { ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 },
 ])
-const stepRows = ref<StepRow[]>([{ instruction: '', order: 1 }])
+const stepRows = ref<StepRow[]>([emptyStepRow(1)])
 
 // Noms des ingrédients déjà ajoutés à la recette : utilisés pour l'auto-complétion
 // "@ingrédient" dans les étapes, et pour repérer une mention qui n'y correspond à rien.
@@ -99,8 +162,12 @@ const currentImageUrl = ref('')
 const error = ref('')
 const isSubmitting = ref(false)
 
-function handleImageFileChange(event: Event) {
-  imageFile.value = (event.target as HTMLInputElement).files?.[0] || null
+type ImageUploadWithCreditInstance = InstanceType<typeof ImageUploadWithCredit>
+const mainImageRef = ref<ImageUploadWithCreditInstance | null>(null)
+const stepImageRefs = ref<(ImageUploadWithCreditInstance | null)[]>([])
+
+function setStepImageRef(el: unknown, index: number) {
+  stepImageRefs.value[index] = el as ImageUploadWithCreditInstance | null
 }
 
 const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
@@ -120,8 +187,14 @@ onMounted(async () => {
       source_url: recipe.source_url,
       video_url: recipe.video_url,
       image_url: recipe.image_url,
+      image_license: recipe.image_license,
+      image_credit_author: recipe.image_credit_author,
+      image_credit_source_url: recipe.image_credit_source_url,
+      image_credit_license_url: recipe.image_credit_license_url,
+      image_credit_note: recipe.image_credit_note,
     }
     currentImageUrl.value = recipe.image || ''
+    originalImageUrl.value = recipe.image_url || ''
     ingredientRows.value = recipe.ingredients.map((item) => ({
       ingredient: item.ingredient,
       quantity: item.quantity,
@@ -129,7 +202,21 @@ onMounted(async () => {
       group_name: item.group_name,
       order: item.order,
     }))
-    stepRows.value = recipe.steps.map((step) => ({ instruction: step.instruction, order: step.order }))
+    stepRows.value = recipe.steps.map((step) => ({
+      id: step.id,
+      instruction: step.instruction,
+      order: step.order,
+      imageFile: null,
+      imageUrl: step.image_url || '',
+      currentImage: step.image || '',
+      originalImageUrl: step.image_url || '',
+      image_license: step.image_license || '',
+      image_credit_author: step.image_credit_author || '',
+      image_credit_source_url: step.image_credit_source_url || '',
+      image_credit_license_url: step.image_credit_license_url || '',
+      image_credit_note: step.image_credit_note || '',
+      showImageForm: Boolean(step.image || step.image_url),
+    }))
     return
   }
 
@@ -149,6 +236,14 @@ onMounted(async () => {
     source_url: draft.source_url,
     image_url: draft.image_url,
   }
+  // L'image d'un import d'URL (og:image le plus souvent) n'a pas de licence connue : on
+  // pré-remplit "Non précisée" + une note citant la source, éditable avant la sauvegarde
+  // effective (rien n'est encore enregistré à ce stade, voir commentaire ci-dessus).
+  if (draft.image_url) {
+    const domain = imageCreditDomain(draft.source_url) || imageCreditDomain(draft.image_url)
+    form.value.image_license = 'unknown'
+    form.value.image_credit_note = domain ? t('recipes.importedImageCreditNote', { domain }) : ''
+  }
   ingredientRows.value = draft.ingredients.map((item, index) => ({
     ingredient: item.ingredient,
     unmatched: !item.ingredient,
@@ -158,7 +253,7 @@ onMounted(async () => {
     group_name: '',
     order: index + 1,
   }))
-  stepRows.value = draft.steps.map((step) => ({ instruction: step.instruction, order: step.order }))
+  stepRows.value = draft.steps.map((step) => ({ ...emptyStepRow(step.order), instruction: step.instruction }))
 })
 
 function addIngredientRow() {
@@ -190,28 +285,52 @@ function removeIngredientRow(index: number) {
   ingredientRows.value.splice(index, 1)
 }
 
-// L'unité "piece" ne se compte qu'en entier (pas de "1.5 pièce") : on arrondit toute
-// quantité déjà saisie lorsqu'on bascule sur cette unité.
-function onUnitChange(row: IngredientRow) {
-  if (row.unit !== 'piece') return
-  const numeric = Number(row.quantity)
-  if (!Number.isFinite(numeric)) return
-  row.quantity = Math.round(numeric)
-}
-
 function addStepRow() {
-  stepRows.value.push({ instruction: '', order: stepRows.value.length + 1 })
+  stepRows.value.push(emptyStepRow(stepRows.value.length + 1))
 }
 
 function removeStepRow(index: number) {
   stepRows.value.splice(index, 1)
 }
 
+// Validations exprimées ici en JS plutôt que confiées aux seuls attributs HTML5
+// (required/min/step) : sur mobile, la bulle de validation native du navigateur peut s'afficher
+// hors écran ou derrière le clavier virtuel — voir docs/developer (mobile-validation). Le
+// formulaire porte `novalidate` : ces vérifications sont donc la seule protection.
+function validateForm(): string {
+  if (!form.value.title.trim()) return t('recipes.missingTitle')
+  if (!Number.isFinite(form.value.servings) || form.value.servings < 1) return t('recipes.invalidServings')
+  if (!Number.isFinite(form.value.prep_time_minutes) || form.value.prep_time_minutes < 0) {
+    return t('recipes.invalidPrepTime')
+  }
+  if (!Number.isFinite(form.value.cook_time_minutes) || form.value.cook_time_minutes < 0) {
+    return t('recipes.invalidCookTime')
+  }
+  if (ingredientRows.value.some((row) => !row.ingredient)) return t('recipes.missingIngredient')
+  const invalidQuantity = ingredientRows.value.some((row) => {
+    if (row.quantity === '' || row.quantity === null) return true
+    const numeric = Number(row.quantity)
+    return !Number.isFinite(numeric) || numeric < 0
+  })
+  if (invalidQuantity) return t('recipes.invalidQuantity')
+  return ''
+}
+
 async function handleSubmit() {
   error.value = ''
-  const missingIngredient = ingredientRows.value.some((row) => !row.ingredient)
-  if (missingIngredient) {
-    error.value = t('recipes.missingIngredient')
+  const validationError = validateForm()
+  if (validationError) {
+    error.value = validationError
+    return
+  }
+
+  const submittedStepRows = stepRows.value.filter((step) => step.instruction.trim())
+  const mainImageValid = mainImageRef.value ? mainImageRef.value.validate() : true
+  const stepImagesValid = stepImageRefs.value
+    .slice(0, submittedStepRows.length)
+    .every((ref) => !ref || ref.validate())
+  if (!mainImageValid || !stepImagesValid) {
+    error.value = t('imageCredit.formInvalid')
     return
   }
 
@@ -224,9 +343,17 @@ async function handleSubmit() {
       group_name: row.group_name,
       order: index + 1,
     })),
-    steps: stepRows.value
-      .filter((step) => step.instruction.trim())
-      .map((step, index) => ({ instruction: step.instruction, order: index + 1 })),
+    steps: submittedStepRows.map((step, index) => ({
+      id: step.id,
+      instruction: step.instruction,
+      order: index + 1,
+      image_url: step.imageUrl,
+      image_license: step.image_license,
+      image_credit_author: step.image_credit_author,
+      image_credit_source_url: step.image_credit_source_url,
+      image_credit_license_url: step.image_credit_license_url,
+      image_credit_note: step.image_credit_note,
+    })),
   }
 
   isSubmitting.value = true
@@ -234,7 +361,29 @@ async function handleSubmit() {
     const recipe =
       isEditing && props.id ? await updateRecipe(props.id, payload) : await createRecipe(payload)
     if (imageFile.value) {
-      await uploadRecipeImage(recipe.id, imageFile.value)
+      await uploadRecipeImage(recipe.id, imageFile.value, {
+        image_license: form.value.image_license || '',
+        image_credit_author: form.value.image_credit_author,
+        image_credit_source_url: form.value.image_credit_source_url,
+        image_credit_license_url: form.value.image_credit_license_url,
+        image_credit_note: form.value.image_credit_note,
+      })
+    }
+    // `recipe.steps` est renvoyé dans le même ordre que `payload.steps` (voir docstring de
+    // l'endpoint) : on peut donc les associer par index pour retrouver l'id réel de chaque étape
+    // (nouvellement créée ou existante) et y téléverser sa photo en attente.
+    for (let index = 0; index < submittedStepRows.length; index += 1) {
+      const row = submittedStepRows[index]
+      const savedStep = recipe.steps[index]
+      if (row.imageFile && savedStep) {
+        await uploadStepImage(recipe.id, savedStep.id, row.imageFile, {
+          image_license: row.image_license || '',
+          image_credit_author: row.image_credit_author,
+          image_credit_source_url: row.image_credit_source_url,
+          image_credit_license_url: row.image_credit_license_url,
+          image_credit_note: row.image_credit_note,
+        })
+      }
     }
     router.push({ name: 'recipe-detail', params: { id: recipe.id } })
   } catch {
@@ -247,7 +396,7 @@ async function handleSubmit() {
 
 <template>
   <div>
-    <h1>{{ isEditing ? $t('recipes.editTitle') : $t('recipes.newTitle') }}</h1>
+    <PageHeader :icon="ChefHat">{{ isEditing ? $t('recipes.editTitle') : $t('recipes.newTitle') }}</PageHeader>
 
     <div v-if="!isEditing" class="row mode-toggle" role="tablist">
       <button
@@ -270,7 +419,12 @@ async function handleSubmit() {
       </button>
     </div>
 
-    <form v-if="!isEditing && creationMode === 'cooklang'" class="card" @submit.prevent="handleCooklangSubmit">
+    <form
+      v-if="!isEditing && creationMode === 'cooklang'"
+      class="card"
+      novalidate
+      @submit.prevent="handleCooklangSubmit"
+    >
       <div class="field">
         <label for="cooklang-title">{{ $t('recipes.formTitle') }}</label>
         <input id="cooklang-title" v-model="cooklangForm.title" required />
@@ -296,7 +450,7 @@ async function handleSubmit() {
       </div>
     </form>
 
-    <form v-else @submit.prevent="handleSubmit">
+    <form v-else novalidate @submit.prevent="handleSubmit">
       <div class="card">
         <div class="field">
           <label for="title">{{ $t('recipes.formTitle') }}</label>
@@ -344,14 +498,14 @@ async function handleSubmit() {
               :id="`quantity-${index}`"
               v-model="row.quantity"
               type="number"
-              :step="row.unit === 'piece' ? 1 : 0.01"
+              step="any"
               min="0"
               required
             />
           </div>
           <div class="field" style="width: 110px">
             <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
-            <select :id="`unit-${index}`" v-model="row.unit" @change="onUnitChange(row)">
+            <select :id="`unit-${index}`" v-model="row.unit">
               <option v-for="unit in UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
             </select>
           </div>
@@ -376,24 +530,52 @@ async function handleSubmit() {
 
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.steps') }}</h2>
-        <div v-for="(step, index) in stepRows" :key="index" class="row" style="align-items: flex-end">
-          <div class="field" style="flex: 1; min-width: 0">
-            <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
-            <CooklangStepInput
-              :id="`step-${index}`"
-              v-model="step.instruction"
-              :ingredient-names="knownIngredientNames"
-              @add-ingredient="handleMentionIngredient"
-            />
+        <div v-for="(step, index) in stepRows" :key="index" class="step-row">
+          <div class="row" style="align-items: flex-end">
+            <div class="field" style="flex: 1; min-width: 0">
+              <label :for="`step-${index}`">{{ $t('recipes.step', { n: index + 1 }) }}</label>
+              <CooklangStepInput
+                :id="`step-${index}`"
+                v-model="step.instruction"
+                :ingredient-names="knownIngredientNames"
+                @add-ingredient="handleMentionIngredient"
+              />
+            </div>
+            <button
+              type="button"
+              class="secondary icon-btn"
+              :aria-label="$t('common.remove')"
+              @click="removeStepRow(index)"
+            >
+              <Trash2 :size="16" />
+            </button>
           </div>
-          <button
-            type="button"
-            class="secondary icon-btn"
-            :aria-label="$t('common.remove')"
-            @click="removeStepRow(index)"
-          >
-            <Trash2 :size="16" />
-          </button>
+          <div class="field step-image-field">
+            <button
+              v-if="!step.showImageForm"
+              type="button"
+              class="secondary"
+              @click="step.showImageForm = true"
+            >
+              <Plus :size="16" />{{ $t('recipes.addStepImage') }}
+            </button>
+            <template v-else>
+              <label>{{ $t('recipes.stepImage') }}</label>
+              <ImageUploadWithCredit
+                :ref="(el) => setStepImageRef(el, index)"
+                v-model:file="step.imageFile"
+                v-model:image-url="step.imageUrl"
+                v-model:license="step.image_license"
+                v-model:credit-author="step.image_credit_author"
+                v-model:credit-source-url="step.image_credit_source_url"
+                v-model:credit-license-url="step.image_credit_license_url"
+                v-model:credit-note="step.image_credit_note"
+                :current-image-url="step.currentImage"
+                :original-image-url="step.originalImageUrl"
+                compact
+              />
+            </template>
+          </div>
         </div>
         <button type="button" class="secondary" @click="addStepRow">
           <Plus :size="16" />{{ $t('recipes.addStep') }}
@@ -402,17 +584,18 @@ async function handleSubmit() {
 
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.media') }}</h2>
-        <div class="row">
-          <div class="field" style="flex: 1; min-width: 220px">
-            <label for="image_url">{{ $t('recipes.imageUrl') }}</label>
-            <input id="image_url" v-model="form.image_url" type="url" placeholder="https://..." />
-          </div>
-          <div class="field" style="flex: 1; min-width: 220px">
-            <label for="image_file">{{ $t('recipes.imageFile') }}</label>
-            <input id="image_file" type="file" accept="image/*" @change="handleImageFileChange" />
-          </div>
-        </div>
-        <img v-if="currentImageUrl" :src="currentImageUrl" class="current-image" alt="" />
+        <ImageUploadWithCredit
+          ref="mainImageRef"
+          v-model:file="imageFile"
+          v-model:image-url="form.image_url"
+          v-model:license="form.image_license"
+          v-model:credit-author="form.image_credit_author"
+          v-model:credit-source-url="form.image_credit_source_url"
+          v-model:credit-license-url="form.image_credit_license_url"
+          v-model:credit-note="form.image_credit_note"
+          :current-image-url="currentImageUrl"
+          :original-image-url="originalImageUrl"
+        />
         <div class="row">
           <div class="field" style="flex: 1; min-width: 220px">
             <label for="source_url">{{ $t('recipes.sourceUrl') }}</label>
@@ -453,16 +636,18 @@ async function handleSubmit() {
   font-size: 0.85rem;
 }
 
-.current-image {
-  max-width: 220px;
-  max-height: 140px;
-  object-fit: cover;
-  border-radius: 14px;
-  margin: 0.25rem 0 1rem;
-}
-
 .ingredient-row {
   align-items: flex-end;
+}
+
+.step-row:not(:last-child) {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.step-image-field {
+  margin-top: 0.5rem;
 }
 
 /* Les .field ont un margin-bottom (0.85rem) que le bouton n'a pas : on le compense pour que le

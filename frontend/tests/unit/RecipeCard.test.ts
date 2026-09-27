@@ -73,8 +73,8 @@ describe('RecipeCard', () => {
       image_url: 'https://example.com/tarte.jpg',
     })
 
-    expect(wrapper.find('.thumb').exists()).toBe(true)
-    expect(wrapper.find('.thumb').attributes('src')).toBe('https://example.com/tarte.jpg')
+    expect(wrapper.find('.thumb-wrapper img').exists()).toBe(true)
+    expect(wrapper.find('.thumb-wrapper img').attributes('src')).toBe('https://example.com/tarte.jpg')
   })
 
   it('shows no thumbnail when the recipe has no image', () => {
@@ -86,7 +86,7 @@ describe('RecipeCard', () => {
       description: '',
     })
 
-    expect(wrapper.find('.thumb').exists()).toBe(false)
+    expect(wrapper.find('.thumb-wrapper').exists()).toBe(false)
   })
 
   it('shows a compact image credit under the thumbnail in row variant', () => {
@@ -99,11 +99,11 @@ describe('RecipeCard', () => {
       source_url: 'https://cuisine.example/tarte',
     })
 
-    expect(wrapper.find('.thumb-credit').exists()).toBe(true)
-    expect(wrapper.find('.thumb-credit').text()).toBe('cuisine.example')
+    expect(wrapper.find('.thumb-wrapper .image-credit-line').exists()).toBe(true)
+    expect(wrapper.find('.thumb-wrapper .image-credit-line').text()).toContain('cuisine.example')
   })
 
-  it('shows a full image credit line in tile variant', () => {
+  it('shows an on-image credit badge in tile variant', () => {
     const wrapper = mount(RecipeCard, {
       props: {
         recipe: {
@@ -119,12 +119,12 @@ describe('RecipeCard', () => {
       global: { plugins: [i18n, createPinia()], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
 
-    expect(wrapper.find('.tile-credit').exists()).toBe(true)
-    expect(wrapper.find('.tile-credit').text()).toContain('cuisine.example')
-    expect(wrapper.find('.thumb-credit').exists()).toBe(false)
+    expect(wrapper.find('.thumb-wrapper .credit-badge').exists()).toBe(true)
+    expect(wrapper.find('.thumb-wrapper .credit-badge').text()).toContain('cuisine.example')
+    expect(wrapper.find('.thumb-wrapper .image-credit-line').exists()).toBe(false)
   })
 
-  it('does not show a credit for a self-uploaded image', () => {
+  it('shows a neutral placeholder for a self-uploaded image with no other credit info', () => {
     const wrapper = mountCard({
       id: 7,
       title: 'Tarte',
@@ -134,7 +134,10 @@ describe('RecipeCard', () => {
       source_url: 'https://cuisine.example/tarte',
     })
 
-    expect(wrapper.find('.thumb-credit').exists()).toBe(false)
+    const credit = wrapper.find('.thumb-wrapper .image-credit-line')
+    expect(credit.exists()).toBe(true)
+    expect(credit.text()).not.toContain('cuisine.example')
+    expect(credit.text()).toBe('Crédit non précisé')
   })
 
   it('shows servings, carbon footprint, tags and the author of someone else\'s recipe', () => {

@@ -45,7 +45,7 @@ describe('HomeCarousel', () => {
       global: { plugins: [i18n], stubs: { RouterLink: { template: '<a class="carousel-slide"><slot /></a>' } } },
     })
 
-    expect(wrapper.find('.credit').exists()).toBe(true)
-    expect(wrapper.find('.credit').text()).toContain('cuisine.example')
+    expect(wrapper.find('.credit-badge').exists()).toBe(true)
+    expect(wrapper.find('.credit-badge').text()).toContain('cuisine.example')
   })
 })

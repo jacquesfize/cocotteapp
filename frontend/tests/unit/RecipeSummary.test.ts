@@ -4,12 +4,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RecipeSummary from '../../src/components/RecipeSummary.vue'
 import StepTimerButton from '../../src/components/StepTimerButton.vue'
 import { i18n } from '../../src/i18n'
-import type { Recipe } from '../../src/types/models'
+import type { Recipe, RecipeStep } from '../../src/types/models'
 
 vi.mock('../../src/api/recipes', () => ({
   downloadRecipePdf: vi.fn(),
   getRecipeNutrition: vi.fn().mockResolvedValue({ per_serving: null }),
 }))
+
+function step(overrides: Pick<RecipeStep, 'id' | 'order' | 'instruction'>): RecipeStep {
+  return {
+    image: null,
+    image_url: '',
+    image_license: '',
+    image_credit_author: '',
+    image_credit_source_url: '',
+    image_credit_license_url: '',
+    image_credit_note: '',
+    ...overrides,
+  }
+}
 
 function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
   return {
@@ -58,7 +71,7 @@ function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {
         order: 0,
       },
     ],
-    steps: [{ id: 1, order: 0, instruction: 'Ajouter le @sel puis laisser ~repos{10%minutes} au frigo.' }],
+    steps: [step({ id: 1, order: 0, instruction: 'Ajouter le @sel puis laisser ~repos{10%minutes} au frigo.' })],
     ...overrides,
   } as Recipe
 }
@@ -99,7 +112,7 @@ describe('RecipeSummary steps', () => {
 
   it('leaves an unrecognized timer unit as plain text', () => {
     const wrapper = mountSummary(
-      baseRecipe({ steps: [{ id: 1, order: 0, instruction: 'Cuire ~{10%pouces}.' }] }),
+      baseRecipe({ steps: [step({ id: 1, order: 0, instruction: 'Cuire ~{10%pouces}.' })] }),
     )
 
     expect(wrapper.findComponent(StepTimerButton).exists()).toBe(false)
@@ -107,7 +120,7 @@ describe('RecipeSummary steps', () => {
   })
 
   it('renders a step with no mention or timer as plain text', () => {
-    const wrapper = mountSummary(baseRecipe({ steps: [{ id: 1, order: 0, instruction: 'Servir chaud.' }] }))
+    const wrapper = mountSummary(baseRecipe({ steps: [step({ id: 1, order: 0, instruction: 'Servir chaud.' })] }))
 
     expect(wrapper.text()).toContain('Servir chaud.')
     expect(wrapper.findComponent(StepTimerButton).exists()).toBe(false)
