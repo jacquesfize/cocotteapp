@@ -89,7 +89,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
   await test.step('recipe detail', async () => {
     await page.goto(gratinUrl)
     await expect(page.getByRole('heading', { name: 'Creamy sweet potato gratin' })).toBeVisible()
-    await expect(page.locator('.recipe-photo')).toBeVisible()
+    await expect(page.locator('.recipe-photo-frame img')).toBeVisible()
     await shotPage(page, 'recipe-detail')
 
     await shotElement(page.locator('.ingredients-steps-row'), 'recipe-detail-steps')
@@ -348,7 +348,7 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
   await shotPage(page, 'mobile-home')
 
   await page.goto(`/recipes/${data.recipes.ratatouille}`)
-  await expect(page.locator('.recipe-photo')).toBeVisible()
+  await expect(page.locator('.recipe-photo-frame img')).toBeVisible()
   await shotPage(page, 'mobile-recipe-detail')
 
   await test.step('cook mode', async () => {

@@ -44,13 +44,16 @@ month). When you are not on the current period, a **Today** button brings you ba
 
 ### From the planner
 
-1. In week view, click the **+** button (**Add a meal**) in the cell for the day and meal you
-   want.
+1. In week view, click the **+** button in the cell for the day and meal you want. This opens
+   the **Add a meal** dialog.
 2. Type part of a recipe's title in **Search a recipe...** and pick it from the list.
 3. Set the number of **servings** (default 2).
-4. Click **Add**. Use the **×** button to cancel.
+4. Click **Add**. Use the **×** button, or click outside the dialog, to close it without adding.
 
-![Adding a meal in a planner cell: typing a recipe title shows matching recipes to pick from](../assets/screenshots/planning-add-meal.png)
+![The Add a meal dialog: typing a recipe title shows matching recipes to pick from](../assets/screenshots/planning-add-meal.png)
+
+<!-- Screenshot above still shows the old inline in-cell form; regenerate with
+     `npm run docs:screenshots` against a running, seeded stack to capture the new dialog. -->
 
 You can plan several recipes for the same meal, for example a main course and a dessert.
 You can't add the same recipe twice to the same meal on the same day. If you try, you see
@@ -81,7 +84,7 @@ without confirmation.
 If a recipe contains one of the allergies or intolerances from your profile, a warning appears:
 
 - under the recipe in the planner cell,
-- in the add form as soon as you pick the recipe.
+- in the **Add a meal** dialog as soon as you pick the recipe.
 
 **Contains:** lists your allergies and **May bother you:** lists your intolerances. The warning
 doesn't stop you from planning the meal. Set your allergens in
