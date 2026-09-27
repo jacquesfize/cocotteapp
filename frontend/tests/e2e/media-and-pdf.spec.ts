@@ -19,9 +19,10 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('200')
+  await page.locator('input[id^="quantity-"]').fill('200')
   await page.getByLabel('Étape 1').fill('Faire mijoter les légumes.')
   await page.getByLabel("URL de l'image").fill('https://example.com/ratatouille.jpg')
+  await page.getByLabel("Licence de l'image").selectOption('public_domain')
   await page
     .getByLabel('Vidéo (lien YouTube)')
     .fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -29,7 +30,10 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
 
-  await expect(page.locator('.recipe-photo')).toHaveAttribute('src', 'https://example.com/ratatouille.jpg')
+  await expect(page.locator('.recipe-photo-frame img')).toHaveAttribute(
+    'src',
+    'https://example.com/ratatouille.jpg',
+  )
   await expect(page.locator('.video-wrapper iframe')).toHaveAttribute(
     'src',
     'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
@@ -40,7 +44,7 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   )
 
   // La vidéo doit s'afficher à côté de la photo (même ligne), pas en dessous.
-  const photoBox = await page.locator('.recipe-photo').boundingBox()
+  const photoBox = await page.locator('.recipe-photo-wrapper').boundingBox()
   const videoBox = await page.locator('.video-wrapper').boundingBox()
   if (!photoBox || !videoBox) throw new Error('Expected both the photo and the video to be laid out')
   expect(Math.abs(photoBox.y - videoBox.y)).toBeLessThan(5)
@@ -76,7 +80,7 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('100')
+  await page.locator('input[id^="quantity-"]').fill('100')
   await page.getByLabel('Étape 1').fill('Mixer le tout.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)

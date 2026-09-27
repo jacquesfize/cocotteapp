@@ -19,7 +19,7 @@ async function registerAndBuildShoppingList(page: Page, suffix: number) {
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('200')
+  await page.locator('input[id^="quantity-"]').fill('200')
   await page.getByLabel('Étape 1').fill('Faire revenir les épinards.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
 

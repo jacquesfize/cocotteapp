@@ -23,7 +23,7 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   await page.getByText(`+ Créer « ${existingElsewhere} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('1')
+  await page.locator('input[id^="quantity-"]').fill('1')
   await page.getByLabel('Étape 1').fill('x')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
@@ -34,7 +34,7 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   await page.getByText(`+ Créer « poireau-${suffix} »`).click()
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[type="number"][step="0.01"]').fill('2')
+  await page.locator('input[id^="quantity-"]').fill('2')
 
   const step1 = page.locator('#step-0')
 
