@@ -2,11 +2,17 @@
 import { Link2, Lock } from '@lucide/vue'
 import { computed } from 'vue'
 import AllergenBadges from './AllergenBadges.vue'
+import RecipeRating from './RecipeRating.vue'
 import { imageCreditDomain } from '../utils/imageCredit'
+import type { RecipeRatingResult } from '../api/recipes'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
   recipe: Recipe
+}>()
+
+const emit = defineEmits<{
+  rated: [result: RecipeRatingResult]
 }>()
 
 const imageCredit = computed(() =>
@@ -58,6 +64,15 @@ const imageCredit = computed(() =>
     </div>
 
     <AllergenBadges :allergens="recipe.allergens ?? []" :unverified="recipe.allergens_unverified" />
+
+    <RecipeRating
+      :key="recipe.id"
+      :recipe-id="recipe.id"
+      :average-rating="recipe.average_rating"
+      :ratings-count="recipe.ratings_count"
+      :my-rating="recipe.my_rating"
+      @rated="emit('rated', $event)"
+    />
 
     <p v-if="recipe.carbon_footprint_kg_co2e !== undefined" class="carbon-footprint">
       <span class="value">{{ recipe.carbon_footprint_kg_co2e.toFixed(2) }} kg CO2e</span>

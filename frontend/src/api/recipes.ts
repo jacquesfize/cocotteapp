@@ -87,6 +87,16 @@ export function hideRecipeComment(
   return client.post(`recipes/${recipeId}/comments/${commentId}/hide/`).then((r) => r.data)
 }
 
+export interface RecipeRatingResult {
+  average_rating: number | null
+  ratings_count: number
+  my_rating: number
+}
+
+export function rateRecipe(recipeId: number | string, value: number): Promise<RecipeRatingResult> {
+  return client.post(`recipes/${recipeId}/rate/`, { value }).then((r) => r.data)
+}
+
 export interface RecipeArchiveImportResult {
   created: number
   skipped: number

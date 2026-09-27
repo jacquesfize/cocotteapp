@@ -6,7 +6,8 @@ from apps.ingredients.models import Ingredient, Unit
 from apps.ingredients.serializers import IngredientSerializer
 from apps.nutrition.services import compute_recipe_carbon_footprint
 
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
+from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
+from .rating_utils import voter_hash_for_request
 from .youtube import extract_youtube_id
 
 
@@ -103,6 +104,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     allergens_unverified = serializers.SerializerMethodField()
     content_restricted = serializers.SerializerMethodField()
     carbon_footprint_kg_co2e = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    ratings_count = serializers.SerializerMethodField()
+    my_rating = serializers.SerializerMethodField()
 
     # Champs retirés de la réponse par `to_representation` quand `content_restricted` est vrai
     # pour le visiteur : le contenu rédactionnel copié de la source, pas les métadonnées neutres.
@@ -132,6 +136,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             "content_publicly_licensed",
             "content_restricted",
             "carbon_footprint_kg_co2e",
+            "average_rating",
+            "ratings_count",
+            "my_rating",
             "tags",
             "ingredients",
             "allergens",
@@ -162,6 +169,30 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_carbon_footprint_kg_co2e(self, obj):
         return float(compute_recipe_carbon_footprint(obj))
+
+    def get_average_rating(self, obj):
+        average, _count = obj.rating_summary()
+        return average
+
+    def get_ratings_count(self, obj):
+        _average, count = obj.rating_summary()
+        return count
+
+    def get_my_rating(self, obj):
+        """The requester's own rating, if any — anonymous voters are matched by the same salted
+        IP hash `RecipeRatingView` uses to upsert their vote, never exposed to the client."""
+        request = self.context.get("request")
+        if request is None:
+            return None
+        user = getattr(request, "user", None)
+        if user is not None and user.is_authenticated:
+            match = next((r for r in obj.ratings.all() if r.user_id == user.id), None)
+        else:
+            voter_hash = voter_hash_for_request(request)
+            match = next(
+                (r for r in obj.ratings.all() if r.user_id is None and r.voter_hash == voter_hash), None
+            )
+        return match.value if match else None
 
     def get_versions(self, obj):
         if obj.root_recipe_id is None and not obj.versions.exists():
@@ -264,6 +295,15 @@ class RecipeCommentSerializer(serializers.ModelSerializer):
         if user is not None and user.is_authenticated:
             validated_data["user"] = user
         return super().create(validated_data)
+
+
+class RecipeRatingSerializer(serializers.ModelSerializer):
+    """Input for `POST /api/recipes/{id}/rate/`: just the 1-5 value — no name, no account
+    required. The view resolves *who* is voting (user or IP hash) itself."""
+
+    class Meta:
+        model = RecipeRating
+        fields = ["value"]
 
 
 class CooklangImportSerializer(serializers.Serializer):

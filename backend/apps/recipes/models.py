@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 
@@ -75,6 +76,14 @@ class Recipe(models.Model):
     @property
     def total_time_minutes(self):
         return self.prep_time_minutes + self.cook_time_minutes
+
+    def rating_summary(self):
+        """(average, count) of this recipe's ratings, rounded to 2 decimals. Préchargez `ratings`
+        pour éviter les requêtes N+1 (voir `allergen_slugs`)."""
+        values = [r.value for r in self.ratings.all()]
+        if not values:
+            return None, 0
+        return round(sum(values) / len(values), 2), len(values)
 
     def allergen_slugs(self):
         """Allergènes de la recette, déduits de ses ingrédients (triés).
@@ -178,6 +187,48 @@ class RecipeStep(models.Model):
 
     def __str__(self):
         return f"{self.recipe.title} - étape {self.order}"
+
+
+class RecipeRating(models.Model):
+    """A 1-5 star rating on a recipe. Fully anonymous — no display name, no account required.
+
+    An authenticated poster is deduplicated by `user`; an anonymous one by `voter_hash`, a salted
+    hash of their IP address (never the IP itself) computed in `views.py`. Either way a repeat
+    vote from the same voter updates their existing row (`views.py`'s upsert) rather than adding
+    a second one, so the average always reflects one vote per person, not per visit.
+    """
+
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="ratings")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="recipe_ratings",
+    )
+    voter_hash = models.CharField(max_length=64, blank=True)
+    value = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "user"],
+                condition=models.Q(user__isnull=False),
+                name="unique_recipe_rating_per_user",
+            ),
+            models.UniqueConstraint(
+                fields=["recipe", "voter_hash"],
+                condition=models.Q(user__isnull=True),
+                name="unique_recipe_rating_per_anon_voter",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.value}★ - {self.recipe.title}"
 
 
 class RecipeComment(models.Model):

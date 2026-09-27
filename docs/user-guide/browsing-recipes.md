@@ -271,6 +271,14 @@ For other people, a restricted recipe:
 - can't be downloaded as PDF or used for a variant,
 - can still be added to the planner and to shopping lists.
 
+## Ratings
+
+Next to every recipe's title, click a star (1 to 5) to rate it. Ratings are fully anonymous — no
+name or account is needed, and it's completely separate from comments below. Clicking a star
+again later updates your own rating instead of adding a new one, and the average shown to
+everyone always reflects one vote per person. To limit abuse, you can rate at most about 30
+recipes per hour.
+
 ## Comments
 
 At the bottom of every recipe, the **Comments** card shows the comments, newest first.

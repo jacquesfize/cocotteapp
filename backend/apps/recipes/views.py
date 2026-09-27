@@ -17,23 +17,25 @@ from apps.nutrition.services import compute_recipe_carbon_footprint, compute_rec
 
 from .cooklang_import import create_recipe_from_cooklang
 from .filters import RecipeFilter
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, SourceType, Tag, ThematicPage
+from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
+from .rating_utils import voter_hash_for_request
 from .serializers import (
     AdminThematicPageSerializer,
     CooklangImportSerializer,
     RecipeCommentSerializer,
+    RecipeRatingSerializer,
     RecipeSerializer,
     TagSerializer,
     ThematicPageSerializer,
 )
-from .throttles import CommentCreateAnonThrottle
+from .throttles import CommentCreateAnonThrottle, RatingCreateAnonThrottle
 from .transfer import ArchiveError, build_export_archive, import_archive
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
-        "recipe_ingredients__ingredient__allergens", "steps", "tags"
+        "recipe_ingredients__ingredient__allergens", "steps", "tags", "ratings"
     )
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
@@ -241,6 +243,37 @@ class RecipeCommentHideView(APIView):
         comment.save(update_fields=["is_hidden"])
         serializer = RecipeCommentSerializer(comment, context={"request": request, "recipe": comment.recipe})
         return Response(serializer.data)
+
+
+class RecipeRatingView(APIView):
+    """`POST /api/recipes/{recipe_id}/rate/` — creates or updates the caller's own 1-5 star
+    rating. No account required and no name collected: an authenticated caller is identified by
+    `user`, an anonymous one by a salted hash of their IP (never stored in the clear), so a
+    repeat vote updates the same row instead of padding the average. Returns only the resulting
+    aggregate — who voted what is never exposed."""
+
+    permission_classes = [AllowAny]
+
+    def get_throttles(self):
+        return [RatingCreateAnonThrottle()]
+
+    def post(self, request, recipe_id):
+        recipe = get_object_or_404(Recipe, pk=recipe_id)
+        serializer = RecipeRatingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        value = serializer.validated_data["value"]
+
+        user = request.user if request.user.is_authenticated else None
+        lookup = {"recipe": recipe, "user": user}
+        if user is None:
+            lookup["voter_hash"] = voter_hash_for_request(request)
+        RecipeRating.objects.update_or_create(defaults={"value": value}, **lookup)
+
+        average, count = recipe.rating_summary()
+        return Response(
+            {"average_rating": average, "ratings_count": count, "my_rating": value},
+            status=status.HTTP_200_OK,
+        )
 
 
 class TagViewSet(viewsets.ModelViewSet):

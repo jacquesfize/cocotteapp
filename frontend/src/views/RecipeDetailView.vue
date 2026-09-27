@@ -8,6 +8,7 @@ import RecipeComments from '../components/RecipeComments.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
+import type { RecipeRatingResult } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
 import { isImportedRecipe } from '../utils/recipeOrigin'
 import type { Recipe } from '../types/models'
@@ -44,6 +45,13 @@ const canFork = computed(
   () => Boolean(recipe.value) && (!recipe.value?.content_restricted || isOwner.value),
 )
 const hasActions = computed(() => isOwner.value || canFork.value)
+
+function handleRated(result: RecipeRatingResult) {
+  if (!recipe.value) return
+  recipe.value.average_rating = result.average_rating
+  recipe.value.ratings_count = result.ratings_count
+  recipe.value.my_rating = result.my_rating
+}
 
 function closeActionsMenu() {
   showActionsMenu.value = false
@@ -180,8 +188,8 @@ async function handleFork() {
     </div>
     <p v-if="forkError" class="error">{{ forkError }}</p>
 
-    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
-    <RecipeRestrictedNotice v-else :recipe="recipe" />
+    <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" @rated="handleRated" />
+    <RecipeRestrictedNotice v-else :recipe="recipe" @rated="handleRated" />
     <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
 
     <div v-if="recipe.versions.length" class="versions-section">

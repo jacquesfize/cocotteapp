@@ -109,6 +109,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_THROTTLE_RATES": {
         "comment_create": "10/hour",
+        "rating_create": "30/hour",
     },
 }
 

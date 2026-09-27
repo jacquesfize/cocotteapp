@@ -150,6 +150,9 @@ export interface Recipe {
   content_publicly_licensed: boolean
   content_restricted: boolean
   carbon_footprint_kg_co2e: number
+  average_rating: number | null
+  ratings_count: number
+  my_rating: number | null
   tags: Tag[]
   ingredients: RecipeIngredient[]
   allergens: string[]
