@@ -14,6 +14,15 @@ class SourceType(models.TextChoices):
     YOUTUBE = "youtube", "Import vidéo YouTube"
 
 
+class ImageLicense(models.TextChoices):
+    CC_BY = "cc_by", "CC BY"
+    CC_BY_SA = "cc_by_sa", "CC BY-SA"
+    PUBLIC_DOMAIN = "public_domain", "Domaine public / CC0"
+    PERSONAL = "personal", "Photo personnelle (droits réservés à l'auteur)"
+    PERMISSION = "permission", "Utilisée avec permission"
+    UNKNOWN = "unknown", "Non précisée"
+
+
 class TagKind(models.TextChoices):
     MEAL_TYPE = "meal_type", "Type de repas"
     CUISINE = "cuisine", "Cuisine"
@@ -43,6 +52,11 @@ class Recipe(models.Model):
     raw_cooklang = models.TextField(blank=True)
     image = models.ImageField(upload_to="recipes/", blank=True, null=True)
     image_url = models.URLField(blank=True, help_text="Image externe, utilisée si aucun fichier n'est téléversé.")
+    image_license = models.CharField(max_length=20, choices=ImageLicense.choices, blank=True)
+    image_credit_author = models.CharField(max_length=150, blank=True)
+    image_credit_source_url = models.URLField(blank=True)
+    image_credit_license_url = models.URLField(blank=True)
+    image_credit_note = models.CharField(max_length=300, blank=True)
     is_public = models.BooleanField(default=True)
     content_publicly_licensed = models.BooleanField(
         default=False,
@@ -181,6 +195,13 @@ class RecipeStep(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="steps")
     order = models.PositiveSmallIntegerField(default=0)
     instruction = models.TextField()
+    image = models.ImageField(upload_to="recipe_steps/", blank=True, null=True)
+    image_url = models.URLField(blank=True)
+    image_license = models.CharField(max_length=20, choices=ImageLicense.choices, blank=True)
+    image_credit_author = models.CharField(max_length=150, blank=True)
+    image_credit_source_url = models.URLField(blank=True)
+    image_credit_license_url = models.URLField(blank=True)
+    image_credit_note = models.CharField(max_length=300, blank=True)
 
     class Meta:
         ordering = ["order"]

@@ -49,6 +49,10 @@ def test_build_import_preview_captures_scraped_image():
         preview = build_import_preview("https://example.com/recipe")
 
     assert preview["image_url"] == "https://example.com/tarte.jpg"
+    # Pre-filled so the draft is submittable through RecipeSerializer (which now requires
+    # credit info for any non-blank image_url) without forcing fake credit data on the user.
+    assert preview["image_license"] == "unknown"
+    assert preview["image_credit_note"] == "Image importée depuis example.com"
 
 
 @pytest.mark.django_db
@@ -67,6 +71,9 @@ def test_build_import_preview_without_image_defaults_to_blank():
         preview = build_import_preview("https://example.com/recipe")
 
     assert preview["image_url"] == ""
+    # No image at all: no credit fields pre-filled, nothing to credit.
+    assert "image_license" not in preview
+    assert "image_credit_note" not in preview
 
 
 @pytest.mark.django_db

@@ -34,6 +34,10 @@ def build_shopping_list(user, meal_plan_entries, name="Liste de courses"):
 
 
 def _round_up_if_piece(quantity, unit):
+    # Intentional even though recipe-level PIECE quantities can now be fractional (e.g. "0.5
+    # pièce" for half a camembert): you still can't buy half a camembert at the store, so the
+    # aggregated shopping-list quantity is rounded UP to the next whole piece. Do not remove
+    # this ceiling to "match" the recipe-level change.
     if unit != Unit.PIECE:
         return quantity
     return Decimal(math.ceil(quantity))

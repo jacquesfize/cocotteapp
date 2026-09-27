@@ -1,4 +1,5 @@
 import difflib
+from urllib.parse import urlparse
 
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
@@ -86,7 +87,7 @@ def build_import_preview(url: str) -> dict:
 
     image_url = data.get("image_url", "") or (fetch_og_image(url) or "")
 
-    return {
+    preview = {
         "title": data["title"],
         "servings": data["servings"],
         "cook_time_minutes": data["cook_time_minutes"],
@@ -98,6 +99,17 @@ def build_import_preview(url: str) -> dict:
         ],
         "ingredients": ingredients,
     }
+
+    if image_url:
+        # Pre-fill a valid, honest "unknown license" credit so the draft is submittable as-is
+        # through RecipeSerializer (which now requires credit info for any non-blank image_url)
+        # without forcing the user to fill in fake credit data for a scraped image. The user can
+        # still edit/upgrade these fields in the form before saving.
+        domain = urlparse(url).hostname or url
+        preview["image_license"] = "unknown"
+        preview["image_credit_note"] = f"Image importée depuis {domain}"
+
+    return preview
 
 
 def find_matching_ingredient(name: str) -> Ingredient | None:

@@ -1,10 +1,20 @@
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 from apps.recipes.factories import RecipeFactory, RecipeIngredientFactory
 from apps.recipes.models import RecipeStep, SourceType, Tag
+
+GIF_BYTES = (
+    b"GIF87a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff,"
+    b"\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;"
+)
+
+
+def _gif_upload(name="a.gif"):
+    return SimpleUploadedFile(name, GIF_BYTES, content_type="image/gif")
 
 
 @pytest.mark.django_db
@@ -33,7 +43,7 @@ def test_create_recipe_with_nested_ingredients():
 
 
 @pytest.mark.django_db
-def test_create_recipe_rejects_non_integer_quantity_for_piece_unit():
+def test_create_recipe_accepts_fractional_quantity_for_piece_unit():
     user = UserFactory()
     ingredient = IngredientFactory()
     client = APIClient()
@@ -52,7 +62,8 @@ def test_create_recipe_rejects_non_integer_quantity_for_piece_unit():
     }
     response = client.post("/api/recipes/", payload, format="json")
 
-    assert response.status_code == 400
+    assert response.status_code == 201
+    assert response.data["ingredients"][0]["quantity"] == "1.50"
 
 
 @pytest.mark.django_db
@@ -573,3 +584,204 @@ def test_non_author_non_staff_cannot_update_recipe():
     assert response.status_code == 403
     recipe.refresh_from_db()
     assert recipe.title == "Original"
+
+
+@pytest.mark.django_db
+def test_upload_recipe_image_without_license_is_rejected(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/image/", {"image": _gif_upload()}, format="multipart"
+    )
+
+    assert response.status_code == 400
+    assert "image_license" in response.data
+
+
+@pytest.mark.django_db
+def test_upload_recipe_image_with_cc_by_missing_credit_is_rejected(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/image/",
+        {"image": _gif_upload(), "image_license": "cc_by"},
+        format="multipart",
+    )
+
+    assert response.status_code == 400
+    assert "image_credit_author" in response.data
+    assert "image_credit_source_url" in response.data
+
+
+@pytest.mark.django_db
+def test_upload_recipe_image_with_cc_by_and_credit_succeeds_and_autofills_license_url(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/image/",
+        {
+            "image": _gif_upload(),
+            "image_license": "cc_by",
+            "image_credit_author": "Jane Doe",
+            "image_credit_source_url": "https://example.com/photo",
+        },
+        format="multipart",
+    )
+
+    assert response.status_code == 200
+    assert response.data["image_license"] == "cc_by"
+    assert response.data["image_credit_author"] == "Jane Doe"
+    assert response.data["image_credit_license_url"] == "https://creativecommons.org/licenses/by/4.0/"
+
+
+@pytest.mark.django_db
+def test_upload_recipe_image_with_public_domain_needs_no_other_fields(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/image/",
+        {"image": _gif_upload(), "image_license": "public_domain"},
+        format="multipart",
+    )
+
+    assert response.status_code == 200
+    assert response.data["image_license"] == "public_domain"
+
+
+@pytest.mark.django_db
+def test_editing_recipe_title_does_not_require_image_credit_for_untouched_image():
+    user = UserFactory()
+    recipe = RecipeFactory(author=user, image_url="https://example.com/old.jpg")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(f"/api/recipes/{recipe.id}/", {"title": "Nouveau titre"}, format="json")
+
+    assert response.status_code == 200
+    recipe.refresh_from_db()
+    assert recipe.title == "Nouveau titre"
+    assert recipe.image_url == "https://example.com/old.jpg"
+
+
+@pytest.mark.django_db
+def test_setting_new_image_url_requires_credit_fields():
+    user = UserFactory()
+    recipe = RecipeFactory(author=user, image_url="")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/", {"image_url": "https://example.com/new.jpg"}, format="json"
+    )
+
+    assert response.status_code == 400
+    assert "image_license" in response.data
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/",
+        {"image_url": "https://example.com/new.jpg", "image_license": "unknown"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    recipe.refresh_from_db()
+    assert recipe.image_url == "https://example.com/new.jpg"
+
+
+@pytest.mark.django_db
+def test_step_upsert_preserves_image_on_unrelated_recipe_edit(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    step = RecipeStep.objects.create(recipe=recipe, order=1, instruction="Couper les légumes.")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    upload_response = client.patch(
+        f"/api/recipes/{recipe.id}/steps/{step.id}/image/",
+        {"image": _gif_upload(), "image_license": "public_domain"},
+        format="multipart",
+    )
+    assert upload_response.status_code == 200
+    step.refresh_from_db()
+    assert step.image
+    image_name = step.image.name
+
+    # Editing the recipe (title change) with the step referenced by its id must not delete and
+    # recreate it — that would orphan the uploaded image on disk.
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/",
+        {
+            "title": "Nouveau titre",
+            "steps": [{"id": step.id, "order": 1, "instruction": "Couper les légumes finement."}],
+        },
+        format="json",
+    )
+
+    assert response.status_code == 200
+    updated_step = RecipeStep.objects.get(pk=step.id)
+    assert updated_step.image.name == image_name
+    assert updated_step.instruction == "Couper les légumes finement."
+
+
+@pytest.mark.django_db
+def test_step_removed_from_payload_is_deleted_and_its_image_removed(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    keep_step = RecipeStep.objects.create(recipe=recipe, order=1, instruction="Étape à garder.")
+    removed_step = RecipeStep.objects.create(recipe=recipe, order=2, instruction="Étape à retirer.")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    upload_response = client.patch(
+        f"/api/recipes/{recipe.id}/steps/{removed_step.id}/image/",
+        {"image": _gif_upload(), "image_license": "public_domain"},
+        format="multipart",
+    )
+    assert upload_response.status_code == 200
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/",
+        {"steps": [{"id": keep_step.id, "order": 1, "instruction": "Étape à garder."}]},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    assert not RecipeStep.objects.filter(id=removed_step.id).exists()
+    assert RecipeStep.objects.filter(id=keep_step.id).exists()
+
+
+@pytest.mark.django_db
+def test_update_rejects_step_id_belonging_to_another_recipe():
+    user = UserFactory()
+    recipe = RecipeFactory(author=user)
+    other_recipe = RecipeFactory(author=user)
+    foreign_step = RecipeStep.objects.create(recipe=other_recipe, order=1, instruction="Pas la bonne recette.")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch(
+        f"/api/recipes/{recipe.id}/",
+        {"steps": [{"id": foreign_step.id, "order": 1, "instruction": "Tentative."}]},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert RecipeStep.objects.filter(id=foreign_step.id, recipe=other_recipe).exists()

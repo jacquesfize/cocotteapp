@@ -24,8 +24,11 @@ from .serializers import (
     AdminThematicPageSerializer,
     CooklangImportSerializer,
     RecipeCommentSerializer,
+    RecipeImageUploadSerializer,
     RecipeRatingSerializer,
     RecipeSerializer,
+    RecipeStepImageUploadSerializer,
+    RecipeStepSerializer,
     TagSerializer,
     ThematicPageSerializer,
 )
@@ -120,12 +123,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["patch"], parser_classes=[MultiPartParser, FormParser])
     def image(self, request, pk=None):
         recipe = self.get_object()
-        uploaded = request.FILES.get("image")
-        if not uploaded:
-            return Response({"detail": "An 'image' file is required."}, status=status.HTTP_400_BAD_REQUEST)
-        recipe.image = uploaded
+        serializer = RecipeImageUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        for attr, value in serializer.validated_data.items():
+            setattr(recipe, attr, value)
         recipe.save()
         return Response(self.get_serializer(recipe).data)
+
+    @action(
+        detail=True,
+        methods=["patch"],
+        url_path=r"steps/(?P<step_id>\d+)/image",
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def step_image(self, request, pk=None, step_id=None):
+        recipe = self.get_object()
+        step = get_object_or_404(RecipeStep, pk=step_id, recipe=recipe)
+        serializer = RecipeStepImageUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        for attr, value in serializer.validated_data.items():
+            setattr(step, attr, value)
+        step.save()
+        return Response(RecipeStepSerializer(step).data)
 
     @action(
         detail=False,

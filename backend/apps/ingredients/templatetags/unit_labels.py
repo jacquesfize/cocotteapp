@@ -46,8 +46,10 @@ def unit_label(value, quantity=None):
 
 register.filter("unit_label", unit_label)
 
-# Unités qui ne se comptent qu'en entier (pas de "1.5 pièce" ni de "0.5 pincée").
-INTEGER_UNITS = {Unit.PIECE, Unit.PINCH}
+# Unités qui ne se comptent qu'en entier. PIECE a été retiré : une recette peut désormais
+# préciser une quantité fractionnaire en pièce (ex. "0.5 pièce" pour un demi-camembert) ;
+# seule PINCH reste arrondie à l'affichage.
+INTEGER_UNITS = {Unit.PINCH}
 
 
 def format_quantity(quantity, unit=None):
