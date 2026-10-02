@@ -54,7 +54,9 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await expect(page.getByText('Creamy sweet potato gratin').first()).toBeVisible()
     await shotPage(page, 'home', { fullPage: true })
 
-    await page.getByRole('button', { name: 'Import' }).click()
+    // "New recipe" / "Import" sont désormais réunis dans un seul bouton ouvrant un petit menu.
+    await page.getByRole('button', { name: 'New recipe' }).click()
+    await page.getByRole('button', { name: 'Import from a URL' }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByLabel('Import from a URL').fill('https://www.example.com/recipes/french-onion-soup')
     await shotElement(dialog, 'recipe-import-url')
@@ -201,24 +203,31 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await expect(page.locator('.agenda-cell a').first()).toBeVisible()
     await shotPage(page, 'planning-week', { fullPage: true })
 
-    const snackCell = page.locator(`.agenda-cell[data-meal-type="snack"][data-date="${isoDate(data.weekStart)}"]`)
-    await snackCell.getByRole('button', { name: 'Add a meal' }).click()
-    const pickerInput = snackCell.locator('.picker input')
+    // La collation est désactivée par défaut (PLANNING_SNACK_ENABLED) : on illustre l'ajout
+    // d'un repas sur une case petit-déjeuner vide plutôt que sur la collation.
+    const emptyBreakfastDate = new Date(data.weekStart.getTime() + 86_400_000)
+    const breakfastCell = page.locator(
+      `.agenda-cell[data-meal-type="breakfast"][data-date="${isoDate(emptyBreakfastDate)}"]`,
+    )
+    await breakfastCell.getByRole('button', { name: 'Add a meal' }).click()
+    const pickerInput = breakfastCell.locator('.picker input')
     await pickerInput.fill('gratin')
-    await snackCell.locator('.suggestions li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
+    await breakfastCell.locator('.suggestions li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
     // La recherche (avec délai) relancée par la sélection rouvre la liste : on attend
     // qu'elle ait eu lieu avant de quitter le champ.
     await page.waitForTimeout(800)
     await pickerInput.blur()
-    await expect(snackCell.locator('.suggestions')).toBeHidden()
-    await snackCell
+    await expect(breakfastCell.locator('.suggestions')).toBeHidden()
+    await breakfastCell
       .locator('.add-form .allergen-warning')
       .waitFor({ timeout: 3000 })
       .catch(() => {})
-    const dinnerCell = page.locator(`.agenda-cell[data-meal-type="dinner"][data-date="${isoDate(data.weekStart)}"]`)
-    const snackRow = page.locator('.agenda-cell[data-meal-type="snack"]')
-    await shotAround(page, [dinnerCell, snackCell, snackRow.nth(3)], 'planning-add-meal', 12)
-    await snackCell.getByRole('button', { name: 'Cancel' }).click()
+    const dinnerCell = page.locator(
+      `.agenda-cell[data-meal-type="dinner"][data-date="${isoDate(emptyBreakfastDate)}"]`,
+    )
+    const breakfastRow = page.locator('.agenda-cell[data-meal-type="breakfast"]')
+    await shotAround(page, [dinnerCell, breakfastCell, breakfastRow.nth(3)], 'planning-add-meal', 12)
+    await breakfastCell.getByRole('button', { name: 'Cancel' }).click()
 
     await page.getByRole('button', { name: 'Nutritional intake' }).click()
     const dialog = page.getByRole('dialog')

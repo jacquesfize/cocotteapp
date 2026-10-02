@@ -90,6 +90,7 @@
   "recipes": {
     "title": "Recipes",
     "newRecipe": "New recipe",
+    "createManually": "Create manually",
     "importFromUrl": "Import from a URL",
     "importButton": "Import",
     "importError": "Couldn't fetch this recipe. Check the URL and try again.",
@@ -247,7 +248,6 @@
   "home": {
     "title": "Cocotte",
     "tagline": "Store your recipes, plan your week, and see the nutrition and carbon footprint of every meal.",
-    "browseRecipes": "Browse recipes",
     "thematicPages": "Explore",
     "latestRecipes": "Latest recipes",
     "seeAll": "See all recipes",
@@ -396,6 +396,9 @@
     "noLists": "No list yet. Generate one from the planner.",
     "delete": "Delete",
     "export": "Export as .txt",
+    "share": "Share",
+    "copyToClipboard": "Copy",
+    "copied": "Copied!",
     "checkOwned": "Check off the ingredients you already have.",
     "progressCount": "{owned}/{total} bought"
   },

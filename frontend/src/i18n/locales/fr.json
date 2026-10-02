@@ -90,6 +90,7 @@
   "recipes": {
     "title": "Recettes",
     "newRecipe": "Nouvelle recette",
+    "createManually": "Créer manuellement",
     "importFromUrl": "Importer depuis une URL",
     "importButton": "Importer",
     "importError": "Impossible de récupérer cette recette. Vérifiez l'URL et réessayez.",
@@ -247,7 +248,6 @@
   "home": {
     "title": "Cocotte",
     "tagline": "Rangez vos recettes, planifiez votre semaine et voyez la valeur nutritionnelle et l'empreinte carbone de chaque repas.",
-    "browseRecipes": "Voir les recettes",
     "thematicPages": "À explorer",
     "latestRecipes": "Dernières recettes",
     "seeAll": "Voir toutes les recettes",
@@ -396,6 +396,9 @@
     "noLists": "Aucune liste pour l'instant. Générez-en une depuis l'agenda.",
     "delete": "Supprimer",
     "export": "Exporter en .txt",
+    "share": "Partager",
+    "copyToClipboard": "Copier",
+    "copied": "Copié !",
     "checkOwned": "Cochez les ingrédients que vous avez déjà.",
     "progressCount": "{owned}/{total} achetés"
   },

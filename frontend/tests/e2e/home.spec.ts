@@ -28,7 +28,7 @@ test('homepage shows the intro and the recipe just created', async ({ page }) =>
   await page.getByRole('link', { name: 'Accueil' }).click()
   await expect(page).toHaveURL('/')
 
-  await expect(page.getByRole('link', { name: 'Voir les recettes' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Nouvelle recette' })).toBeVisible()
   await expect(page.getByRole('link', { name: new RegExp(recipeTitle) })).toBeVisible()
 
   await page.getByRole('link', { name: new RegExp(recipeTitle) }).click()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Apple, Bean, Beef, Carrot, ChevronLeft, CloudOff, Download, Droplet, Egg, Milk, Nut, Package, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
+import { Apple, Bean, Beef, Carrot, Check, ChevronLeft, CloudOff, Copy, Download, Droplet, Egg, Milk, Nut, Package, Share, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
@@ -57,6 +57,13 @@ const props = defineProps<{
 }>()
 
 const shoppingList = ref<ListWithSync | null>(null)
+// La plupart des navigateurs desktop (Chrome/Firefox hors Windows) n'implémentent pas
+// navigator.share : sans ce repli, le bouton ne faisait jamais qu'un téléchargement .txt, ce
+// qui ne permet pas vraiment de "coller" la liste dans une appli de notes.
+const canShare = !!navigator.share
+const canCopy = !canShare && !!navigator.clipboard?.writeText
+const justCopied = ref(false)
+let copiedTimeout: ReturnType<typeof setTimeout> | undefined
 
 // Groupe les articles par catégorie d'ingrédient (légume, fruit, produit laitier...) dans
 // l'ordre de CATEGORY_ORDER, pour que des produits similaires se retrouvent côte à côte au
@@ -101,6 +108,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
+  clearTimeout(copiedTimeout)
 })
 
 async function toggleOwned(item: ItemWithSync) {
@@ -132,6 +140,31 @@ async function toggleOwned(item: ItemWithSync) {
 
 async function handleExport() {
   const { content } = await exportShoppingList(props.id)
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: shoppingList.value?.name, text: content })
+      return
+    } catch (err) {
+      if ((err as { name?: string })?.name === 'AbortError') {
+        // User just cancelled the share sheet — not a failure, do nothing.
+        return
+      }
+      // Any other error: fall through to the clipboard/download fallback below.
+    }
+  }
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(content)
+      justCopied.value = true
+      clearTimeout(copiedTimeout)
+      copiedTimeout = setTimeout(() => {
+        justCopied.value = false
+      }, 2000)
+      return
+    } catch {
+      // Clipboard write can fail (permission denied, non-secure context) — fall through.
+    }
+  }
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
   downloadBlob(blob, `${shoppingList.value?.name}.txt`)
 }
@@ -144,7 +177,13 @@ async function handleExport() {
     </RouterLink>
     <div class="row page-header">
       <PageHeader :icon="ShoppingCart">{{ shoppingList.name }}</PageHeader>
-      <button @click="handleExport"><Download :size="16" />{{ $t('shopping.export') }}</button>
+      <button @click="handleExport">
+        <Check v-if="justCopied" :size="16" />
+        <Share v-else-if="canShare" :size="16" />
+        <Copy v-else-if="canCopy" :size="16" />
+        <Download v-else :size="16" />
+        {{ justCopied ? $t('shopping.copied') : canShare ? $t('shopping.share') : canCopy ? $t('shopping.copyToClipboard') : $t('shopping.export') }}
+      </button>
     </div>
 
     <div class="progress-summary">

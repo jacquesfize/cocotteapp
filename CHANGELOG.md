@@ -9,6 +9,16 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
+  that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
+  Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On
+  browsers without the Web Share API (most desktop browsers besides Windows/Safari), the button
+  now copies the list to the clipboard instead, ready to paste into any app; downloading a `.txt`
+  file remains the last-resort fallback.
+- Two new instance-level settings, both off by default: `PLANNING_SNACK_ENABLED` shows or hides
+  the **Snack** meal slot in the weekly planner, and `NUTRITION_ALERTS_ENABLED` shows or hides
+  the nutrient-deficiency alerts in the planner's nutritional intake summary. See the admin
+  guide's Configuration page.
 - The seeded ingredient library now includes "Tomates concassées" (canned crushed tomatoes), which the
   documentation demo data relies on.
 - GDPR tooling for instance administrators: explicit consent to the processing of health-related
@@ -55,6 +65,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   count, and quantities are shown as a small pill badge for easier scanning. The **Shopping**
   overview page got the same treatment (an icon, date and progress bar per list, on a clickable
   card), and the list detail page now has a "Back to my lists" link.
+- On the homepage, "New recipe" and "Import" are now a single "New recipe" button that opens a
+  menu offering "Create manually" or "Import from a URL", and the "Browse recipes" button was
+  removed since the main navigation already links to the recipe list.
+- In cook mode, a step's photo now fills most of the available height instead of a small fixed-size
+  crop, with the instruction text anchored to a band at the bottom (around 20% of the height by
+  default, growing to fit longer instructions instead of ever clipping them).
 
 ### Fixed
 

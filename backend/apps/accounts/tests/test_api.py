@@ -410,6 +410,23 @@ def test_legal_info_is_public_and_reflects_settings(settings):
 
 
 @pytest.mark.django_db
+def test_legal_info_exposes_planning_snack_flag_defaulting_to_false():
+    response = APIClient().get("/api/auth/legal/")
+
+    assert response.status_code == 200
+    assert response.data["planning_snack_enabled"] is False
+
+
+@pytest.mark.django_db
+def test_legal_info_reflects_planning_snack_flag_when_enabled(settings):
+    settings.PLANNING_SNACK_ENABLED = True
+
+    response = APIClient().get("/api/auth/legal/")
+
+    assert response.data["planning_snack_enabled"] is True
+
+
+@pytest.mark.django_db
 def test_deleting_account_deletes_recipes_by_default():
     from apps.recipes.models import Recipe
 

@@ -24,6 +24,11 @@ const activeIngredient = ref<RecipeIngredient | null>(null)
 const steps = computed(() => props.recipe.steps)
 const currentStep = computed(() => steps.value[currentIndex.value])
 
+// Pilote la mise en page de l'étape : quand il y a une photo, l'image occupe la part dominante
+// de la hauteur disponible et le texte est relégué à une bande en bas (qui peut grandir si le
+// texte est long) ; sans photo, le texte garde toute la place comme avant.
+const hasStepImage = computed(() => Boolean(currentStep.value && (currentStep.value.image || currentStep.value.image_url)))
+
 // Calculé une seule fois, hors de tout `computed` : les minuteurs doivent survivre à la
 // navigation entre étapes (voir timerHandles ci-dessous), donc on ne peut pas se permettre de
 // les recréer si cette liste était réévaluée en réaction à un changement réactif quelconque.
@@ -184,9 +189,9 @@ onBeforeUnmount(() => {
       </button>
 
       <div class="cook-mode-step">
-        <div class="cook-mode-step-content">
+        <div class="cook-mode-step-content" :class="{ 'has-image': hasStepImage }">
           <ImageWithCredit
-            v-if="currentStep && (currentStep.image || currentStep.image_url)"
+            v-if="hasStepImage"
             :key="`img-${currentStep.id}`"
             class="cook-mode-step-photo"
             :image-url="currentStep.image || currentStep.image_url"
@@ -379,17 +384,44 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
+/* With a step photo, the content column fills the full available height so the photo (flex-grow)
+   and the text band (flex-basis anchored to min-height) can split it — see .cook-mode-step-photo
+   and .has-image .cook-mode-step-text below. Without a photo, the column keeps its old behaviour:
+   sized to its content and centered by .cook-mode-step. */
+.cook-mode-step-content.has-image {
+  height: 100%;
+}
+
+/* The image is the dominant element: it grows to fill whatever height the text band (fixed
+   flex-shrink: 0, see below) doesn't need, and shrinks first — down to nothing — rather than ever
+   clipping the instruction text. object-fit: contain (not cover) keeps the whole photo visible at
+   whatever size it ends up with instead of cropping it. */
 .cook-mode-step-photo {
-  max-width: 320px;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cook-mode-step-photo :deep(.image-with-credit-frame) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-surface-muted);
 }
 
 .cook-mode-step-photo :deep(img) {
   display: block;
   width: 100%;
-  max-height: 220px;
-  object-fit: cover;
-  border-radius: 16px;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cook-mode-step-photo :deep(.image-credit-line) {
+  flex-shrink: 0;
 }
 
 .cook-mode-step-text {
@@ -399,6 +431,16 @@ onBeforeUnmount(() => {
   line-height: 1.5;
   text-align: center;
   max-width: 640px;
+  width: 100%;
+}
+
+/* The instruction band defaults to ~20% of the step's height (min-height) but never shrinks below
+   its own content size (flex-shrink: 0) and never grows to steal space the photo could use
+   (flex-grow: 0) — so a long instruction simply grows past 20%, eating into the photo's share
+   instead of ever being clipped. */
+.cook-mode-step-content.has-image .cook-mode-step-text {
+  flex: 0 0 auto;
+  min-height: 20%;
 }
 
 .cook-step-next-enter-active,
