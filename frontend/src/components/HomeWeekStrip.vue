@@ -2,6 +2,7 @@
 import { Calendar, Link2, Pencil, Plus, ShoppingCart, TriangleAlert } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ProgressBar from './shared/ProgressBar.vue'
 import { fetchLegalInfo } from '../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { listShoppingLists } from '../api/shopping'
@@ -131,9 +132,7 @@ const days = computed(() =>
         <span class="week-action-title">{{ $t('home.openShoppingList') }}</span>
         <template v-if="listTotalCount">
           <span class="week-action-progress">{{ $t('shopping.progressCount', { owned: listOwnedCount, total: listTotalCount }) }}</span>
-          <div class="week-action-track">
-            <div class="week-action-fill" :style="{ width: `${listProgressPercent}%` }" />
-          </div>
+          <ProgressBar :percent="listProgressPercent" height="0.35rem" track-color="var(--color-primary-soft)" />
         </template>
       </RouterLink>
       <div v-else-if="isLoading" class="skeleton skeleton-action" aria-hidden="true" />
@@ -410,21 +409,6 @@ const days = computed(() =>
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-muted);
-}
-
-.week-action-track {
-  width: 100%;
-  height: 0.35rem;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  overflow: hidden;
-}
-
-.week-action-fill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 999px;
-  transition: width 0.2s ease;
 }
 
 .week-day h3 {

@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
+import ProgressBar from '../components/shared/ProgressBar.vue'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 import type { ShoppingList } from '../types/models'
 
@@ -66,9 +67,14 @@ function progressPercent(list: ShoppingList) {
             · {{ $t('shopping.progressCount', { owned: ownedCount(list), total: list.items.length }) }}
           </template>
         </p>
-        <div v-if="list.items.length" class="list-progress-track">
-          <div class="list-progress-fill" :style="{ width: `${progressPercent(list)}%` }" />
-        </div>
+        <ProgressBar
+          v-if="list.items.length"
+          :percent="progressPercent(list)"
+          class="list-progress"
+          height="0.3rem"
+          max-width="220px"
+          :transition="false"
+        />
       </div>
       <button
         class="danger icon-btn list-delete"
@@ -140,19 +146,8 @@ function progressPercent(list: ShoppingList) {
   margin: 0.2rem 0 0;
 }
 
-.list-progress-track {
+.list-progress {
   margin-top: 0.5rem;
-  height: 0.3rem;
-  max-width: 220px;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  overflow: hidden;
-}
-
-.list-progress-fill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 999px;
 }
 
 /* Au-dessus du lien étiré pour rester cliquable. */

@@ -2,6 +2,7 @@
 import { Apple, Bean, Beef, Carrot, Check, ChevronLeft, CloudOff, Copy, Download, Droplet, Egg, Milk, Nut, Package, Share, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
+import ProgressBar from '../components/shared/ProgressBar.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
@@ -193,9 +194,14 @@ async function handleExport() {
           — {{ $t('shopping.progressCount', { owned: ownedCount, total: totalCount }) }}
         </template>
       </p>
-      <div v-if="totalCount" class="progress-track" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-fill" :style="{ width: `${progressPercent}%` }" />
-      </div>
+      <ProgressBar
+        v-if="totalCount"
+        :percent="progressPercent"
+        role="progressbar"
+        :aria-valuenow="progressPercent"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      />
     </div>
 
     <div v-for="group in groupedItems" :key="group.category" class="card category-group">
@@ -254,20 +260,6 @@ async function handleExport() {
 
 .progress-summary .muted {
   margin: 0 0 0.5rem;
-}
-
-.progress-track {
-  height: 0.4rem;
-  border-radius: 999px;
-  background: var(--color-surface-muted);
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--color-primary);
-  border-radius: 999px;
-  transition: width 0.2s ease;
 }
 
 .category-group {
