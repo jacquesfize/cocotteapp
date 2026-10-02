@@ -31,7 +31,10 @@ class ShoppingListViewSet(
     def mark_owned(self, request, pk=None):
         shopping_list = self.get_object()
         ingredient_ids = request.data.get("ingredient_ids", [])
-        shopping_list.items.filter(ingredient_id__in=ingredient_ids).update(is_owned=True)
+        # `owned` defaults to True so existing callers that only ever ticked items keep working
+        # unchanged; passing `owned: false` is how the UI unticks an item.
+        owned = request.data.get("owned", True)
+        shopping_list.items.filter(ingredient_id__in=ingredient_ids).update(is_owned=owned)
         shopping_list.refresh_from_db()
         return Response(self.get_serializer(shopping_list).data)
 

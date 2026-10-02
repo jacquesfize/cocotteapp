@@ -56,6 +56,15 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The planner's calendar grid now has a white background, and page titles across the app now show
   a small icon next to them for quicker visual scanning.
 - Form fields now have a white background with a subtle colored border and less rounded corners.
+- Shopping-list items are now grouped under a heading per ingredient category (vegetable, fruit,
+  dairy, etc.) instead of a single flat list, and a ticked item can now be unticked again by
+  clicking its checkbox a second time (previously it was stuck checked once ticked — generating a
+  new list from the planner was the only way to undo a mistaken tick).
+- Shopping lists got a visual refresh: each category heading now has an icon, a progress summary
+  ("x/y bought") with a progress bar sits above the list, each category shows its own "done/total"
+  count, and quantities are shown as a small pill badge for easier scanning. The **Shopping**
+  overview page got the same treatment (an icon, date and progress bar per list, on a clickable
+  card), and the list detail page now has a "Back to my lists" link.
 - On the homepage, "New recipe" and "Import" are now a single "New recipe" button that opens a
   menu offering "Create manually" or "Import from a URL", and the "Browse recipes" button was
   removed since the main navigation already links to the recipe list.

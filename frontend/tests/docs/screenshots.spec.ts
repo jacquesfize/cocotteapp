@@ -249,7 +249,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
 
   await test.step('shopping lists', async () => {
     await page.goto('/shopping-lists')
-    await expect(page.locator('.list-row').first()).toBeVisible()
+    await expect(page.locator('.list-card').first()).toBeVisible()
     await shotPage(page, 'shopping-lists')
 
     await page.goto(`/shopping-lists/${data.shoppingListId}`)
