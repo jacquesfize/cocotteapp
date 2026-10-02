@@ -65,7 +65,7 @@ test.describe('PWA offline support', () => {
     // Visite la page de liste des listes de courses (pas encore vue jusqu'ici) pour que
     // sa réponse GET soit aussi mise en cache avant la coupure réseau.
     await page.getByRole('link', { name: 'Courses' }).click()
-    await expect(page.locator('.list-row').first()).toBeVisible()
+    await expect(page.locator('.list-card').first()).toBeVisible()
     await page.getByRole('link', { name: 'Recettes' }).click()
 
     // Laisse le service worker s'activer et mettre en cache les réponses déjà visitées
@@ -88,7 +88,7 @@ test.describe('PWA offline support', () => {
       await expect(page.locator('h1')).toHaveText(recipeTitle)
 
       await page.getByRole('link', { name: 'Courses' }).click()
-      await page.locator('.list-row a').first().click()
+      await page.locator('.list-card a').first().click()
       await expect(page.getByText(ingredientName)).toBeVisible()
     } finally {
       await context.setOffline(false)
