@@ -255,7 +255,7 @@ async function handleFork() {
 
 .source-link:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .actions-menu {

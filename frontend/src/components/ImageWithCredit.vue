@@ -100,7 +100,7 @@ const showLinks = computed(
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: 0.7rem;
   max-width: calc(100% - 1.5rem);
   overflow: hidden;

@@ -123,7 +123,7 @@ const emit = defineEmits<{
 
 .hero-source-button:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .fallback-source-link {

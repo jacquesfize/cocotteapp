@@ -513,7 +513,7 @@ async function handleImport() {
 }
 
 .hero-deck-title-light {
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .hero-deck-title-dark {
@@ -648,7 +648,7 @@ async function handleImport() {
 
   .hero-title {
     font-size: 2rem;
-    color: #fff;
+    color: var(--color-on-primary);
   }
 }
 
@@ -717,7 +717,7 @@ async function handleImport() {
 
 .home-panel-see-all:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .recipe-grid {

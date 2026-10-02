@@ -317,7 +317,7 @@ async function handleDownloadPdf() {
 
 .photo-source-button:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .video-wrapper {

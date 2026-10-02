@@ -444,7 +444,7 @@ const days = computed(() =>
   border-radius: 12px;
   overflow: hidden;
   text-decoration: none;
-  color: #fff;
+  color: var(--color-on-primary);
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }

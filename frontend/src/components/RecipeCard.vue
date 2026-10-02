@@ -391,7 +391,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   overflow: hidden;
   border-radius: 16px;
   border-bottom: 0;
-  color: #fff;
+  color: var(--color-on-primary);
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
 }
 
