@@ -400,7 +400,7 @@ async function handleImport() {
 
 .hero-diet {
   padding: 0.1rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: 0.8rem;
   background: var(--color-surface-muted);
@@ -408,13 +408,13 @@ async function handleImport() {
 }
 
 .hero-diet.diet-vegetarian {
-  background: color-mix(in srgb, #3fa34d 15%, var(--color-surface));
-  color: color-mix(in srgb, #3fa34d 75%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegetarian) 15%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegetarian) 75%, var(--color-text));
 }
 
 .hero-diet.diet-vegan {
-  background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
-  color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegan) 20%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegan) 80%, var(--color-text));
 }
 
 .hero-meta-item {

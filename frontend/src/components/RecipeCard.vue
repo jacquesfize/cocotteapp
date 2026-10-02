@@ -242,7 +242,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
 .diet-badge {
   padding: 0.1rem 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: 0.78rem;
   background: var(--color-surface-muted);
@@ -250,13 +250,13 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 }
 
 .diet-vegetarian {
-  background: color-mix(in srgb, #3fa34d 15%, var(--color-surface));
-  color: color-mix(in srgb, #3fa34d 75%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegetarian) 15%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegetarian) 75%, var(--color-text));
 }
 
 .diet-vegan {
-  background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
-  color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegan) 20%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegan) 80%, var(--color-text));
 }
 
 .rating-badge {
@@ -265,11 +265,11 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 }
 
 .carbon-low {
-  color: color-mix(in srgb, #3fa34d 80%, var(--color-text));
+  color: color-mix(in srgb, var(--color-vegetarian) 80%, var(--color-text));
 }
 
 .carbon-medium {
-  color: color-mix(in srgb, #d9922b 85%, var(--color-text));
+  color: color-mix(in srgb, var(--color-carbon-medium) 85%, var(--color-text));
 }
 
 .carbon-high {
