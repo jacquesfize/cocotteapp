@@ -294,6 +294,8 @@ export interface MealPlanEntry {
   recipe: number
   recipe_title: string
   recipe_allergens?: string[]
+  recipe_image: string | null
+  recipe_image_url: string
   date: string
   meal_type: MealType
   servings: number

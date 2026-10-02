@@ -71,9 +71,34 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - In cook mode, a step's photo now fills most of the available height instead of a small fixed-size
   crop, with the instruction text anchored to a band at the bottom (around 20% of the height by
   default, growing to fit longer instructions instead of ever clipping them).
+- The homepage got a visual refresh. The latest-recipes carousel is replaced by a "today's pick"
+  hero: the most recent recipe in a large photo card (with a decorative stack of cards behind
+  it), its diet/time/servings, a **View recipe** and a **Plan for later** button. It auto-advances
+  through your 5 latest recipes, with dots below to jump to one directly (on mobile, the title and
+  CTAs sit over the photo instead of above it); the "New recipe" quick action now sits at the top
+  of that same hero instead of floating in its own row above an unrelated section, and is now
+  styled as a card matching the **Latest shopping list** button next to it (an icon over a label)
+  instead of a stretched pill. That **Latest shopping list** card (showing its bought/total
+  progress) sits in its own box next to, rather than inside, the "This week" card, which floats
+  over the hero's bottom edge and lists Today/Tomorrow side by side: each meal slot (Breakfast,
+  Lunch, Dinner, Snack) is the same size, either a photo tile (recipe picture, meal, title) when
+  planned or a **+** button to add one when empty, instead of one plain text line or a single
+  "Plan a meal" prompt per day. Further down, **Explore** and **In season now** are now two
+  matching cards side by side instead of two plain headed sections stacked vertically, with larger
+  Explore photo avatars (a row of round photo avatars instead of square tiles, so a page without
+  its own photo shows its icon on a plain accent-tinted circle instead of a flat saturated-color
+  card) to fill the roomier card.
+- The weekly/monthly planner now tints today's column (week view) or day cell (month view) so
+  it's easy to spot, and the "Today" button that jumps back to the current period (shown once
+  you've navigated away) got a reset icon and a visible border so it reads as a button rather
+  than a label.
+- In cook mode, clicking a highlighted ingredient name now shows its quantity in a small popover
+  anchored next to it instead of a full modal dialog; on a mouse, the popover also appears just by
+  hovering over the name.
 
 ### Fixed
 
+- On a phone, the page footer no longer gets hidden behind the bottom tab bar.
 - Form validation errors (recipe details, ingredients, planner entries) are now shown consistently
   via inline messages instead of relying on the browser's native validation bubbles, which could be
   invisible or badly positioned on mobile.

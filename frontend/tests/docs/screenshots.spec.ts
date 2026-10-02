@@ -34,7 +34,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
 
   await test.step('public pages', async () => {
     await page.goto('/')
-    await expect(page.locator('.thematic-card').first()).toBeVisible()
+    await expect(page.locator('.thematic-avatar').first()).toBeVisible()
     await shotPage(page, 'home-public', { fullPage: true })
 
     await page.goto('/login')
@@ -372,6 +372,10 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
     await cookMode.locator('.timer-chip').first().click()
     await expect(cookMode.locator('.cook-mode-timer-dock')).toBeVisible()
     await shotElement(cookMode, 'mobile-cookmode-timer-dock')
+
+    await cookMode.locator('.ingredient-mention').first().click()
+    await expect(cookMode.locator('.ingredient-popover')).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-ingredient-popover')
 
     await cookMode.getByRole('button', { name: 'Show ingredients' }).click()
     await expect(cookMode.locator('.cook-mode-ingredients')).toHaveClass(/open/)

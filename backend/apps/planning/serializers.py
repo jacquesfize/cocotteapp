@@ -1,16 +1,32 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.recipes.serializers import RelativeImageField
+
 from .models import MealPlanEntry, PlanningShare
 
 
 class MealPlanEntrySerializer(serializers.ModelSerializer):
     recipe_title = serializers.ReadOnlyField(source="recipe.title")
     recipe_allergens = serializers.SerializerMethodField()
+    # Lets the homepage's "This week" card show each entry as a photo tile without a second
+    # request per recipe — same image/image_url fallback pair as RecipeSerializer.
+    recipe_image = RelativeImageField(source="recipe.image", read_only=True)
+    recipe_image_url = serializers.ReadOnlyField(source="recipe.image_url")
 
     class Meta:
         model = MealPlanEntry
-        fields = ["id", "recipe", "recipe_title", "recipe_allergens", "date", "meal_type", "servings"]
+        fields = [
+            "id",
+            "recipe",
+            "recipe_title",
+            "recipe_allergens",
+            "recipe_image",
+            "recipe_image_url",
+            "date",
+            "meal_type",
+            "servings",
+        ]
 
     def get_recipe_allergens(self, obj):
         return obj.recipe.allergen_slugs()

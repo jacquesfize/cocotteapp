@@ -2,7 +2,6 @@
 import { Check, ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, RotateCcw, X } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import BaseModal from './BaseModal.vue'
 import ImageWithCredit from './ImageWithCredit.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
@@ -19,7 +18,10 @@ const { t } = useI18n()
 const currentIndex = ref(0)
 const direction = ref<'next' | 'prev'>('next')
 const showIngredients = ref(false)
-const activeIngredient = ref<RecipeIngredient | null>(null)
+// Le survol affiche le popover temporairement ; un clic (ou le focus clavier) l'"épingle" pour
+// qu'il reste visible le temps de lire la quantité, même une fois la souris repartie.
+const hoveredIngredientId = ref<number | null>(null)
+const pinnedIngredientId = ref<number | null>(null)
 
 const steps = computed(() => props.recipe.steps)
 const currentStep = computed(() => steps.value[currentIndex.value])
@@ -98,8 +100,39 @@ function goToStep(index: number) {
   currentIndex.value = index
 }
 
-function openIngredient(ingredientId: number) {
-  activeIngredient.value = props.recipe.ingredients.find((item) => item.ingredient.id === ingredientId) ?? null
+function findIngredient(ingredientId: number): RecipeIngredient | undefined {
+  return props.recipe.ingredients.find((item) => item.ingredient.id === ingredientId)
+}
+
+function isIngredientPopoverOpen(ingredientId: number) {
+  return pinnedIngredientId.value === ingredientId || hoveredIngredientId.value === ingredientId
+}
+
+function toggleIngredientPopover(ingredientId: number) {
+  pinnedIngredientId.value = pinnedIngredientId.value === ingredientId ? null : ingredientId
+}
+
+function showIngredientPopover(ingredientId: number) {
+  hoveredIngredientId.value = ingredientId
+}
+
+function hideIngredientPopover(ingredientId: number) {
+  if (hoveredIngredientId.value === ingredientId) hoveredIngredientId.value = null
+}
+
+function closeIngredientPopover() {
+  pinnedIngredientId.value = null
+  hoveredIngredientId.value = null
+}
+
+// Un clic en dehors du popover épinglé le referme — le survol, lui, se referme déjà tout seul
+// via `hideIngredientPopover` au `mouseleave`.
+function handleWindowClick(event: MouseEvent) {
+  if (pinnedIngredientId.value === null) return
+  const target = event.target as HTMLElement | null
+  if (!target?.closest('.ingredient-mention-wrap')) {
+    pinnedIngredientId.value = null
+  }
 }
 
 // Seuil en pixels avant de considérer un geste tactile comme un swipe horizontal plutôt qu'un
@@ -124,7 +157,7 @@ function onTouchEnd(event: TouchEvent) {
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
-    if (activeIngredient.value) activeIngredient.value = null
+    if (pinnedIngredientId.value !== null || hoveredIngredientId.value !== null) closeIngredientPopover()
     else if (showIngredients.value) showIngredients.value = false
     else emit('close')
   } else if (event.key === 'ArrowRight') {
@@ -139,10 +172,12 @@ function handleKeydown(event: KeyboardEvent) {
 onMounted(() => {
   document.body.style.overflow = 'hidden'
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('click', handleWindowClick)
 })
 onBeforeUnmount(() => {
   document.body.style.overflow = ''
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('click', handleWindowClick)
 })
 </script>
 
@@ -205,12 +240,33 @@ onBeforeUnmount(() => {
           <Transition :name="direction === 'next' ? 'cook-step-next' : 'cook-step-prev'" mode="out-in">
           <p v-if="currentStep" :key="currentStep.id" class="cook-mode-step-text">
             <template v-for="(segment, index) in currentSegments" :key="index">
-              <button
+              <span
                 v-if="segment.ingredientId"
-                type="button"
-                class="ingredient-mention"
-                @click="openIngredient(segment.ingredientId)"
-              >{{ segment.text }}</button>
+                class="ingredient-mention-wrap"
+                @mouseenter="showIngredientPopover(segment.ingredientId)"
+                @mouseleave="hideIngredientPopover(segment.ingredientId)"
+              >
+                <button
+                  type="button"
+                  class="ingredient-mention"
+                  :aria-describedby="`cook-mode-ingredient-popover-${currentIndex}-${index}`"
+                  :aria-expanded="isIngredientPopoverOpen(segment.ingredientId)"
+                  @click.stop="toggleIngredientPopover(segment.ingredientId)"
+                  @focus="showIngredientPopover(segment.ingredientId)"
+                  @blur="hideIngredientPopover(segment.ingredientId)"
+                >{{ segment.text }}</button>
+                <div
+                  v-if="isIngredientPopoverOpen(segment.ingredientId)"
+                  :id="`cook-mode-ingredient-popover-${currentIndex}-${index}`"
+                  class="ingredient-popover"
+                  role="tooltip"
+                >
+                  <p class="ingredient-popover-qty">
+                    {{ formatQuantity(findIngredient(segment.ingredientId)?.quantity, findIngredient(segment.ingredientId)?.unit) }}
+                    {{ formatUnit(findIngredient(segment.ingredientId)?.unit, findIngredient(segment.ingredientId)?.quantity) }}
+                  </p>
+                </div>
+              </span>
               <StepTimerButton
                 v-else-if="segment.timerSeconds !== undefined"
                 :handle="timerHandles.get(`${currentIndex}-${index}`)?.handle"
@@ -301,13 +357,6 @@ onBeforeUnmount(() => {
         </ul>
       </template>
     </aside>
-
-    <BaseModal v-if="activeIngredient" :title="activeIngredient.ingredient.name" @close="activeIngredient = null">
-      <p class="cook-mode-ingredient-qty">
-        {{ formatQuantity(activeIngredient.quantity, activeIngredient.unit) }}
-        {{ formatUnit(activeIngredient.unit, activeIngredient.quantity) }}
-      </p>
-    </BaseModal>
   </div>
 </template>
 
@@ -582,6 +631,11 @@ onBeforeUnmount(() => {
   width: 1.5rem;
 }
 
+.ingredient-mention-wrap {
+  position: relative;
+  display: inline-block;
+}
+
 .ingredient-mention {
   background: none;
   padding: 0;
@@ -595,6 +649,40 @@ onBeforeUnmount(() => {
 
 .ingredient-mention:hover {
   background: var(--color-primary-soft);
+}
+
+.ingredient-popover {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  min-width: max-content;
+  max-width: 220px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 10px;
+  box-shadow: var(--shadow-card);
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+}
+
+.ingredient-popover::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-surface);
+}
+
+.ingredient-popover-qty {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .cook-mode-backdrop {
@@ -671,13 +759,6 @@ onBeforeUnmount(() => {
 .ingredient-name {
   color: var(--color-text);
   font-weight: 500;
-}
-
-.cook-mode-ingredient-qty {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--color-primary-dark);
-  margin: 0;
 }
 
 @media (max-width: 480px) {

@@ -17,7 +17,7 @@ Every recipe carries its nutrition facts and an estimate of its carbon footprint
 planner adds these up so you can see what a week of meals means for your body and for the
 planet.
 
-![The Cocotte home page with the latest recipes carousel, the "This week" strip and thematic shortcuts](assets/screenshots/home.png)
+![The Cocotte home page with today's pick, the "This week" strip and thematic shortcuts](assets/screenshots/home.png)
 
 ## What you can do with Cocotte
 

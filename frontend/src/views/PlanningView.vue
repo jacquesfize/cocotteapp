@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Apple, Calendar, ChevronLeft, ChevronRight, Download, ShoppingCart } from '@lucide/vue'
+import { Apple, Calendar, ChevronLeft, ChevronRight, Download, RotateCcw, ShoppingCart } from '@lucide/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -92,6 +92,10 @@ function entriesForDay(date: Date) {
 
 function weekdayLabel(date: Date) {
   return date.toLocaleDateString(locale.value, { weekday: 'short' })
+}
+
+function isToday(date: Date) {
+  return toISODate(date) === toISODate(new Date())
 }
 
 function goToWeekOf(date: Date) {
@@ -233,7 +237,7 @@ const rangeLabel = computed(() => {
       <div class="week-range">
         <strong>{{ rangeLabel }}</strong>
         <button v-if="!isCurrentPeriod" class="today-btn secondary" type="button" @click="goToToday">
-          {{ $t('planning.today') }}
+          <RotateCcw :size="14" />{{ $t('planning.today') }}
         </button>
       </div>
       <button
@@ -250,7 +254,12 @@ const rangeLabel = computed(() => {
 
     <div v-if="viewMode === 'week'" class="agenda-week">
       <div class="agenda-corner" />
-      <div v-for="date in weekDays" :key="toISODate(date)" class="agenda-day-head">
+      <div
+        v-for="date in weekDays"
+        :key="toISODate(date)"
+        class="agenda-day-head"
+        :class="{ 'is-today': isToday(date) }"
+      >
         {{ dayLabel(date) }}
       </div>
       <template v-for="mealType in MEAL_TYPES" :key="mealType">
@@ -259,6 +268,7 @@ const rangeLabel = computed(() => {
           v-for="date in weekDays"
           :key="toISODate(date)"
           class="agenda-cell"
+          :class="{ 'is-today': isToday(date) }"
           :data-meal-type="mealType"
           :data-date="toISODate(date)"
         >
@@ -282,7 +292,7 @@ const rangeLabel = computed(() => {
         <div
           v-for="(date, di) in week"
           :key="wi + '-' + di"
-          :class="['month-cell', { empty: !date }]"
+          :class="['month-cell', { empty: !date, 'is-today': date && isToday(date) }]"
           :data-date="date ? toISODate(date) : undefined"
         >
           <template v-if="date">
@@ -353,9 +363,17 @@ const rangeLabel = computed(() => {
 }
 
 .today-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   min-height: auto;
-  padding: 0.25rem 0.7rem;
+  padding: 0.3rem 0.75rem;
+  border: 1.5px solid var(--color-primary-soft-hover);
   font-size: 0.8rem;
+}
+
+.today-btn:hover {
+  border-color: var(--color-primary);
 }
 
 .deficiency-banner ul {
@@ -415,6 +433,11 @@ const rangeLabel = computed(() => {
   border-left: 1px solid var(--color-border);
 }
 
+.agenda-day-head.is-today {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
 .agenda-corner {
   border-bottom: 1px solid var(--color-border);
 }
@@ -434,6 +457,10 @@ const rangeLabel = computed(() => {
   border-bottom: 1px solid var(--color-border);
 }
 
+.agenda-cell.is-today {
+  background: color-mix(in srgb, var(--color-primary-soft) 40%, transparent);
+}
+
 .agenda-cell :deep(.meal-label) {
   display: none;
 }
@@ -448,6 +475,14 @@ const rangeLabel = computed(() => {
 .month-cell.empty {
   background: var(--color-border);
   opacity: 0.25;
+}
+
+.month-cell.is-today {
+  background: var(--color-primary-soft);
+}
+
+.month-cell.is-today .month-day-num {
+  color: var(--color-primary-dark);
 }
 
 .month-day-num {
