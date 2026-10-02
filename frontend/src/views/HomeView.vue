@@ -53,6 +53,37 @@ function goToSlide(index: number) {
   startAutoAdvance()
 }
 
+// Swipe support (mobile): the hero becomes a full-bleed photo card below 760px, where
+// dots are the only other way to change slides.
+const SWIPE_THRESHOLD_PX = 40
+const touchStartX = ref<number | null>(null)
+const touchStartY = ref<number | null>(null)
+
+function onHeroTouchStart(event: TouchEvent) {
+  touchStartX.value = event.touches[0].clientX
+  touchStartY.value = event.touches[0].clientY
+  stopAutoAdvance()
+}
+
+function onHeroTouchEnd(event: TouchEvent) {
+  const startX = touchStartX.value
+  const startY = touchStartY.value
+  touchStartX.value = null
+  touchStartY.value = null
+  if (startX === null || startY === null) return
+
+  const touch = event.changedTouches[0]
+  const deltaX = touch.clientX - startX
+  const deltaY = touch.clientY - startY
+  const length = latestRecipes.value.length
+  if (length > 1 && Math.abs(deltaX) > SWIPE_THRESHOLD_PX && Math.abs(deltaX) > Math.abs(deltaY)) {
+    const direction = deltaX < 0 ? 1 : -1
+    goToSlide((activeIndex.value + direction + length) % length)
+  } else {
+    startAutoAdvance()
+  }
+}
+
 const greetingKey = computed(() => {
   const hour = new Date().getHours()
   if (hour < 12) return 'home.greetingMorning'
@@ -144,7 +175,13 @@ async function handleImport() {
       <p v-else-if="loadError" class="muted">{{ $t('home.fetchError') }}</p>
       <template v-else-if="heroRecipe">
         <span class="hero-eyebrow">{{ heroEyebrow }}</span>
-        <div class="hero-spotlight" @mouseenter="stopAutoAdvance" @mouseleave="startAutoAdvance">
+        <div
+          class="hero-spotlight"
+          @mouseenter="stopAutoAdvance"
+          @mouseleave="startAutoAdvance"
+          @touchstart.passive="onHeroTouchStart"
+          @touchend.passive="onHeroTouchEnd"
+        >
           <div class="hero-copy">
             <Transition name="hero-fade" mode="out-in">
               <div :key="heroRecipe.id" class="hero-copy-face">
