@@ -395,6 +395,9 @@
     "noLists": "No list yet. Generate one from the planner.",
     "delete": "Delete",
     "export": "Export as .txt",
+    "share": "Share",
+    "copyToClipboard": "Copy",
+    "copied": "Copied!",
     "checkOwned": "Check off the ingredients you already have."
   },
   "account": {

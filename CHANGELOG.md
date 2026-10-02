@@ -9,6 +9,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
+  that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
+  Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On
+  browsers without the Web Share API (most desktop browsers besides Windows/Safari), the button
+  now copies the list to the clipboard instead, ready to paste into any app; downloading a `.txt`
+  file remains the last-resort fallback.
 - Two new instance-level settings, both off by default: `PLANNING_SNACK_ENABLED` shows or hides
   the **Snack** meal slot in the weekly planner, and `NUTRITION_ALERTS_ENABLED` shows or hides
   the nutrient-deficiency alerts in the planner's nutritional intake summary. See the admin
