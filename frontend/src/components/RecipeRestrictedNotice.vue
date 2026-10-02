@@ -3,6 +3,7 @@ import { Link2, Lock } from '@lucide/vue'
 import AllergenBadges from './AllergenBadges.vue'
 import ImageWithCredit from './ImageWithCredit.vue'
 import RecipeRating from './RecipeRating.vue'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { RecipeRatingResult } from '../api/recipes'
 import type { Recipe } from '../types/models'
 
@@ -26,9 +27,9 @@ const emit = defineEmits<{
       />
     </div>
     <ImageWithCredit
-      v-else-if="recipe.image || recipe.image_url"
+      v-else-if="recipeImageUrl(recipe)"
       class="hero-photo-wrapper"
-      :image-url="recipe.image || recipe.image_url"
+      :image-url="recipeImageUrl(recipe)"
       :source-url="recipe.image ? null : recipe.source_url"
       :license="recipe.image_license"
       :credit-author="recipe.image_credit_author"

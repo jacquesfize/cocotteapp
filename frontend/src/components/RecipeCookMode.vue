@@ -7,6 +7,7 @@ import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../utils/format'
 import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { Recipe, RecipeIngredient } from '../types/models'
 
 const props = defineProps<{
@@ -29,7 +30,7 @@ const currentStep = computed(() => steps.value[currentIndex.value])
 // Pilote la mise en page de l'étape : quand il y a une photo, l'image occupe la part dominante
 // de la hauteur disponible et le texte est relégué à une bande en bas (qui peut grandir si le
 // texte est long) ; sans photo, le texte garde toute la place comme avant.
-const hasStepImage = computed(() => Boolean(currentStep.value && (currentStep.value.image || currentStep.value.image_url)))
+const hasStepImage = computed(() => Boolean(currentStep.value && recipeImageUrl(currentStep.value)))
 
 // Calculé une seule fois, hors de tout `computed` : les minuteurs doivent survivre à la
 // navigation entre étapes (voir timerHandles ci-dessous), donc on ne peut pas se permettre de
@@ -229,7 +230,7 @@ onBeforeUnmount(() => {
             v-if="hasStepImage"
             :key="`img-${currentStep.id}`"
             class="cook-mode-step-photo"
-            :image-url="currentStep.image || currentStep.image_url"
+            :image-url="recipeImageUrl(currentStep)"
             :license="currentStep.image_license"
             :credit-author="currentStep.image_credit_author"
             :credit-source-url="currentStep.image_credit_source_url"

@@ -14,6 +14,7 @@ import { listThematicPages } from '../api/thematicPages'
 import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { setPendingImportDraft } from '../utils/pendingImportDraft'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { Recipe, ThematicPage } from '../types/models'
 
 const { t } = useI18n()
@@ -213,10 +214,10 @@ async function handleImport() {
               <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }" class="hero-deck-front">
                 <Transition name="hero-deck-fade">
                   <div :key="heroRecipe.id" class="hero-deck-face">
-                    <template v-if="heroRecipe.image || heroRecipe.image_url">
+                    <template v-if="recipeImageUrl(heroRecipe)">
                       <ImageWithCredit
                         class="hero-deck-image"
-                        :image-url="heroRecipe.image || heroRecipe.image_url"
+                        :image-url="recipeImageUrl(heroRecipe)"
                         :source-url="heroRecipe.image ? null : heroRecipe.source_url"
                         :license="heroRecipe.image_license"
                         :credit-author="heroRecipe.image_credit_author"

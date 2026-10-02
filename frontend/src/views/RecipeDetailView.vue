@@ -14,6 +14,7 @@ import type { RecipeRatingResult } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
 import { getErrorStatus } from '../utils/apiError'
 import { isImportedRecipe } from '../utils/recipeOrigin'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
@@ -147,7 +148,7 @@ async function handleFork() {
       </div>
     </div>
     <a
-      v-if="recipe.source_url && !recipe.content_restricted && !(recipe.image || recipe.image_url)"
+      v-if="recipe.source_url && !recipe.content_restricted && !recipeImageUrl(recipe)"
       :href="recipe.source_url"
       target="_blank"
       rel="noopener noreferrer"

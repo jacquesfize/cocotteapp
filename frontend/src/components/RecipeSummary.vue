@@ -13,6 +13,7 @@ import type { RecipeRatingResult } from '../api/recipes'
 import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
 import { downloadBlob } from '../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../utils/format'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { Recipe } from '../types/models'
 
 const props = defineProps<{
@@ -81,13 +82,13 @@ async function handleDownloadPdf() {
       @rated="emit('rated', $event)"
     />
 
-    <div v-if="recipe.image || recipe.image_url || recipe.youtube_id" class="media-row">
-      <div v-if="recipe.image || recipe.image_url" class="recipe-photo-wrapper">
+    <div v-if="recipeImageUrl(recipe) || recipe.youtube_id" class="media-row">
+      <div v-if="recipeImageUrl(recipe)" class="recipe-photo-wrapper">
         <!-- Même bouton "Source" centré sur la photo que RecipeRestrictedNotice.vue ; sans photo,
              RecipeDetailView.vue affiche le lien Source au-dessus du contenu. -->
         <ImageWithCredit
           class="recipe-photo-frame"
-          :image-url="recipe.image || recipe.image_url"
+          :image-url="recipeImageUrl(recipe)"
           :source-url="recipe.image ? null : recipe.source_url"
           :license="recipe.image_license"
           :credit-author="recipe.image_credit_author"
@@ -154,7 +155,7 @@ async function handleDownloadPdf() {
               <template v-else>{{ segment.text }}</template>
             </template>
             <button
-              v-if="step.image || step.image_url"
+              v-if="recipeImageUrl(step)"
               type="button"
               class="step-image-btn"
               :aria-label="$t('recipes.viewStepImage')"
@@ -170,7 +171,7 @@ async function handleDownloadPdf() {
             >
               <ImageWithCredit
                 class="step-photo-modal-frame"
-                :image-url="step.image || step.image_url"
+                :image-url="recipeImageUrl(step)"
                 :license="step.image_license"
                 :credit-author="step.image_credit_author"
                 :credit-source-url="step.image_credit_source_url"

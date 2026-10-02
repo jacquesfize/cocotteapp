@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { isImportedRecipe } from '../utils/recipeOrigin'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import AllergenBadges from './AllergenBadges.vue'
 import ImageWithCredit from './ImageWithCredit.vue'
 import type { Recipe } from '../types/models'
@@ -57,9 +58,9 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 <template>
   <article class="recipe-card" :class="{ tile: !isRow }">
     <ImageWithCredit
-      v-if="recipe.image || recipe.image_url"
+      v-if="recipeImageUrl(recipe)"
       class="thumb-wrapper"
-      :image-url="recipe.image || recipe.image_url"
+      :image-url="recipeImageUrl(recipe)"
       :source-url="recipe.image ? null : recipe.source_url"
       :license="recipe.image_license"
       :credit-author="recipe.image_credit_author"

@@ -17,6 +17,7 @@ import {
 } from '../api/recipes'
 import { formatUnit } from '../utils/format'
 import { imageCreditDomain } from '../utils/imageCredit'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { RecipeInput } from '../types/models'
 import type { DietType, Ingredient, Unit } from '../types/models'
 import { takePendingImportDraft } from '../utils/pendingImportDraft'
@@ -215,7 +216,7 @@ onMounted(async () => {
       image_credit_source_url: step.image_credit_source_url || '',
       image_credit_license_url: step.image_credit_license_url || '',
       image_credit_note: step.image_credit_note || '',
-      showImageForm: Boolean(step.image || step.image_url),
+      showImageForm: Boolean(recipeImageUrl(step)),
     }))
     return
   }
