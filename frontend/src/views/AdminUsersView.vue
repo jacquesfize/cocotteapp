@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Shield, Trash2 } from '@lucide/vue'
-import { onMounted, ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
+import { usePaginatedQuery } from '../composables/usePaginatedQuery'
 import { deleteUser, listUsers, updateUser } from '../api/admin'
 import { getErrorStatus } from '../utils/apiError'
 import { useAuthStore } from '../stores/auth'
@@ -19,7 +20,6 @@ const authStore = useAuthStore()
 
 const users = ref<AdminUser[]>([])
 const count = ref(0)
-const page = ref(Number(route.query.page) || 1)
 const search = ref((route.query.search as string) || '')
 const isLoading = ref(false)
 const accessDenied = ref(false)
@@ -42,19 +42,7 @@ async function load() {
   }
 }
 
-function goToPage(newPage: number) {
-  page.value = newPage
-  load()
-}
-
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
-watch(search, () => {
-  page.value = 1
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(load, 300)
-})
-
-onMounted(load)
+const { page, goToPage } = usePaginatedQuery(load, { search })
 
 async function toggleActive(user: AdminUser) {
   user.is_active = await updateUser(user.id, { is_active: !user.is_active }).then((u) => u.is_active)

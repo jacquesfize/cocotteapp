@@ -1,20 +1,19 @@
 <script setup lang="ts">
 import { ShoppingCart } from '@lucide/vue'
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import ShoppingListCard from '../components/shared/ShoppingListCard.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
+import { usePaginatedQuery } from '../composables/usePaginatedQuery'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 import type { ShoppingList } from '../types/models'
 
-const route = useRoute()
 const router = useRouter()
 
 const shoppingLists = ref<ShoppingList[]>([])
 const count = ref(0)
-const page = ref(Number(route.query.page) || 1)
 
 async function load() {
   const params: { page?: number } = {}
@@ -25,12 +24,7 @@ async function load() {
   router.replace({ query: params as Record<string, number> })
 }
 
-function goToPage(newPage: number) {
-  page.value = newPage
-  load()
-}
-
-onMounted(load)
+const { page, goToPage } = usePaginatedQuery(load)
 
 async function handleDelete(id: number) {
   await deleteShoppingList(id)

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Carrot, Plus, Trash2 } from '@lucide/vue'
-import { onMounted, ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import IngredientEditModal from '../components/IngredientEditModal.vue'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
+import { usePaginatedQuery } from '../composables/usePaginatedQuery'
 import { deleteIngredient, listIngredients } from '../api/ingredients'
 import { getErrorStatus } from '../utils/apiError'
 import type { IngredientListParams } from '../types/api'
@@ -18,7 +19,6 @@ const router = useRouter()
 
 const ingredients = ref<Ingredient[]>([])
 const count = ref(0)
-const page = ref(Number(route.query.page) || 1)
 const search = ref((route.query.search as string) || '')
 const isLoading = ref(false)
 const accessDenied = ref(false)
@@ -45,19 +45,7 @@ async function load() {
   }
 }
 
-function goToPage(newPage: number) {
-  page.value = newPage
-  load()
-}
-
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
-watch(search, () => {
-  page.value = 1
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(load, 300)
-})
-
-onMounted(load)
+const { page, goToPage } = usePaginatedQuery(load, { search })
 
 function openCreate() {
   editing.value = null
