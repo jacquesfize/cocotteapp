@@ -1,18 +1,10 @@
-## Bug description
+## Summary
 
-<!-- What is wrong today? Link the related issue if there is one (e.g. "Fixes #123"). -->
+<!-- What does this PR change, and why? Link the related issue if there is one (e.g. "Fixes #123" or "Closes #123"). -->
 
-## How to reproduce
+## Screenshots
 
-<!-- Steps to reproduce the problem before this PR (page, account type, data needed, browser/device if relevant). -->
-
-1.
-2.
-3.
-
-## Desired behavior
-
-<!-- What should happen instead, and how this PR achieves it. Screenshots welcome for UI changes. -->
+<!-- For UI changes, before/after screenshots or a short clip. Delete this section if not relevant. -->
 
 ## AI assistance
 
@@ -46,4 +38,5 @@ If AI was used:
 - [ ] `uv run ruff check .` and `npm run typecheck` pass
 - [ ] New UI strings added to both `fr.json` and `en.json`
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` (user-visible changes)
-- [ ] Docs updated in `docs/` (and screenshots regenerated if the UI changed)
+- [ ] Docs updated in `docs/`, and if its UI changed, only the screenshots covering the feature
+      this PR changed committed (not the whole suite)

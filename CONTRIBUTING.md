@@ -11,9 +11,9 @@ file is its entry point.
 ## Ways to contribute
 
 - **Report a bug or suggest a feature**: open an
-  [issue](https://github.com/jacquesfize/cocotteapp/issues). For a bug, include the steps to
-  reproduce it, what you expected, what happened, and your browser/OS (or `docker compose logs`
-  output for a backend error).
+  [issue](https://github.com/jacquesfize/cocotteapp/issues/new/choose). For a bug, the issue
+  template asks for the steps to reproduce it and the desired behavior; also mention your
+  browser/OS (or `docker compose logs` output for a backend error).
 - **Fix a bug or build a feature**: open a pull request. For anything bigger than a small fix,
   open an issue first so we can agree on the approach before you spend time on it.
 - **Translate**: the interface is available in French and English. Improving wording, fixing a
@@ -160,10 +160,10 @@ need an entry.
 
 If your change affects what users, administrators or contributors see or do, update the matching
 page under [`docs/`](https://github.com/jacquesfize/cocotteapp/tree/main/docs) in the same
-pull request. If it changes the UI shown in a screenshot, regenerate the screenshots
-(`npm run docs:screenshots` against a running, seeded stack) and commit them. They are stored in
-Git LFS. The
-[documentation guide](https://jacquesfize.github.io/cocotteapp/developer/documentation/)
+pull request. If it changes the UI shown in a screenshot, run `npm run docs:screenshots` (against
+a running, seeded stack), then commit only the PNGs that cover the feature you changed — not the
+whole suite, even though the command regenerates every screenshot. They are stored in Git LFS.
+The [documentation guide](https://jacquesfize.github.io/cocotteapp/developer/documentation/)
 explains how.
 
 ## Opening the pull request
@@ -172,12 +172,10 @@ GitHub pre-fills every new pull request with the
 [pull request template](https://github.com/jacquesfize/cocotteapp/blob/main/.github/pull_request_template.md).
 Please fill it in rather than deleting it:
 
-- **Bug description**: what is wrong today (or missing, for a feature), with a link to the
-  related issue (`Fixes #123`).
-- **How to reproduce**: the steps that show the problem before your change (page, account type,
-  data needed, browser/device if relevant).
-- **Desired behavior**: what should happen instead and how the pull request achieves it.
-  Screenshots are welcome for UI changes.
+- **Summary**: what the pull request changes and why, with a link to the related issue if there
+  is one (`Fixes #123`).
+- **Screenshots**: before/after screenshots or a short clip for UI changes; delete the section
+  otherwise.
 - **AI assistance**: whether AI wrote the code, and if so, your confirmation that you understand
   it, the starting prompt and optionally the model (see
   [AI-assisted contributions](#ai-assisted-contributions)).
@@ -188,7 +186,12 @@ Then tick the template's checklist:
 - [ ] `uv run ruff check .` and `npm run typecheck` pass
 - [ ] New UI strings added to both `fr.json` and `en.json`
 - [ ] `CHANGELOG.md` updated under `[Unreleased]` (user-visible changes)
-- [ ] Docs updated in `docs/` (and screenshots regenerated if the UI changed)
+- [ ] Docs updated in `docs/`, and if its UI changed, only the screenshots covering the feature
+      this PR changed committed (not the whole suite)
+
+If you're instead reporting a bug or requesting a feature, open an
+[issue](https://github.com/jacquesfize/cocotteapp/issues/new/choose) — its template asks for the
+bug description, steps to reproduce, and desired behavior.
 
 Before asking for a review, also make sure that:
 

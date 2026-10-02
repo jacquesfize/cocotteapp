@@ -167,8 +167,13 @@ something a user, admin or contributor sees or does** — in the same PR, not la
   `admin-guide/configuration.md`; new management commands in `getting-started/first-run.md` and
   `admin-guide/deployment.md`);
 - an entry under `## [Unreleased]` in `CHANGELOG.md` for any user-visible change;
-- regenerated screenshots if the UI changed visibly (`cd frontend && npm run docs:screenshots`
-  against a running, seeded stack; images are Git LFS-tracked under `docs/assets/`).
+- regenerated screenshots, but **only the ones showing the feature you actually changed**, never
+  speculatively. `npm run docs:screenshots` (`cd frontend`, against a running, seeded stack)
+  regenerates every PNG under `docs/assets/screenshots/`, so after running it, `git status
+  docs/assets/screenshots/` and stage only the files whose feature you touched — small rendering
+  noise (fonts, anti-aliasing) can flag unrelated images as changed even though nothing about
+  them actually did. See "When to regenerate" in `docs/developer/documentation.md`. Images are
+  Git LFS-tracked, so committing an unrelated one creates needless diff/LFS churn.
 
 Authoring conventions (see `docs/developer/documentation.md`): relative `.md` links, GitHub
 alerts (`> [!NOTE]`) for callouts, `/// tab | Docker` / `/// tab | Classic` blocks for command
