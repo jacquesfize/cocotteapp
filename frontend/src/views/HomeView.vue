@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ChevronDown, Link2, Pencil, Plus } from '@lucide/vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ChevronDown, Clock, Link2, Pencil, Plus, Users } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import BaseModal from '../components/BaseModal.vue'
-import HomeCarousel from '../components/HomeCarousel.vue'
 import HomeWeekStrip from '../components/HomeWeekStrip.vue'
+import ImageWithCredit from '../components/ImageWithCredit.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { listThematicPages } from '../api/thematicPages'
 import { useAuthStore } from '../stores/auth'
+import { formatDuration } from '../utils/format'
 import { setPendingImportDraft } from '../utils/pendingImportDraft'
 import type { Recipe, ThematicPage } from '../types/models'
 
@@ -18,6 +19,9 @@ const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
+// Hero spotlight (the most recent recipe) + a couple of "up next" teasers — see HomeCarousel.vue
+// (git history) for the previous all-5 carousel. Only 3 of the latest recipes are reachable
+// from the homepage now; the rest remain one click away via "Recipes".
 const latestRecipes = ref<Recipe[]>([])
 const thematicPages = ref<ThematicPage[]>([])
 const seasonalRecipes = ref<Recipe[]>([])
@@ -25,17 +29,33 @@ const seasonalRecipes = ref<Recipe[]>([])
 const isLoading = ref(true)
 const loadError = ref(false)
 
+const heroRecipe = computed(() => latestRecipes.value[0] ?? null)
+const upNextRecipes = computed(() => latestRecipes.value.slice(1))
+
+const greetingKey = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'home.greetingMorning'
+  if (hour < 18) return 'home.greetingAfternoon'
+  return 'home.greetingEvening'
+})
+const heroEyebrow = computed(() => {
+  const greeting = t(greetingKey.value)
+  return authStore.user
+    ? t('home.heroEyebrowAuth', { greeting, name: authStore.user.username })
+    : t('home.heroEyebrowGuest', { greeting })
+})
+
 onMounted(async () => {
   const [recipesRes, pagesRes, seasonRes] = await Promise.allSettled([
     listRecipes(),
     listThematicPages(),
     listRecipes({ in_season: true }),
   ])
-  if (recipesRes.status === 'fulfilled') latestRecipes.value = recipesRes.value.results.slice(0, 5)
+  if (recipesRes.status === 'fulfilled') latestRecipes.value = recipesRes.value.results.slice(0, 3)
   else loadError.value = true
   if (pagesRes.status === 'fulfilled') thematicPages.value = pagesRes.value
   if (seasonRes.status === 'fulfilled') {
-    // Skip recipes already shown in "latest" so the same card never appears twice.
+    // Skip recipes already shown in the hero/"up next" so the same card never appears twice.
     const shown = new Set(latestRecipes.value.map((recipe) => recipe.id))
     seasonalRecipes.value = seasonRes.value.results.filter((recipe) => !shown.has(recipe.id)).slice(0, 4)
   }
@@ -137,10 +157,72 @@ async function handleImport() {
         </RouterLink>
       </div>
 
-      <div v-if="isLoading" class="carousel-skeleton" aria-hidden="true" />
+      <div v-if="isLoading" class="hero-skeleton" aria-hidden="true">
+        <div class="hero-skeleton-copy" />
+        <div class="hero-skeleton-visual" />
+      </div>
       <p v-else-if="loadError" class="muted">{{ $t('home.fetchError') }}</p>
-      <div v-else-if="latestRecipes.length" class="carousel-deck">
-        <HomeCarousel :recipes="latestRecipes" />
+      <div v-else-if="heroRecipe" class="hero-spotlight">
+        <div class="hero-copy">
+          <span class="hero-eyebrow">{{ heroEyebrow }}</span>
+          <h2 class="hero-title">{{ heroRecipe.title }}</h2>
+          <div class="row hero-meta">
+            <span class="hero-diet" :class="`diet-${heroRecipe.diet_type}`">{{ $t(`diet.${heroRecipe.diet_type}`) }}</span>
+            <span class="hero-meta-item"><Clock :size="14" />{{ formatDuration(heroRecipe.total_time_minutes) }}</span>
+            <span v-if="heroRecipe.servings" class="hero-meta-item">
+              <Users :size="14" />{{ heroRecipe.servings }} {{ $t('recipes.servings') }}
+            </span>
+          </div>
+          <div class="row hero-ctas">
+            <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }">
+              <button>{{ $t('home.viewRecipe') }}</button>
+            </RouterLink>
+            <RouterLink :to="{ name: 'planning' }">
+              <button class="secondary">{{ $t('home.planForLater') }}</button>
+            </RouterLink>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-deck">
+            <div class="hero-deck-back hero-deck-back-1" aria-hidden="true" />
+            <div class="hero-deck-back hero-deck-back-2" aria-hidden="true" />
+            <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }" class="hero-deck-front">
+              <template v-if="heroRecipe.image || heroRecipe.image_url">
+                <ImageWithCredit
+                  class="hero-deck-image"
+                  :image-url="heroRecipe.image || heroRecipe.image_url"
+                  :source-url="heroRecipe.image ? null : heroRecipe.source_url"
+                  :license="heroRecipe.image_license"
+                  :credit-author="heroRecipe.image_credit_author"
+                  :credit-source-url="heroRecipe.image_credit_source_url"
+                  :credit-license-url="heroRecipe.image_credit_license_url"
+                  :credit-note="heroRecipe.image_credit_note"
+                  overlay
+                  overlay-align="right"
+                />
+                <div class="hero-deck-scrim" />
+                <span class="hero-deck-title hero-deck-title-light">{{ heroRecipe.title }}</span>
+              </template>
+              <template v-else>
+                <div class="hero-deck-placeholder" aria-hidden="true">🍲</div>
+                <span class="hero-deck-title hero-deck-title-dark">{{ heroRecipe.title }}</span>
+              </template>
+            </RouterLink>
+          </div>
+
+          <div v-if="upNextRecipes.length" class="hero-upnext">
+            <RouterLink
+              v-for="recipe in upNextRecipes"
+              :key="recipe.id"
+              :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
+              class="hero-upnext-card"
+            >
+              <span class="hero-upnext-label">{{ $t('home.upNext') }}</span>
+              <span class="hero-upnext-title">{{ recipe.title }}</span>
+            </RouterLink>
+          </div>
+        </div>
       </div>
       <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
     </div>
@@ -213,32 +295,231 @@ async function handleImport() {
   margin-bottom: 1.25rem;
 }
 
-/* Decorative cards peeking out from behind the carousel — evokes a stack of recipe cards
-   without touching HomeCarousel itself (kept untouched so its own tests/behavior don't change). */
-.carousel-deck {
+.hero-spotlight {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.hero-copy {
+  flex: 1 1 360px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.hero-eyebrow {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.hero-title {
+  margin: 0;
+  font-size: 2.6rem;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.hero-meta {
+  align-items: center;
+  gap: 1rem;
+}
+
+.hero-diet {
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.hero-diet.diet-vegetarian {
+  background: color-mix(in srgb, #3fa34d 15%, var(--color-surface));
+  color: color-mix(in srgb, #3fa34d 75%, var(--color-text));
+}
+
+.hero-diet.diet-vegan {
+  background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
+  color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+}
+
+.hero-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.hero-ctas {
+  margin-top: 0.25rem;
+}
+
+.hero-visual {
+  flex: 0 0 340px;
+  width: 340px;
+}
+
+.hero-deck {
   position: relative;
+  width: 100%;
+  aspect-ratio: 1;
 }
 
-.carousel-deck::before,
-.carousel-deck::after {
-  content: '';
+.hero-deck-back {
   position: absolute;
-  top: 0;
-  right: 10px;
-  left: 10px;
-  bottom: -8px;
-  border-radius: 20px;
-  z-index: -1;
+  inset: 0;
+  border-radius: 24px;
 }
 
-.carousel-deck::before {
-  transform: rotate(-1.5deg);
-  background: var(--color-primary-soft-hover);
+.hero-deck-back-1 {
+  transform: rotate(8deg) translate(14px, 8px);
+  background: linear-gradient(135deg, var(--color-surface-muted), var(--color-border));
 }
 
-.carousel-deck::after {
-  transform: rotate(1.5deg);
-  background: var(--color-border);
+.hero-deck-back-2 {
+  transform: rotate(-6deg) translate(-10px, 6px);
+  background: linear-gradient(135deg, var(--color-primary-soft), var(--color-primary-soft-hover));
+}
+
+.hero-deck-front {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: 24px;
+  text-decoration: none;
+  box-shadow: 0 20px 40px rgba(36, 31, 29, 0.18);
+}
+
+.hero-deck-image {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-deck-image :deep(.image-with-credit-frame) {
+  height: 100%;
+}
+
+.hero-deck-image :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-deck-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  background: var(--color-primary-soft);
+}
+
+.hero-deck-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 55%);
+}
+
+.hero-deck-title {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.1rem;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+
+.hero-deck-title-light {
+  color: #fff;
+}
+
+.hero-deck-title-dark {
+  color: var(--color-text);
+  bottom: 0.9rem;
+}
+
+.hero-upnext {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.hero-upnext-card {
+  flex: 1;
+  padding: 0.65rem 0.85rem;
+  border-radius: 14px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.hero-upnext-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-muted);
+  margin-bottom: 0.15rem;
+}
+
+.hero-upnext-title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.hero-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.hero-skeleton-copy {
+  flex: 1 1 360px;
+  height: 220px;
+  border-radius: 16px;
+  background: var(--color-surface-muted);
+}
+
+.hero-skeleton-visual {
+  flex: 0 0 340px;
+  width: 340px;
+  aspect-ratio: 1;
+  border-radius: 24px;
+  background: var(--color-surface-muted);
+}
+
+@media (max-width: 760px) {
+  .hero-spotlight,
+  .hero-skeleton {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
+  .hero-copy,
+  .hero-skeleton-copy {
+    flex-basis: auto;
+    min-width: 0;
+  }
+
+  .hero-visual,
+  .hero-skeleton-visual {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
 }
 
 .create-menu {
@@ -352,48 +633,6 @@ async function handleImport() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
-}
-
-.carousel-skeleton {
-  aspect-ratio: 16 / 7;
-  min-height: 220px;
-  margin-bottom: 1.5rem;
-  border-radius: 20px;
-  background: var(--color-surface-muted);
-}
-
-.skeleton-tile {
-  flex: 0 0 min(260px, 75%);
-  scroll-snap-align: start;
-}
-
-.carousel-btn {
-  position: absolute;
-  top: 40%;
-  transform: translateY(-50%);
-  z-index: 1;
-  border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(36, 31, 29, 0.15);
-}
-
-.carousel-btn.prev {
-  left: -0.75rem;
-}
-
-.carousel-btn.next {
-  right: -0.75rem;
-}
-
-@media (max-width: 600px) {
-  .carousel-btn {
-    display: none;
-  }
-}
-
-.skeleton-tile {
-  aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  background: var(--color-surface-muted);
 }
 
 /* Thematic pages as a horizontally-scrollable row of round "collection" avatars — a photo

@@ -249,7 +249,6 @@
     "title": "Cocotte",
     "tagline": "Rangez vos recettes, planifiez votre semaine et voyez la valeur nutritionnelle et l'empreinte carbone de chaque repas.",
     "thematicPages": "À explorer",
-    "latestRecipes": "Dernières recettes",
     "seeAll": "Voir toutes les recettes",
     "quickActions": "Actions rapides",
     "thisWeek": "Cette semaine",
@@ -261,7 +260,14 @@
     "inSeason": "De saison en ce moment",
     "fetchError": "Impossible de charger les recettes.",
     "viewRecipe": "Voir la recette",
-    "noRecipes": "Aucune recette pour l'instant."
+    "noRecipes": "Aucune recette pour l'instant.",
+    "greetingMorning": "Bonjour",
+    "greetingAfternoon": "Bonjour",
+    "greetingEvening": "Bonsoir",
+    "heroEyebrowAuth": "{greeting}, {name} — l'idée du jour",
+    "heroEyebrowGuest": "{greeting} — l'idée du jour",
+    "planForLater": "Planifier plus tard",
+    "upNext": "À suivre"
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",

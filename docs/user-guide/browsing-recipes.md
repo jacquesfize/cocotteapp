@@ -19,9 +19,10 @@ From top to bottom:
     instead. The recipe list itself is always reachable from **Recipes** in the main navigation,
     so there's no separate "browse recipes" button here.
 
-**Latest recipes carousel**
-:   The five most recent recipes, with their picture, diet and total time. Swipe or scroll
-    sideways, or click the dots below it. Click a slide (**View recipe**) to open the recipe.
+**Today's pick**
+:   The most recent recipe, with its picture, diet, total time and servings. **View recipe**
+    opens it; **Plan for later** opens the planner. Below it, **Up next** teases the next two
+    most recent recipes.
 
 **This week** *(logged-in users only)*
 :   Your meals for **Today** and **Tomorrow**, by meal. An empty day shows a **Plan a meal**
