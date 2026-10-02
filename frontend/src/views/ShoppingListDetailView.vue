@@ -7,6 +7,7 @@ import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
 import { formatQuantity, formatUnit } from '../utils/format'
+import { shoppingListProgress } from '../utils/shoppingListProgress'
 import type { IngredientCategory, ShoppingList, ShoppingListItem } from '../types/models'
 
 type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
@@ -87,9 +88,7 @@ const groupedItems = computed<ItemGroup[]>(() => {
   })
 })
 
-const totalCount = computed(() => shoppingList.value?.items.length ?? 0)
-const ownedCount = computed(() => shoppingList.value?.items.filter((item) => item.is_owned).length ?? 0)
-const progressPercent = computed(() => (totalCount.value ? Math.round((ownedCount.value / totalCount.value) * 100) : 0))
+const progress = computed(() => shoppingListProgress(shoppingList.value))
 
 async function load() {
   shoppingList.value = (await getShoppingList(props.id)) as ListWithSync
@@ -190,15 +189,15 @@ async function handleExport() {
     <div class="progress-summary">
       <p class="muted">
         {{ $t('shopping.checkOwned') }}
-        <template v-if="totalCount">
-          — {{ $t('shopping.progressCount', { owned: ownedCount, total: totalCount }) }}
+        <template v-if="progress.total">
+          — {{ $t('shopping.progressCount', { owned: progress.owned, total: progress.total }) }}
         </template>
       </p>
       <ProgressBar
-        v-if="totalCount"
-        :percent="progressPercent"
+        v-if="progress.total"
+        :percent="progress.percent"
         role="progressbar"
-        :aria-valuenow="progressPercent"
+        :aria-valuenow="progress.percent"
         aria-valuemin="0"
         aria-valuemax="100"
       />

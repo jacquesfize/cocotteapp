@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import { ShoppingCart, Trash2 } from '@lucide/vue'
+import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
+import { shoppingListProgress } from '../../utils/shoppingListProgress'
 import type { ShoppingList } from '../../types/models'
 
-defineProps<{
+const props = defineProps<{
   list: ShoppingList
 }>()
 defineEmits<{
   delete: [id: number]
 }>()
 
-function ownedCount(list: ShoppingList) {
-  return list.items.filter((item) => item.is_owned).length
-}
-
-function progressPercent(list: ShoppingList) {
-  return list.items.length ? Math.round((ownedCount(list) / list.items.length) * 100) : 0
-}
+const progress = computed(() => shoppingListProgress(props.list))
 </script>
 
 <template>
@@ -32,13 +28,13 @@ function progressPercent(list: ShoppingList) {
       </h2>
       <p class="muted list-meta">
         {{ new Date(list.created_at).toLocaleDateString() }}
-        <template v-if="list.items.length">
-          · {{ $t('shopping.progressCount', { owned: ownedCount(list), total: list.items.length }) }}
+        <template v-if="progress.total">
+          · {{ $t('shopping.progressCount', { owned: progress.owned, total: progress.total }) }}
         </template>
       </p>
       <ProgressBar
-        v-if="list.items.length"
-        :percent="progressPercent(list)"
+        v-if="progress.total"
+        :percent="progress.percent"
         class="list-progress"
         height="0.3rem"
         max-width="220px"

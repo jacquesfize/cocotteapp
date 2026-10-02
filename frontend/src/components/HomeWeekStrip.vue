@@ -8,6 +8,7 @@ import { fetchLegalInfo } from '../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { listShoppingLists } from '../api/shopping'
 import { addDays, toISODate } from '../utils/dates'
+import { shoppingListProgress } from '../utils/shoppingListProgress'
 import type { MealPlanEntry, MealType, ShoppingList } from '../types/models'
 
 const emit = defineEmits<{ (e: 'open-import'): void }>()
@@ -43,9 +44,7 @@ onMounted(async () => {
   isLoading.value = false
 })
 
-const listOwnedCount = computed(() => latestList.value?.items.filter((item) => item.is_owned).length ?? 0)
-const listTotalCount = computed(() => latestList.value?.items.length ?? 0)
-const listProgressPercent = computed(() => (listTotalCount.value ? Math.round((listOwnedCount.value / listTotalCount.value) * 100) : 0))
+const listProgress = computed(() => shoppingListProgress(latestList.value))
 
 const mealTypes = computed<MealType[]>(() =>
   snackEnabled.value ? ALL_MEAL_TYPES : ALL_MEAL_TYPES.filter((mealType) => mealType !== 'snack'),
@@ -111,9 +110,9 @@ const days = computed(() =>
       >
         <ShoppingCart :size="26" />
         <span class="week-action-title">{{ $t('home.openShoppingList') }}</span>
-        <template v-if="listTotalCount">
-          <span class="week-action-progress">{{ $t('shopping.progressCount', { owned: listOwnedCount, total: listTotalCount }) }}</span>
-          <ProgressBar :percent="listProgressPercent" height="0.35rem" track-color="var(--color-primary-soft)" />
+        <template v-if="listProgress.total">
+          <span class="week-action-progress">{{ $t('shopping.progressCount', { owned: listProgress.owned, total: listProgress.total }) }}</span>
+          <ProgressBar :percent="listProgress.percent" height="0.35rem" track-color="var(--color-primary-soft)" />
         </template>
       </RouterLink>
       <div v-else-if="isLoading" class="skeleton skeleton-action" aria-hidden="true" />
