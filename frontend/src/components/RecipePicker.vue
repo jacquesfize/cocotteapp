@@ -64,7 +64,7 @@ function closeSoon() {
       @focus="isOpen = true"
       @blur="closeSoon"
     />
-    <ul v-if="isOpen && suggestions.length" class="suggestions">
+    <ul v-if="isOpen && suggestions.length" class="suggestions-dropdown">
       <li v-for="recipe in suggestions" :key="recipe.id" @mousedown.prevent="select(recipe)">
         {{ recipe.title }}
       </li>
@@ -75,31 +75,5 @@ function closeSoon() {
 <style scoped>
 .picker {
   position: relative;
-}
-
-.suggestions {
-  position: absolute;
-  z-index: 10;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin: 0.35rem 0 0;
-  padding: 0.35rem;
-  list-style: none;
-  background: var(--color-surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.suggestions li {
-  padding: 0.5rem 0.7rem;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.suggestions li:hover {
-  background: var(--color-surface-muted);
 }
 </style>

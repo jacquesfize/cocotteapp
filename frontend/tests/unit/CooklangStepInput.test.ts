@@ -74,7 +74,7 @@ describe('CooklangStepInput', () => {
     await wrapper.vm.$nextTick()
 
     expect(listIngredients).toHaveBeenCalledWith({ search: 'poi' })
-    const items = wrapper.findAll('.suggestions li')
+    const items = wrapper.findAll('.suggestions-dropdown li')
     expect(items[0].text()).toBe('poireau')
   })
 
@@ -83,7 +83,7 @@ describe('CooklangStepInput', () => {
     await typeInto(wrapper, 'Faire revenir le @poireau ')
     await vi.advanceTimersByTimeAsync(300)
 
-    expect(wrapper.find('.suggestions').exists()).toBe(false)
+    expect(wrapper.find('.suggestions-dropdown').exists()).toBe(false)
   })
 
   it('inserts the underscore-joined token when a multi-word suggestion is picked', async () => {
@@ -99,7 +99,7 @@ describe('CooklangStepInput', () => {
     await vi.advanceTimersByTimeAsync(300)
     await wrapper.vm.$nextTick()
 
-    await wrapper.get('.suggestions li').trigger('mousedown')
+    await wrapper.get('.suggestions-dropdown li').trigger('mousedown')
 
     expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Ajouter @huile_olive ')
   })
@@ -113,7 +113,7 @@ describe('CooklangStepInput', () => {
     await vi.advanceTimersByTimeAsync(300)
     await wrapper.vm.$nextTick()
 
-    await wrapper.get('.suggestions li').trigger('mousedown')
+    await wrapper.get('.suggestions-dropdown li').trigger('mousedown')
 
     expect(wrapper.emitted('add-ingredient')?.[0]).toEqual([found])
   })
@@ -127,7 +127,7 @@ describe('CooklangStepInput', () => {
     await vi.advanceTimersByTimeAsync(300)
     await wrapper.vm.$nextTick()
 
-    await wrapper.get('.suggestions li').trigger('mousedown')
+    await wrapper.get('.suggestions-dropdown li').trigger('mousedown')
 
     expect(wrapper.emitted('add-ingredient')).toBeUndefined()
   })
@@ -140,7 +140,7 @@ describe('CooklangStepInput', () => {
     await vi.advanceTimersByTimeAsync(300)
     await wrapper.vm.$nextTick()
 
-    const createOption = wrapper.get('.suggestions li.create')
+    const createOption = wrapper.get('.suggestions-dropdown li.create')
     expect(createOption.text()).toContain('poireau')
 
     await createOption.trigger('mousedown')
@@ -187,7 +187,7 @@ describe('CooklangStepInput template buttons', () => {
     expect(document.activeElement).toBe(textarea)
     expect(textarea.selectionStart).toBe(9)
     expect(listIngredients).toHaveBeenCalled()
-    expect(wrapper.find('.suggestions').exists()).toBe(true)
+    expect(wrapper.find('.suggestions-dropdown').exists()).toBe(true)
     wrapper.unmount()
   })
 

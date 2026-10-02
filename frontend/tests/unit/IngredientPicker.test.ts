@@ -88,13 +88,13 @@ describe('IngredientPicker', () => {
     it('closes after selection and does not search again for the selected name', async () => {
       const wrapper = mount(IngredientPicker, { global: { plugins: [i18n] } })
       await typeAndLoad(wrapper)
-      expect(wrapper.find('ul.suggestions').exists()).toBe(true)
+      expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(true)
 
       await wrapper.find('li').trigger('mousedown')
       await vi.advanceTimersByTimeAsync(500)
       await flushPromises()
 
-      expect(wrapper.find('ul.suggestions').exists()).toBe(false)
+      expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(false)
       expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Coriandre')
       expect(listIngredients).toHaveBeenCalledTimes(1)
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([coriandre])
@@ -110,14 +110,14 @@ describe('IngredientPicker', () => {
       await wrapper.find('input').trigger('focus')
       await flushPromises()
 
-      expect(wrapper.find('ul.suggestions').exists()).toBe(false)
+      expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(false)
     })
 
     it('closes on Escape', async () => {
       const wrapper = mount(IngredientPicker, { global: { plugins: [i18n] } })
       await typeAndLoad(wrapper)
       await wrapper.find('input').trigger('keydown', { key: 'Escape' })
-      expect(wrapper.find('ul.suggestions').exists()).toBe(false)
+      expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(false)
     })
 
     it('navigates with arrows and selects with Enter', async () => {
@@ -128,7 +128,7 @@ describe('IngredientPicker', () => {
 
       await wrapper.find('input').trigger('keydown', { key: 'Enter' })
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([coriandre])
-      expect(wrapper.find('ul.suggestions').exists()).toBe(false)
+      expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(false)
     })
   })
 })

@@ -229,3 +229,36 @@ input[type='checkbox'] {
   color: var(--color-muted);
   font-size: 0.9rem;
 }
+
+/* Liste de suggestions flottante (IngredientPicker, RecipePicker, CooklangStepInput). */
+.suggestions-dropdown {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--color-surface);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--shadow-card);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions-dropdown li {
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.suggestions-dropdown li:hover,
+.suggestions-dropdown li.active {
+  background: var(--color-surface-muted);
+}
+
+.suggestions-dropdown li.create {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}

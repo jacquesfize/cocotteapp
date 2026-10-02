@@ -121,7 +121,7 @@ const exactMatch = () =>
       @keydown="onKeydown"
       @blur="closeSoon"
     />
-    <ul v-if="isOpen && query" class="suggestions">
+    <ul v-if="isOpen && query" class="suggestions-dropdown">
       <li
         v-for="(ingredient, i) in suggestions"
         :key="ingredient.id"
@@ -146,37 +146,5 @@ const exactMatch = () =>
 <style scoped>
 .picker {
   position: relative;
-}
-
-.suggestions {
-  position: absolute;
-  z-index: 10;
-  top: 100%;
-  left: 0;
-  right: 0;
-  margin: 0.35rem 0 0;
-  padding: 0.35rem;
-  list-style: none;
-  background: var(--color-surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.suggestions li {
-  padding: 0.5rem 0.7rem;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.suggestions li:hover,
-.suggestions li.active {
-  background: var(--color-surface-muted);
-}
-
-.suggestions li.create {
-  color: var(--color-primary-dark);
-  font-weight: 600;
 }
 </style>
