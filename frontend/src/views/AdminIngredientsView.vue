@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import IngredientEditModal from '../components/IngredientEditModal.vue'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { deleteIngredient, listIngredients } from '../api/ingredients'
 import type { IngredientListParams } from '../types/api'
 import type { Ingredient } from '../types/models'
@@ -122,8 +123,12 @@ async function handleDelete(ingredient: Ingredient) {
       </div>
 
       <p v-if="message" class="error" role="alert">{{ message }}</p>
-      <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
-      <p v-else-if="!ingredients.length" class="muted">{{ $t('adminIngredients.noIngredients') }}</p>
+      <AsyncState
+        v-if="isLoading || !ingredients.length"
+        :loading="isLoading"
+        :loading-text="$t('common.loading')"
+        :empty-text="$t('adminIngredients.noIngredients')"
+      />
 
       <div v-else class="card admin-table-wrapper">
         <table class="admin-table">

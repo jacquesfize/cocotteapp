@@ -7,6 +7,7 @@ import Pagination from '../components/Pagination.vue'
 import PageHeader from '../components/PageHeader.vue'
 import RecipeCard from '../components/RecipeCard.vue'
 import RecipeFilters, { type RecipeFilterValues } from '../components/RecipeFilters.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { previewImportFromUrl } from '../api/importer'
 import { deleteRecipe, listRecipes } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
@@ -227,8 +228,12 @@ async function handleImport() {
     <RecipeFilters v-model="filters" :my-allergens="myAllergens" />
 
     <p v-if="deleteError" class="error">{{ deleteError }}</p>
-    <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
-    <p v-else-if="!recipes.length" class="muted">{{ $t('recipes.noResults') }}</p>
+    <AsyncState
+      v-if="isLoading || !recipes.length"
+      :loading="isLoading"
+      :loading-text="$t('common.loading')"
+      :empty-text="$t('recipes.noResults')"
+    />
     <div v-else class="card recipe-list">
       <RecipeCard
         v-for="recipe in recipes"

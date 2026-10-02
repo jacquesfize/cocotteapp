@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { deleteUser, listUsers, updateUser } from '../api/admin'
 import { useAuthStore } from '../stores/auth'
 import type { AdminUserListParams } from '../types/api'
@@ -81,8 +82,12 @@ async function handleDelete(user: AdminUser) {
         <input id="admin-search" v-model="search" :placeholder="$t('admin.searchPlaceholder')" />
       </div>
 
-      <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
-      <p v-else-if="!users.length" class="muted">{{ $t('admin.noUsers') }}</p>
+      <AsyncState
+        v-if="isLoading || !users.length"
+        :loading="isLoading"
+        :loading-text="$t('common.loading')"
+        :empty-text="$t('admin.noUsers')"
+      />
 
       <div v-else class="card admin-table-wrapper">
         <table class="admin-table admin-table--scroll">

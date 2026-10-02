@@ -7,6 +7,7 @@ import BaseModal from '../components/BaseModal.vue'
 import CalendarExportMenu from '../components/CalendarExportMenu.vue'
 import MealSlot from '../components/MealSlot.vue'
 import PageHeader from '../components/PageHeader.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { fetchLegalInfo } from '../api/auth'
 import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
@@ -250,7 +251,7 @@ const rangeLabel = computed(() => {
       </button>
     </div>
 
-    <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
+    <AsyncState v-if="isLoading" loading :loading-text="$t('common.loading')" />
 
     <div v-if="viewMode === 'week'" class="agenda-week">
       <div class="agenda-corner" />

@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import ShoppingListCard from '../components/shared/ShoppingListCard.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { deleteShoppingList, listShoppingLists } from '../api/shopping'
 import type { ShoppingList } from '../types/models'
 
@@ -41,7 +42,7 @@ async function handleDelete(id: number) {
 <template>
   <div>
     <PageHeader :icon="ShoppingCart" :title="$t('shopping.title')" />
-    <p v-if="!shoppingLists.length" class="muted">{{ $t('shopping.noLists') }}</p>
+    <AsyncState v-if="!shoppingLists.length" :empty-text="$t('shopping.noLists')" />
 
     <ShoppingListCard v-for="list in shoppingLists" :key="list.id" :list="list" @delete="handleDelete" />
 

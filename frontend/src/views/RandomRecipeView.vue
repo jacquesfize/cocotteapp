@@ -5,6 +5,7 @@ import AddToPlanForm from '../components/AddToPlanForm.vue'
 import PageHeader from '../components/PageHeader.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { getRandomRecipe } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
 import type { RecipeListParams } from '../types/api'
@@ -62,8 +63,12 @@ onMounted(draw)
       </div>
     </div>
 
-    <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
-    <p v-else-if="notFound" class="muted">{{ $t('random.noResult') }}</p>
+    <AsyncState
+      v-if="isLoading || notFound"
+      :loading="isLoading"
+      :loading-text="$t('common.loading')"
+      :empty-text="$t('random.noResult')"
+    />
 
     <template v-if="recipe && !isLoading">
       <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="random-title-link">

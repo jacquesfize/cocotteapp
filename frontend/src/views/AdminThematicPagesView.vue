@@ -3,6 +3,7 @@ import { LayoutGrid, Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PageHeader from '../components/PageHeader.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import {
   createThematicPage,
   deleteThematicPage,
@@ -312,8 +313,12 @@ async function handleDelete(page: AdminThematicPage) {
         </form>
       </div>
 
-      <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
-      <p v-else-if="!pages.length" class="muted">{{ $t('adminThematicPages.noPages') }}</p>
+      <AsyncState
+        v-if="isLoading || !pages.length"
+        :loading="isLoading"
+        :loading-text="$t('common.loading')"
+        :empty-text="$t('adminThematicPages.noPages')"
+      />
 
       <div v-else class="card admin-table-wrapper">
         <table class="admin-table admin-table--scroll">

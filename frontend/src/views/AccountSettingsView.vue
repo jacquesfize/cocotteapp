@@ -5,6 +5,7 @@ import { listAllergens } from '../api/allergens'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { changePassword, exportMyData } from '../api/auth'
 import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
@@ -461,7 +462,7 @@ async function handleDeleteAccount() {
       </form>
 
       <h3 style="margin-top: 1.25rem">{{ $t('account.shareListTitle') }}</h3>
-      <p v-if="!shares.length" class="muted">{{ $t('account.shareListEmpty') }}</p>
+      <AsyncState v-if="!shares.length" :empty-text="$t('account.shareListEmpty')" />
       <ul v-else class="share-list">
         <li v-for="share in shares" :key="share.id">
           <span>

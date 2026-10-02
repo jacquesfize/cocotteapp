@@ -7,6 +7,7 @@ import BaseModal from '../components/BaseModal.vue'
 import HomeWeekStrip from '../components/HomeWeekStrip.vue'
 import ImageWithCredit from '../components/ImageWithCredit.vue'
 import RecipeCard from '../components/RecipeCard.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { listThematicPages } from '../api/thematicPages'
@@ -253,7 +254,7 @@ async function handleImport() {
           />
         </div>
       </template>
-      <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
+      <AsyncState v-else :empty-text="$t('home.noRecipes')" />
     </div>
 
     <BaseModal v-if="showImportForm" :title="$t('recipes.importFromUrl')" @close="showImportForm = false">
