@@ -65,11 +65,14 @@ To use a list offline, open it **once while online** so it's saved on your devic
 
 ## Export a list
 
-Click **Export as .txt** to download the list as a plain text file named after the list. It
-contains the list name and one line per ingredient, for example `- 400 g Carotte`. **Ticked items
-are left out**, so the file only contains what you still need to buy. Unit names in the file are
-always in French (for example *c. à soupe*), whatever the interface language. You can paste it into
-a notes app or a message.
+On a phone or browser that supports sharing (most mobile browsers), click **Share** to send the
+list straight into another app — Notes, Google Keep, Reminders, Todoist, a chat app, and so on —
+through the device's usual share sheet. Where sharing isn't available, the button instead reads
+**Export as .txt** and downloads the list as a plain text file named after the list.
+
+Either way, the content contains the list name and one line per ingredient, for example
+`- 400 g Carotte`. **Ticked items are left out**, so it only contains what you still need to buy.
+Unit names are always in French (for example *c. à soupe*), whatever the interface language.
 
 ## Your lists
 
