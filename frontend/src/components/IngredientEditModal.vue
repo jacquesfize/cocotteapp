@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Sparkles, X } from '@lucide/vue'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { Sparkles } from '@lucide/vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import BaseModal from './BaseModal.vue'
 import { listAllergens } from '../api/allergens'
 import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../api/ingredients'
 import { allergenEmoji } from '../utils/allergens'
@@ -140,29 +141,10 @@ async function handleSubmit() {
   }
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('close')
-}
-
-onMounted(() => window.addEventListener('keydown', handleKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
 </script>
 
 <template>
-  <div class="overlay" @mousedown.self="emit('close')">
-    <div class="card modal" role="dialog" aria-modal="true" :aria-label="t(isEdit ? 'ingredientModal.editTitle' : 'ingredientModal.title')">
-      <div class="row modal-header">
-        <h2>{{ t(isEdit ? 'ingredientModal.editTitle' : 'ingredientModal.title') }}</h2>
-        <button
-          type="button"
-          class="secondary icon-btn"
-          :aria-label="t('common.cancel')"
-          @click="emit('close')"
-        >
-          <X :size="16" />
-        </button>
-      </div>
-
+  <BaseModal :title="t(isEdit ? 'ingredientModal.editTitle' : 'ingredientModal.title')" @close="emit('close')">
       <form novalidate @submit.prevent="handleSubmit">
         <div class="field">
           <label for="ingredient-modal-name">{{ t('ingredientModal.name') }}</label>
@@ -254,8 +236,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
           <button type="submit" :disabled="isSubmitting">{{ t(isEdit ? 'common.save' : 'ingredientModal.submit') }}</button>
         </div>
       </form>
-    </div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
@@ -276,35 +257,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleKeydown))
   width: auto;
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: var(--color-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.modal {
-  width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.modal-header h2 {
-  margin: 0;
-}
-
-.modal h3 {
+h3 {
   margin: 1rem 0 0.5rem;
   font-size: 0.95rem;
 }
