@@ -392,6 +392,7 @@
   },
   "shopping": {
     "title": "Shopping lists",
+    "backToLists": "Back to my lists",
     "noLists": "No list yet. Generate one from the planner.",
     "delete": "Delete",
     "export": "Export as .txt",

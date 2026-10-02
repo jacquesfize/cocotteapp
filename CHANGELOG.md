@@ -52,7 +52,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   new list from the planner was the only way to undo a mistaken tick).
 - Shopping lists got a visual refresh: each category heading now has an icon, a progress summary
   ("x/y bought") with a progress bar sits above the list, each category shows its own "done/total"
-  count, and quantities are shown as a small pill badge for easier scanning.
+  count, and quantities are shown as a small pill badge for easier scanning. The **Shopping**
+  overview page got the same treatment (an icon, date and progress bar per list, on a clickable
+  card), and the list detail page now has a "Back to my lists" link.
 
 ### Fixed
 

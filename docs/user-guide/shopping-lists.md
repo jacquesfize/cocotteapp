@@ -76,7 +76,9 @@ a notes app or a message.
 ## Your lists
 
 Click **Shopping** in the top bar to see all your lists, newest first. Each one shows its name
-(*Liste de courses* by default) and creation date. Click a list to open it.
+(*Liste de courses* by default), creation date and a progress bar for how much of it you've
+already ticked off. Click anywhere on a list to open it, or the trash icon to delete it. From a
+list, click **Back to my lists** to return to this page.
 
 ![The shopping lists page](../assets/screenshots/shopping-lists.png)
 

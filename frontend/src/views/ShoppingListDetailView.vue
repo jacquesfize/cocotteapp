@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Apple, Bean, Beef, Carrot, CloudOff, Download, Droplet, Egg, Milk, Nut, Package, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
+import { Apple, Bean, Beef, Carrot, ChevronLeft, CloudOff, Download, Droplet, Egg, Milk, Nut, Package, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
@@ -139,6 +139,9 @@ async function handleExport() {
 
 <template>
   <div v-if="shoppingList">
+    <RouterLink :to="{ name: 'shopping-lists' }" class="back-link">
+      <ChevronLeft :size="16" />{{ $t('shopping.backToLists') }}
+    </RouterLink>
     <div class="row page-header">
       <PageHeader :icon="ShoppingCart">{{ shoppingList.name }}</PageHeader>
       <button @click="handleExport"><Download :size="16" />{{ $t('shopping.export') }}</button>
@@ -187,6 +190,20 @@ async function handleExport() {
 </template>
 
 <style scoped>
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--color-primary-dark);
+}
+
 .page-header {
   justify-content: space-between;
   align-items: center;

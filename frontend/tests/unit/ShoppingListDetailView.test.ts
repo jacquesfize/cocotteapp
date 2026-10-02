@@ -65,7 +65,7 @@ describe('ShoppingListDetailView', () => {
   it('groups items under a heading per ingredient category, in the canonical category order', async () => {
     const wrapper = mount(ShoppingListDetailView, {
       props: { id: 1 },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
     await flushPromises()
 
@@ -83,7 +83,7 @@ describe('ShoppingListDetailView', () => {
   it('shows an overall progress summary and a per-category count', async () => {
     const wrapper = mount(ShoppingListDetailView, {
       props: { id: 1 },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
     await flushPromises()
 
@@ -97,7 +97,7 @@ describe('ShoppingListDetailView', () => {
     vi.mocked(markOwned).mockResolvedValue({} as never)
     const wrapper = mount(ShoppingListDetailView, {
       props: { id: 1 },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
     await flushPromises()
 
@@ -137,7 +137,7 @@ describe('ShoppingListDetailView', () => {
 
     const wrapper = mount(ShoppingListDetailView, {
       props: { id: 1 },
-      global: { plugins: [i18n] },
+      global: { plugins: [i18n], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
     await flushPromises()
 
