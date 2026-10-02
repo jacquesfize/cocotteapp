@@ -139,6 +139,8 @@ Your diet, activity level and allergies may reveal information about your health
 processes them with your explicit consent. The **Health data consent** card shows the date you
 consented at sign-up.
 
+![The Health data consent card, with the consent date and the option to withdraw or give consent](../assets/screenshots/account-consent.png)
+
 - **Withdraw my consent** erases your diet, activity level, allergies and intolerances (they go back
   to the defaults) after a confirmation. Your recipes, planner and shopping lists are kept.
 - **Give my consent** appears instead once you have withdrawn it (or if you signed up before
