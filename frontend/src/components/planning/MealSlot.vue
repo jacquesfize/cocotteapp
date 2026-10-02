@@ -2,7 +2,7 @@
 import { Plus, X } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AllergenWarning from '../AllergenWarning.vue'
+import AllergenWarning from '../nutrition/AllergenWarning.vue'
 import BaseModal from '../shared/BaseModal.vue'
 import RecipePicker from '../recipes/RecipePicker.vue'
 import { createMealPlanEntry, deleteMealPlanEntry } from '../../api/planning'

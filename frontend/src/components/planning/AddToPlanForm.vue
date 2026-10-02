@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AllergenWarning from '../AllergenWarning.vue'
+import AllergenWarning from '../nutrition/AllergenWarning.vue'
 import { createMealPlanEntry } from '../../api/planning'
 import type { MealType, Recipe } from '../../types/models'
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { TriangleAlert } from '@lucide/vue'
 import { computed } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { allergenEmoji, matchUserAllergens } from '../utils/allergens'
+import { useAuthStore } from '../../stores/auth'
+import { allergenEmoji, matchUserAllergens } from '../../utils/allergens'
 
 // Avertissement (non bloquant) quand une recette contient un allergène du profil.
 const props = defineProps<{ allergens?: string[] }>()

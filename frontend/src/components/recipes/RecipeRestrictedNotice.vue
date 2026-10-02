@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link2, Lock } from '@lucide/vue'
-import AllergenBadges from '../AllergenBadges.vue'
+import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import RecipeRating from './RecipeRating.vue'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'

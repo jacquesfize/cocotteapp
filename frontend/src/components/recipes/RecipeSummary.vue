@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ChefHat, Clock, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
-import AllergenBadges from '../AllergenBadges.vue'
+import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import BaseModal from '../shared/BaseModal.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
-import NutritionCard from '../NutritionCard.vue'
+import NutritionCard from '../nutrition/NutritionCard.vue'
 import RecipeCookMode from './RecipeCookMode.vue'
 import RecipeRating from './RecipeRating.vue'
 import StepTimerButton from './StepTimerButton.vue'

@@ -6,7 +6,7 @@ import { useAuthStore } from '../../stores/auth'
 import { formatDuration } from '../../utils/format'
 import { isImportedRecipe } from '../../utils/recipeOrigin'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import AllergenBadges from '../AllergenBadges.vue'
+import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import type { Recipe } from '../../types/models'
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { getRecipeNutrition } from '../api/recipes'
-import type { NutrientTotals } from '../types/models'
+import { getRecipeNutrition } from '../../api/recipes'
+import type { NutrientTotals } from '../../types/models'
 
 const props = defineProps<{
   recipeId: string | number

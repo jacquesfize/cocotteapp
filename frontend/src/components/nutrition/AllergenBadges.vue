@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAuthStore } from '../stores/auth'
-import { allergenEmoji } from '../utils/allergens'
+import { useAuthStore } from '../../stores/auth'
+import { allergenEmoji } from '../../utils/allergens'
 
 const props = defineProps<{
   allergens: string[]
