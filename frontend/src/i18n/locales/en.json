@@ -618,7 +618,7 @@
     "purposesTitle": "Purposes and legal bases",
     "purposesText": "Your data is used only to run the service: authentication and account management (contract), recipes, planning, shopping lists and nutrition features (contract), and personalisation based on diet, activity and allergies (your explicit consent). It is neither sold nor used for advertising or profiling.",
     "healthTitle": "Health data",
-    "healthText": "Allergies, intolerances, diet and activity level may reveal information about your health or beliefs. They are processed only with your explicit consent, given at sign-up and recorded with its date. You can withdraw it at any time in My account; doing so erases this data.",
+    "healthText": "Allergies, intolerances, diet and activity level may reveal information about your health or beliefs. They are processed only with your explicit consent, given at sign-up and recorded with its date, and are used only to personalise your use of Cocotte: excluding recipes that don't suit you from search results, warning you if a recipe added to your planner contains an allergen, and computing your nutrition alerts. You can withdraw this consent at any time in My account; doing so erases this data.",
     "retentionTitle": "Retention",
     "retentionText": "Your data is kept as long as your account exists. Deleting your account erases it permanently.",
     "retentionInactive": "Accounts with no login for {days} days are deleted, after an email warning sent beforehand.",

@@ -618,7 +618,7 @@
     "purposesTitle": "Finalités et bases légales",
     "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage.",
     "healthTitle": "Données de santé",
-    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription et enregistré avec sa date. Vous pouvez le retirer à tout moment dans Mon compte ; ces données sont alors effacées.",
+    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
     "retentionTitle": "Durée de conservation",
     "retentionText": "Vos données sont conservées tant que votre compte existe. La suppression du compte les efface définitivement.",
     "retentionInactive": "Les comptes sans connexion depuis {days} jours sont supprimés, après un e-mail de préavis.",
