@@ -661,7 +661,7 @@ async function handleSubmit() {
   display: inline-block;
   margin-top: 0.35rem;
   padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-danger-soft);
   color: var(--color-danger);
   font-size: 0.75rem;

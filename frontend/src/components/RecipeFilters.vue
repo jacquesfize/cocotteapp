@@ -148,7 +148,7 @@ function reset() {
   min-width: 1.35rem;
   height: 1.35rem;
   padding: 0 0.35rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-size: 0.75rem;

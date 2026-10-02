@@ -98,7 +98,7 @@ const showLinks = computed(
   position: absolute;
   bottom: 0.75rem;
   padding: 0.25rem 0.65rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.55);
   color: var(--color-on-primary);
   font-size: 0.7rem;
