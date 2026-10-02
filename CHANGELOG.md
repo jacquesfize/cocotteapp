@@ -9,6 +9,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Two new instance-level settings, both off by default: `PLANNING_SNACK_ENABLED` shows or hides
+  the **Snack** meal slot in the weekly planner, and `NUTRITION_ALERTS_ENABLED` shows or hides
+  the nutrient-deficiency alerts in the planner's nutritional intake summary. See the admin
+  guide's Configuration page.
 - The seeded ingredient library now includes "Tomates concassées" (canned crushed tomatoes), which the
   documentation demo data relies on.
 - GDPR tooling for instance administrators: explicit consent to the processing of health-related
@@ -49,6 +53,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - On the homepage, "New recipe" and "Import" are now a single "New recipe" button that opens a
   menu offering "Create manually" or "Import from a URL", and the "Browse recipes" button was
   removed since the main navigation already links to the recipe list.
+- In cook mode, a step's photo now fills most of the available height instead of a small fixed-size
+  crop, with the instruction text anchored to a band at the bottom (around 20% of the height by
+  default, growing to fit longer instructions instead of ever clipping them).
 
 ### Fixed
 

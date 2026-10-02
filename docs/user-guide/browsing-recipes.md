@@ -167,7 +167,8 @@ while cooking:
   turns into a checkmark — pressing it (or swiping/pressing → again) exits cook mode instead of
   doing nothing.
 - A step with its own photo (see [Add a photo to a step](creating-recipes.md#add-a-photo-to-a-step))
-  shows it above the instruction text.
+  shows it filling most of the screen, with the instruction text in a band at the bottom that
+  grows taller for longer instructions.
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
   by tapping outside it.

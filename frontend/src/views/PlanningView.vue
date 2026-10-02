@@ -7,6 +7,7 @@ import BaseModal from '../components/BaseModal.vue'
 import CalendarExportMenu from '../components/CalendarExportMenu.vue'
 import MealSlot from '../components/MealSlot.vue'
 import PageHeader from '../components/PageHeader.vue'
+import { fetchLegalInfo } from '../api/auth'
 import { downloadWeekPdf, getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../api/planning'
 import { createShoppingList } from '../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../utils/dates'
@@ -18,7 +19,13 @@ import type { MealPlanEntry, MealType, NutrientDeficiency, PlanningShareReceived
 const { t, locale } = useI18n()
 const router = useRouter()
 
-const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
+// La collation est une bascule d'instance (désactivée par défaut, voir GET /api/auth/legal/) :
+// on ne sait si elle doit apparaître qu'une fois fetchLegalInfo() revenu (onMounted ci-dessous).
+const ALL_MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
+const snackEnabled = ref(false)
+const MEAL_TYPES = computed<MealType[]>(() =>
+  snackEnabled.value ? ALL_MEAL_TYPES : ALL_MEAL_TYPES.filter((mealType) => mealType !== 'snack'),
+)
 
 type ViewMode = 'week' | 'month'
 const VIEW_MODES: ViewMode[] = ['week', 'month']
@@ -148,12 +155,22 @@ async function loadSharedAgendas() {
   sharedAgendas.value = await listSharedWithMe()
 }
 
+async function loadInstanceSettings() {
+  try {
+    const info = await fetchLegalInfo()
+    snackEnabled.value = info.planning_snack_enabled
+  } catch {
+    // Reste désactivée (valeur par défaut) si l'appel échoue.
+  }
+}
+
 watch(weekOffset, load)
 watch(monthOffset, load)
 watch(viewMode, load)
 watch(selectedOwner, load)
 onMounted(load)
 onMounted(loadSharedAgendas)
+onMounted(loadInstanceSettings)
 
 async function handleGenerateShoppingList() {
   if (!entries.value.length) return

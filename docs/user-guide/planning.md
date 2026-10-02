@@ -23,8 +23,13 @@ The **Week** / **Month** buttons at the top switch between the two views.
 
 **Week view**
 :   A grid with the seven days of the week (Monday to Sunday) as columns, and **Breakfast**,
-    **Lunch**, **Dinner** and **Snack** as rows. Each cell lists the recipes planned for that
-    meal. Click a recipe to open it.
+    **Lunch** and **Dinner** as rows. Each cell lists the recipes planned for that meal. Click a
+    recipe to open it.
+
+> [!NOTE]
+> The instance administrator can also enable a fourth row, **Snack**, for everyone on the
+> instance (off by default). If you don't see it, ask your administrator — see
+> [Configuration](../admin-guide/configuration.md#planning-and-nutrition-features).
 
 **Month view**
 :   A calendar of the whole month, listing the recipes planned each day. Click a **day number**
@@ -96,9 +101,11 @@ Click **Nutritional intake** at the bottom of the planner to open a summary of t
 period:
 
 - **Possibly insufficient intake this week** lists each nutrient whose **daily average** falls
-  below your daily minimum, as *nutrient : your average / minimum unit*.
+  below your daily minimum, as *nutrient : your average / minimum unit*. This section only
+  appears if the instance administrator has turned the feature on (off by default — see
+  [Configuration](../admin-guide/configuration.md#planning-and-nutrition-features)).
 - **This week's carbon footprint** is the total kg CO₂e of all the planned meals, scaled to
-  their servings.
+  their servings. This is always shown, regardless of the deficiency-alerts setting.
 
 ![The Nutritional intake dialog with deficiency alerts and the carbon total](../assets/screenshots/planning-nutrition.png)
 

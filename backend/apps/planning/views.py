@@ -2,6 +2,7 @@ from datetime import date as date_cls
 from datetime import timedelta
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -114,11 +115,13 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
         daily_average = {field: totals[field] / days for field in NUTRIENT_FIELDS}
         carbon_daily_average = carbon_total / days
 
-        agenda_owner, _permission = self._resolve_agenda()
-        deficiencies = find_deficiencies(daily_average, agenda_owner.diet_type, agenda_owner.activity_level)
-        for deficiency in deficiencies:
-            deficiency["amount"] = float(deficiency["amount"])
-            deficiency["minimum"] = float(deficiency["minimum"])
+        deficiencies = []
+        if settings.NUTRITION_ALERTS_ENABLED:
+            agenda_owner, _permission = self._resolve_agenda()
+            deficiencies = find_deficiencies(daily_average, agenda_owner.diet_type, agenda_owner.activity_level)
+            for deficiency in deficiencies:
+                deficiency["amount"] = float(deficiency["amount"])
+                deficiency["minimum"] = float(deficiency["minimum"])
 
         return Response(
             {

@@ -21,6 +21,12 @@ SECRET_KEY = env("DJANGO_SECRET_KEY", default="change-me-in-production")
 DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
+# Bascules d'instance (désactivées par défaut) : la collation dans l'agenda hebdomadaire et les
+# alertes de carence nutritionnelle, toutes deux jugées pas assez mûres/voulues pour être actives
+# sans que l'administrateur de l'instance ne les active explicitement.
+PLANNING_SNACK_ENABLED = env.bool("PLANNING_SNACK_ENABLED", default=False)
+NUTRITION_ALERTS_ENABLED = env.bool("NUTRITION_ALERTS_ENABLED", default=False)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
