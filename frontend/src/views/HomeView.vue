@@ -111,35 +111,39 @@ async function handleImport() {
   <div>
     <h1 class="sr-only">{{ $t('home.title') }}</h1>
 
-    <div class="row quick-actions" :aria-label="$t('home.quickActions')">
-      <div v-if="authStore.isAuthenticated" ref="createMenuEl" class="create-menu">
-        <button
-          class="create-toggle"
-          type="button"
-          :aria-expanded="showCreateMenu"
-          aria-controls="home-create-panel"
-          @click="showCreateMenu = !showCreateMenu"
-        >
-          <Plus :size="16" />{{ $t('recipes.newRecipe') }}<ChevronDown :size="16" />
-        </button>
-        <div id="home-create-panel" class="create-panel" :class="{ 'is-open': showCreateMenu }">
-          <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="closeCreateMenu">
-            <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
-          </RouterLink>
-          <button type="button" class="create-link" @click="openImportForm">
-            <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
+    <div class="hero-card">
+      <div class="row hero-top" :aria-label="$t('home.quickActions')">
+        <div v-if="authStore.isAuthenticated" ref="createMenuEl" class="create-menu">
+          <button
+            class="create-toggle"
+            type="button"
+            :aria-expanded="showCreateMenu"
+            aria-controls="home-create-panel"
+            @click="showCreateMenu = !showCreateMenu"
+          >
+            <Plus :size="16" />{{ $t('recipes.newRecipe') }}<ChevronDown :size="16" />
           </button>
+          <div id="home-create-panel" class="create-panel" :class="{ 'is-open': showCreateMenu }">
+            <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="closeCreateMenu">
+              <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
+            </RouterLink>
+            <button type="button" class="create-link" @click="openImportForm">
+              <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
+            </button>
+          </div>
         </div>
+        <RouterLink v-else :to="{ name: 'register' }">
+          <button class="secondary">{{ $t('nav.register') }}</button>
+        </RouterLink>
       </div>
-      <RouterLink v-else :to="{ name: 'register' }">
-        <button class="secondary">{{ $t('nav.register') }}</button>
-      </RouterLink>
-    </div>
 
-    <div v-if="isLoading" class="carousel-skeleton" aria-hidden="true" />
-    <p v-else-if="loadError" class="muted">{{ $t('home.fetchError') }}</p>
-    <HomeCarousel v-else-if="latestRecipes.length" :recipes="latestRecipes" />
-    <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
+      <div v-if="isLoading" class="carousel-skeleton" aria-hidden="true" />
+      <p v-else-if="loadError" class="muted">{{ $t('home.fetchError') }}</p>
+      <div v-else-if="latestRecipes.length" class="carousel-deck">
+        <HomeCarousel :recipes="latestRecipes" />
+      </div>
+      <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
+    </div>
 
     <BaseModal v-if="showImportForm" :title="$t('recipes.importFromUrl')" @close="showImportForm = false">
       <form class="row" style="align-items: flex-end" @submit.prevent="handleImport">
@@ -158,20 +162,18 @@ async function handleImport() {
 
     <section v-if="thematicPages.length" class="home-section">
       <h2>{{ $t('home.thematicPages') }}</h2>
-      <div class="thematic-grid">
+      <div class="thematic-row">
         <RouterLink
           v-for="page in thematicPages"
           :key="page.id"
-          class="thematic-card card"
+          class="thematic-avatar"
           :to="{ name: 'recipes', query: page.filters }"
         >
-          <img v-if="page.image" :src="page.image" class="thematic-image" alt="" />
-          <span v-else-if="page.icon" class="thematic-icon-badge">{{ page.icon }}</span>
-          <div class="thematic-scrim" />
-          <div class="thematic-body">
-            <h3>{{ page.title }}</h3>
-            <p v-if="page.description" class="thematic-description">{{ page.description }}</p>
-          </div>
+          <span class="thematic-avatar-circle">
+            <img v-if="page.image" :src="page.image" alt="" />
+            <span v-else-if="page.icon" class="thematic-avatar-icon">{{ page.icon }}</span>
+          </span>
+          <span class="thematic-avatar-label">{{ page.title }}</span>
         </RouterLink>
       </div>
     </section>
@@ -194,8 +196,49 @@ async function handleImport() {
 </template>
 
 <style scoped>
-.quick-actions {
-  margin-bottom: 1rem;
+.hero-card {
+  padding: 1.5rem 1.5rem 2.75rem;
+  margin-bottom: 1.5rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-muted) 100%);
+}
+
+@media (max-width: 600px) {
+  .hero-card {
+    padding: 1.25rem 1.25rem 2.25rem;
+  }
+}
+
+.hero-top {
+  margin-bottom: 1.25rem;
+}
+
+/* Decorative cards peeking out from behind the carousel — evokes a stack of recipe cards
+   without touching HomeCarousel itself (kept untouched so its own tests/behavior don't change). */
+.carousel-deck {
+  position: relative;
+}
+
+.carousel-deck::before,
+.carousel-deck::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 10px;
+  left: 10px;
+  bottom: -8px;
+  border-radius: 20px;
+  z-index: -1;
+}
+
+.carousel-deck::before {
+  transform: rotate(-1.5deg);
+  background: var(--color-primary-soft-hover);
+}
+
+.carousel-deck::after {
+  transform: rotate(1.5deg);
+  background: var(--color-border);
 }
 
 .create-menu {
@@ -353,75 +396,62 @@ async function handleImport() {
   background: var(--color-surface-muted);
 }
 
-.thematic-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
+/* Thematic pages as a horizontally-scrollable row of round "collection" avatars — a photo
+   when the page has one, its emoji icon on a soft accent circle otherwise (never a flat
+   saturated color card, which is what an icon-only page used to fall back to). Shape-distinct
+   from the "In season" grid below so the two photo sections don't read as the same card
+   repeated twice. */
+.thematic-row {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
 }
 
-.thematic-card {
-  position: relative;
-  display: block;
-  aspect-ratio: 1;
-  overflow: hidden;
-  padding: 0;
-  margin-bottom: 0;
-  border: 0;
-  border-radius: 16px;
+.thematic-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  width: 92px;
   text-decoration: none;
-  color: #fff;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  color: var(--color-text);
 }
 
-.thematic-card:hover {
+.thematic-avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--color-primary-soft);
+  border: 3px solid var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.15s ease;
+}
+
+.thematic-avatar:hover .thematic-avatar-circle {
   transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(36, 31, 29, 0.06), 0 12px 24px rgba(36, 31, 29, 0.08);
 }
 
-.thematic-image {
-  position: absolute;
-  inset: 0;
+.thematic-avatar-circle img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.thematic-icon-badge {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
-  font-size: 2rem;
+.thematic-avatar-icon {
+  font-size: 1.8rem;
   line-height: 1;
 }
 
-.thematic-scrim {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 60%);
-}
-
-.thematic-body {
-  position: absolute;
-  left: 0.85rem;
-  right: 0.85rem;
-  bottom: 0.75rem;
-}
-
-.thematic-card h3 {
-  margin: 0 0 0.15rem;
-  font-size: 1rem;
-  line-height: 1.25;
-  color: inherit;
-}
-
-.thematic-description {
-  margin: 0;
+.thematic-avatar-label {
   font-size: 0.8rem;
-  opacity: 0.9;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.25;
 }
 </style>

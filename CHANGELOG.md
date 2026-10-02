@@ -71,9 +71,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - In cook mode, a step's photo now fills most of the available height instead of a small fixed-size
   crop, with the instruction text anchored to a band at the bottom (around 20% of the height by
   default, growing to fit longer instructions instead of ever clipping them).
-- On the homepage, the "Latest shopping list" link in the "This week" card is now a pill button
-  with a cart icon, matching the nutrition-alerts badge next to it, instead of a bare underlined
-  text link.
+- The homepage got a visual refresh: the latest-recipes carousel and the "New recipe" quick
+  action now sit inside a single hero card instead of the button floating in its own row above
+  an unrelated section; the "This week" card now floats over the hero's bottom edge, and its
+  "Latest shopping list" link is a pill button with a cart icon (matching the nutrition-alerts
+  badge next to it) instead of a bare underlined text link; and the **Explore** thematic pages
+  are now a row of round photo avatars instead of square tiles, so a page without its own photo
+  shows its icon on a plain accent-tinted circle instead of a flat saturated-color card.
 
 ### Fixed
 

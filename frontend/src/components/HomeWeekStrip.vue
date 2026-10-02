@@ -91,7 +91,19 @@ const days = computed(() =>
 
 <style scoped>
 .week-strip {
+  /* Floats up over the hero card's bottom edge instead of sitting in its own separate block —
+     the hero reserves extra bottom padding (see .hero-card) so this only overlaps empty
+     background, never the carousel itself. */
+  position: relative;
+  z-index: 2;
+  margin-top: -2rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .week-strip {
+    margin-top: -1.5rem;
+  }
 }
 
 .week-header {

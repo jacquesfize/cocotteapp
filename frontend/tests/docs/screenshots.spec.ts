@@ -34,7 +34,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
 
   await test.step('public pages', async () => {
     await page.goto('/')
-    await expect(page.locator('.thematic-card').first()).toBeVisible()
+    await expect(page.locator('.thematic-avatar').first()).toBeVisible()
     await shotPage(page, 'home-public', { fullPage: true })
 
     await page.goto('/login')

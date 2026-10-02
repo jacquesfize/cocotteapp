@@ -100,7 +100,7 @@ describe('HomeView', () => {
     await flushPromises()
 
     expect(wrapper.find('.stub-recipe-card').exists()).toBe(false)
-    expect(wrapper.find('.thematic-card').exists()).toBe(false)
+    expect(wrapper.find('.thematic-avatar').exists()).toBe(false)
     expect(wrapper.text()).toContain("Aucune recette pour l'instant.")
     expect(wrapper.text()).not.toContain('De saison en ce moment')
   })
