@@ -13,11 +13,13 @@ Click **Home** (or the Cocotte logo) to open the home page.
 From top to bottom:
 
 **Quick actions**
-:   Logged-in users get a **New recipe** button that opens a small menu with two choices:
+:   Visitors get a **Sign up** button at the top of the hero card. Logged-in users instead get a
+    **New recipe** button, positioned just above the **Latest shopping list** card (to the left of
+    **This week**, see below) rather than in the hero. It opens a small menu with two choices:
     **Create manually** (the blank recipe form) or **Import from a URL** (see
-    [Creating recipes](creating-recipes.md#import-a-recipe-from-a-url)). Visitors get **Sign up**
-    instead. The recipe list itself is always reachable from **Recipes** in the main navigation,
-    so there's no separate "browse recipes" button here.
+    [Creating recipes](creating-recipes.md#import-a-recipe-from-a-url)). The recipe list itself is
+    always reachable from **Recipes** in the main navigation, so there's no separate "browse
+    recipes" button here.
 
 **Today's pick**
 :   One of your 5 most recent recipes, with its picture, diet, total time and servings. It
@@ -26,21 +28,22 @@ From top to bottom:
     planner.
 
 **This week** *(logged-in users only)*
-:   A photo tile per planned meal for **Today** and **Tomorrow** — the recipe's picture, its meal
-    (Breakfast, Lunch, …) and its title; click one to open the recipe. An empty day shows a
-    **Plan a meal** prompt that opens the planner. On the left, **Latest shopping list** opens
-    your most recent shopping list and shows its bought/total progress; a red badge such as
-    *2 nutrition alerts* appears next to the heading when the next seven days of your planner
-    fall short of your daily minimums (opens the planner).
+:   A separate **Latest shopping list** card opens your most recent shopping list and shows its
+    bought/total progress. Next to it, the **This week** card has a centered heading and lists
+    **Today** and **Tomorrow** side by side: each meal (Breakfast, Lunch, Dinner, and Snack if
+    your administrator enabled it) gets its own tile, all the same size — a photo tile with the
+    recipe's picture, meal and title for a planned meal, or a **+** button for an empty slot, both
+    opening the recipe or the planner respectively. A red badge such as *2 nutrition alerts*
+    appears next to the heading when the next seven days of your planner fall short of your daily
+    minimums (opens the planner).
 
-**Explore**
-:   Thematic shortcuts chosen by the administrators, for example *Produits de saison*,
-    *Spécial végan* or *Prêt en 30 minutes*. Each one opens the recipe list with filters already
-    applied. See [Thematic pages](../admin-guide/thematic-pages.md).
-
-**In season now**
-:   Up to four recipes made only of ingredients that are in season this month. The **+** button
-    opens the full list with the in-season filter on.
+**Explore** and **In season now**
+:   Two matching cards side by side (stacked on narrow screens). **Explore** holds thematic
+    shortcuts chosen by the administrators, for example *Produits de saison*, *Spécial végan* or
+    *Prêt en 30 minutes* — each one opens the recipe list with filters already applied (see
+    [Thematic pages](../admin-guide/thematic-pages.md)). **In season now** shows up to four
+    recipes made only of ingredients that are in season this month. The **+** button opens the
+    full list with the in-season filter on.
 
 ![The home page for a visitor, with the Sign up button](../assets/screenshots/home-public.png)
 

@@ -25,6 +25,14 @@ import OfflineIndicator from './components/OfflineIndicator.vue'
   font-size: 0.85rem;
 }
 
+@media (max-width: 600px) {
+  /* The mobile tab bar is fixed to the viewport bottom (see NavBar.vue's .tabbar) and would
+     otherwise cover the footer, same reason .container reserves this much space above it. */
+  .site-footer {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .site-footer a {
   color: var(--color-muted);
 }

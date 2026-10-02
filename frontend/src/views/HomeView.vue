@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, Clock, Link2, Pencil, Plus, Users } from '@lucide/vue'
+import { Clock, Compass, Leaf, Link2, Users } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -94,37 +94,9 @@ const importError = ref('')
 const isImporting = ref(false)
 const showImportForm = ref(false)
 
-const showCreateMenu = ref(false)
-const createMenuEl = ref<HTMLElement | null>(null)
-
-function closeCreateMenu() {
-  showCreateMenu.value = false
-}
-
 function openImportForm() {
-  closeCreateMenu()
   showImportForm.value = true
 }
-
-function handleCreateMenuOutsideClick(event: MouseEvent) {
-  if (showCreateMenu.value && createMenuEl.value && !createMenuEl.value.contains(event.target as Node)) {
-    closeCreateMenu()
-  }
-}
-
-function handleCreateMenuKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') closeCreateMenu()
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleCreateMenuOutsideClick)
-  document.addEventListener('keydown', handleCreateMenuKeydown)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleCreateMenuOutsideClick)
-  document.removeEventListener('keydown', handleCreateMenuKeydown)
-})
 
 async function handleImport() {
   importError.value = ''
@@ -159,27 +131,8 @@ async function handleImport() {
     <h1 class="sr-only">{{ $t('home.title') }}</h1>
 
     <div class="hero-card">
-      <div class="row hero-top" :aria-label="$t('home.quickActions')">
-        <div v-if="authStore.isAuthenticated" ref="createMenuEl" class="create-menu">
-          <button
-            class="create-toggle"
-            type="button"
-            :aria-expanded="showCreateMenu"
-            aria-controls="home-create-panel"
-            @click="showCreateMenu = !showCreateMenu"
-          >
-            <Plus :size="16" />{{ $t('recipes.newRecipe') }}<ChevronDown :size="16" />
-          </button>
-          <div id="home-create-panel" class="create-panel" :class="{ 'is-open': showCreateMenu }">
-            <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="closeCreateMenu">
-              <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
-            </RouterLink>
-            <button type="button" class="create-link" @click="openImportForm">
-              <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
-            </button>
-          </div>
-        </div>
-        <RouterLink v-else :to="{ name: 'register' }">
+      <div v-if="!authStore.isAuthenticated" class="row hero-top" :aria-label="$t('home.quickActions')">
+        <RouterLink :to="{ name: 'register' }">
           <button class="secondary">{{ $t('nav.register') }}</button>
         </RouterLink>
       </div>
@@ -279,40 +232,44 @@ async function handleImport() {
       <p v-if="importError" class="muted">{{ importError }}</p>
     </BaseModal>
 
-    <HomeWeekStrip v-if="authStore.isAuthenticated" />
+    <HomeWeekStrip v-if="authStore.isAuthenticated" @open-import="openImportForm" />
 
-    <section v-if="thematicPages.length" class="home-section">
-      <h2>{{ $t('home.thematicPages') }}</h2>
-      <div class="thematic-row">
-        <RouterLink
-          v-for="page in thematicPages"
-          :key="page.id"
-          class="thematic-avatar"
-          :to="{ name: 'recipes', query: page.filters }"
-        >
-          <span class="thematic-avatar-circle">
-            <img v-if="page.image" :src="page.image" alt="" />
-            <span v-else-if="page.icon" class="thematic-avatar-icon">{{ page.icon }}</span>
-          </span>
-          <span class="thematic-avatar-label">{{ page.title }}</span>
-        </RouterLink>
-      </div>
-    </section>
+    <div v-if="thematicPages.length || seasonalRecipes.length" class="home-panel-row">
+      <section v-if="thematicPages.length" class="card home-panel">
+        <div class="row home-panel-header">
+          <h2><Compass :size="20" class="home-panel-icon" aria-hidden="true" />{{ $t('home.thematicPages') }}</h2>
+        </div>
+        <div class="thematic-row">
+          <RouterLink
+            v-for="page in thematicPages"
+            :key="page.id"
+            class="thematic-avatar"
+            :to="{ name: 'recipes', query: page.filters }"
+          >
+            <span class="thematic-avatar-circle">
+              <img v-if="page.image" :src="page.image" alt="" />
+              <span v-else-if="page.icon" class="thematic-avatar-icon">{{ page.icon }}</span>
+            </span>
+            <span class="thematic-avatar-label">{{ page.title }}</span>
+          </RouterLink>
+        </div>
+      </section>
 
-    <section v-if="seasonalRecipes.length" class="home-section">
-      <div class="row season-header">
-        <h2>{{ $t('home.inSeason') }}</h2>
-        <RouterLink
-          :to="{ name: 'recipes', query: { in_season: 'true' } }"
-          class="see-all-btn"
-          :aria-label="$t('home.seeAll')"
-          :title="$t('home.seeAll')"
-        >+</RouterLink>
-      </div>
-      <div class="recipe-grid">
-        <RecipeCard v-for="recipe in seasonalRecipes" :key="recipe.id" :recipe="recipe" variant="tile" />
-      </div>
-    </section>
+      <section v-if="seasonalRecipes.length" class="card home-panel">
+        <div class="row home-panel-header">
+          <h2><Leaf :size="20" class="home-panel-icon" aria-hidden="true" />{{ $t('home.inSeason') }}</h2>
+          <RouterLink
+            :to="{ name: 'recipes', query: { in_season: 'true' } }"
+            class="home-panel-see-all"
+            :aria-label="$t('home.seeAll')"
+            :title="$t('home.seeAll')"
+          >+</RouterLink>
+        </div>
+        <div class="recipe-grid">
+          <RecipeCard v-for="recipe in seasonalRecipes" :key="recipe.id" :recipe="recipe" variant="tile" />
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -658,56 +615,6 @@ async function handleImport() {
   }
 }
 
-.create-menu {
-  position: relative;
-}
-
-.create-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.create-panel {
-  display: none;
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  min-width: 220px;
-  background: var(--color-surface);
-  border-radius: 16px;
-  box-shadow: var(--shadow-card);
-  padding: 0.6rem;
-  flex-direction: column;
-  gap: 0.2rem;
-  z-index: 20;
-}
-
-.create-panel.is-open {
-  display: flex;
-}
-
-.create-link {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.6rem;
-  margin: 0;
-  padding: 0.55rem 0.6rem;
-  border-radius: 10px;
-  color: var(--color-text);
-  font-weight: 600;
-  font-size: 0.9rem;
-  text-decoration: none;
-  background: none;
-  border: none;
-  min-height: auto;
-}
-
-.create-link:hover {
-  background: var(--color-surface-muted);
-}
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -717,50 +624,61 @@ async function handleImport() {
   white-space: nowrap;
 }
 
-.home-section {
+/* Explore and In season sit side by side as matching cards, echoing HomeWeekStrip's
+   ".week-strip" card above them rather than the plain headed sections this replaced. */
+.home-panel-row {
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.home-section > h2 {
-  margin-bottom: 1rem;
+.home-panel {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
-.page-header {
+@media (max-width: 760px) {
+  .home-panel-row {
+    flex-direction: column;
+  }
+}
+
+.home-panel-header {
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 1rem;
-}
-
-.page-header h2 {
-  margin: 0;
-}
-
-.season-header {
-  justify-content: flex-start;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.season-header h2 {
+.home-panel-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin: 0;
 }
 
-.see-all-btn {
+.home-panel-icon {
+  color: var(--color-primary);
+}
+
+.home-panel-see-all {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   font-size: 1.4rem;
   line-height: 1;
   text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.see-all-btn:hover {
+.home-panel-see-all:hover {
   background: var(--color-primary);
   color: #fff;
 }
@@ -771,25 +689,24 @@ async function handleImport() {
   gap: 1rem;
 }
 
-/* Thematic pages as a horizontally-scrollable row of round "collection" avatars — a photo
-   when the page has one, its emoji icon on a soft accent circle otherwise (never a flat
-   saturated color card, which is what an icon-only page used to fall back to). Shape-distinct
-   from the "In season" grid below so the two photo sections don't read as the same card
-   repeated twice. */
+/* Thematic pages as a wrapping row of round "collection" avatars — a photo when the page has
+   one, its emoji icon on a soft accent circle otherwise (never a flat saturated color card,
+   which is what an icon-only page used to fall back to). Shape-distinct from the "In season"
+   grid next to it so the two photo sections don't read as the same card repeated twice. Sized to
+   fill the panel now that Explore and In season sit in matching half-width cards, rather than
+   the smaller scroll-strip size that fit the old full-width row. */
 .thematic-row {
   display: flex;
-  gap: 1.25rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
 
 .thematic-avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  width: 92px;
+  gap: 0.6rem;
+  width: 110px;
   text-decoration: none;
   color: var(--color-text);
 }
@@ -798,8 +715,8 @@ async function handleImport() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 84px;
-  height: 84px;
+  width: 100px;
+  height: 100px;
   border-radius: 999px;
   overflow: hidden;
   background: var(--color-primary-soft);
@@ -819,12 +736,12 @@ async function handleImport() {
 }
 
 .thematic-avatar-icon {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   line-height: 1;
 }
 
 .thematic-avatar-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
   line-height: 1.25;

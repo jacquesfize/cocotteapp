@@ -13,7 +13,9 @@ vi.mock('../../src/api/thematicPages', () => ({
 
 import { listRecipes } from '../../src/api/recipes'
 import { listThematicPages } from '../../src/api/thematicPages'
+import BaseModal from '../../src/components/BaseModal.vue'
 import HomeView from '../../src/views/HomeView.vue'
+import { useAuthStore } from '../../src/stores/auth'
 import type { Recipe } from '../../src/types/models'
 
 async function mountHome() {
@@ -182,5 +184,24 @@ describe('HomeView', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Impossible de charger les recettes.')
+  })
+
+  it('opens the import-from-URL modal when the week strip asks to', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+    useAuthStore().accessToken = 'test-token'
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    expect(wrapper.findComponent(BaseModal).exists()).toBe(false)
+
+    const weekStripStub = wrapper.findComponent('.stub-week-strip')
+    expect(weekStripStub.exists()).toBe(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (weekStripStub as any).vm.$emit('open-import')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.findComponent(BaseModal).exists()).toBe(true)
   })
 })

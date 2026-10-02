@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { Calendar, ShoppingCart, TriangleAlert } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
+import { Calendar, Link2, Pencil, Plus, ShoppingCart, TriangleAlert } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { fetchLegalInfo } from '../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { listShoppingLists } from '../api/shopping'
 import type { MealPlanEntry, MealType, ShoppingList } from '../types/models'
 
+const emit = defineEmits<{ (e: 'open-import'): void }>()
+
 const { t } = useI18n()
 
-const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
+const ALL_MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 
 function isoDate(offsetDays: number) {
   const d = new Date()
@@ -23,17 +26,20 @@ const tomorrow = isoDate(1)
 const entries = ref<MealPlanEntry[]>([])
 const latestList = ref<ShoppingList | null>(null)
 const deficiencyCount = ref(0)
+const snackEnabled = ref(false)
 const isLoading = ref(true)
 
 onMounted(async () => {
-  const [entriesRes, listsRes, nutritionRes] = await Promise.allSettled([
+  const [entriesRes, listsRes, nutritionRes, legalRes] = await Promise.allSettled([
     listMealPlanEntries({ date_after: today, date_before: tomorrow }),
     listShoppingLists(),
     getNutritionSummary({ date_after: today, date_before: isoDate(6) }),
+    fetchLegalInfo(),
   ])
   if (entriesRes.status === 'fulfilled') entries.value = entriesRes.value
   if (listsRes.status === 'fulfilled') latestList.value = listsRes.value.results[0] ?? null
   if (nutritionRes.status === 'fulfilled') deficiencyCount.value = nutritionRes.value.deficiencies.length
+  if (legalRes.status === 'fulfilled') snackEnabled.value = legalRes.value.planning_snack_enabled
   isLoading.value = false
 })
 
@@ -41,36 +47,83 @@ const listOwnedCount = computed(() => latestList.value?.items.filter((item) => i
 const listTotalCount = computed(() => latestList.value?.items.length ?? 0)
 const listProgressPercent = computed(() => (listTotalCount.value ? Math.round((listOwnedCount.value / listTotalCount.value) * 100) : 0))
 
+const mealTypes = computed<MealType[]>(() =>
+  snackEnabled.value ? ALL_MEAL_TYPES : ALL_MEAL_TYPES.filter((mealType) => mealType !== 'snack'),
+)
+
+const showCreateMenu = ref(false)
+const createMenuEl = ref<HTMLElement | null>(null)
+
+function closeCreateMenu() {
+  showCreateMenu.value = false
+}
+
+function handleImportClick() {
+  closeCreateMenu()
+  emit('open-import')
+}
+
+function handleCreateMenuOutsideClick(event: MouseEvent) {
+  if (showCreateMenu.value && createMenuEl.value && !createMenuEl.value.contains(event.target as Node)) {
+    closeCreateMenu()
+  }
+}
+
+function handleCreateMenuKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeCreateMenu()
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleCreateMenuOutsideClick)
+  document.addEventListener('keydown', handleCreateMenuKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleCreateMenuOutsideClick)
+  document.removeEventListener('keydown', handleCreateMenuKeydown)
+})
+
 const days = computed(() =>
   [
     { key: today, label: t('home.today') },
     { key: tomorrow, label: t('home.tomorrow') },
-  ].map((day) => ({
-    ...day,
-    entries: entries.value
-      .filter((entry) => entry.date === day.key)
-      .sort((a, b) => MEAL_ORDER.indexOf(a.meal_type) - MEAL_ORDER.indexOf(b.meal_type)),
-  })),
+  ].map((day) => {
+    const dayEntries = entries.value.filter((entry) => entry.date === day.key)
+    const entriesByType: Partial<Record<MealType, MealPlanEntry[]>> = {}
+    for (const mealType of mealTypes.value) {
+      entriesByType[mealType] = dayEntries.filter((entry) => entry.meal_type === mealType)
+    }
+    return { ...day, entriesByType }
+  }),
 )
 </script>
 
 <template>
-  <section class="card week-strip">
-    <div class="row week-header">
-      <h2><Calendar :size="20" class="week-heading-icon" aria-hidden="true" />{{ $t('home.thisWeek') }}</h2>
-      <RouterLink v-if="deficiencyCount" :to="{ name: 'planning' }" class="week-pill alert-badge">
-        <TriangleAlert :size="14" />{{ $t('home.nutritionAlerts', deficiencyCount) }}
-      </RouterLink>
-    </div>
+  <div class="week-overview">
+    <div class="week-action-col">
+      <div ref="createMenuEl" class="create-menu week-create-menu" :aria-label="$t('home.quickActions')">
+        <button
+          class="create-toggle"
+          type="button"
+          :aria-expanded="showCreateMenu"
+          aria-controls="home-create-panel"
+          @click="showCreateMenu = !showCreateMenu"
+        >
+          <Plus :size="26" />
+          <span class="create-toggle-label">{{ $t('recipes.newRecipe') }}</span>
+        </button>
+        <div id="home-create-panel" class="create-panel" :class="{ 'is-open': showCreateMenu }">
+          <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="closeCreateMenu">
+            <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
+          </RouterLink>
+          <button type="button" class="create-link" @click="handleImportClick">
+            <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
+          </button>
+        </div>
+      </div>
 
-    <div v-if="isLoading" class="week-layout" aria-hidden="true">
-      <div class="skeleton skeleton-action" />
-      <div class="skeleton" />
-      <div class="skeleton" />
-    </div>
-    <div v-else class="week-layout">
       <RouterLink
-        v-if="latestList"
+        v-if="!isLoading && latestList"
         :to="{ name: 'shopping-list-detail', params: { id: latestList.id } }"
         class="week-action"
       >
@@ -83,54 +136,98 @@ const days = computed(() =>
           </div>
         </template>
       </RouterLink>
+      <div v-else-if="isLoading" class="skeleton skeleton-action" aria-hidden="true" />
+    </div>
 
-      <div v-for="day in days" :key="day.key" class="week-day">
-        <h3>{{ day.label }}</h3>
-        <div v-if="day.entries.length" class="week-tiles">
-          <RouterLink
-            v-for="entry in day.entries"
-            :key="entry.id"
-            :to="{ name: 'recipe-detail', params: { id: entry.recipe } }"
-            class="week-tile"
-          >
-            <img v-if="entry.recipe_image || entry.recipe_image_url" :src="entry.recipe_image || entry.recipe_image_url" alt="" />
-            <div v-else class="week-tile-placeholder" aria-hidden="true">🍲</div>
-            <div class="week-tile-scrim" />
-            <span class="week-tile-meal">{{ $t(`mealType.${entry.meal_type}`) }}</span>
-            <span class="week-tile-title">{{ entry.recipe_title }}</span>
-          </RouterLink>
-        </div>
-        <RouterLink v-else :to="{ name: 'planning' }" class="week-day-empty">
-          {{ $t('home.planMeal') }}
+    <section class="card week-strip">
+      <div class="row week-header">
+        <h2><Calendar :size="20" class="week-heading-icon" aria-hidden="true" />{{ $t('home.thisWeek') }}</h2>
+        <RouterLink v-if="deficiencyCount" :to="{ name: 'planning' }" class="week-pill alert-badge">
+          <TriangleAlert :size="14" />{{ $t('home.nutritionAlerts', deficiencyCount) }}
         </RouterLink>
       </div>
-    </div>
-  </section>
+
+      <div v-if="isLoading" class="week-days" aria-hidden="true">
+        <div class="skeleton" />
+        <div class="skeleton" />
+      </div>
+      <div v-else class="week-days">
+        <div v-for="day in days" :key="day.key" class="week-day">
+          <h3>{{ day.label }}</h3>
+          <div class="week-tiles">
+            <template v-for="mealType in mealTypes" :key="mealType">
+              <RouterLink
+                v-for="entry in day.entriesByType[mealType]"
+                :key="entry.id"
+                :to="{ name: 'recipe-detail', params: { id: entry.recipe } }"
+                class="week-tile"
+              >
+                <img v-if="entry.recipe_image || entry.recipe_image_url" :src="entry.recipe_image || entry.recipe_image_url" alt="" />
+                <div v-else class="week-tile-placeholder" aria-hidden="true">🍲</div>
+                <div class="week-tile-scrim" />
+                <span class="week-tile-meal">{{ $t(`mealType.${entry.meal_type}`) }}</span>
+                <span class="week-tile-title">{{ entry.recipe_title }}</span>
+              </RouterLink>
+              <RouterLink
+                v-if="!day.entriesByType[mealType]?.length"
+                :to="{ name: 'planning' }"
+                class="week-tile week-slot-empty"
+                :aria-label="$t('planning.addEntry')"
+              >
+                <Plus :size="16" />
+                {{ $t(`mealType.${mealType}`) }}
+              </RouterLink>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <style scoped>
-.week-strip {
+.week-overview {
   /* Floats up over the hero card's bottom edge instead of sitting in its own separate block —
      the hero reserves extra bottom padding (see .hero-card) so this only overlaps empty
      background, never the carousel itself. Less than the hero's own reserved padding, so a
      visible gap remains above this card instead of the two butting up against each other. */
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
   margin-top: -1.25rem;
   margin-bottom: 1.5rem;
   padding-top: 1.75rem;
 }
 
 @media (max-width: 600px) {
-  .week-strip {
+  .week-overview {
     margin-top: -0.75rem;
   }
 }
 
+@media (max-width: 760px) {
+  .week-overview {
+    flex-direction: column;
+  }
+}
+
+.week-strip {
+  flex: 1;
+  min-width: 0;
+}
+
 .week-header {
-  justify-content: space-between;
+  position: relative;
+  justify-content: center;
   align-items: baseline;
   margin-bottom: 1rem;
+}
+
+.week-header .week-pill {
+  position: absolute;
+  right: 0;
 }
 
 .week-header h2 {
@@ -165,18 +262,119 @@ const days = computed(() =>
   background: var(--color-danger-soft-hover);
 }
 
-/* A quarter for the shopping-list action, the rest split evenly between Today and Tomorrow.
-   align-items: start keeps the action column at its own height instead of stretching to match
-   whichever day column has the most meals planned. */
-.week-layout {
+/* A dedicated column of its own, a sibling of .week-strip rather than nested inside it —
+   stretches to the same height via .week-overview's align-items: stretch, then splits that
+   height between the "New recipe" action and the shopping-list card below it. */
+.week-action-col {
+  flex: 0 0 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 761px) {
+  .week-create-menu,
+  .week-action,
+  .skeleton-action {
+    flex: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .week-action-col {
+    flex-basis: auto;
+  }
+}
+
+.week-create-menu {
+  position: relative;
+  display: flex;
+}
+
+.week-create-menu .create-toggle {
+  flex: 1;
+}
+
+/* Matches .week-action's card look (surface, border, icon over label) instead of the default
+   pill button, so the two stacked actions in .week-action-col read as one family — the dropdown
+   affordance is just the chevron next to the label. */
+.create-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1.25rem 1rem;
+  border-radius: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
+  color: var(--color-primary-dark);
+  text-align: center;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.create-toggle:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+}
+
+.create-toggle-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.create-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 0.6rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 20;
+}
+
+.create-panel.is-open {
+  display: flex;
+}
+
+.create-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  min-height: auto;
+}
+
+.create-link:hover {
+  background: var(--color-surface-muted);
+}
+
+.week-days {
   display: grid;
-  grid-template-columns: 25% 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: start;
   gap: 1.25rem;
 }
 
 @media (max-width: 760px) {
-  .week-layout {
+  .week-days {
     grid-template-columns: 1fr;
   }
 }
@@ -186,14 +384,12 @@ const days = computed(() =>
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  align-self: center;
   gap: 0.5rem;
-  width: 100%;
-  min-height: 7rem;
   padding: 1.25rem 1rem;
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--color-surface);
-  border: 1.5px solid var(--color-primary-soft-hover);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card);
   color: var(--color-primary-dark);
   text-decoration: none;
   text-align: center;
@@ -239,26 +435,6 @@ const days = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
-
-.week-day-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 4.5rem;
-  border-radius: 12px;
-  border: 1.5px dashed var(--color-border);
-  background: var(--color-surface-muted);
-  color: var(--color-primary-dark);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.week-day-empty:hover {
-  border-color: var(--color-primary);
-  background: var(--color-primary-soft);
 }
 
 .week-tile {
@@ -321,6 +497,27 @@ const days = computed(() =>
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Same box as .week-tile (same height/radius so filled and empty slots line up), just the
+   visual treatment flipped to a muted "add" affordance instead of a photo. */
+.week-slot-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--color-surface-muted);
+  border: 1.5px dashed var(--color-border);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.week-slot-empty:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .skeleton {
