@@ -373,6 +373,10 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
     await expect(cookMode.locator('.cook-mode-timer-dock')).toBeVisible()
     await shotElement(cookMode, 'mobile-cookmode-timer-dock')
 
+    await cookMode.locator('.ingredient-mention').first().click()
+    await expect(cookMode.locator('.ingredient-popover')).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-ingredient-popover')
+
     await cookMode.getByRole('button', { name: 'Show ingredients' }).click()
     await expect(cookMode.locator('.cook-mode-ingredients')).toHaveClass(/open/)
     await shotElement(cookMode, 'mobile-cookmode-ingredients')

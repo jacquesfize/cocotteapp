@@ -136,12 +136,37 @@ describe('RecipeCookMode', () => {
     expect(wrapper.text()).toContain('Étape 1 / 2')
   })
 
-  it('opens a modal with the quantity when an ingredient mention is clicked', async () => {
+  it('opens a popover with the quantity when an ingredient mention is clicked', async () => {
+    const wrapper = mountCookMode(baseRecipe())
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(false)
+
+    await wrapper.find('button.ingredient-mention').trigger('click')
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(true)
+    expect(wrapper.text()).toContain('2 pincées')
+
+    await wrapper.find('button.ingredient-mention').trigger('click')
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(false)
+  })
+
+  it('shows the popover on mouseenter and hides it on mouseleave', async () => {
+    const wrapper = mountCookMode(baseRecipe())
+    const wrap = wrapper.find('.ingredient-mention-wrap')
+
+    await wrap.trigger('mouseenter')
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(true)
+
+    await wrap.trigger('mouseleave')
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(false)
+  })
+
+  it('closes a clicked (pinned) popover when clicking outside it', async () => {
     const wrapper = mountCookMode(baseRecipe())
     await wrapper.find('button.ingredient-mention').trigger('click')
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(true)
 
-    expect(wrapper.find('[role="dialog"][aria-label="sel"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('2 pincées')
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.ingredient-popover').exists()).toBe(false)
   })
 
   it('toggles the ingredients panel', async () => {

@@ -177,8 +177,11 @@ while cooking:
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
   by tapping outside it.
-- Tapping a highlighted ingredient name in a step opens its quantity in a small popup, closable
-  the same ways.
+- Hovering or tapping a highlighted ingredient name in a step shows its quantity in a small
+  popover next to it, without leaving the step. On a mouse, it also appears just by pointing at
+  the name. Tap/click it again, click elsewhere, or press **Escape** to dismiss it.
+
+![An ingredient's quantity shown in a popover above its highlighted name](../assets/screenshots/mobile-cookmode-ingredient-popover.png)
 - If the recipe has a YouTube video, a small play icon next to the step counter opens it in a
   new tab.
 - Starting a timer in a step pins it to a dock at the bottom of the screen with its own

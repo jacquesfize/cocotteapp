@@ -92,6 +92,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   it's easy to spot, and the "Today" button that jumps back to the current period (shown once
   you've navigated away) got a reset icon and a visible border so it reads as a button rather
   than a label.
+- In cook mode, clicking a highlighted ingredient name now shows its quantity in a small popover
+  anchored next to it instead of a full modal dialog; on a mouse, the popover also appears just by
+  hovering over the name.
 
 ### Fixed
 
