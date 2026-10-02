@@ -26,7 +26,7 @@ Logging in and signing up share the same page, with two tabs: **Log in** and **S
 You are logged in straight away and taken to the recipe list. You can change all of these
 fields later in **My account**.
 
-![The sign-up form with username, email, password, diet and activity level](../assets/screenshots/register.png)
+![The sign-up form with username, email, password, diet, activity level and the health data consent checkbox](../assets/screenshots/register.png)
 
 > [!TIP]
 > Diet and activity level set the daily minimums used by the planner's nutrition alerts. See
@@ -164,7 +164,7 @@ Click **Download the archive** to get a ZIP file (`cocotte-donnees-YYYY-MM-DD.zi
 JSON files with your profile, your recipes, your planner entries and your shopping lists. Use it
 as a personal backup or to see what Cocotte stores about you.
 
-![The Share or back up my recipes, Share my agenda and Danger zone cards](../assets/screenshots/account-data.png)
+![The Export my data, Share or back up my recipes, Share my agenda and Danger zone cards, with the option to keep public recipes](../assets/screenshots/account-data.png)
 
 ### Share or back up my recipes
 

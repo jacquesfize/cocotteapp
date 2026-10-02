@@ -290,7 +290,7 @@ async function handleSubmit() {
 
 .privacy-notice {
   font-size: 0.85rem;
-  margin: 0;
+  margin: 0.5rem 0 1rem;
 }
 
 .profile-row {

@@ -7,8 +7,10 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dir = fileURLToPath(new URL('../../../docs/assets/screenshots/', import.meta.url))
+// SHOTS=register,account-data : ne compresse que ces captures (cf. tests/docs/shots.ts).
+const only = process.env.SHOTS?.split(',').map((name) => `${name.trim()}.png`)
 const files = readdirSync(dir)
-  .filter((name) => name.endsWith('.png'))
+  .filter((name) => name.endsWith('.png') && (!only || only.includes(name)))
   .map((name) => join(dir, name))
 
 const totalSize = () => files.reduce((sum, file) => sum + statSync(file).size, 0)

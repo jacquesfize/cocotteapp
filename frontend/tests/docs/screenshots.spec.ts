@@ -269,6 +269,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await shotElement(page.getByTestId('appearance-card'), 'account-theme')
     await expect(card('Share my agenda').locator('.share-list li')).toHaveCount(1)
     await shotElement(card('Share my agenda'), 'account-sharing')
+    await shotElement(page.getByTestId('consent-card'), 'account-consent')
     await shotAround(page, [card('Export my data'), page.locator('.danger-zone')], 'account-data')
   })
 

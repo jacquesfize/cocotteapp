@@ -371,7 +371,7 @@ async function handleDeleteAccount() {
         }}
       </p>
       <p v-if="consentError" class="error">{{ consentError }}</p>
-      <div class="row">
+      <div class="row" style="align-items: center">
         <button
           v-if="authStore.user?.health_data_consent_at"
           class="secondary"

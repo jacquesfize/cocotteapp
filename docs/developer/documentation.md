@@ -220,6 +220,15 @@ one command whenever the interface changes.
     warning. Once Playwright is done, `tests/docs/compress.mjs` runs
     [pngquant](https://pngquant.org/) (through `npx`, no install needed) over every PNG in place,
     which makes them about three times smaller with no visible loss.
+
+    To refresh only some screenshots, list their names (file names without `.png`) in `SHOTS`.
+    The whole scenario still runs, but only those files are written and compressed, so unchanged
+    images are not rewritten and no new Git LFS objects are stored for them:
+
+    ```bash
+    SHOTS=register,account-consent,account-data npm run docs:screenshots
+    ```
+
 4. Review the changes (`git status docs/assets/screenshots/`, and look at the images) and commit
    the PNGs. They go to Git LFS automatically.
 
