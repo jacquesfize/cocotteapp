@@ -155,8 +155,8 @@ recipe's own photo (see [Media & source](#media-source) below) — pick a file o
 URL, then choose a license and fill in the credit fields it requires.
 
 On the recipe page, a step with a photo shows a small photo icon at the end of its text; click it
-to view the picture (with its credit) in a dialog. In cook mode, the current step's photo is shown
-directly above its instruction text.
+to view the picture (with its credit) in a dialog. In cook mode, the current step's photo fills
+most of the screen, with its instruction text in a band at the bottom.
 
 ### Media & source
 

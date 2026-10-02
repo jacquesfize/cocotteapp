@@ -46,6 +46,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The planner's calendar grid now has a white background, and page titles across the app now show
   a small icon next to them for quicker visual scanning.
 - Form fields now have a white background with a subtle colored border and less rounded corners.
+- In cook mode, a step's photo now fills most of the available height instead of a small fixed-size
+  crop, with the instruction text anchored to a band at the bottom (around 20% of the height by
+  default, growing to fit longer instructions instead of ever clipping them).
 
 ### Fixed
 
