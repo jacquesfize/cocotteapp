@@ -13,10 +13,11 @@ Click **Home** (or the Cocotte logo) to open the home page.
 From top to bottom:
 
 **Quick actions**
-:   **Browse recipes** opens the recipe list. Logged-in users also get **New recipe** and
-    **Import**, which opens an **Import from a URL** dialog (see
+:   Logged-in users get a **New recipe** button that opens a small menu with two choices:
+    **Create manually** (the blank recipe form) or **Import from a URL** (see
     [Creating recipes](creating-recipes.md#import-a-recipe-from-a-url)). Visitors get **Sign up**
-    instead.
+    instead. The recipe list itself is always reachable from **Recipes** in the main navigation,
+    so there's no separate "browse recipes" button here.
 
 **Latest recipes carousel**
 :   The five most recent recipes, with their picture, diet and total time. Swipe or scroll

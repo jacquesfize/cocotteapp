@@ -46,6 +46,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The planner's calendar grid now has a white background, and page titles across the app now show
   a small icon next to them for quicker visual scanning.
 - Form fields now have a white background with a subtle colored border and less rounded corners.
+- On the homepage, "New recipe" and "Import" are now a single "New recipe" button that opens a
+  menu offering "Create manually" or "Import from a URL", and the "Browse recipes" button was
+  removed since the main navigation already links to the recipe list.
 
 ### Fixed
 
