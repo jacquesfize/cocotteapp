@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ShoppingCart, TriangleAlert } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
@@ -54,11 +55,15 @@ const days = computed(() =>
     <div class="row week-header">
       <h2>{{ $t('home.thisWeek') }}</h2>
       <div class="row week-links">
-        <RouterLink v-if="deficiencyCount" :to="{ name: 'planning' }" class="alert-badge">
-          {{ $t('home.nutritionAlerts', deficiencyCount) }}
+        <RouterLink v-if="deficiencyCount" :to="{ name: 'planning' }" class="week-pill alert-badge">
+          <TriangleAlert :size="14" />{{ $t('home.nutritionAlerts', deficiencyCount) }}
         </RouterLink>
-        <RouterLink v-if="latestList" :to="{ name: 'shopping-list-detail', params: { id: latestList.id } }">
-          {{ $t('home.openShoppingList') }}
+        <RouterLink
+          v-if="latestList"
+          :to="{ name: 'shopping-list-detail', params: { id: latestList.id } }"
+          class="week-pill shopping-link"
+        >
+          <ShoppingCart :size="14" />{{ $t('home.openShoppingList') }}
         </RouterLink>
       </div>
     </div>
@@ -100,16 +105,37 @@ const days = computed(() =>
 }
 
 .week-links {
-  gap: 1rem;
+  gap: 0.6rem;
+}
+
+.week-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
 }
 
 .alert-badge {
   background: var(--color-danger-soft);
   color: var(--color-danger);
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 0.9rem;
+}
+
+.alert-badge:hover {
+  background: var(--color-danger-soft-hover);
+}
+
+.shopping-link {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.shopping-link:hover {
+  background: var(--color-primary-soft-hover);
 }
 
 .week-days {
