@@ -9,6 +9,8 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The seeded ingredient library now includes "Tomates concassées" (canned crushed tomatoes), which the
+  documentation demo data relies on.
 - GDPR tooling for instance administrators: explicit consent to the processing of health-related
   data (diet, activity level, allergies) is now required at sign-up and can be withdrawn or given
   again from **My account**; withdrawing it erases that data.
