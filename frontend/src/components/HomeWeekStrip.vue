@@ -7,6 +7,7 @@ import ProgressBar from './shared/ProgressBar.vue'
 import { fetchLegalInfo } from '../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
 import { listShoppingLists } from '../api/shopping'
+import { addDays, toISODate } from '../utils/dates'
 import type { MealPlanEntry, MealType, ShoppingList } from '../types/models'
 
 const emit = defineEmits<{ (e: 'open-import'): void }>()
@@ -16,10 +17,7 @@ const { t } = useI18n()
 const ALL_MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 
 function isoDate(offsetDays: number) {
-  const d = new Date()
-  d.setDate(d.getDate() + offsetDays)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return toISODate(addDays(new Date(), offsetDays))
 }
 
 const today = isoDate(0)
