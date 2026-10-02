@@ -9,7 +9,7 @@ vi.mock('../../src/api/shopping', () => ({
 }))
 
 import { deleteShoppingList, listShoppingLists } from '../../src/api/shopping'
-import ShoppingListsView from '../../src/views/ShoppingListsView.vue'
+import ShoppingListsView from '../../src/views/shopping/ShoppingListsView.vue'
 import type { ShoppingList } from '../../src/types/models'
 
 function list(overrides: Record<string, unknown> = {}): ShoppingList {

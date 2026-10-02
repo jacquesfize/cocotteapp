@@ -2,13 +2,13 @@
 import { ShoppingCart } from '@lucide/vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import PageHeader from '../components/shared/PageHeader.vue'
-import Pagination from '../components/shared/Pagination.vue'
-import ShoppingListCard from '../components/shared/ShoppingListCard.vue'
-import AsyncState from '../components/shared/AsyncState.vue'
-import { usePaginatedQuery } from '../composables/usePaginatedQuery'
-import { deleteShoppingList, listShoppingLists } from '../api/shopping'
-import type { ShoppingList } from '../types/models'
+import PageHeader from '../../components/shared/PageHeader.vue'
+import Pagination from '../../components/shared/Pagination.vue'
+import ShoppingListCard from '../../components/shared/ShoppingListCard.vue'
+import AsyncState from '../../components/shared/AsyncState.vue'
+import { usePaginatedQuery } from '../../composables/usePaginatedQuery'
+import { deleteShoppingList, listShoppingLists } from '../../api/shopping'
+import type { ShoppingList } from '../../types/models'
 
 const router = useRouter()
 

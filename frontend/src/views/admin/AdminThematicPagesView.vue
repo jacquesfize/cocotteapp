@@ -2,8 +2,8 @@
 import { LayoutGrid, Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import PageHeader from '../components/shared/PageHeader.vue'
-import AsyncState from '../components/shared/AsyncState.vue'
+import PageHeader from '../../components/shared/PageHeader.vue'
+import AsyncState from '../../components/shared/AsyncState.vue'
 import {
   createThematicPage,
   deleteThematicPage,
@@ -11,11 +11,11 @@ import {
   removeThematicPageImage,
   updateThematicPage,
   uploadThematicPageImage,
-} from '../api/adminThematicPages'
-import { getErrorStatus } from '../utils/apiError'
-import type { AdminThematicPageInput } from '../types/api'
-import type { AdminThematicPage } from '../types/models'
-import type { DietType } from '../types/models'
+} from '../../api/adminThematicPages'
+import { getErrorStatus } from '../../utils/apiError'
+import type { AdminThematicPageInput } from '../../types/api'
+import type { AdminThematicPage } from '../../types/models'
+import type { DietType } from '../../types/models'
 
 const { t } = useI18n()
 

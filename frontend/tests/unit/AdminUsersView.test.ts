@@ -12,7 +12,7 @@ vi.mock('../../src/api/admin', () => ({
 
 import { deleteUser, listUsers, updateUser } from '../../src/api/admin'
 import { useAuthStore } from '../../src/stores/auth'
-import AdminUsersView from '../../src/views/AdminUsersView.vue'
+import AdminUsersView from '../../src/views/admin/AdminUsersView.vue'
 import type { AdminUser, User } from '../../src/types/models'
 
 async function mountAdminUsers() {

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { Dices, Shuffle } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
-import AddToPlanForm from '../components/planning/AddToPlanForm.vue'
-import PageHeader from '../components/shared/PageHeader.vue'
-import RecipeRestrictedNotice from '../components/recipes/RecipeRestrictedNotice.vue'
-import RecipeSummary from '../components/recipes/RecipeSummary.vue'
-import AsyncState from '../components/shared/AsyncState.vue'
-import { getRandomRecipe } from '../api/recipes'
-import { getErrorStatus } from '../utils/apiError'
-import { useAuthStore } from '../stores/auth'
-import type { RecipeListParams } from '../types/api'
-import type { DietType, Recipe } from '../types/models'
+import AddToPlanForm from '../../components/planning/AddToPlanForm.vue'
+import PageHeader from '../../components/shared/PageHeader.vue'
+import RecipeRestrictedNotice from '../../components/recipes/RecipeRestrictedNotice.vue'
+import RecipeSummary from '../../components/recipes/RecipeSummary.vue'
+import AsyncState from '../../components/shared/AsyncState.vue'
+import { getRandomRecipe } from '../../api/recipes'
+import { getErrorStatus } from '../../utils/apiError'
+import { useAuthStore } from '../../stores/auth'
+import type { RecipeListParams } from '../../types/api'
+import type { DietType, Recipe } from '../../types/models'
 
 const authStore = useAuthStore()
 

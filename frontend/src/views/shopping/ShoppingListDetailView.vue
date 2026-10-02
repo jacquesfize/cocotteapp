@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { Apple, Bean, Beef, Carrot, Check, ChevronLeft, CloudOff, Copy, Download, Droplet, Egg, Milk, Nut, Package, Share, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
-import PageHeader from '../components/shared/PageHeader.vue'
-import ProgressBar from '../components/shared/ProgressBar.vue'
-import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
-import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
-import { downloadBlob } from '../utils/download'
-import { formatQuantity, formatUnit } from '../utils/format'
-import { shoppingListProgress } from '../utils/shoppingListProgress'
-import { useCopyFeedback } from '../composables/useCopyFeedback'
-import type { IngredientCategory, ShoppingList, ShoppingListItem } from '../types/models'
+import PageHeader from '../../components/shared/PageHeader.vue'
+import ProgressBar from '../../components/shared/ProgressBar.vue'
+import { exportShoppingList, getShoppingList, markOwned } from '../../api/shopping'
+import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../../offline/sync'
+import { downloadBlob } from '../../utils/download'
+import { formatQuantity, formatUnit } from '../../utils/format'
+import { shoppingListProgress } from '../../utils/shoppingListProgress'
+import { useCopyFeedback } from '../../composables/useCopyFeedback'
+import type { IngredientCategory, ShoppingList, ShoppingListItem } from '../../types/models'
 
 type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
 type ListWithSync = Omit<ShoppingList, 'items'> & { items: ItemWithSync[] }

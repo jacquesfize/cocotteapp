@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { KeyRound } from '@lucide/vue'
 import { ref } from 'vue'
-import PageHeader from '../components/shared/PageHeader.vue'
-import { requestPasswordReset } from '../api/auth'
+import PageHeader from '../../components/shared/PageHeader.vue'
+import { requestPasswordReset } from '../../api/auth'
 
 const email = ref('')
 const isSubmitting = ref(false)

@@ -17,7 +17,7 @@ import {
   listThematicPages,
   updateThematicPage,
 } from '../../src/api/adminThematicPages'
-import AdminThematicPagesView from '../../src/views/AdminThematicPagesView.vue'
+import AdminThematicPagesView from '../../src/views/admin/AdminThematicPagesView.vue'
 import type { AdminThematicPage } from '../../src/types/models'
 
 async function mountView() {

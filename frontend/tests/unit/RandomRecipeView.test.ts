@@ -10,7 +10,7 @@ vi.mock('../../src/api/recipes', () => ({
 }))
 
 import { getRandomRecipe } from '../../src/api/recipes'
-import RandomRecipeView from '../../src/views/RandomRecipeView.vue'
+import RandomRecipeView from '../../src/views/recipes/RandomRecipeView.vue'
 import type { Recipe } from '../../src/types/models'
 
 beforeEach(() => {

@@ -25,7 +25,7 @@ vi.mock('../../src/api/planning', () => ({
 import { deleteMe, setHealthDataConsent } from '../../src/api/auth'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../../src/api/planning'
 import { useAuthStore } from '../../src/stores/auth'
-import AccountSettingsView from '../../src/views/AccountSettingsView.vue'
+import AccountSettingsView from '../../src/views/account/AccountSettingsView.vue'
 import type { PlanningShare, User } from '../../src/types/models'
 
 async function mountAccountSettings() {

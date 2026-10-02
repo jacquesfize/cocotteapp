@@ -3,10 +3,10 @@ import { ChefHat, Plus, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import CooklangStepInput from '../components/recipes/CooklangStepInput.vue'
-import ImageUploadWithCredit from '../components/shared/ImageUploadWithCredit.vue'
-import IngredientPicker from '../components/recipes/IngredientPicker.vue'
-import PageHeader from '../components/shared/PageHeader.vue'
+import CooklangStepInput from '../../components/recipes/CooklangStepInput.vue'
+import ImageUploadWithCredit from '../../components/shared/ImageUploadWithCredit.vue'
+import IngredientPicker from '../../components/recipes/IngredientPicker.vue'
+import PageHeader from '../../components/shared/PageHeader.vue'
 import {
   createRecipe,
   getRecipe,
@@ -14,13 +14,13 @@ import {
   updateRecipe,
   uploadRecipeImage,
   uploadStepImage,
-} from '../api/recipes'
-import { formatUnit } from '../utils/format'
-import { imageCreditDomain } from '../utils/imageCredit'
-import { recipeImageUrl } from '../utils/recipeImageUrl'
-import type { RecipeInput } from '../types/models'
-import type { DietType, Ingredient, Unit } from '../types/models'
-import { takePendingImportDraft } from '../utils/pendingImportDraft'
+} from '../../api/recipes'
+import { formatUnit } from '../../utils/format'
+import { imageCreditDomain } from '../../utils/imageCredit'
+import { recipeImageUrl } from '../../utils/recipeImageUrl'
+import type { RecipeInput } from '../../types/models'
+import type { DietType, Ingredient, Unit } from '../../types/models'
+import { takePendingImportDraft } from '../../utils/pendingImportDraft'
 
 const props = defineProps<{
   id?: string | number | null
