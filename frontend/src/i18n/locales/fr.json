@@ -395,7 +395,8 @@
     "noLists": "Aucune liste pour l'instant. Générez-en une depuis l'agenda.",
     "delete": "Supprimer",
     "export": "Exporter en .txt",
-    "checkOwned": "Cochez les ingrédients que vous avez déjà."
+    "checkOwned": "Cochez les ingrédients que vous avez déjà.",
+    "progressCount": "{owned}/{total} achetés"
   },
   "account": {
     "title": "Mon compte",

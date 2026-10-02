@@ -395,7 +395,8 @@
     "noLists": "No list yet. Generate one from the planner.",
     "delete": "Delete",
     "export": "Export as .txt",
-    "checkOwned": "Check off the ingredients you already have."
+    "checkOwned": "Check off the ingredients you already have.",
+    "progressCount": "{owned}/{total} bought"
   },
   "account": {
     "title": "My account",

@@ -80,6 +80,19 @@ describe('ShoppingListDetailView', () => {
     expect(groups[2].text()).toContain('Lait')
   })
 
+  it('shows an overall progress summary and a per-category count', async () => {
+    const wrapper = mount(ShoppingListDetailView, {
+      props: { id: 1 },
+      global: { plugins: [i18n] },
+    })
+    await flushPromises()
+
+    // None of the 3 seeded items are owned yet.
+    expect(wrapper.text()).toContain('0/3 achetés')
+    const counts = wrapper.findAll('.category-count').map((c) => c.text())
+    expect(counts).toEqual(['0/1', '0/1', '0/1'])
+  })
+
   it('lets an owned item be unchecked, posting owned: false', async () => {
     vi.mocked(markOwned).mockResolvedValue({} as never)
     const wrapper = mount(ShoppingListDetailView, {

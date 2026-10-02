@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { CloudOff, Download, ShoppingCart } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Apple, Bean, Beef, Carrot, CloudOff, Download, Droplet, Egg, Milk, Nut, Package, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
+import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
@@ -28,9 +28,28 @@ const CATEGORY_ORDER: IngredientCategory[] = [
   'other',
 ]
 
+// Une icône par catégorie pour un repérage visuel plus rapide au supermarché qu'un simple
+// intitulé — une seule teinte (l'accent du thème) plutôt qu'une couleur par catégorie, pour
+// rester cohérent avec le reste de l'app (accent personnalisable, voir utils/theme.ts) et le
+// mode sombre.
+const CATEGORY_ICON: Record<IngredientCategory, Component> = {
+  vegetable: Carrot,
+  fruit: Apple,
+  legume: Bean,
+  grain: Wheat,
+  nut_seed: Nut,
+  dairy: Milk,
+  meat_fish: Beef,
+  egg: Egg,
+  fat: Droplet,
+  condiment: Sparkles,
+  other: Package,
+}
+
 interface ItemGroup {
   category: IngredientCategory
   items: ItemWithSync[]
+  ownedCount: number
 }
 
 const props = defineProps<{
@@ -54,11 +73,15 @@ const groupedItems = computed<ItemGroup[]>(() => {
       byCategory.set(category, [item])
     }
   }
-  return CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => ({
-    category,
-    items: byCategory.get(category)!,
-  }))
+  return CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => {
+    const items = byCategory.get(category)!
+    return { category, items, ownedCount: items.filter((item) => item.is_owned).length }
+  })
 })
+
+const totalCount = computed(() => shoppingList.value?.items.length ?? 0)
+const ownedCount = computed(() => shoppingList.value?.items.filter((item) => item.is_owned).length ?? 0)
+const progressPercent = computed(() => (totalCount.value ? Math.round((ownedCount.value / totalCount.value) * 100) : 0))
 
 async function load() {
   shoppingList.value = (await getShoppingList(props.id)) as ListWithSync
@@ -120,21 +143,39 @@ async function handleExport() {
       <PageHeader :icon="ShoppingCart">{{ shoppingList.name }}</PageHeader>
       <button @click="handleExport"><Download :size="16" />{{ $t('shopping.export') }}</button>
     </div>
-    <p class="muted">{{ $t('shopping.checkOwned') }}</p>
+
+    <div class="progress-summary">
+      <p class="muted">
+        {{ $t('shopping.checkOwned') }}
+        <template v-if="totalCount">
+          — {{ $t('shopping.progressCount', { owned: ownedCount, total: totalCount }) }}
+        </template>
+      </p>
+      <div v-if="totalCount" class="progress-track" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-fill" :style="{ width: `${progressPercent}%` }" />
+      </div>
+    </div>
 
     <div v-for="group in groupedItems" :key="group.category" class="card category-group">
-      <h2 class="category-title">{{ $t(`ingredientCategory.${group.category}`) }}</h2>
+      <div class="category-header">
+        <span class="category-icon">
+          <component :is="CATEGORY_ICON[group.category]" :size="18" />
+        </span>
+        <h2 class="category-title">{{ $t(`ingredientCategory.${group.category}`) }}</h2>
+        <span class="category-count">{{ group.ownedCount }}/{{ group.items.length }}</span>
+      </div>
       <div v-for="item in group.items" :key="item.id" class="item-row">
-        <label class="row" style="align-items: center; gap: 0.75rem">
+        <label class="item-label">
           <input
             type="checkbox"
+            class="item-checkbox"
             :checked="item.is_owned"
             :disabled="item.pendingSync"
-            style="width: auto"
             @change="toggleOwned(item)"
           />
-          <span :class="{ owned: item.is_owned }">
-            {{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }} — {{ item.ingredient.name }}
+          <span class="item-text" :class="{ owned: item.is_owned }">
+            <span class="item-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
+            {{ item.ingredient.name }}
           </span>
           <span v-if="item.pendingSync" class="pending-sync" :title="$t('offline.pendingSync')">
             <CloudOff :size="14" />
@@ -151,23 +192,114 @@ async function handleExport() {
   align-items: center;
 }
 
+.progress-summary {
+  margin-bottom: 1.25rem;
+}
+
+.progress-summary .muted {
+  margin: 0 0 0.5rem;
+}
+
+.progress-track {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
 .category-group {
   margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.6rem;
+}
+
+.category-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
 }
 
 .category-title {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-size: 1rem;
+  flex: 1;
+}
+
+.category-count {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--color-muted);
 }
 
-.item-row {
-  padding: 0.35rem 0;
+.item-row + .item-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.item-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.item-label:hover {
+  background: var(--color-surface-muted);
+}
+
+.item-checkbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.item-text {
+  flex: 1;
+  transition: opacity 0.15s ease;
+}
+
+.item-qty {
+  display: inline-block;
+  margin-right: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .owned {
   text-decoration: line-through;
   color: var(--color-muted);
+  opacity: 0.6;
+}
+
+.owned .item-qty {
+  background: transparent;
 }
 
 .pending-sync {

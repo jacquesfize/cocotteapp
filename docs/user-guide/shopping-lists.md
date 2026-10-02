@@ -39,7 +39,9 @@ Good to know:
 ![A shopping list with some items ticked](../assets/screenshots/shopping-list-detail.png)
 
 Items are grouped under a heading per ingredient category (dairy, fruit, vegetables and so on),
-and sorted by name within each category, so that similar products end up next to each other.
+each with its own icon and sorted by name within each category, so that similar products end up
+next to each other. A progress bar above the list shows how many items you've already ticked off
+in total, and each category heading shows its own "ticked/total" count.
 
 Tick an ingredient when it's in your basket, or when you already have it at home. It is greyed
 out, struck through and saved immediately. Click it again to untick it if you ticked it by
