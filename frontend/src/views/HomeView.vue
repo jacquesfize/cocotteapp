@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link2, Plus } from '@lucide/vue'
-import { onMounted, ref } from 'vue'
+import { ChevronDown, Link2, Pencil, Plus } from '@lucide/vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import BaseModal from '../components/BaseModal.vue'
@@ -47,6 +47,38 @@ const importError = ref('')
 const isImporting = ref(false)
 const showImportForm = ref(false)
 
+const showCreateMenu = ref(false)
+const createMenuEl = ref<HTMLElement | null>(null)
+
+function closeCreateMenu() {
+  showCreateMenu.value = false
+}
+
+function openImportForm() {
+  closeCreateMenu()
+  showImportForm.value = true
+}
+
+function handleCreateMenuOutsideClick(event: MouseEvent) {
+  if (showCreateMenu.value && createMenuEl.value && !createMenuEl.value.contains(event.target as Node)) {
+    closeCreateMenu()
+  }
+}
+
+function handleCreateMenuKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeCreateMenu()
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleCreateMenuOutsideClick)
+  document.addEventListener('keydown', handleCreateMenuKeydown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleCreateMenuOutsideClick)
+  document.removeEventListener('keydown', handleCreateMenuKeydown)
+})
+
 async function handleImport() {
   importError.value = ''
   isImporting.value = true
@@ -80,15 +112,25 @@ async function handleImport() {
     <h1 class="sr-only">{{ $t('home.title') }}</h1>
 
     <div class="row quick-actions" :aria-label="$t('home.quickActions')">
-      <RouterLink :to="{ name: 'recipes' }"><button>{{ $t('home.browseRecipes') }}</button></RouterLink>
-      <template v-if="authStore.isAuthenticated">
-        <RouterLink :to="{ name: 'recipe-new' }">
-          <button class="secondary"><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
-        </RouterLink>
-        <button class="secondary" type="button" @click="showImportForm = true">
-          <Link2 :size="16" />{{ $t('recipes.importButton') }}
+      <div v-if="authStore.isAuthenticated" ref="createMenuEl" class="create-menu">
+        <button
+          class="create-toggle"
+          type="button"
+          :aria-expanded="showCreateMenu"
+          aria-controls="home-create-panel"
+          @click="showCreateMenu = !showCreateMenu"
+        >
+          <Plus :size="16" />{{ $t('recipes.newRecipe') }}<ChevronDown :size="16" />
         </button>
-      </template>
+        <div id="home-create-panel" class="create-panel" :class="{ 'is-open': showCreateMenu }">
+          <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="closeCreateMenu">
+            <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
+          </RouterLink>
+          <button type="button" class="create-link" @click="openImportForm">
+            <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
+          </button>
+        </div>
+      </div>
       <RouterLink v-else :to="{ name: 'register' }">
         <button class="secondary">{{ $t('nav.register') }}</button>
       </RouterLink>
@@ -154,6 +196,56 @@ async function handleImport() {
 <style scoped>
 .quick-actions {
   margin-bottom: 1rem;
+}
+
+.create-menu {
+  position: relative;
+}
+
+.create-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.create-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 220px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 0.6rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 20;
+}
+
+.create-panel.is-open {
+  display: flex;
+}
+
+.create-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  min-height: auto;
+}
+
+.create-link:hover {
+  background: var(--color-surface-muted);
 }
 
 .sr-only {

@@ -54,7 +54,9 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await expect(page.getByText('Creamy sweet potato gratin').first()).toBeVisible()
     await shotPage(page, 'home', { fullPage: true })
 
-    await page.getByRole('button', { name: 'Import' }).click()
+    // "New recipe" / "Import" sont désormais réunis dans un seul bouton ouvrant un petit menu.
+    await page.getByRole('button', { name: 'New recipe' }).click()
+    await page.getByRole('button', { name: 'Import from a URL' }).click()
     const dialog = page.getByRole('dialog')
     await dialog.getByLabel('Import from a URL').fill('https://www.example.com/recipes/french-onion-soup')
     await shotElement(dialog, 'recipe-import-url')

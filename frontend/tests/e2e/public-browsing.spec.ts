@@ -34,7 +34,7 @@ test('anonymous visitors can browse the homepage, the recipe list and a recipe p
   // Homepage, without login.
   await page.goto('/')
   await expect(page).toHaveURL('/')
-  await expect(page.getByRole('link', { name: 'Voir les recettes' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Nouvelle recette' })).toHaveCount(0)
   await expect(page.getByRole('link', { name: 'Connexion' })).toBeVisible()
 
   // Recipe list, without login: browsable, but the write-only actions are hidden.
