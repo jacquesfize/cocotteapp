@@ -35,10 +35,28 @@ beforeEach(() => {
 })
 
 describe('HomeWeekStrip', () => {
-  it("lists today's meals in meal order and offers to plan when a day is empty", async () => {
+  it("lists today's meals as photo tiles in meal order and offers to plan when a day is empty", async () => {
     vi.mocked(listMealPlanEntries).mockResolvedValue([
-      { id: 2, recipe: 20, recipe_title: 'Soupe', date: isoToday(), meal_type: 'dinner', servings: 2 },
-      { id: 1, recipe: 10, recipe_title: 'Tartines', date: isoToday(), meal_type: 'breakfast', servings: 1 },
+      {
+        id: 2,
+        recipe: 20,
+        recipe_title: 'Soupe',
+        recipe_image: null,
+        recipe_image_url: '',
+        date: isoToday(),
+        meal_type: 'dinner',
+        servings: 2,
+      },
+      {
+        id: 1,
+        recipe: 10,
+        recipe_title: 'Tartines',
+        recipe_image: null,
+        recipe_image_url: 'https://example.com/tartines.jpg',
+        date: isoToday(),
+        meal_type: 'breakfast',
+        servings: 1,
+      },
     ])
     vi.mocked(listShoppingLists).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
     vi.mocked(getNutritionSummary).mockResolvedValue({ deficiencies: [] } as never)
@@ -46,9 +64,12 @@ describe('HomeWeekStrip', () => {
     const wrapper = await mountStrip()
     await flushPromises()
 
-    const items = wrapper.findAll('li').map((li) => li.text())
-    expect(items[0]).toContain('Tartines')
-    expect(items[1]).toContain('Soupe')
+    const tiles = wrapper.findAll('.week-tile')
+    expect(tiles.map((tile) => tile.text())).toEqual([expect.stringContaining('Tartines'), expect.stringContaining('Soupe')])
+    // Tartines has a photo (uses the image_url fallback), Soupe falls back to the placeholder.
+    expect(tiles[0].find('img').attributes('src')).toBe('https://example.com/tartines.jpg')
+    expect(tiles[1].find('img').exists()).toBe(false)
+    expect(tiles[1].find('.week-tile-placeholder').exists()).toBe(true)
     expect(wrapper.text()).toContain('Planifier un repas') // tomorrow is empty
   })
 

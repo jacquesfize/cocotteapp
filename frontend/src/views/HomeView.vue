@@ -19,9 +19,8 @@ const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 
-// Hero spotlight (the most recent recipe) + a couple of "up next" teasers — see HomeCarousel.vue
-// (git history) for the previous all-5 carousel. Only 3 of the latest recipes are reachable
-// from the homepage now; the rest remain one click away via "Recipes".
+// Hero spotlight, cycling through the 5 latest recipes — auto-advances like the old
+// HomeCarousel.vue (git history) did, plus dots to jump directly to one.
 const latestRecipes = ref<Recipe[]>([])
 const thematicPages = ref<ThematicPage[]>([])
 const seasonalRecipes = ref<Recipe[]>([])
@@ -29,8 +28,30 @@ const seasonalRecipes = ref<Recipe[]>([])
 const isLoading = ref(true)
 const loadError = ref(false)
 
-const heroRecipe = computed(() => latestRecipes.value[0] ?? null)
-const upNextRecipes = computed(() => latestRecipes.value.slice(1))
+const activeIndex = ref(0)
+const heroRecipe = computed(() => latestRecipes.value[activeIndex.value] ?? null)
+
+const prefersReducedMotion =
+  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+let autoAdvanceTimer: ReturnType<typeof setInterval> | undefined
+
+function stopAutoAdvance() {
+  clearInterval(autoAdvanceTimer)
+  autoAdvanceTimer = undefined
+}
+
+function startAutoAdvance() {
+  stopAutoAdvance()
+  if (prefersReducedMotion || latestRecipes.value.length < 2) return
+  autoAdvanceTimer = setInterval(() => {
+    activeIndex.value = (activeIndex.value + 1) % latestRecipes.value.length
+  }, 6000)
+}
+
+function goToSlide(index: number) {
+  activeIndex.value = index
+  startAutoAdvance()
+}
 
 const greetingKey = computed(() => {
   const hour = new Date().getHours()
@@ -51,16 +72,22 @@ onMounted(async () => {
     listThematicPages(),
     listRecipes({ in_season: true }),
   ])
-  if (recipesRes.status === 'fulfilled') latestRecipes.value = recipesRes.value.results.slice(0, 3)
-  else loadError.value = true
+  if (recipesRes.status === 'fulfilled') {
+    latestRecipes.value = recipesRes.value.results.slice(0, 5)
+    startAutoAdvance()
+  } else {
+    loadError.value = true
+  }
   if (pagesRes.status === 'fulfilled') thematicPages.value = pagesRes.value
   if (seasonRes.status === 'fulfilled') {
-    // Skip recipes already shown in the hero/"up next" so the same card never appears twice.
+    // Skip recipes already reachable from the hero so the same card never appears twice.
     const shown = new Set(latestRecipes.value.map((recipe) => recipe.id))
     seasonalRecipes.value = seasonRes.value.results.filter((recipe) => !shown.has(recipe.id)).slice(0, 4)
   }
   isLoading.value = false
 })
+
+onBeforeUnmount(stopAutoAdvance)
 
 const importUrl = ref('')
 const importError = ref('')
@@ -162,68 +189,80 @@ async function handleImport() {
         <div class="hero-skeleton-visual" />
       </div>
       <p v-else-if="loadError" class="muted">{{ $t('home.fetchError') }}</p>
-      <div v-else-if="heroRecipe" class="hero-spotlight">
-        <div class="hero-copy">
-          <span class="hero-eyebrow">{{ heroEyebrow }}</span>
-          <h2 class="hero-title">{{ heroRecipe.title }}</h2>
-          <div class="row hero-meta">
-            <span class="hero-diet" :class="`diet-${heroRecipe.diet_type}`">{{ $t(`diet.${heroRecipe.diet_type}`) }}</span>
-            <span class="hero-meta-item"><Clock :size="14" />{{ formatDuration(heroRecipe.total_time_minutes) }}</span>
-            <span v-if="heroRecipe.servings" class="hero-meta-item">
-              <Users :size="14" />{{ heroRecipe.servings }} {{ $t('recipes.servings') }}
-            </span>
+      <template v-else-if="heroRecipe">
+        <span class="hero-eyebrow">{{ heroEyebrow }}</span>
+        <div class="hero-spotlight" @mouseenter="stopAutoAdvance" @mouseleave="startAutoAdvance">
+          <div class="hero-copy">
+            <Transition name="hero-fade" mode="out-in">
+              <div :key="heroRecipe.id" class="hero-copy-face">
+                <h2 class="hero-title">{{ heroRecipe.title }}</h2>
+                <div class="row hero-meta">
+                  <span class="hero-diet" :class="`diet-${heroRecipe.diet_type}`">{{ $t(`diet.${heroRecipe.diet_type}`) }}</span>
+                  <span class="hero-meta-item"><Clock :size="14" />{{ formatDuration(heroRecipe.total_time_minutes) }}</span>
+                  <span v-if="heroRecipe.servings" class="hero-meta-item">
+                    <Users :size="14" />{{ heroRecipe.servings }} {{ $t('recipes.servings') }}
+                  </span>
+                </div>
+              </div>
+            </Transition>
+            <div class="row hero-ctas">
+              <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }">
+                <button>{{ $t('home.viewRecipe') }}</button>
+              </RouterLink>
+              <RouterLink :to="{ name: 'planning' }">
+                <button class="secondary">{{ $t('home.planForLater') }}</button>
+              </RouterLink>
+            </div>
           </div>
-          <div class="row hero-ctas">
-            <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }">
-              <button>{{ $t('home.viewRecipe') }}</button>
-            </RouterLink>
-            <RouterLink :to="{ name: 'planning' }">
-              <button class="secondary">{{ $t('home.planForLater') }}</button>
-            </RouterLink>
+
+          <div class="hero-visual">
+            <div class="hero-deck">
+              <div class="hero-deck-back hero-deck-back-1" aria-hidden="true" />
+              <div class="hero-deck-back hero-deck-back-2" aria-hidden="true" />
+              <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }" class="hero-deck-front">
+                <Transition name="hero-deck-fade">
+                  <div :key="heroRecipe.id" class="hero-deck-face">
+                    <template v-if="heroRecipe.image || heroRecipe.image_url">
+                      <ImageWithCredit
+                        class="hero-deck-image"
+                        :image-url="heroRecipe.image || heroRecipe.image_url"
+                        :source-url="heroRecipe.image ? null : heroRecipe.source_url"
+                        :license="heroRecipe.image_license"
+                        :credit-author="heroRecipe.image_credit_author"
+                        :credit-source-url="heroRecipe.image_credit_source_url"
+                        :credit-license-url="heroRecipe.image_credit_license_url"
+                        :credit-note="heroRecipe.image_credit_note"
+                        overlay
+                        overlay-align="right"
+                      />
+                      <div class="hero-deck-scrim" />
+                      <span class="hero-deck-title hero-deck-title-light">{{ heroRecipe.title }}</span>
+                    </template>
+                    <template v-else>
+                      <div class="hero-deck-placeholder" aria-hidden="true">🍲</div>
+                      <span class="hero-deck-title hero-deck-title-dark">{{ heroRecipe.title }}</span>
+                    </template>
+                  </div>
+                </Transition>
+              </RouterLink>
+            </div>
           </div>
         </div>
 
-        <div class="hero-visual">
-          <div class="hero-deck">
-            <div class="hero-deck-back hero-deck-back-1" aria-hidden="true" />
-            <div class="hero-deck-back hero-deck-back-2" aria-hidden="true" />
-            <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }" class="hero-deck-front">
-              <template v-if="heroRecipe.image || heroRecipe.image_url">
-                <ImageWithCredit
-                  class="hero-deck-image"
-                  :image-url="heroRecipe.image || heroRecipe.image_url"
-                  :source-url="heroRecipe.image ? null : heroRecipe.source_url"
-                  :license="heroRecipe.image_license"
-                  :credit-author="heroRecipe.image_credit_author"
-                  :credit-source-url="heroRecipe.image_credit_source_url"
-                  :credit-license-url="heroRecipe.image_credit_license_url"
-                  :credit-note="heroRecipe.image_credit_note"
-                  overlay
-                  overlay-align="right"
-                />
-                <div class="hero-deck-scrim" />
-                <span class="hero-deck-title hero-deck-title-light">{{ heroRecipe.title }}</span>
-              </template>
-              <template v-else>
-                <div class="hero-deck-placeholder" aria-hidden="true">🍲</div>
-                <span class="hero-deck-title hero-deck-title-dark">{{ heroRecipe.title }}</span>
-              </template>
-            </RouterLink>
-          </div>
-
-          <div v-if="upNextRecipes.length" class="hero-upnext">
-            <RouterLink
-              v-for="recipe in upNextRecipes"
-              :key="recipe.id"
-              :to="{ name: 'recipe-detail', params: { id: recipe.id } }"
-              class="hero-upnext-card"
-            >
-              <span class="hero-upnext-label">{{ $t('home.upNext') }}</span>
-              <span class="hero-upnext-title">{{ recipe.title }}</span>
-            </RouterLink>
-          </div>
+        <div v-if="latestRecipes.length > 1" class="hero-dots" role="tablist">
+          <button
+            v-for="(recipe, index) in latestRecipes"
+            :key="recipe.id"
+            type="button"
+            role="tab"
+            class="hero-dot"
+            :class="{ active: index === activeIndex }"
+            :aria-selected="index === activeIndex"
+            :aria-label="recipe.title"
+            @click="goToSlide(index)"
+          />
         </div>
-      </div>
+      </template>
       <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
     </div>
 
@@ -309,7 +348,44 @@ async function handleImport() {
   gap: 1.1rem;
 }
 
+.hero-copy-face {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.hero-fade-enter-from,
+.hero-fade-leave-to {
+  opacity: 0;
+}
+
+.hero-deck-fade-enter-active,
+.hero-deck-fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.hero-deck-fade-enter-from,
+.hero-deck-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-enter-active,
+  .hero-fade-leave-active,
+  .hero-deck-fade-enter-active,
+  .hero-deck-fade-leave-active {
+    transition: none;
+  }
+}
+
 .hero-eyebrow {
+  display: block;
+  margin-bottom: 1.1rem;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-muted);
@@ -396,6 +472,11 @@ async function handleImport() {
   box-shadow: 0 20px 40px rgba(36, 31, 29, 0.18);
 }
 
+.hero-deck-face {
+  position: absolute;
+  inset: 0;
+}
+
 .hero-deck-image {
   position: absolute;
   inset: 0;
@@ -446,34 +527,42 @@ async function handleImport() {
   bottom: 0.9rem;
 }
 
-.hero-upnext {
+.hero-dots {
   display: flex;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 0.5rem;
   margin-top: 1rem;
 }
 
-.hero-upnext-card {
-  flex: 1;
-  padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  text-decoration: none;
-  color: var(--color-text);
+.hero-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background 0.2s ease;
 }
 
-.hero-upnext-label {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--color-muted);
-  margin-bottom: 0.15rem;
+/* Wider hit target without growing the visible dot. */
+.hero-dot::before {
+  content: '';
+  position: absolute;
+  inset: -10px -4px;
 }
 
-.hero-upnext-title {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.3;
+.hero-dot:hover {
+  background: var(--color-muted);
+}
+
+.hero-dot:active {
+  transform: none;
+}
+
+.hero-dot.active {
+  background: var(--color-muted);
 }
 
 .hero-skeleton {
@@ -498,27 +587,74 @@ async function handleImport() {
 }
 
 @media (max-width: 760px) {
-  .hero-spotlight,
+  /* Below desktop width, the hero becomes one photo card: the deck fills it edge to edge and
+     the copy (eyebrow, title, meta, CTAs) overlays its bottom on the existing dark scrim,
+     instead of sitting in its own text block above a separate, smaller photo. */
+  .hero-spotlight {
+    position: relative;
+    display: block;
+    min-height: 26rem;
+    border-radius: 24px;
+    overflow: hidden;
+  }
+
   .hero-skeleton {
     flex-direction: column;
     align-items: stretch;
     gap: 1.5rem;
   }
 
-  .hero-copy,
   .hero-skeleton-copy {
     flex-basis: auto;
-    min-width: 0;
   }
 
-  .hero-visual,
   .hero-skeleton-visual {
     width: 100%;
     flex-basis: auto;
   }
 
+  .hero-visual {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+  }
+
+  .hero-deck {
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-deck-back {
+    display: none;
+  }
+
+  .hero-deck-front {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* The deck's own caption would otherwise duplicate the title .hero-copy now overlays. */
+  .hero-deck-title {
+    display: none;
+  }
+
+  .hero-copy {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    justify-content: flex-end;
+    padding: 1.5rem;
+    gap: 0.75rem;
+  }
+
+  .hero-meta-item {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
   .hero-title {
     font-size: 2rem;
+    color: #fff;
   }
 }
 

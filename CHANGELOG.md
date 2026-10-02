@@ -73,14 +73,19 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   default, growing to fit longer instructions instead of ever clipping them).
 - The homepage got a visual refresh. The latest-recipes carousel is replaced by a "today's pick"
   hero: the most recent recipe in a large photo card (with a decorative stack of cards behind
-  it), its diet/time/servings, a **View recipe** and a **Plan for later** button, and "Up next"
-  teasers for the next two most recent recipes; the "New recipe" quick action now sits at the top
-  of that same hero instead of floating in its own row above an unrelated section. The "This
-  week" card floats over the hero's bottom edge, and its "Latest shopping list" link is a pill
-  button with a cart icon (matching the nutrition-alerts badge next to it) instead of a bare
-  underlined text link. The **Explore** thematic pages are now a row of round photo avatars
-  instead of square tiles, so a page without its own photo shows its icon on a plain
-  accent-tinted circle instead of a flat saturated-color card.
+  it), its diet/time/servings, a **View recipe** and a **Plan for later** button. It auto-advances
+  through your 5 latest recipes, with dots below to jump to one directly (on mobile, the title and
+  CTAs sit over the photo instead of above it); the "New recipe" quick action now sits at the top
+  of that same hero instead of floating in its own row above an unrelated section. The "This week"
+  card floats over the hero's bottom edge: a quarter of its width is now a **Latest shopping
+  list** button showing its bought/total progress, and each planned meal for Today/Tomorrow is a
+  photo tile (recipe picture, meal, title) instead of a plain text line. The **Explore** thematic
+  pages are now a row of round photo avatars instead of square tiles, so a page without its own
+  photo shows its icon on a plain accent-tinted circle instead of a flat saturated-color card.
+- The weekly/monthly planner now tints today's column (week view) or day cell (month view) so
+  it's easy to spot, and the "Today" button that jumps back to the current period (shown once
+  you've navigated away) got a reset icon and a visible border so it reads as a button rather
+  than a label.
 
 ### Fixed
 

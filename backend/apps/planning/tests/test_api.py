@@ -196,3 +196,17 @@ def test_meal_plan_entry_exposes_recipe_allergens():
     response = client.get("/api/meal-plan-entries/")
 
     assert response.data[0]["recipe_allergens"] == ["gluten"]
+
+
+@pytest.mark.django_db
+def test_meal_plan_entry_exposes_recipe_image_url():
+    user = UserFactory()
+    recipe = RecipeFactory(image_url="https://example.com/photo.jpg")
+    MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-01")
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get("/api/meal-plan-entries/")
+
+    assert response.data[0]["recipe_image"] is None
+    assert response.data[0]["recipe_image_url"] == "https://example.com/photo.jpg"

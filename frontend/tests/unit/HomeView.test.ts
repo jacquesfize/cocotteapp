@@ -58,7 +58,7 @@ beforeEach(() => {
 })
 
 describe('HomeView', () => {
-  it('shows the hero recipe, up-next teasers for the next two, and thematic pages as links to filtered lists', async () => {
+  it('shows the hero recipe, a dot per latest recipe, and thematic pages as links to filtered lists', async () => {
     vi.mocked(listRecipes).mockImplementation(async (params) => ({
       results: params?.in_season ? [] : Array.from({ length: 8 }, (_, i) => recipe(i + 1)),
       count: 8,
@@ -81,11 +81,9 @@ describe('HomeView', () => {
     const wrapper = await mountHome()
     await flushPromises()
 
+    // Only the first 5 of the 8 returned recipes are reachable from the hero/dots.
     expect(wrapper.find('.hero-title').text()).toBe('Recette 1')
-    expect(wrapper.findAll('.hero-upnext-card').map((c) => c.text())).toEqual([
-      expect.stringContaining('Recette 2'),
-      expect.stringContaining('Recette 3'),
-    ])
+    expect(wrapper.findAll('.hero-dot')).toHaveLength(5)
     expect(wrapper.text()).toContain('Produits de saison')
 
     const thematicLink = wrapper.findAll('a').find((a) => a.text().includes('Produits de saison'))
@@ -93,6 +91,56 @@ describe('HomeView', () => {
       name: 'recipes',
       query: { in_season: 'true' },
     })
+  })
+
+  it('switches the hero to the picked recipe when a dot is clicked', async () => {
+    vi.mocked(listRecipes).mockImplementation(async (params) => ({
+      results: params?.in_season ? [] : [recipe(1), recipe(2), recipe(3)],
+      count: 3,
+      next: null,
+      previous: null,
+    }))
+    vi.mocked(listThematicPages).mockResolvedValue([])
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    expect(wrapper.find('.hero-title').text()).toBe('Recette 1')
+
+    await wrapper.findAll('.hero-dot')[2].trigger('click')
+
+    expect(wrapper.find('.hero-title').text()).toBe('Recette 3')
+    expect(wrapper.findAll('.hero-dot')[2].classes()).toContain('active')
+  })
+
+  it('auto-advances the hero through the latest recipes on a timer', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.mocked(listRecipes).mockImplementation(async (params) => ({
+        results: params?.in_season ? [] : [recipe(1), recipe(2), recipe(3)],
+        count: 3,
+        next: null,
+        previous: null,
+      }))
+      vi.mocked(listThematicPages).mockResolvedValue([])
+
+      const wrapper = await mountHome()
+      await flushPromises()
+
+      expect(wrapper.find('.hero-title').text()).toBe('Recette 1')
+
+      await vi.advanceTimersByTimeAsync(6000)
+      expect(wrapper.find('.hero-title').text()).toBe('Recette 2')
+
+      await vi.advanceTimersByTimeAsync(6000)
+      expect(wrapper.find('.hero-title').text()).toBe('Recette 3')
+
+      // Wraps back around to the first recipe.
+      await vi.advanceTimersByTimeAsync(6000)
+      expect(wrapper.find('.hero-title').text()).toBe('Recette 1')
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('shows a message when there are no recipes or thematic pages yet', async () => {
@@ -108,7 +156,7 @@ describe('HomeView', () => {
     expect(wrapper.text()).not.toContain('De saison en ce moment')
   })
 
-  it('shows an in-season row without repeating recipes already shown in the hero or up next', async () => {
+  it('shows an in-season row without repeating recipes already reachable from the hero/dots', async () => {
     vi.mocked(listRecipes).mockImplementation(async (params) => ({
       results: params?.in_season ? [recipe(1), recipe(9)] : [recipe(1), recipe(2)],
       count: 2,
@@ -122,7 +170,7 @@ describe('HomeView', () => {
 
     expect(wrapper.text()).toContain('De saison en ce moment')
     expect(wrapper.find('.hero-title').text()).toBe('Recette 1')
-    expect(wrapper.find('.hero-upnext-card').text()).toContain('Recette 2')
+    expect(wrapper.findAll('.hero-dot')).toHaveLength(2)
     expect(wrapper.findAll('.stub-recipe-card').map((c) => c.text())).toEqual(['Recette 9'])
   })
 

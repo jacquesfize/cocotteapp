@@ -146,6 +146,28 @@ describe('PlanningView calendar views', () => {
     expect(wrapper.findAll('.month-cell:not(.empty)')).toHaveLength(daysInMonth)
   })
 
+  it('highlights today in both the week and month grids', async () => {
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const now = new Date()
+    const todayIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+
+    const weekHeads = wrapper.findAll('.agenda-day-head.is-today')
+    expect(weekHeads).toHaveLength(1)
+    const cells = wrapper.findAll('.agenda-cell.is-today')
+    expect(cells.length).toBeGreaterThan(0)
+    expect(cells.every((cell) => cell.attributes('data-date') === todayIso)).toBe(true)
+
+    await wrapper.find('[data-view="month"]').trigger('click')
+    await flushPromises()
+
+    const monthCells = wrapper.findAll('.month-cell.is-today')
+    expect(monthCells).toHaveLength(1)
+    expect(monthCells[0].attributes('data-date')).toBe(todayIso)
+  })
+
   it('loads the whole month range in month view and keeps PDF/shopping actions', async () => {
     const wrapper = await mountPlanningView()
     await flushPromises()

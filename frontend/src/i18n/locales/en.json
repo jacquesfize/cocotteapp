@@ -266,8 +266,7 @@
     "greetingEvening": "Good evening",
     "heroEyebrowAuth": "{greeting}, {name} — today's pick",
     "heroEyebrowGuest": "{greeting} — today's pick",
-    "planForLater": "Plan for later",
-    "upNext": "Up next"
+    "planForLater": "Plan for later"
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",

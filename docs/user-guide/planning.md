@@ -24,7 +24,7 @@ The **Week** / **Month** buttons at the top switch between the two views.
 **Week view**
 :   A grid with the seven days of the week (Monday to Sunday) as columns, and **Breakfast**,
     **Lunch** and **Dinner** as rows. Each cell lists the recipes planned for that meal. Click a
-    recipe to open it.
+    recipe to open it. Today's column is tinted so you can spot it at a glance.
 
 > [!NOTE]
 > The instance administrator can also enable a fourth row, **Snack**, for everyone on the
@@ -33,12 +33,13 @@ The **Week** / **Month** buttons at the top switch between the two views.
 
 **Month view**
 :   A calendar of the whole month, listing the recipes planned each day. Click a **day number**
-    to jump to the week view of that week.
+    to jump to the week view of that week. Today's date is tinted the same way.
 
 ![The planner in month view](../assets/screenshots/planning-month.png)
 
 Use the **‹** and **›** arrows around the date range to move to the previous or next week (or
-month). When you are not on the current period, a **Today** button brings you back.
+month). When you are not on the current period, a **Today** button (with a reset icon, next to
+the date range) brings you back.
 
 > [!IMPORTANT]
 > The buttons at the bottom of the planner apply to **the period currently displayed**: the week

@@ -20,17 +20,18 @@ From top to bottom:
     so there's no separate "browse recipes" button here.
 
 **Today's pick**
-:   The most recent recipe, with its picture, diet, total time and servings. **View recipe**
-    opens it; **Plan for later** opens the planner. Below it, **Up next** teases the next two
-    most recent recipes.
+:   One of your 5 most recent recipes, with its picture, diet, total time and servings. It
+    auto-advances every few seconds; the dots below it jump straight to one and pause the
+    auto-advance while you're looking. **View recipe** opens it; **Plan for later** opens the
+    planner.
 
 **This week** *(logged-in users only)*
-:   Your meals for **Today** and **Tomorrow**, by meal. An empty day shows a **Plan a meal**
-    button that opens the planner. On the right you may also see:
-
-    - a red badge such as *2 nutrition alerts*, when the next seven days of your planner fall
-      short of your daily minimums. It opens the planner.
-    - **Latest shopping list**, which opens your most recent shopping list.
+:   A photo tile per planned meal for **Today** and **Tomorrow** — the recipe's picture, its meal
+    (Breakfast, Lunch, …) and its title; click one to open the recipe. An empty day shows a
+    **Plan a meal** prompt that opens the planner. On the left, **Latest shopping list** opens
+    your most recent shopping list and shows its bought/total progress; a red badge such as
+    *2 nutrition alerts* appears next to the heading when the next seven days of your planner
+    fall short of your daily minimums (opens the planner).
 
 **Explore**
 :   Thematic shortcuts chosen by the administrators, for example *Produits de saison*,
