@@ -4,8 +4,8 @@ You need to be logged in to add recipes. There are three ways to create one:
 
 | Method | Best for | Where |
 |---|---|---|
-| **Manual entry** | Your own recipes | **Recipes** → **New recipe**, or **New recipe** on the home page |
-| **Import from a URL** | A recipe from a cooking website | **Recipes** → **Import**, or **Import** on the home page |
+| **Manual entry** | Your own recipes | **Recipes** → **New recipe**, or **New recipe** → **Create manually** on the home page |
+| **Import from a URL** | A recipe from a cooking website | **Recipes** → **Import**, or **New recipe** → **Import from a URL** on the home page |
 | **Paste Cooklang** | A recipe already written in [Cooklang](https://cooklang.org/) markup | **New recipe** → **Paste Cooklang** tab |
 
 Whichever you choose, you end up in the same recipe form, where you can check and fix everything
@@ -155,8 +155,8 @@ recipe's own photo (see [Media & source](#media-source) below) — pick a file o
 URL, then choose a license and fill in the credit fields it requires.
 
 On the recipe page, a step with a photo shows a small photo icon at the end of its text; click it
-to view the picture (with its credit) in a dialog. In cook mode, the current step's photo is shown
-directly above its instruction text.
+to view the picture (with its credit) in a dialog. In cook mode, the current step's photo fills
+most of the screen, with its instruction text in a band at the bottom.
 
 ### Media & source
 
@@ -211,8 +211,8 @@ it. Then everyone can see the full recipe.
 Cocotte can read recipes from many cooking websites (the ones supported by
 [recipe-scrapers](https://github.com/hhursev/recipe-scrapers)).
 
-1. On the **Recipes** page, click **Import**. On the home page, **Import** opens the same form
-   in a dialog.
+1. On the **Recipes** page, click **Import**. On the home page, click **New recipe** then
+   **Import from a URL**, which opens the same form in a dialog.
 2. Paste the recipe's address in **Import from a URL**.
 3. Click **Import** and wait a few seconds.
 

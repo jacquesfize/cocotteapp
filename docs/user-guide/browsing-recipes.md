@@ -13,10 +13,11 @@ Click **Home** (or the Cocotte logo) to open the home page.
 From top to bottom:
 
 **Quick actions**
-:   **Browse recipes** opens the recipe list. Logged-in users also get **New recipe** and
-    **Import**, which opens an **Import from a URL** dialog (see
+:   Logged-in users get a **New recipe** button that opens a small menu with two choices:
+    **Create manually** (the blank recipe form) or **Import from a URL** (see
     [Creating recipes](creating-recipes.md#import-a-recipe-from-a-url)). Visitors get **Sign up**
-    instead.
+    instead. The recipe list itself is always reachable from **Recipes** in the main navigation,
+    so there's no separate "browse recipes" button here.
 
 **Latest recipes carousel**
 :   The five most recent recipes, with their picture, diet and total time. Swipe or scroll
@@ -166,7 +167,8 @@ while cooking:
   turns into a checkmark — pressing it (or swiping/pressing → again) exits cook mode instead of
   doing nothing.
 - A step with its own photo (see [Add a photo to a step](creating-recipes.md#add-a-photo-to-a-step))
-  shows it above the instruction text.
+  shows it filling most of the screen, with the instruction text in a band at the bottom that
+  grows taller for longer instructions.
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
   by tapping outside it.

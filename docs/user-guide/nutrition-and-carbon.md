@@ -96,6 +96,12 @@ easily reaches the high band.
 
 ## Weekly deficiency alerts
 
+> [!NOTE]
+> This feature is **off by default** and must be turned on by the instance administrator (see
+> [Configuration](../admin-guide/configuration.md#planning-and-nutrition-features)). If it's
+> off, the planner's nutritional intake summary never lists any deficiency and the home page's
+> badge never appears, regardless of what's planned.
+
 The planner's **Nutritional intake** dialog (and the badge on the home page's **This week**
 strip) warns you when your planned meals may not cover some nutrients.
 
