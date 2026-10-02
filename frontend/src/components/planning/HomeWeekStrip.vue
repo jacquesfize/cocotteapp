@@ -2,14 +2,14 @@
 import { Calendar, Link2, Pencil, Plus, ShoppingCart, TriangleAlert } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useClickOutside } from '../composables/useClickOutside'
-import ProgressBar from './shared/ProgressBar.vue'
-import { fetchLegalInfo } from '../api/auth'
-import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
-import { listShoppingLists } from '../api/shopping'
-import { addDays, toISODate } from '../utils/dates'
-import { shoppingListProgress } from '../utils/shoppingListProgress'
-import type { MealPlanEntry, MealType, ShoppingList } from '../types/models'
+import { useClickOutside } from '../../composables/useClickOutside'
+import ProgressBar from '../shared/ProgressBar.vue'
+import { fetchLegalInfo } from '../../api/auth'
+import { getNutritionSummary, listMealPlanEntries } from '../../api/planning'
+import { listShoppingLists } from '../../api/shopping'
+import { addDays, toISODate } from '../../utils/dates'
+import { shoppingListProgress } from '../../utils/shoppingListProgress'
+import type { MealPlanEntry, MealType, ShoppingList } from '../../types/models'
 
 const emit = defineEmits<{ (e: 'open-import'): void }>()
 

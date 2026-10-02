@@ -2,12 +2,12 @@
 import { CalendarPlus } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useClickOutside } from '../composables/useClickOutside'
-import { useCopyFeedback } from '../composables/useCopyFeedback'
-import { downloadWeekIcs, getCalendarFeed, regenerateCalendarFeed } from '../api/planning'
-import type { CalendarFeed } from '../api/planning'
-import { downloadBlob } from '../utils/download'
-import type { MealPlanEntryListParams } from '../types/api'
+import { useClickOutside } from '../../composables/useClickOutside'
+import { useCopyFeedback } from '../../composables/useCopyFeedback'
+import { downloadWeekIcs, getCalendarFeed, regenerateCalendarFeed } from '../../api/planning'
+import type { CalendarFeed } from '../../api/planning'
+import { downloadBlob } from '../../utils/download'
+import type { MealPlanEntryListParams } from '../../types/api'
 
 const props = defineProps<{ params: MealPlanEntryListParams }>()
 

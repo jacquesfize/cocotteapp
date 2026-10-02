@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Dices, Shuffle } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
-import AddToPlanForm from '../components/AddToPlanForm.vue'
+import AddToPlanForm from '../components/planning/AddToPlanForm.vue'
 import PageHeader from '../components/shared/PageHeader.vue'
 import RecipeRestrictedNotice from '../components/recipes/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/recipes/RecipeSummary.vue'

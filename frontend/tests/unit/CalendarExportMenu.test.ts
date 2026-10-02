@@ -9,7 +9,7 @@ vi.mock('../../src/api/planning', () => ({
 }))
 
 import { getCalendarFeed, regenerateCalendarFeed } from '../../src/api/planning'
-import CalendarExportMenu from '../../src/components/CalendarExportMenu.vue'
+import CalendarExportMenu from '../../src/components/planning/CalendarExportMenu.vue'
 
 const feed = { token: 't1', url: 'https://x.test/api/planning/feed/t1.ics', webcal_url: 'webcal://x.test/api/planning/feed/t1.ics' }
 
