@@ -315,8 +315,8 @@ async function handleDelete(page: AdminThematicPage) {
       <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
       <p v-else-if="!pages.length" class="muted">{{ $t('adminThematicPages.noPages') }}</p>
 
-      <div v-else class="card table-wrapper">
-        <table class="admin-table">
+      <div v-else class="card admin-table-wrapper">
+        <table class="admin-table admin-table--scroll">
           <thead>
             <tr>
               <th>{{ $t('adminThematicPages.colImage') }}</th>
@@ -383,32 +383,11 @@ async function handleDelete(page: AdminThematicPage) {
   gap: 0.5rem;
 }
 
-.table-wrapper {
+.admin-table-wrapper {
   overflow-x: auto;
-  padding: 0;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
+.admin-table--scroll {
   white-space: nowrap;
-}
-
-.admin-table th,
-.admin-table td {
-  text-align: left;
-  padding: 0.85rem 1.25rem;
-}
-
-.admin-table thead th {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-muted);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.admin-table tbody tr:not(:last-child) td {
-  border-bottom: 1px solid var(--color-border);
 }
 </style>

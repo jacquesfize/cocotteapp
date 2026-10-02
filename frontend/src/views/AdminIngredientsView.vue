@@ -125,7 +125,7 @@ async function handleDelete(ingredient: Ingredient) {
       <p v-if="isLoading" class="muted">{{ $t('common.loading') }}</p>
       <p v-else-if="!ingredients.length" class="muted">{{ $t('adminIngredients.noIngredients') }}</p>
 
-      <div v-else class="card table-wrapper">
+      <div v-else class="card admin-table-wrapper">
         <table class="admin-table">
           <thead>
             <tr>
@@ -173,33 +173,6 @@ async function handleDelete(ingredient: Ingredient) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-}
-
-.table-wrapper {
-  padding: 0;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.admin-table th,
-.admin-table td {
-  text-align: left;
-  padding: 0.85rem 1.25rem;
-}
-
-.admin-table thead th {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--color-muted);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.admin-table tbody tr:not(:last-child) td {
-  border-bottom: 1px solid var(--color-border);
 }
 
 .admin-table .actions {
