@@ -45,6 +45,7 @@ export interface LegalInfo {
   host_address: string
   privacy_contact_email: string
   inactive_retention_days: number
+  planning_snack_enabled: boolean
 }
 
 export interface AdminUser {

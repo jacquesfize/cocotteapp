@@ -12,10 +12,14 @@ vi.mock('../../src/api/planning', () => ({
 vi.mock('../../src/api/shopping', () => ({
   createShoppingList: vi.fn(),
 }))
+vi.mock('../../src/api/auth', () => ({
+  fetchLegalInfo: vi.fn(),
+}))
 
+import { fetchLegalInfo } from '../../src/api/auth'
 import { getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../../src/api/planning'
 import PlanningView from '../../src/views/PlanningView.vue'
-import type { PlanningShareReceived } from '../../src/types/models'
+import type { LegalInfo, PlanningShareReceived } from '../../src/types/models'
 
 async function mountPlanningView() {
   const router = createRouter({
@@ -50,6 +54,21 @@ function sharedAgenda(overrides?: Partial<PlanningShareReceived>): PlanningShare
   }
 }
 
+function legalInfo(overrides?: Partial<LegalInfo>): LegalInfo {
+  return {
+    policy_version: '1',
+    publisher_name: '',
+    publisher_address: '',
+    contact_email: '',
+    host_name: '',
+    host_address: '',
+    privacy_contact_email: '',
+    inactive_retention_days: 730,
+    planning_snack_enabled: false,
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   i18n.global.locale.value = 'fr'
   vi.clearAllMocks()
@@ -62,6 +81,8 @@ beforeEach(() => {
     carbon_footprint_daily_average_kg_co2e: 0,
   })
   vi.mocked(listSharedWithMe).mockResolvedValue([])
+  // La collation est désactivée par défaut au niveau de l'instance (voir /api/auth/legal/).
+  vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo())
 })
 
 describe('PlanningView agenda sharing', () => {
@@ -114,7 +135,8 @@ describe('PlanningView calendar views', () => {
     expect(wrapper.findAll('.view-btn')).toHaveLength(2)
     expect(wrapper.find('[data-view="cards"]').exists()).toBe(false)
     expect(wrapper.find('.agenda-week').exists()).toBe(true)
-    expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(28)
+    // 3 meal types (snack is instance-disabled by default) x 7 days.
+    expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(21)
 
     await wrapper.find('[data-view="month"]').trigger('click')
     await flushPromises()
@@ -140,6 +162,30 @@ describe('PlanningView calendar views', () => {
       }),
     )
     expect(wrapper.text()).toContain('PDF')
+  })
+})
+
+describe('PlanningView snack meal slot (instance toggle)', () => {
+  it('hides the snack row by default (instance setting disabled)', async () => {
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    expect(fetchLegalInfo).toHaveBeenCalled()
+    expect(wrapper.find('[data-meal-type="snack"]').exists()).toBe(false)
+    expect(wrapper.findAll('.agenda-row-head').map((el) => el.text())).not.toContain(
+      i18n.global.t('mealType.snack'),
+    )
+    expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(21)
+  })
+
+  it('shows the snack row once the instance enables it', async () => {
+    vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo({ planning_snack_enabled: true }))
+
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    expect(wrapper.find('[data-meal-type="snack"]').exists()).toBe(true)
+    expect(wrapper.findAll('.agenda-week .meal-slot-stub')).toHaveLength(28)
   })
 })
 
@@ -175,5 +221,17 @@ describe('PlanningView nutrition modal', () => {
     await open()
     await wrapper.find('.base-modal-close').trigger('click')
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+  })
+
+  it('hides the deficiency banner when there are none (e.g. NUTRITION_ALERTS_ENABLED=False)', async () => {
+    // beforeEach already mocks getNutritionSummary with an empty deficiencies list, matching
+    // what the backend returns when the instance-level nutrition alert toggle is off.
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    await wrapper.find('.nutrition-btn').trigger('click')
+
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('.deficiency-banner').exists()).toBe(false)
   })
 })

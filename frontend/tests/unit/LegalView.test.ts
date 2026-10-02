@@ -16,6 +16,7 @@ const info = {
   host_address: '',
   privacy_contact_email: 'privacy@example.org',
   inactive_retention_days: 730,
+  planning_snack_enabled: false,
 }
 
 function mountPage(page: 'legal' | 'privacy') {

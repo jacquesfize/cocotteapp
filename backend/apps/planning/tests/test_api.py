@@ -65,7 +65,39 @@ def test_meal_plan_entries_filtered_by_date_range():
 
 
 @pytest.mark.django_db
-def test_nutrition_summary_flags_deficiencies():
+def test_nutrition_summary_flags_deficiencies(settings):
+    from apps.ingredients.factories import IngredientFactory
+    from apps.nutrition.models import NutrientRequirement
+    from apps.recipes.factories import RecipeFactory as RecipeFactory2
+    from apps.recipes.factories import RecipeIngredientFactory
+    from decimal import Decimal
+
+    settings.NUTRITION_ALERTS_ENABLED = True
+    user = UserFactory(diet_type="vegan", activity_level="athlete")
+    NutrientRequirement.objects.create(
+        diet_type="vegan", activity_level="athlete", nutrient="protein_g", unit="g", daily_minimum=Decimal("100")
+    )
+    ingredient = IngredientFactory(protein_g=Decimal("10"))
+    recipe = RecipeFactory2(servings=1)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("100"), unit="g")
+    MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-05", meal_type="lunch", servings=1)
+
+    client = APIClient()
+    client.force_authenticate(user)
+    response = client.get(
+        "/api/meal-plan-entries/nutrition_summary/?date_after=2026-01-05&date_before=2026-01-05"
+    )
+
+    assert response.status_code == 200
+    assert response.data["daily_average"]["protein_g"] == 10.0
+    deficient_nutrients = [d["nutrient"] for d in response.data["deficiencies"]]
+    assert "protein_g" in deficient_nutrients
+
+
+@pytest.mark.django_db
+def test_nutrition_summary_hides_deficiencies_when_alerts_disabled():
+    """NUTRITION_ALERTS_ENABLED defaults to False: deficiencies must stay empty even though the
+    underlying intake would otherwise be flagged (see test_nutrition_summary_flags_deficiencies)."""
     from apps.ingredients.factories import IngredientFactory
     from apps.nutrition.models import NutrientRequirement
     from apps.recipes.factories import RecipeFactory as RecipeFactory2
@@ -89,8 +121,7 @@ def test_nutrition_summary_flags_deficiencies():
 
     assert response.status_code == 200
     assert response.data["daily_average"]["protein_g"] == 10.0
-    deficient_nutrients = [d["nutrient"] for d in response.data["deficiencies"]]
-    assert "protein_g" in deficient_nutrients
+    assert response.data["deficiencies"] == []
 
 
 @pytest.mark.django_db

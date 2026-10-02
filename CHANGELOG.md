@@ -9,6 +9,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Two new instance-level settings, both off by default: `PLANNING_SNACK_ENABLED` shows or hides
+  the **Snack** meal slot in the weekly planner, and `NUTRITION_ALERTS_ENABLED` shows or hides
+  the nutrient-deficiency alerts in the planner's nutritional intake summary. See the admin
+  guide's Configuration page.
 - The seeded ingredient library now includes "Tomates concassées" (canned crushed tomatoes), which the
   documentation demo data relies on.
 - GDPR tooling for instance administrators: explicit consent to the processing of health-related

@@ -151,6 +151,7 @@ class LegalInfoView(APIView):
                 "host_address": settings.LEGAL_HOST_ADDRESS,
                 "privacy_contact_email": settings.PRIVACY_CONTACT_EMAIL,
                 "inactive_retention_days": settings.INACTIVE_ACCOUNT_RETENTION_DAYS,
+                "planning_snack_enabled": settings.PLANNING_SNACK_ENABLED,
             }
         )
 

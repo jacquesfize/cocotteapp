@@ -188,6 +188,17 @@ purge. See [GDPR compliance](gdpr.md) for the full checklist.
 
 Fields left empty appear as "Not provided by the instance administrator." on the public pages.
 
+## Planning and nutrition features
+
+These toggles enable features that are **off by default** for every user of the instance (they
+are not a per-user preference): restart the backend after changing them, same as any other
+setting on this page.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PLANNING_SNACK_ENABLED` | `False` | Shows the **Snack** row in the weekly planner grid when `True`. Meals already planned as a snack (from before the setting was changed, or via the API) keep working either way; this only controls whether the planner *offers* the slot. |
+| `NUTRITION_ALERTS_ENABLED` | `False` | Shows the "Possibly insufficient intake this week" deficiency alerts in the planner's **Nutritional intake** dialog when `True`. When `False` (the default), the nutrition summary endpoint always returns an empty list of deficiencies; the carbon-footprint total is unaffected. |
+
 ## HTTPS and security
 
 These settings live in `config/settings/prod.py` and only apply in production.
