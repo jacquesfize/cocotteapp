@@ -154,27 +154,6 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   background: var(--color-surface-hover, rgba(127, 127, 127, 0.08));
 }
 
-.card-link {
-  color: inherit;
-  text-decoration: none;
-}
-
-.card-link::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-}
-
-.card-link:focus-visible {
-  outline: none;
-}
-
-.card-link:focus-visible::after {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
-}
-
 .thumb-wrapper {
   flex-shrink: 0;
   display: flex;
