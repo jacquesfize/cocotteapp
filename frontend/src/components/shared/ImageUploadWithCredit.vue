@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { defaultLicenseUrl, IMAGE_LICENSES, imageLicenseLabelKey, requiredCreditFields } from '../utils/imageCredit'
+import { defaultLicenseUrl, IMAGE_LICENSES, imageLicenseLabelKey, requiredCreditFields } from '../../utils/imageCredit'
 
 // Formulaire partagé pour (dé)poser une image (recette ou étape) avec ses informations de
 // crédit/licence. Les 5 champs de crédit ne sont obligatoires que si une licence les requiert

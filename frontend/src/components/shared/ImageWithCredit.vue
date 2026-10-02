@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { imageCreditDomain, imageLicenseLabelKey } from '../utils/imageCredit'
+import { imageCreditDomain, imageLicenseLabelKey } from '../../utils/imageCredit'
 
 // Composant d'affichage partagé pour une image de recette ou d'étape + sa ligne de crédit.
 // Couvre 4 cas (voir docs/user-guide/creating-recipes.md#credit-and-license) :

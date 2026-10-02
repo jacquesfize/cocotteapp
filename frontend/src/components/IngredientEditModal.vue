@@ -2,7 +2,7 @@
 import { Sparkles } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import BaseModal from './BaseModal.vue'
+import BaseModal from './shared/BaseModal.vue'
 import { listAllergens } from '../api/allergens'
 import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../api/ingredients'
 import { allergenEmoji } from '../utils/allergens'

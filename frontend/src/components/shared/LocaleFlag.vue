@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useId } from 'vue'
-import type { Locale } from '../i18n'
+import type { Locale } from '../../i18n'
 
 // Drapeaux en SVG plutôt qu'en emoji : Windows n'affiche pas les emojis drapeaux (il montre "FR").
 defineProps<{ code: Locale }>()

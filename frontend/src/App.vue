@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import NavBar from './components/NavBar.vue'
-import OfflineIndicator from './components/OfflineIndicator.vue'
+import NavBar from './components/shared/NavBar.vue'
+import OfflineIndicator from './components/shared/OfflineIndicator.vue'
 </script>
 
 <template>

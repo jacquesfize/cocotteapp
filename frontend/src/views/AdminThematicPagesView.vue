@@ -2,7 +2,7 @@
 import { LayoutGrid, Plus, Trash2 } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
 import {
   createThematicPage,

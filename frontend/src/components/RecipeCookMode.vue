@@ -2,7 +2,7 @@
 import { Check, ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, RotateCcw, X } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ImageWithCredit from './ImageWithCredit.vue'
+import ImageWithCredit from './shared/ImageWithCredit.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../utils/format'

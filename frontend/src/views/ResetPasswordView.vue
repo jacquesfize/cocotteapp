@@ -3,7 +3,7 @@ import { KeyRound } from '@lucide/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import { confirmPasswordReset } from '../api/auth'
 
 const props = defineProps<{

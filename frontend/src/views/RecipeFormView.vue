@@ -4,9 +4,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../components/CooklangStepInput.vue'
-import ImageUploadWithCredit from '../components/ImageUploadWithCredit.vue'
+import ImageUploadWithCredit from '../components/shared/ImageUploadWithCredit.vue'
 import IngredientPicker from '../components/IngredientPicker.vue'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import {
   createRecipe,
   getRecipe,

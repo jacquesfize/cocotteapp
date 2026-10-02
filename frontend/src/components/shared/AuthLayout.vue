@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Globe } from '@lucide/vue'
-import coverUrl from '../assets/auth-cover.jpg'
+import coverUrl from '../../assets/auth-cover.jpg'
 
 defineProps<{ title: string }>()
 </script>

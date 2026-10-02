@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Apple, Bean, Beef, Carrot, Check, ChevronLeft, CloudOff, Copy, Download, Droplet, Egg, Milk, Nut, Package, Share, ShoppingCart, Sparkles, Wheat } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import ProgressBar from '../components/shared/ProgressBar.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'

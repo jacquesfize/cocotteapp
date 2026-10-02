@@ -2,7 +2,7 @@
 import { Dices, Shuffle } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import AsyncState from '../components/shared/AsyncState.vue'

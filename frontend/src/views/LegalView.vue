@@ -3,7 +3,7 @@ import { ShieldCheck } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { fetchLegalInfo } from '../api/auth'
-import PageHeader from '../components/PageHeader.vue'
+import PageHeader from '../components/shared/PageHeader.vue'
 import type { LegalInfo } from '../types/models'
 
 // Mentions légales et politique de confidentialité : même gabarit, contenu propre à chaque page.
