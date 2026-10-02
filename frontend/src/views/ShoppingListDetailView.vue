@@ -1,21 +1,64 @@
 <script setup lang="ts">
 import { CloudOff, Download, ShoppingCart } from '@lucide/vue'
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
 import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned } from '../offline/sync'
 import { downloadBlob } from '../utils/download'
 import { formatQuantity, formatUnit } from '../utils/format'
-import type { ShoppingList,ShoppingListItem } from '../types/models'
+import type { IngredientCategory, ShoppingList, ShoppingListItem } from '../types/models'
 
 type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
 type ListWithSync = Omit<ShoppingList, 'items'> & { items: ItemWithSync[] }
+
+// Même ordre que le menu de catégorie des ingrédients (IngredientEditModal.vue) : produits
+// frais d'abord, épicerie ensuite, "Autre" en dernier — plutôt qu'un tri alphabétique qui
+// mélangerait les catégories de façon moins naturelle pour faire les courses.
+const CATEGORY_ORDER: IngredientCategory[] = [
+  'vegetable',
+  'fruit',
+  'legume',
+  'grain',
+  'nut_seed',
+  'dairy',
+  'meat_fish',
+  'egg',
+  'fat',
+  'condiment',
+  'other',
+]
+
+interface ItemGroup {
+  category: IngredientCategory
+  items: ItemWithSync[]
+}
 
 const props = defineProps<{
   id: string | number
 }>()
 
 const shoppingList = ref<ListWithSync | null>(null)
+
+// Groupe les articles par catégorie d'ingrédient (légume, fruit, produit laitier...) dans
+// l'ordre de CATEGORY_ORDER, pour que des produits similaires se retrouvent côte à côte au
+// supermarché plutôt qu'en une seule liste plate.
+const groupedItems = computed<ItemGroup[]>(() => {
+  if (!shoppingList.value) return []
+  const byCategory = new Map<IngredientCategory, ItemWithSync[]>()
+  for (const item of shoppingList.value.items) {
+    const category = item.ingredient.category
+    const bucket = byCategory.get(category)
+    if (bucket) {
+      bucket.push(item)
+    } else {
+      byCategory.set(category, [item])
+    }
+  }
+  return CATEGORY_ORDER.filter((category) => byCategory.has(category)).map((category) => ({
+    category,
+    items: byCategory.get(category)!,
+  }))
+})
 
 async function load() {
   shoppingList.value = (await getShoppingList(props.id)) as ListWithSync
@@ -38,18 +81,29 @@ onBeforeUnmount(() => {
 })
 
 async function toggleOwned(item: ItemWithSync) {
-  // Optimiste : on coche tout de suite, la case reste cochée même si la requête part
-  // en file d'attente (pratique au supermarché avec un réseau capricieux).
-  item.is_owned = true
+  // Optimiste : l'état visuel change tout de suite, qu'on coche ou décoche.
+  const newOwned = !item.is_owned
+  item.is_owned = newOwned
   try {
-    await markOwned(props.id, [item.ingredient.id])
+    await markOwned(props.id, [item.ingredient.id], newOwned)
   } catch (error) {
     if (!isNetworkError(error)) {
-      item.is_owned = false
+      item.is_owned = !newOwned
       return
     }
-    await queueMarkOwned(props.id, [item.ingredient.id])
-    item.pendingSync = true
+    if (newOwned) {
+      // Hors ligne en train de cocher : c'est le seul chemin d'écriture hors-ligne supporté
+      // par l'app (voir docs/user-guide/offline-and-install.md) — on met de côté pour rejouer
+      // au retour du réseau, la case reste cochée en attendant (icône "pendingSync").
+      await queueMarkOwned(props.id, [item.ingredient.id])
+      item.pendingSync = true
+    } else {
+      // Hors ligne en train de décocher : non supporté (la file ne rejoue que des mises à
+      // "possédé"), donc on annule plutôt que de mettre en file une écriture qui rejouerait le
+      // mauvais état une fois la connexion revenue. Échec silencieux et sans corruption plutôt
+      // que d'étendre la surface d'écriture hors-ligne.
+      item.is_owned = true
+    }
   }
 }
 
@@ -68,13 +122,14 @@ async function handleExport() {
     </div>
     <p class="muted">{{ $t('shopping.checkOwned') }}</p>
 
-    <div class="card">
-      <div v-for="item in shoppingList.items" :key="item.id" class="item-row">
+    <div v-for="group in groupedItems" :key="group.category" class="card category-group">
+      <h2 class="category-title">{{ $t(`ingredientCategory.${group.category}`) }}</h2>
+      <div v-for="item in group.items" :key="item.id" class="item-row">
         <label class="row" style="align-items: center; gap: 0.75rem">
           <input
             type="checkbox"
             :checked="item.is_owned"
-            :disabled="item.is_owned"
+            :disabled="item.pendingSync"
             style="width: auto"
             @change="toggleOwned(item)"
           />
@@ -94,6 +149,16 @@ async function handleExport() {
 .page-header {
   justify-content: space-between;
   align-items: center;
+}
+
+.category-group {
+  margin-bottom: 1rem;
+}
+
+.category-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--color-muted);
 }
 
 .item-row {

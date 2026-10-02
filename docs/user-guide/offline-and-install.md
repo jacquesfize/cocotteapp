@@ -79,6 +79,9 @@ Ticking items on a shopping list is the **only change you can make offline**:
    icon disappears. If you closed the app in the meantime, they're sent the next time you open
    Cocotte with a connection.
 
+Unticking an item still needs a connection — if you try it offline, it snaps back to ticked
+since there's no pending-tick queue to sync an "untick" with.
+
 See [Shopping lists](shopping-lists.md#without-a-network).
 
 ## What needs a connection

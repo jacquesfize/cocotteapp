@@ -38,15 +38,12 @@ Good to know:
 
 ![A shopping list with some items ticked](../assets/screenshots/shopping-list-detail.png)
 
-Items are grouped by ingredient category (dairy, fruit, vegetables and so on) and then sorted by
-name, so that similar products end up next to each other.
+Items are grouped under a heading per ingredient category (dairy, fruit, vegetables and so on),
+and sorted by name within each category, so that similar products end up next to each other.
 
 Tick an ingredient when it's in your basket, or when you already have it at home. It is greyed
-out, struck through and saved immediately.
-
-> [!NOTE]
-> A ticked item can't be unticked. If you tick one by mistake, generate the list again from the
-> planner.
+out, struck through and saved immediately. Click it again to untick it if you ticked it by
+mistake, or changed your mind.
 
 ### Without a network
 
@@ -57,6 +54,9 @@ You can keep ticking items when your phone loses its connection in the shop:
 - Cocotte remembers the tick on your device and sends it as soon as the connection comes back.
   The cloud icon then disappears.
 - Pending ticks are also sent the next time you open Cocotte online.
+
+Unticking an item needs a connection: if you untick one offline, it snaps back to ticked since
+there's nothing to sync it with yet.
 
 To use a list offline, open it **once while online** so it's saved on your device. See
 [Install & offline](offline-and-install.md).

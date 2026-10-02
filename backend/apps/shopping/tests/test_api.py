@@ -46,6 +46,30 @@ def test_mark_owned_action():
 
 
 @pytest.mark.django_db
+def test_mark_owned_action_can_unset_owned():
+    user = UserFactory()
+    ingredient = IngredientFactory()
+    recipe = RecipeFactory(servings=1)
+    RecipeIngredientFactory(recipe=recipe, ingredient=ingredient, quantity=Decimal("50"), unit="g")
+    entry = MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-01", servings=1)
+
+    client = APIClient()
+    client.force_authenticate(user)
+    create_response = client.post("/api/shopping-lists/", {"meal_plan_entry_ids": [entry.id]}, format="json")
+    list_id = create_response.data["id"]
+
+    client.post(f"/api/shopping-lists/{list_id}/mark_owned/", {"ingredient_ids": [ingredient.id]}, format="json")
+
+    response = client.post(
+        f"/api/shopping-lists/{list_id}/mark_owned/",
+        {"ingredient_ids": [ingredient.id], "owned": False},
+        format="json",
+    )
+    assert response.status_code == 200
+    assert response.data["items"][0]["is_owned"] is False
+
+
+@pytest.mark.django_db
 def test_shopping_list_list_is_paginated():
     from apps.shopping.models import ShoppingList
 

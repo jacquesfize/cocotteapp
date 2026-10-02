@@ -20,8 +20,14 @@ export function deleteShoppingList(id: number | string) {
   return client.delete(`shopping-lists/${id}/`)
 }
 
-export function markOwned(id: number | string, ingredientIds: number[]): Promise<ShoppingList> {
-  return client.post(`shopping-lists/${id}/mark_owned/`, { ingredient_ids: ingredientIds }).then((r) => r.data)
+export function markOwned(
+  id: number | string,
+  ingredientIds: number[],
+  owned = true,
+): Promise<ShoppingList> {
+  return client
+    .post(`shopping-lists/${id}/mark_owned/`, { ingredient_ids: ingredientIds, owned })
+    .then((r) => r.data)
 }
 
 export function exportShoppingList(id: number | string): Promise<{ content: string }> {
