@@ -3,6 +3,7 @@ import { CalendarPlus } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClickOutside } from '../composables/useClickOutside'
+import { useCopyFeedback } from '../composables/useCopyFeedback'
 import { downloadWeekIcs, getCalendarFeed, regenerateCalendarFeed } from '../api/planning'
 import type { CalendarFeed } from '../api/planning'
 import { downloadBlob } from '../utils/download'
@@ -14,8 +15,8 @@ const { t } = useI18n()
 const open = ref(false)
 const feed = ref<CalendarFeed | null>(null)
 const error = ref(false)
-const copied = ref(false)
 const root = ref<HTMLElement | null>(null)
+const { copied, copy } = useCopyFeedback()
 
 useClickOutside(
   root,
@@ -48,9 +49,7 @@ async function handleDownload() {
 
 async function handleCopy() {
   if (!feed.value) return
-  await navigator.clipboard.writeText(feed.value.url)
-  copied.value = true
-  setTimeout(() => (copied.value = false), 2000)
+  await copy(feed.value.url)
 }
 
 async function handleRegenerate() {

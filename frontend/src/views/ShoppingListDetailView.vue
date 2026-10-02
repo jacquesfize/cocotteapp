@@ -8,6 +8,7 @@ import { isMarkOwnedQueued, isNetworkError, QUEUE_FLUSHED_EVENT, queueMarkOwned 
 import { downloadBlob } from '../utils/download'
 import { formatQuantity, formatUnit } from '../utils/format'
 import { shoppingListProgress } from '../utils/shoppingListProgress'
+import { useCopyFeedback } from '../composables/useCopyFeedback'
 import type { IngredientCategory, ShoppingList, ShoppingListItem } from '../types/models'
 
 type ItemWithSync = ShoppingListItem & { pendingSync?: boolean }
@@ -64,8 +65,7 @@ const shoppingList = ref<ListWithSync | null>(null)
 // qui ne permet pas vraiment de "coller" la liste dans une appli de notes.
 const canShare = !!navigator.share
 const canCopy = !canShare && !!navigator.clipboard?.writeText
-const justCopied = ref(false)
-let copiedTimeout: ReturnType<typeof setTimeout> | undefined
+const { copied: justCopied, copy } = useCopyFeedback()
 
 // Groupe les articles par catégorie d'ingrédient (légume, fruit, produit laitier...) dans
 // l'ordre de CATEGORY_ORDER, pour que des produits similaires se retrouvent côte à côte au
@@ -108,7 +108,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
-  clearTimeout(copiedTimeout)
 })
 
 async function toggleOwned(item: ItemWithSync) {
@@ -152,14 +151,9 @@ async function handleExport() {
       // Any other error: fall through to the clipboard/download fallback below.
     }
   }
-  if (navigator.clipboard?.writeText) {
+  if (typeof navigator.clipboard?.writeText === 'function') {
     try {
-      await navigator.clipboard.writeText(content)
-      justCopied.value = true
-      clearTimeout(copiedTimeout)
-      copiedTimeout = setTimeout(() => {
-        justCopied.value = false
-      }, 2000)
+      await copy(content)
       return
     } catch {
       // Clipboard write can fail (permission denied, non-secure context) — fall through.
