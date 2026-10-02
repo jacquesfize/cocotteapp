@@ -82,7 +82,10 @@
     "hideInput": "Masquer la saisie",
     "loginTab": "Connexion",
     "registerTab": "Inscription",
-    "tabsLabel": "Connexion ou inscription"
+    "tabsLabel": "Connexion ou inscription",
+    "healthConsent": "Je consens explicitement à ce que Cocotte traite mon régime alimentaire, mon niveau d'activité et mes allergies (données pouvant relever de la santé) pour personnaliser les recettes et les alertes nutritionnelles. Je peux retirer ce consentement à tout moment depuis Mon compte.",
+    "healthConsentRequired": "Le consentement est requis pour créer un compte.",
+    "privacyNotice": "Consultez la {privacy} et les {legal}."
   },
   "recipes": {
     "title": "Recettes",
@@ -435,7 +438,15 @@
     "shareListEmpty": "Vous n'avez partagé votre agenda avec personne.",
     "shareRevoke": "Révoquer",
     "shareRevokeConfirm": "Voulez-vous vraiment révoquer l'accès de cette personne à votre agenda ?",
-    "version": "Cocotte v{version}"
+    "version": "Cocotte v{version}",
+    "consentTitle": "Consentement aux données de santé",
+    "consentGranted": "Vous avez consenti le {date} au traitement de votre régime, de votre niveau d'activité et de vos allergies.",
+    "consentMissing": "Vous n'avez pas consenti au traitement de votre régime, de votre niveau d'activité et de vos allergies. Sans consentement, ces réglages restent à leurs valeurs par défaut.",
+    "consentGrant": "Donner mon consentement",
+    "consentWithdraw": "Retirer mon consentement",
+    "consentWithdrawConfirm": "Retirer votre consentement efface votre régime, votre niveau d'activité et vos allergies. Continuer ?",
+    "consentError": "Impossible de mettre à jour votre consentement.",
+    "privacyLink": "Politique de confidentialité"
   },
   "admin": {
     "usersTitle": "Utilisateurs",
@@ -580,5 +591,43 @@
     "hideMine": "Masquer les recettes contenant mes allergènes",
     "contains": "Allergènes",
     "disclaimer": "Indicatif : vérifiez les étiquettes des produits industriels."
+  },
+  "legal": {
+    "footerLegal": "Mentions légales",
+    "footerPrivacy": "Politique de confidentialité",
+    "legalTitle": "Mentions légales",
+    "privacyTitle": "Politique de confidentialité",
+    "loadError": "Impossible de charger cette page.",
+    "notConfigured": "Non renseigné par l'administrateur de l'instance.",
+    "version": "Version de la politique : {version}",
+    "publisherTitle": "Éditeur",
+    "hostTitle": "Hébergeur",
+    "name": "Nom",
+    "address": "Adresse",
+    "email": "Contact",
+    "controllerTitle": "Responsable du traitement",
+    "controllerText": "Le responsable du traitement est l'administrateur de cette instance de Cocotte, identifié dans les mentions légales. Pour exercer vos droits ou poser une question sur vos données : {contact}.",
+    "dataTitle": "Données traitées",
+    "dataItems": [
+      "Compte : nom d'utilisateur, adresse e-mail, mot de passe (stocké haché).",
+      "Préférences : régime alimentaire, niveau d'activité, allergies et intolérances (voir données de santé ci-dessous).",
+      "Contenus que vous créez : recettes, commentaires, notes, agenda, listes de courses, partages.",
+      "Données techniques : date de dernière connexion, utilisée pour appliquer la durée de conservation ci-dessous."
+    ],
+    "purposesTitle": "Finalités et bases légales",
+    "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage.",
+    "healthTitle": "Données de santé",
+    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription et enregistré avec sa date. Vous pouvez le retirer à tout moment dans Mon compte ; ces données sont alors effacées.",
+    "retentionTitle": "Durée de conservation",
+    "retentionText": "Vos données sont conservées tant que votre compte existe. La suppression du compte les efface définitivement.",
+    "retentionInactive": "Les comptes sans connexion depuis {days} jours sont supprimés, après un e-mail de préavis.",
+    "recipientsTitle": "Destinataires et hébergement",
+    "recipientsText": "Les données ne sont accessibles qu'aux administrateurs de l'instance et à l'hébergeur indiqué dans les mentions légales. Les recettes que vous publiez sont visibles des autres utilisateurs et des visiteurs. Aucune donnée n'est envoyée à des services publicitaires ou d'analyse.",
+    "rightsTitle": "Vos droits",
+    "rightsText": "Vous disposez des droits d'accès, de rectification, d'effacement, de limitation et de portabilité, du droit d'opposition et du droit de retirer votre consentement. La plupart sont disponibles directement dans Mon compte : modifier le profil, « Exporter mes données », retirer le consentement, « Supprimer mon compte ». Sinon, écrivez à {contact}.",
+    "cookiesTitle": "Cookies et stockage local",
+    "cookiesText": "Cocotte n'utilise aucun cookie de suivi ou publicitaire. Seul du stockage strictement nécessaire est utilisé dans votre navigateur (jetons de connexion, langue et apparence, cache hors ligne) : aucune bannière de cookies n'est donc requise.",
+    "complaintTitle": "Réclamation",
+    "complaintText": "Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de votre autorité de protection des données (en France, la CNIL : www.cnil.fr)."
   }
 }

@@ -7,6 +7,7 @@ import { i18n } from '../../src/i18n'
 vi.mock('../../src/api/auth', () => ({
   changePassword: vi.fn(),
   exportMyData: vi.fn(),
+  setHealthDataConsent: vi.fn(),
 }))
 vi.mock('../../src/api/allergens', () => ({
   listAllergens: vi.fn().mockResolvedValue([
@@ -20,6 +21,7 @@ vi.mock('../../src/api/planning', () => ({
   deletePlanningShare: vi.fn(),
 }))
 
+import { setHealthDataConsent } from '../../src/api/auth'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../../src/api/planning'
 import { useAuthStore } from '../../src/stores/auth'
 import AccountSettingsView from '../../src/views/AccountSettingsView.vue'
@@ -28,7 +30,10 @@ import type { PlanningShare, User } from '../../src/types/models'
 async function mountAccountSettings() {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: [{ path: '/account', component: AccountSettingsView }],
+    routes: [
+      { path: '/account', component: AccountSettingsView },
+      { path: '/privacy', name: 'privacy', component: { template: '<div />' } },
+    ],
   })
   router.push('/account')
   await router.isReady()
@@ -143,5 +148,67 @@ describe('AccountSettingsView allergens', () => {
 
     expect((wrapper.find('[data-testid="allergies-gluten"]').element as HTMLInputElement).checked).toBe(false)
     expect((wrapper.find('[data-testid="intolerances-gluten"]').element as HTMLInputElement).checked).toBe(true)
+  })
+})
+
+describe('AccountSettingsView health data consent', () => {
+  const baseUser = { id: 1, username: 'me', email: 'me@example.com', diet_type: 'vegan' }
+
+  beforeEach(() => {
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+  })
+
+  it('shows the consent date and lets the user withdraw it', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { ...baseUser, health_data_consent_at: '2026-01-02T10:00:00Z' } as unknown as User
+    vi.mocked(setHealthDataConsent).mockResolvedValue({
+      ...baseUser,
+      diet_type: 'omnivore',
+      allergies: [],
+      intolerances: [],
+      health_data_consent_at: null,
+    } as unknown as User)
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    const card = wrapper.find('[data-testid="consent-card"]')
+    expect(card.text()).toContain('Vous avez consenti le')
+
+    await card.find('button').trigger('click')
+    await flushPromises()
+
+    expect(setHealthDataConsent).toHaveBeenCalledWith(false)
+    expect(authStore.user?.health_data_consent_at).toBeNull()
+    expect(wrapper.find('[data-testid="consent-card"]').text()).toContain("Vous n'avez pas consenti")
+  })
+
+  it('does not withdraw consent when the confirmation is declined', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { ...baseUser, health_data_consent_at: '2026-01-02T10:00:00Z' } as unknown as User
+    window.confirm = vi.fn(() => false)
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    await wrapper.find('[data-testid="consent-card"] button').trigger('click')
+
+    expect(setHealthDataConsent).not.toHaveBeenCalled()
+  })
+
+  it('lets a user without consent give it', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { ...baseUser, health_data_consent_at: null } as unknown as User
+    vi.mocked(setHealthDataConsent).mockResolvedValue({
+      ...baseUser,
+      allergies: [],
+      intolerances: [],
+      health_data_consent_at: '2026-02-01T00:00:00Z',
+    } as unknown as User)
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    await wrapper.find('[data-testid="consent-card"] button').trigger('click')
+    await flushPromises()
+
+    expect(setHealthDataConsent).toHaveBeenCalledWith(true)
   })
 })

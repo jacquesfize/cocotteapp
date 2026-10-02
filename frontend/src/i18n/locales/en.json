@@ -82,7 +82,10 @@
     "hideInput": "Hide input",
     "loginTab": "Log in",
     "registerTab": "Sign up",
-    "tabsLabel": "Log in or sign up"
+    "tabsLabel": "Log in or sign up",
+    "healthConsent": "I explicitly consent to Cocotte processing my diet, activity level and allergies (data that may relate to my health) to personalise recipes and nutrition alerts. I can withdraw this consent at any time from My account.",
+    "healthConsentRequired": "Consent is required to create an account.",
+    "privacyNotice": "See the {privacy} and the {legal}."
   },
   "recipes": {
     "title": "Recipes",
@@ -435,7 +438,15 @@
     "shareListEmpty": "You haven't shared your agenda with anyone.",
     "shareRevoke": "Revoke",
     "shareRevokeConfirm": "Do you really want to revoke this person's access to your agenda?",
-    "version": "Cocotte v{version}"
+    "version": "Cocotte v{version}",
+    "consentTitle": "Health data consent",
+    "consentGranted": "You consented on {date} to the processing of your diet, activity level and allergies.",
+    "consentMissing": "You have not consented to the processing of your diet, activity level and allergies. Without consent, these settings stay at their default values.",
+    "consentGrant": "Give my consent",
+    "consentWithdraw": "Withdraw my consent",
+    "consentWithdrawConfirm": "Withdrawing your consent erases your diet, activity level and allergies. Continue?",
+    "consentError": "Could not update your consent.",
+    "privacyLink": "Privacy policy"
   },
   "admin": {
     "usersTitle": "Users",
@@ -580,5 +591,43 @@
     "hideMine": "Hide recipes containing my allergens",
     "contains": "Allergens",
     "disclaimer": "Indicative: check labels on processed products."
+  },
+  "legal": {
+    "footerLegal": "Legal notice",
+    "footerPrivacy": "Privacy policy",
+    "legalTitle": "Legal notice",
+    "privacyTitle": "Privacy policy",
+    "loadError": "Could not load this page.",
+    "notConfigured": "Not provided by the instance administrator.",
+    "version": "Policy version {version}",
+    "publisherTitle": "Publisher",
+    "hostTitle": "Host",
+    "name": "Name",
+    "address": "Address",
+    "email": "Contact",
+    "controllerTitle": "Data controller",
+    "controllerText": "The data controller is the administrator of this Cocotte instance, as identified in the legal notice. To exercise your rights or ask any question about your data: {contact}.",
+    "dataTitle": "Data we process",
+    "dataItems": [
+      "Account: username, email address, password (stored hashed).",
+      "Preferences: diet, activity level, allergies and intolerances (see health data below).",
+      "Content you create: recipes, comments, ratings, meal plans, shopping lists, shares.",
+      "Technical data: last login date, used to apply the retention period below."
+    ],
+    "purposesTitle": "Purposes and legal bases",
+    "purposesText": "Your data is used only to run the service: authentication and account management (contract), recipes, planning, shopping lists and nutrition features (contract), and personalisation based on diet, activity and allergies (your explicit consent). It is neither sold nor used for advertising or profiling.",
+    "healthTitle": "Health data",
+    "healthText": "Allergies, intolerances, diet and activity level may reveal information about your health or beliefs. They are processed only with your explicit consent, given at sign-up and recorded with its date. You can withdraw it at any time in My account; doing so erases this data.",
+    "retentionTitle": "Retention",
+    "retentionText": "Your data is kept as long as your account exists. Deleting your account erases it permanently.",
+    "retentionInactive": "Accounts with no login for {days} days are deleted, after an email warning sent beforehand.",
+    "recipientsTitle": "Recipients and hosting",
+    "recipientsText": "Data is accessible only to the instance administrators and to the host named in the legal notice. Recipes you publish are visible to other users and visitors. No data is sent to advertising or analytics services.",
+    "rightsTitle": "Your rights",
+    "rightsText": "You have the right to access, rectify, erase, restrict and port your data, to object to its processing and to withdraw your consent. Most of these are available directly in My account: edit your profile, \"Export my data\", withdraw consent, \"Delete my account\". Otherwise, write to {contact}.",
+    "cookiesTitle": "Cookies and local storage",
+    "cookiesText": "Cocotte uses no tracking or advertising cookies. Only strictly necessary storage is used in your browser (login tokens, language and appearance, offline cache), so no cookie banner is required.",
+    "complaintTitle": "Complaint",
+    "complaintText": "If you believe your rights are not respected, you can lodge a complaint with your data protection authority (in France, the CNIL: www.cnil.fr)."
   }
 }

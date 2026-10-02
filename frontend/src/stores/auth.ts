@@ -5,6 +5,7 @@ import {
   obtainToken,
   refreshTokenRequest,
   register as registerRequest,
+  setHealthDataConsent,
   updateMe,
 } from '../api/auth'
 import { clearPrivateOfflineData } from '../offline/sync'
@@ -40,6 +41,10 @@ export const useAuthStore = defineStore('auth', {
 
     async updateProfile(payload: Partial<User>) {
       this.user = await updateMe(payload)
+    },
+
+    async setHealthConsent(consent: boolean) {
+      this.user = await setHealthDataConsent(consent)
     },
 
     async deleteAccount() {

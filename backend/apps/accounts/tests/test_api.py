@@ -21,7 +21,12 @@ def test_register_and_login():
     client = APIClient()
     response = client.post(
         "/api/auth/register/",
-        {"username": "alice", "password": "s3cret-pass", "email": "alice@example.com"},
+        {
+            "username": "alice",
+            "password": "s3cret-pass",
+            "email": "alice@example.com",
+            "health_data_consent": True,
+        },
     )
     assert response.status_code == 201
 
@@ -213,7 +218,12 @@ def test_registering_with_an_email_already_in_use_is_rejected():
 
     response = client.post(
         "/api/auth/register/",
-        {"username": "someone", "password": "s3cret-pass", "email": "taken@example.com"},
+        {
+            "username": "someone",
+            "password": "s3cret-pass",
+            "email": "taken@example.com",
+            "health_data_consent": True,
+        },
     )
 
     assert response.status_code == 400
@@ -302,3 +312,94 @@ def test_password_reset_confirm_rejects_a_malformed_uid():
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("extra", [{}, {"health_data_consent": False}])
+def test_register_requires_health_data_consent(extra):
+    response = APIClient().post(
+        "/api/auth/register/",
+        {"username": "alice", "password": "s3cret-pass", "email": "alice@example.com", **extra},
+    )
+
+    assert response.status_code == 400
+    assert "health_data_consent" in response.data
+
+
+@pytest.mark.django_db
+def test_register_records_consent_date_and_policy_version(settings):
+    settings.PRIVACY_POLICY_VERSION = "3"
+    client = APIClient()
+    client.post(
+        "/api/auth/register/",
+        {
+            "username": "alice",
+            "password": "s3cret-pass",
+            "email": "alice@example.com",
+            "health_data_consent": True,
+        },
+    )
+
+    from apps.accounts.models import User
+
+    user = User.objects.get(email="alice@example.com")
+    assert user.health_data_consent_at is not None
+    assert user.health_data_consent_version == "3"
+
+
+@pytest.mark.django_db
+def test_withdrawing_health_data_consent_erases_health_data():
+    from apps.accounts.models import AllergySeverity, UserAllergen
+    from apps.ingredients.models import Allergen
+
+    user = UserFactory(diet_type="vegan", activity_level="athlete")
+    user.grant_health_data_consent()
+    UserAllergen.objects.create(
+        user=user, allergen=Allergen.objects.create(slug="gluten", name="Gluten"),
+        severity=AllergySeverity.ALLERGY,
+    )
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": False}, format="json")
+
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.health_data_consent_at is None
+    assert (user.diet_type, user.activity_level) == ("omnivore", "moderate")
+    assert user.allergen_links.count() == 0
+    assert response.data["allergies"] == []
+
+
+@pytest.mark.django_db
+def test_granting_health_data_consent_again_records_the_date():
+    user = UserFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": True}, format="json")
+
+    assert response.status_code == 200
+    assert response.data["health_data_consent_at"] is not None
+
+
+@pytest.mark.django_db
+def test_health_data_consent_requires_a_boolean():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": "yes"}, format="json")
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_legal_info_is_public_and_reflects_settings(settings):
+    settings.LEGAL_PUBLISHER_NAME = "Association Cocotte"
+    settings.PRIVACY_CONTACT_EMAIL = "privacy@example.org"
+
+    response = APIClient().get("/api/auth/legal/")
+
+    assert response.status_code == 200
+    assert response.data["publisher_name"] == "Association Cocotte"
+    assert response.data["privacy_contact_email"] == "privacy@example.org"

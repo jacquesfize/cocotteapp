@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class DietType(models.TextChoices):
@@ -32,12 +34,41 @@ class User(AbstractUser):
         max_length=20, choices=ActivityLevel.choices, default=ActivityLevel.MODERATE
     )
 
+    # RGPD art. 9 : allergies, intolérances et régime peuvent révéler des données de santé ou des
+    # convictions ; on conserve la preuve du consentement explicite (date + version du texte).
+    health_data_consent_at = models.DateTimeField(null=True, blank=True)
+    health_data_consent_version = models.CharField(max_length=20, blank=True)
+
+    # Date du dernier e-mail de préavis avant suppression pour inactivité (cf. purge_inactive_users).
+    inactivity_warned_at = models.DateTimeField(null=True, blank=True)
+
     allergens = models.ManyToManyField(
         "ingredients.Allergen", through="UserAllergen", related_name="users", blank=True
     )
 
     def __str__(self):
         return self.username
+
+    def grant_health_data_consent(self):
+        self.health_data_consent_at = timezone.now()
+        self.health_data_consent_version = settings.PRIVACY_POLICY_VERSION
+        self.save(update_fields=["health_data_consent_at", "health_data_consent_version"])
+
+    def withdraw_health_data_consent(self):
+        """Retire le consentement et efface les données concernées (allergies, régime, activité)."""
+        self.allergen_links.all().delete()
+        self.diet_type = DietType.OMNIVORE
+        self.activity_level = ActivityLevel.MODERATE
+        self.health_data_consent_at = None
+        self.health_data_consent_version = ""
+        self.save(
+            update_fields=[
+                "diet_type",
+                "activity_level",
+                "health_data_consent_at",
+                "health_data_consent_version",
+            ]
+        )
 
     def allergen_slugs(self, severity=None):
         rows = self.allergen_links.all()

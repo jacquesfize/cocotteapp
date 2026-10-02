@@ -23,6 +23,7 @@ const registerForm = ref<RegisterPayload>({
   password: '',
   diet_type: 'omnivore',
   activity_level: 'moderate',
+  health_data_consent: false,
 })
 const error = ref('')
 const isSubmitting = ref(false)
@@ -61,8 +62,9 @@ async function handleSubmit() {
     if (props.mode === 'login') {
       error.value = t('auth.invalidCredentials')
     } else {
-      const data = (err as { response?: { data?: { username?: string[] } } }).response?.data
-      error.value = data?.username?.[0] || t('auth.registerError')
+      const data = (err as { response?: { data?: { username?: string[]; health_data_consent?: string[] } } })
+        .response?.data
+      error.value = data?.username?.[0] || (data?.health_data_consent ? t('auth.healthConsentRequired') : '') || t('auth.registerError')
     }
   } finally {
     isSubmitting.value = false
@@ -184,6 +186,23 @@ async function handleSubmit() {
                 </select>
               </div>
             </div>
+            <label class="consent">
+              <input
+                id="health_data_consent"
+                v-model="registerForm.health_data_consent"
+                type="checkbox"
+                required
+              />
+              <span>{{ $t('auth.healthConsent') }}</span>
+            </label>
+            <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice">
+              <template #privacy>
+                <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
+              </template>
+              <template #legal>
+                <RouterLink :to="{ name: 'legal' }">{{ $t('legal.footerLegal') }}</RouterLink>
+              </template>
+            </i18n-t>
             <p v-if="error" class="error">{{ error }}</p>
             <button type="submit" :disabled="isSubmitting">
               {{ $t('auth.registerButton') }}
@@ -253,6 +272,25 @@ async function handleSubmit() {
   .form-fade-leave-active {
     transition: none;
   }
+}
+
+.consent {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.consent input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.privacy-notice {
+  font-size: 0.85rem;
+  margin: 0;
 }
 
 .profile-row {

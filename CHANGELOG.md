@@ -9,6 +9,14 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- GDPR tooling for instance administrators: explicit consent to the processing of health-related
+  data (diet, activity level, allergies) is now required at sign-up and can be withdrawn or given
+  again from **My account**; withdrawing it erases that data.
+- **Legal notice** and **Privacy policy** pages (linked in the footer and on the sign-up form),
+  filled from the new `LEGAL_*`, `PRIVACY_CONTACT_EMAIL` and `PRIVACY_POLICY_VERSION` settings.
+- `purge_inactive_users` management command (with `--dry-run`): emails then deletes accounts with
+  no login for `INACTIVE_ACCOUNT_RETENTION_DAYS` days (default 730; staff accounts are never
+  touched). See the new "GDPR compliance" page of the admin guide.
 - The app version is now shown discreetly at the bottom of the **My account** page.
 - Recipe cover images and individual recipe steps can now carry an image license and credit (CC
   BY, CC BY-SA, public domain, personal photo, used with permission, or not specified) — required

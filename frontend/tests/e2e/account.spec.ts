@@ -9,6 +9,7 @@ test('a user can update their profile, export their data and delete their accoun
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
@@ -38,6 +39,14 @@ test('a user can update their profile, export their data and delete their accoun
   await page.getByRole('button', { name: 'Changer le mot de passe' }).click()
   await expect(page.getByText("Les deux mots de passe ne correspondent pas.")).toBeVisible()
 
+  // Health data consent: recorded at sign-up, can be withdrawn.
+  const consentCard = page.getByTestId('consent-card')
+  await expect(consentCard).toContainText('Vous avez consenti le')
+  page.once('dialog', (dialog) => dialog.accept())
+  await consentCard.getByRole('button', { name: 'Retirer mon consentement' }).click()
+  await expect(consentCard).toContainText("Vous n'avez pas consenti")
+  await expect(consentCard.getByRole('button', { name: 'Donner mon consentement' })).toBeVisible()
+
   // Export the data archive.
   const downloadPromise = page.waitForEvent('download')
   await page.getByRole('button', { name: "Télécharger l'archive" }).click()
@@ -59,6 +68,7 @@ test('changing the password logs the user out and the new password works', async
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
@@ -84,6 +94,7 @@ test('a non-staff user is redirected away from the admin users page', async ({ p
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 

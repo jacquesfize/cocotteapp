@@ -101,6 +101,27 @@ async function handlePasswordSubmit() {
   }
 }
 
+const consentError = ref('')
+const isUpdatingConsent = ref(false)
+
+async function handleConsent(consent: boolean) {
+  if (!consent && !window.confirm(t('account.consentWithdrawConfirm'))) return
+  consentError.value = ''
+  isUpdatingConsent.value = true
+  try {
+    await authStore.setHealthConsent(consent)
+    // Retirer le consentement efface régime, activité et allergies côté serveur.
+    profile.value.diet_type = authStore.user?.diet_type || 'omnivore'
+    profile.value.activity_level = authStore.user?.activity_level || 'moderate'
+    profile.value.allergies = [...(authStore.user?.allergies || [])]
+    profile.value.intolerances = [...(authStore.user?.intolerances || [])]
+  } catch {
+    consentError.value = t('account.consentError')
+  } finally {
+    isUpdatingConsent.value = false
+  }
+}
+
 const isExporting = ref(false)
 
 async function handleExport() {
@@ -335,6 +356,34 @@ async function handleDeleteAccount() {
         <p v-if="passwordError" class="error">{{ passwordError }}</p>
         <button type="submit" :disabled="isChangingPassword">{{ $t('account.changePassword') }}</button>
       </form>
+    </div>
+
+    <div class="card" style="margin-bottom: 1rem" data-testid="consent-card">
+      <h2>{{ $t('account.consentTitle') }}</h2>
+      <p class="muted">
+        {{
+          authStore.user?.health_data_consent_at
+            ? $t('account.consentGranted', {
+                date: new Date(authStore.user.health_data_consent_at).toLocaleDateString($i18n.locale),
+              })
+            : $t('account.consentMissing')
+        }}
+      </p>
+      <p v-if="consentError" class="error">{{ consentError }}</p>
+      <div class="row">
+        <button
+          v-if="authStore.user?.health_data_consent_at"
+          class="secondary"
+          :disabled="isUpdatingConsent"
+          @click="handleConsent(false)"
+        >
+          {{ $t('account.consentWithdraw') }}
+        </button>
+        <button v-else class="secondary" :disabled="isUpdatingConsent" @click="handleConsent(true)">
+          {{ $t('account.consentGrant') }}
+        </button>
+        <RouterLink :to="{ name: 'privacy' }">{{ $t('account.privacyLink') }}</RouterLink>
+      </div>
     </div>
 
     <div class="card" style="margin-bottom: 1rem">

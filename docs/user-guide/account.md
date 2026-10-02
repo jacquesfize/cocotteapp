@@ -19,6 +19,7 @@ Logging in and signing up share the same page, with two tabs: **Log in** and **S
     | **Password** | At least 8 characters. Use the eye button to show or hide what you type. |
     | **Diet** | **Omnivore**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
     | **Activity level** | **Sedentary**, **Moderate** or **Athlete**. Used for nutrition alerts. |
+    | **Consent** | A required checkbox: you explicitly consent to Cocotte processing your diet, activity level and allergies (data that may relate to your health). See [Health data consent](#health-data-consent). |
 
 4. Click **Create my account**.
 
@@ -131,6 +132,20 @@ Once saved, Cocotte uses them in several places:
 > checked, the recipe shows *Allergens not verified for some ingredients*. Such a recipe is
 > **not** hidden by the allergen filter. See
 > [Nutrition & carbon](nutrition-and-carbon.md#allergen-data).
+
+### Health data consent
+
+Your diet, activity level and allergies may reveal information about your health, so Cocotte only
+processes them with your explicit consent. The **Health data consent** card shows the date you
+consented at sign-up.
+
+- **Withdraw my consent** erases your diet, activity level, allergies and intolerances (they go back
+  to the defaults) after a confirmation. Your recipes, planner and shopping lists are kept.
+- **Give my consent** appears instead once you have withdrawn it (or if you signed up before
+  consent was recorded), and lets you consent again.
+
+The **Privacy policy** link, also in the footer of every page next to **Legal notice**, explains what
+is stored, for how long, and how to exercise your rights.
 
 ### Password
 

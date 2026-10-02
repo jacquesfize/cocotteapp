@@ -5,6 +5,7 @@ async function registerAndLogin(page: Page, username: string) {
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 }

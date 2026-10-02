@@ -251,6 +251,12 @@ systemd timer, and test a restore from time to time.
 > useful for sharing recipes between instances, but they are **not** a substitute for a database
 > backup: accounts, plannings and settings are not included.
 
+## Personal data and retention
+
+Accounts that have not logged in for a long time are warned, then deleted, by the
+`purge_inactive_users` command. Backups contain personal data too: keep them for a bounded time.
+See [GDPR compliance](gdpr.md).
+
 ## Read the logs
 
 Gunicorn writes its access log and error log to standard output, so they end up in Docker's logs

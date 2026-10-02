@@ -106,6 +106,7 @@ nav:
       - Ingredient library: admin-guide/ingredients.md
       - Thematic pages: admin-guide/thematic-pages.md
       - Moderation: admin-guide/moderation.md
+      - GDPR compliance: admin-guide/gdpr.md
       - Django admin: admin-guide/django-admin.md
   - Contributing:
       - How to contribute: developer/contributing.md

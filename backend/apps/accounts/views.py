@@ -110,6 +110,45 @@ class ChangePasswordView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class HealthDataConsentView(APIView):
+    """Donne ou retire le consentement au traitement des données de santé (RGPD art. 9).
+
+    Retirer le consentement efface le régime, le niveau d'activité et les allergies.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        consent = request.data.get("consent")
+        if not isinstance(consent, bool):
+            return Response({"consent": ["Un booléen est attendu."]}, status=status.HTTP_400_BAD_REQUEST)
+        if consent:
+            request.user.grant_health_data_consent()
+        else:
+            request.user.withdraw_health_data_consent()
+        return Response(UserSerializer(request.user).data)
+
+
+class LegalInfoView(APIView):
+    """Informations légales et de confidentialité de l'instance, configurées par l'admin."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response(
+            {
+                "policy_version": settings.PRIVACY_POLICY_VERSION,
+                "publisher_name": settings.LEGAL_PUBLISHER_NAME,
+                "publisher_address": settings.LEGAL_PUBLISHER_ADDRESS,
+                "contact_email": settings.LEGAL_CONTACT_EMAIL,
+                "host_name": settings.LEGAL_HOST_NAME,
+                "host_address": settings.LEGAL_HOST_ADDRESS,
+                "privacy_contact_email": settings.PRIVACY_CONTACT_EMAIL,
+                "inactive_retention_days": settings.INACTIVE_ACCOUNT_RETENTION_DAYS,
+            }
+        )
+
+
 class ExportDataView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

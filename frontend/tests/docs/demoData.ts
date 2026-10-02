@@ -288,7 +288,7 @@ async function registerInBrowser(page: Page, user: { username: string; email: st
       const response = await fetch('/api/auth/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...user, password, diet_type: diet, activity_level: 'moderate' }),
+        body: JSON.stringify({ ...user, password, diet_type: diet, activity_level: 'moderate', health_data_consent: true }),
       })
       return response.status
     },

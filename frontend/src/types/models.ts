@@ -33,6 +33,18 @@ export interface User {
   intolerances: string[]
   is_staff: boolean
   date_joined: string
+  health_data_consent_at: string | null
+}
+
+export interface LegalInfo {
+  policy_version: string
+  publisher_name: string
+  publisher_address: string
+  contact_email: string
+  host_name: string
+  host_address: string
+  privacy_contact_email: string
+  inactive_retention_days: number
 }
 
 export interface AdminUser {
