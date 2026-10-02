@@ -14,6 +14,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   again from **My account**; withdrawing it erases that data.
 - **Legal notice** and **Privacy policy** pages (linked in the footer and on the sign-up form),
   filled from the new `LEGAL_*`, `PRIVACY_CONTACT_EMAIL` and `PRIVACY_POLICY_VERSION` settings.
+- When deleting their account, users can now keep their public recipes under an anonymous author
+  ("Utilisateur supprimé") instead of deleting them; staff can do the same through the API and
+  `purge_inactive_users --keep-recipes`.
+- **Export my data** now also contains the agenda shares, the user's comments and ratings, and the
+  consent date and policy version.
 - `purge_inactive_users` management command (with `--dry-run`): emails then deletes accounts with
   no login for `INACTIVE_ACCOUNT_RETENTION_DAYS` days (default 730; staff accounts are never
   touched). See the new "GDPR compliance" page of the admin guide.

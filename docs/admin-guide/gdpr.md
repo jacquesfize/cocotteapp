@@ -13,7 +13,7 @@ the **data controller**: the software helps, but some obligations are yours alon
 |---|---|
 | Access and portability (art. 15, 20) | **Export my data** on the **My account** page (ZIP of JSON files). |
 | Rectification (art. 16) | Users edit their profile, diet and allergies. |
-| Erasure (art. 17) | **Delete my account** removes the account and its recipes, planner and lists. |
+| Erasure (art. 17) | **Delete my account** removes the account, planner and lists, and its recipes, unless the user chooses to keep their public recipes under an anonymous author. |
 | Explicit consent for health data (art. 9) | Required checkbox at sign-up; date and policy version stored; can be withdrawn from **My account** (this erases diet, activity level and allergies). |
 | Information (art. 13) | **Legal notice** and **Privacy policy** pages, linked in the footer and on the sign-up form. |
 | Storage limitation (art. 5) | `purge_inactive_users`, see [below](#inactive-accounts). |
@@ -53,6 +53,10 @@ With `INACTIVE_ACCOUNT_RETENTION_DAYS=0` the command does nothing. Emails need a
 
 Preview first, then schedule it daily:
 
+By default the purge deletes the users' recipes with them. Add `--keep-recipes` to keep their
+public recipes under the anonymous author instead (see
+[Account deletion](#account-deletion-and-anonymous-recipes)).
+
 /// tab | Docker
 
 ```bash
@@ -86,6 +90,24 @@ Daily cron entry:
 > Users who already had an account before this feature count from their last login (or sign-up
 > date). They have no recorded consent: **My account** invites them to give it.
 
+## Account deletion and anonymous recipes
+
+Deleting an account (by the user in **My account**, or by staff in [Users](users.md)) can keep
+the account's **public** recipes: they are reassigned to a shared, inactive account named
+"Utilisateur supprimé" (`deleted-user@cocotte.invalid`) that cannot log in and is never purged.
+Private recipes, planner entries, shopping lists and ratings are always deleted, and comments
+left by the user lose their display name.
+
+> [!NOTE]
+> The anonymisation covers the author. Free-text fields the user typed themselves, such as an
+> image credit or the recipe text, are kept as is; remove them by hand if a request asks for it.
+
+## Data export
+
+**Export my data** contains `profil.json` (including consent date and policy version and last
+login), `recettes.json`, `agenda.json`, `listes_de_courses.json`, `partages_agenda.json`
+(agendas shared by or with the user), `commentaires.json` and `notes.json`.
+
 ## What remains your responsibility
 
 - **Hosting**: prefer a provider in the EU and sign a data processing agreement with it.
@@ -97,4 +119,3 @@ Daily cron entry:
   assessment.
 - **Data breaches**: notify the CNIL (or your authority) within 72 hours when personal data is
   compromised.
-- **Recipes of deleted users** are deleted with them, including recipes other users planned.

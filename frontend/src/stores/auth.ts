@@ -47,8 +47,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = await setHealthDataConsent(consent)
     },
 
-    async deleteAccount() {
-      await deleteMe()
+    async deleteAccount(keepRecipes = false) {
+      await deleteMe(keepRecipes)
       this.logout()
     },
 

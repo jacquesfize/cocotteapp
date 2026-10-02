@@ -205,11 +205,16 @@ See [Meal planning](planning.md#shared-agendas).
 ### Danger zone: delete my account
 
 Click **Delete my account** and confirm. This **permanently** deletes your account, your
-recipes, your planner and your shopping lists. It cannot be undone.
+planner and your shopping lists, and by default your recipes. It cannot be undone.
+
+Tick **Keep my public recipes, published under the name "Utilisateur supprimé"** first if you want
+your public recipes to stay available to others (including people who planned them). They are then
+attributed to an anonymous account instead of you. Your private recipes, planner and lists are
+deleted anyway, and the comments you left stay but no longer carry your name.
 
 > [!CAUTION]
-> Your recipes are deleted too, including recipes other people may have planned. Download
-> **Export my data** and **Export my recipes** first if you might want them later.
+> Without that option your recipes are deleted too, including recipes other people may have
+> planned. Download **Export my data** and **Export my recipes** first if you might want them later.
 
 ### App version
 

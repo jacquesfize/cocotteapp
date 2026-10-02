@@ -205,12 +205,13 @@ async function handleRevokeShare(share: PlanningShare) {
 }
 
 const deleteError = ref('')
+const keepRecipes = ref(false)
 
 async function handleDeleteAccount() {
   if (!confirm(t('account.deleteAccountConfirm'))) return
   deleteError.value = ''
   try {
-    await authStore.deleteAccount()
+    await authStore.deleteAccount(keepRecipes.value)
     router.push({ name: 'home' })
   } catch {
     deleteError.value = t('account.deleteAccountError')
@@ -481,6 +482,10 @@ async function handleDeleteAccount() {
     <div class="card danger-zone">
       <h2>{{ $t('account.dangerZoneTitle') }}</h2>
       <p class="muted">{{ $t('account.deleteAccountDescription') }}</p>
+      <label class="keep-recipes">
+        <input v-model="keepRecipes" type="checkbox" data-testid="keep-recipes" />
+        <span>{{ $t('account.keepRecipesLabel') }}</span>
+      </label>
       <p v-if="deleteError" class="error">{{ deleteError }}</p>
       <button class="danger" @click="handleDeleteAccount">
         <Trash2 :size="16" />{{ $t('account.deleteAccountButton') }}
@@ -563,6 +568,20 @@ async function handleDeleteAccount() {
   border: none;
   background: none;
   cursor: pointer;
+}
+
+.keep-recipes {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.keep-recipes input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 .danger-zone {

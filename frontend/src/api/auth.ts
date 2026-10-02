@@ -30,8 +30,8 @@ export function updateMe(payload: Partial<User>): Promise<User> {
   return client.patch('auth/me/', payload).then((r) => r.data)
 }
 
-export function deleteMe() {
-  return client.delete('auth/me/')
+export function deleteMe(keepRecipes = false) {
+  return client.delete('auth/me/', { params: keepRecipes ? { keep_recipes: true } : undefined })
 }
 
 export function changePassword(payload: ChangePasswordPayload) {

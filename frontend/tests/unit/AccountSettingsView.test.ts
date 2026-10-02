@@ -8,6 +8,7 @@ vi.mock('../../src/api/auth', () => ({
   changePassword: vi.fn(),
   exportMyData: vi.fn(),
   setHealthDataConsent: vi.fn(),
+  deleteMe: vi.fn(),
 }))
 vi.mock('../../src/api/allergens', () => ({
   listAllergens: vi.fn().mockResolvedValue([
@@ -21,7 +22,7 @@ vi.mock('../../src/api/planning', () => ({
   deletePlanningShare: vi.fn(),
 }))
 
-import { setHealthDataConsent } from '../../src/api/auth'
+import { deleteMe, setHealthDataConsent } from '../../src/api/auth'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../../src/api/planning'
 import { useAuthStore } from '../../src/stores/auth'
 import AccountSettingsView from '../../src/views/AccountSettingsView.vue'
@@ -210,5 +211,25 @@ describe('AccountSettingsView health data consent', () => {
     await flushPromises()
 
     expect(setHealthDataConsent).toHaveBeenCalledWith(true)
+  })
+})
+
+describe('AccountSettingsView account deletion', () => {
+  it.each([
+    [false, false],
+    [true, true],
+  ])('asks the API to keep recipes: %s', async (checked, expected) => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 1, username: 'me', email: 'me@example.com' } as unknown as User
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+    vi.mocked(deleteMe).mockResolvedValue(undefined as never)
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    if (checked) await wrapper.find('[data-testid="keep-recipes"]').setValue(true)
+    await wrapper.find('button.danger').trigger('click')
+    await flushPromises()
+
+    expect(deleteMe).toHaveBeenCalledWith(expected)
   })
 })

@@ -7,6 +7,8 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.accounts.services import delete_account
+
 User = get_user_model()
 
 
@@ -19,8 +21,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry-run", action="store_true", help="Affiche sans envoyer ni supprimer.")
+        parser.add_argument(
+            "--keep-recipes",
+            action="store_true",
+            help="Garde les recettes publiques des comptes supprimés, sous un auteur anonyme.",
+        )
 
-    def handle(self, *args, dry_run=False, **options):
+    def handle(self, *args, dry_run=False, keep_recipes=False, **options):
         retention = settings.INACTIVE_ACCOUNT_RETENTION_DAYS
         if retention <= 0:
             self.stdout.write("INACTIVE_ACCOUNT_RETENTION_DAYS vaut 0 : purge désactivée.")
@@ -55,7 +62,7 @@ class Command(BaseCommand):
         for user in to_delete:
             self.stdout.write(f"Suppression : {user.email}")
             if not dry_run:
-                user.delete()
+                delete_account(user, keep_recipes=keep_recipes)
 
         suffix = " (simulation)" if dry_run else ""
         self.stdout.write(

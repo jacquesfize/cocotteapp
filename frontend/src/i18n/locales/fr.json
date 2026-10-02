@@ -421,7 +421,7 @@
     "recipesImportResult": "{created} importée(s), {skipped} ignorée(s), {errors} en échec.",
     "exportButton": "Télécharger l'archive",
     "dangerZoneTitle": "Zone de danger",
-    "deleteAccountDescription": "Cette action supprime définitivement votre compte, vos recettes, votre agenda et vos listes de courses. Elle est irréversible.",
+    "deleteAccountDescription": "Cette action supprime définitivement votre compte, votre agenda, vos listes de courses et vos recettes (sauf si vous choisissez de garder les publiques de façon anonyme). Elle est irréversible.",
     "deleteAccountButton": "Supprimer mon compte",
     "deleteAccountConfirm": "Voulez-vous vraiment supprimer définitivement votre compte et toutes vos données ? Cette action est irréversible.",
     "deleteAccountError": "Impossible de supprimer le compte.",
@@ -446,7 +446,8 @@
     "consentWithdraw": "Retirer mon consentement",
     "consentWithdrawConfirm": "Retirer votre consentement efface votre régime, votre niveau d'activité et vos allergies. Continuer ?",
     "consentError": "Impossible de mettre à jour votre consentement.",
-    "privacyLink": "Politique de confidentialité"
+    "privacyLink": "Politique de confidentialité",
+    "keepRecipesLabel": "Conserver mes recettes publiques, publiées sous le nom « Utilisateur supprimé ». Mes recettes privées, mon agenda et mes listes sont quand même supprimés."
   },
   "admin": {
     "usersTitle": "Utilisateurs",

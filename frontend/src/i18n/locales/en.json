@@ -421,7 +421,7 @@
     "recipesImportResult": "{created} imported, {skipped} skipped, {errors} failed.",
     "exportButton": "Download the archive",
     "dangerZoneTitle": "Danger zone",
-    "deleteAccountDescription": "This permanently deletes your account, your recipes, your planner and your shopping lists. This cannot be undone.",
+    "deleteAccountDescription": "This permanently deletes your account, your planner, your shopping lists and your recipes (unless you choose to keep the public ones anonymously). This cannot be undone.",
     "deleteAccountButton": "Delete my account",
     "deleteAccountConfirm": "Do you really want to permanently delete your account and all your data? This cannot be undone.",
     "deleteAccountError": "Could not delete the account.",
@@ -446,7 +446,8 @@
     "consentWithdraw": "Withdraw my consent",
     "consentWithdrawConfirm": "Withdrawing your consent erases your diet, activity level and allergies. Continue?",
     "consentError": "Could not update your consent.",
-    "privacyLink": "Privacy policy"
+    "privacyLink": "Privacy policy",
+    "keepRecipesLabel": "Keep my public recipes, published under the name \"Utilisateur supprimé\". My private recipes, planner and lists are still deleted."
   },
   "admin": {
     "usersTitle": "Users",
