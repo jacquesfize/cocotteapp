@@ -42,7 +42,7 @@ const emit = defineEmits<{
         :href="recipe.source_url"
         target="_blank"
         rel="noopener noreferrer"
-        class="hero-source-button"
+        class="hero-source-button photo-cta-pill"
       >
         <Link2 :size="18" /><span>{{ $t('recipes.source') }}</span>
       </a>
@@ -102,29 +102,6 @@ const emit = defineEmits<{
   object-fit: cover;
 }
 
-.hero-source-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.85rem 2rem;
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-primary-dark);
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: var(--shadow-card);
-  white-space: nowrap;
-}
-
-.hero-source-button:hover {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
 
 .fallback-source-link {
   display: flex;
