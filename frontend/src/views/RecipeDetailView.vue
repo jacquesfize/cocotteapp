@@ -11,6 +11,7 @@ import RecipeSummary from '../components/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../api/recipes'
 import type { RecipeRatingResult } from '../api/recipes'
 import { useAuthStore } from '../stores/auth'
+import { getErrorStatus } from '../utils/apiError'
 import { isImportedRecipe } from '../utils/recipeOrigin'
 import type { Recipe } from '../types/models'
 
@@ -110,7 +111,7 @@ async function handleFork() {
     const created = await forkRecipe(recipe.value.id, forkLabel.value.trim())
     router.push({ name: 'recipe-edit', params: { id: created.id } })
   } catch (err) {
-    const status = (err as { response?: { status?: number } }).response?.status
+    const status = getErrorStatus(err)
     forkError.value = status === 403 ? t('recipes.restrictedForkError') : t('recipes.forkError')
   } finally {
     forking.value = false

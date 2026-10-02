@@ -12,6 +12,7 @@ import {
   updateThematicPage,
   uploadThematicPageImage,
 } from '../api/adminThematicPages'
+import { getErrorStatus } from '../utils/apiError'
 import type { AdminThematicPageInput } from '../types/api'
 import type { AdminThematicPage } from '../types/models'
 import type { DietType } from '../types/models'
@@ -97,7 +98,7 @@ async function load() {
     pages.value = await listThematicPages()
     accessDenied.value = false
   } catch (err) {
-    if ((err as { response?: { status?: number } }).response?.status === 403) accessDenied.value = true
+    if (getErrorStatus(err) === 403) accessDenied.value = true
   } finally {
     isLoading.value = false
   }

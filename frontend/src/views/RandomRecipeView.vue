@@ -7,6 +7,7 @@ import RecipeRestrictedNotice from '../components/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../components/RecipeSummary.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
 import { getRandomRecipe } from '../api/recipes'
+import { getErrorStatus } from '../utils/apiError'
 import { useAuthStore } from '../stores/auth'
 import type { RecipeListParams } from '../types/api'
 import type { DietType, Recipe } from '../types/models'
@@ -29,7 +30,7 @@ async function draw() {
     recipe.value = await getRandomRecipe(params)
   } catch (err) {
     recipe.value = null
-    if ((err as { response?: { status?: number } }).response?.status === 404) notFound.value = true
+    if (getErrorStatus(err) === 404) notFound.value = true
   } finally {
     isLoading.value = false
   }

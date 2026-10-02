@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import AuthLayout from '../components/AuthLayout.vue'
 import PasswordInput from '../components/PasswordInput.vue'
 import { useAuthStore } from '../stores/auth'
+import { getErrorData } from '../utils/apiError'
 import type { RegisterPayload } from '../types/api'
 
 // Connexion et inscription partagent la même page : /login et /register ne diffèrent que par l'onglet actif.
@@ -62,8 +63,7 @@ async function handleSubmit() {
     if (props.mode === 'login') {
       error.value = t('auth.invalidCredentials')
     } else {
-      const data = (err as { response?: { data?: { username?: string[]; health_data_consent?: string[] } } })
-        .response?.data
+      const data = getErrorData<{ username?: string[]; health_data_consent?: string[] }>(err)
       error.value = data?.username?.[0] || (data?.health_data_consent ? t('auth.healthConsentRequired') : '') || t('auth.registerError')
     }
   } finally {

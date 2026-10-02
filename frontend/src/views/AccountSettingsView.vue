@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import PageHeader from '../components/PageHeader.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
 import { changePassword, exportMyData } from '../api/auth'
+import { getErrorData, getErrorDetail } from '../utils/apiError'
 import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../api/planning'
 import { useAuthStore } from '../stores/auth'
@@ -64,7 +65,7 @@ async function handleProfileSubmit() {
     await authStore.updateProfile(profile.value)
     profileMessage.value = t('account.profileSuccess')
   } catch (err) {
-    const data = (err as { response?: { data?: { username?: string[] } } }).response?.data
+    const data = getErrorData<{ username?: string[] }>(err)
     profileError.value = data?.username?.[0] || t('account.profileError')
   } finally {
     isSavingProfile.value = false
@@ -163,8 +164,7 @@ async function handleRecipesImport(event: Event) {
   try {
     recipesImportResult.value = await importRecipeLibrary(file)
   } catch (err) {
-    const detail = (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
-    recipesImportError.value = detail || t('account.recipesImportError')
+    recipesImportError.value = getErrorDetail(err, t('account.recipesImportError'))
   } finally {
     isImportingRecipes.value = false
     input.value = ''

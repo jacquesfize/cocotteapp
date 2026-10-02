@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { rateRecipe, type RecipeRatingResult } from '../api/recipes'
+import { getErrorStatus } from '../utils/apiError'
 
 const props = defineProps<{
   recipeId: number | string
@@ -28,7 +29,7 @@ async function rate(value: number) {
     const result = await rateRecipe(props.recipeId, value)
     emit('rated', result)
   } catch (err) {
-    const status = (err as { response?: { status?: number } }).response?.status
+    const status = getErrorStatus(err)
     submitError.value = status === 429 ? t('ratings.throttled') : t('ratings.submitError')
   } finally {
     isSubmitting.value = false

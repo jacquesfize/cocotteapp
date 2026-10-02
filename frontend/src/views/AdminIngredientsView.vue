@@ -8,6 +8,7 @@ import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
 import { deleteIngredient, listIngredients } from '../api/ingredients'
+import { getErrorStatus } from '../utils/apiError'
 import type { IngredientListParams } from '../types/api'
 import type { Ingredient } from '../types/models'
 
@@ -38,7 +39,7 @@ async function load() {
     accessDenied.value = false
     router.replace({ query: params as Record<string, string> })
   } catch (err) {
-    if ((err as { response?: { status?: number } }).response?.status === 403) accessDenied.value = true
+    if (getErrorStatus(err) === 403) accessDenied.value = true
   } finally {
     isLoading.value = false
   }
@@ -85,7 +86,7 @@ async function handleDelete(ingredient: Ingredient) {
   try {
     await deleteIngredient(ingredient.id)
   } catch (err) {
-    const status = (err as { response?: { status?: number } }).response?.status
+    const status = getErrorStatus(err)
     message.value =
       status === 409
         ? t('adminIngredients.deleteInUse', { name: ingredient.name })

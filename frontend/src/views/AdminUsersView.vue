@@ -7,6 +7,7 @@ import PageHeader from '../components/PageHeader.vue'
 import Pagination from '../components/Pagination.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
 import { deleteUser, listUsers, updateUser } from '../api/admin'
+import { getErrorStatus } from '../utils/apiError'
 import { useAuthStore } from '../stores/auth'
 import type { AdminUserListParams } from '../types/api'
 import type { AdminUser } from '../types/models'
@@ -35,7 +36,7 @@ async function load() {
     accessDenied.value = false
     router.replace({ query: params as Record<string, string> })
   } catch (err) {
-    if ((err as { response?: { status?: number } }).response?.status === 403) accessDenied.value = true
+    if (getErrorStatus(err) === 403) accessDenied.value = true
   } finally {
     isLoading.value = false
   }
