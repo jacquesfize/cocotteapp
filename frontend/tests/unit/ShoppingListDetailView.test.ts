@@ -46,6 +46,7 @@ function mountView() {
 
 describe('ShoppingListDetailView export/share', () => {
   const originalShare = (navigator as unknown as { share?: unknown }).share
+  const originalClipboard = (navigator as unknown as { clipboard?: unknown }).clipboard
 
   beforeEach(() => {
     vi.mocked(getShoppingList).mockReset().mockResolvedValue(list as never)
@@ -58,6 +59,11 @@ describe('ShoppingListDetailView export/share', () => {
       delete (navigator as unknown as { share?: unknown }).share
     } else {
       ;(navigator as unknown as { share?: unknown }).share = originalShare
+    }
+    if (originalClipboard === undefined) {
+      delete (navigator as unknown as { clipboard?: unknown }).clipboard
+    } else {
+      ;(navigator as unknown as { clipboard?: unknown }).clipboard = originalClipboard
     }
   })
 
@@ -88,8 +94,24 @@ describe('ShoppingListDetailView export/share', () => {
     expect(downloadBlob).not.toHaveBeenCalled()
   })
 
-  it('falls back to downloading a .txt file when navigator.share is unavailable', async () => {
+  it('copies to the clipboard when navigator.share is unavailable but the Clipboard API is', async () => {
     delete (navigator as unknown as { share?: unknown }).share
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    ;(navigator as unknown as { clipboard?: unknown }).clipboard = { writeText }
+
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('button').trigger('click')
+    await flushPromises()
+
+    expect(writeText).toHaveBeenCalledWith('- 400 g Carotte')
+    expect(downloadBlob).not.toHaveBeenCalled()
+    expect(wrapper.find('button').text()).toContain('Copié')
+  })
+
+  it('falls back to downloading a .txt file when neither navigator.share nor the Clipboard API is available', async () => {
+    delete (navigator as unknown as { share?: unknown }).share
+    delete (navigator as unknown as { clipboard?: unknown }).clipboard
 
     const wrapper = mountView()
     await flushPromises()

@@ -396,6 +396,8 @@
     "delete": "Supprimer",
     "export": "Exporter en .txt",
     "share": "Partager",
+    "copyToClipboard": "Copier",
+    "copied": "Copié !",
     "checkOwned": "Cochez les ingrédients que vous avez déjà."
   },
   "account": {

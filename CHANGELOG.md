@@ -11,8 +11,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
   that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
-  Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file; the
-  download stays the fallback where sharing isn't supported.
+  Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On
+  browsers without the Web Share API (most desktop browsers besides Windows/Safari), the button
+  now copies the list to the clipboard instead, ready to paste into any app; downloading a `.txt`
+  file remains the last-resort fallback.
 - The seeded ingredient library now includes "Tomates concassées" (canned crushed tomatoes), which the
   documentation demo data relies on.
 - GDPR tooling for instance administrators: explicit consent to the processing of health-related

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CloudOff, Download, Share, ShoppingCart } from '@lucide/vue'
+import { Check, CloudOff, Copy, Download, Share, ShoppingCart } from '@lucide/vue'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import PageHeader from '../components/PageHeader.vue'
 import { exportShoppingList, getShoppingList, markOwned } from '../api/shopping'
@@ -16,7 +16,13 @@ const props = defineProps<{
 }>()
 
 const shoppingList = ref<ListWithSync | null>(null)
+// La plupart des navigateurs desktop (Chrome/Firefox hors Windows) n'implémentent pas
+// navigator.share : sans ce repli, le bouton ne faisait jamais qu'un téléchargement .txt, ce
+// qui ne permet pas vraiment de "coller" la liste dans une appli de notes.
 const canShare = !!navigator.share
+const canCopy = !canShare && !!navigator.clipboard?.writeText
+const justCopied = ref(false)
+let copiedTimeout: ReturnType<typeof setTimeout> | undefined
 
 async function load() {
   shoppingList.value = (await getShoppingList(props.id)) as ListWithSync
@@ -36,6 +42,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener(QUEUE_FLUSHED_EVENT, handleQueueFlushed)
+  clearTimeout(copiedTimeout)
 })
 
 async function toggleOwned(item: ItemWithSync) {
@@ -65,7 +72,20 @@ async function handleExport() {
         // User just cancelled the share sheet — not a failure, do nothing.
         return
       }
-      // Any other error: fall through to the download fallback below.
+      // Any other error: fall through to the clipboard/download fallback below.
+    }
+  }
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(content)
+      justCopied.value = true
+      clearTimeout(copiedTimeout)
+      copiedTimeout = setTimeout(() => {
+        justCopied.value = false
+      }, 2000)
+      return
+    } catch {
+      // Clipboard write can fail (permission denied, non-secure context) — fall through.
     }
   }
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
@@ -78,9 +98,11 @@ async function handleExport() {
     <div class="row page-header">
       <PageHeader :icon="ShoppingCart">{{ shoppingList.name }}</PageHeader>
       <button @click="handleExport">
-        <Share v-if="canShare" :size="16" />
+        <Check v-if="justCopied" :size="16" />
+        <Share v-else-if="canShare" :size="16" />
+        <Copy v-else-if="canCopy" :size="16" />
         <Download v-else :size="16" />
-        {{ canShare ? $t('shopping.share') : $t('shopping.export') }}
+        {{ justCopied ? $t('shopping.copied') : canShare ? $t('shopping.share') : canCopy ? $t('shopping.copyToClipboard') : $t('shopping.export') }}
       </button>
     </div>
     <p class="muted">{{ $t('shopping.checkOwned') }}</p>

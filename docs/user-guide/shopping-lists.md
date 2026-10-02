@@ -67,8 +67,10 @@ To use a list offline, open it **once while online** so it's saved on your devic
 
 On a phone or browser that supports sharing (most mobile browsers), click **Share** to send the
 list straight into another app — Notes, Google Keep, Reminders, Todoist, a chat app, and so on —
-through the device's usual share sheet. Where sharing isn't available, the button instead reads
-**Export as .txt** and downloads the list as a plain text file named after the list.
+through the device's usual share sheet. On a desktop browser without sharing support, the button
+instead reads **Copy** and copies the list to the clipboard, ready to paste into any notes app.
+If neither is available, the button reads **Export as .txt** and downloads the list as a plain
+text file named after the list.
 
 Either way, the content contains the list name and one line per ingredient, for example
 `- 400 g Carotte`. **Ticked items are left out**, so it only contains what you still need to buy.
