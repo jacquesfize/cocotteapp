@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Check, Moon, Sun } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useClickOutside } from '../composables/useClickOutside'
 import { i18n, setLocale, SUPPORTED_LOCALES, type Locale } from '../i18n'
 import { useAuthStore } from '../stores/auth'
 import { themeMode, toggleThemeMode } from '../utils/theme'
@@ -44,30 +45,16 @@ function handleLocaleChange(code: Locale) {
   closeMenu()
 }
 
-function handleOutsideClick(event: MouseEvent) {
-  const target = event.target as Node
-  if (isMenuOpen.value && accountEl.value && !accountEl.value.contains(target)) {
-    isMenuOpen.value = false
-  }
-  if (isLocaleMenuOpen.value && localeEl.value && !localeEl.value.contains(target)) {
-    isLocaleMenuOpen.value = false
-  }
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') closeMenu()
-}
+useClickOutside(accountEl, () => {
+  isMenuOpen.value = false
+})
+useClickOutside(localeEl, () => {
+  isLocaleMenuOpen.value = false
+})
 
 const stopRouterWatch = router.afterEach(() => closeMenu())
 
-onMounted(() => {
-  document.addEventListener('click', handleOutsideClick)
-  document.addEventListener('keydown', handleKeydown)
-})
-
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleOutsideClick)
-  document.removeEventListener('keydown', handleKeydown)
   stopRouterWatch()
 })
 </script>

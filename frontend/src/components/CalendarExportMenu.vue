@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { CalendarPlus } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useClickOutside } from '../composables/useClickOutside'
 import { downloadWeekIcs, getCalendarFeed, regenerateCalendarFeed } from '../api/planning'
 import type { CalendarFeed } from '../api/planning'
 import { downloadBlob } from '../utils/download'
@@ -16,22 +17,13 @@ const error = ref(false)
 const copied = ref(false)
 const root = ref<HTMLElement | null>(null)
 
-function handleDocumentPointer(event: Event) {
-  if (open.value && root.value && !root.value.contains(event.target as Node)) open.value = false
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') open.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('mousedown', handleDocumentPointer)
-  document.addEventListener('keydown', handleKeydown)
-})
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', handleDocumentPointer)
-  document.removeEventListener('keydown', handleKeydown)
-})
+useClickOutside(
+  root,
+  () => {
+    open.value = false
+  },
+  { event: 'mousedown' },
+)
 
 const googleUrl = computed(() =>
   feed.value ? `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(feed.value.webcal_url)}` : '',

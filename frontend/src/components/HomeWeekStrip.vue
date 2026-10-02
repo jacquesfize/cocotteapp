@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Calendar, Link2, Pencil, Plus, ShoppingCart, TriangleAlert } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useClickOutside } from '../composables/useClickOutside'
 import ProgressBar from './shared/ProgressBar.vue'
 import { fetchLegalInfo } from '../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../api/planning'
@@ -64,25 +65,7 @@ function handleImportClick() {
   emit('open-import')
 }
 
-function handleCreateMenuOutsideClick(event: MouseEvent) {
-  if (showCreateMenu.value && createMenuEl.value && !createMenuEl.value.contains(event.target as Node)) {
-    closeCreateMenu()
-  }
-}
-
-function handleCreateMenuKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') closeCreateMenu()
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleCreateMenuOutsideClick)
-  document.addEventListener('keydown', handleCreateMenuKeydown)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleCreateMenuOutsideClick)
-  document.removeEventListener('keydown', handleCreateMenuKeydown)
-})
+useClickOutside(createMenuEl, closeCreateMenu)
 
 const days = computed(() =>
   [

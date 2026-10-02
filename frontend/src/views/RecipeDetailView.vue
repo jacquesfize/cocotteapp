@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Download, EllipsisVertical, GitFork, Link2, Pencil, Trash2, Utensils } from '@lucide/vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useClickOutside } from '../composables/useClickOutside'
 import AddToPlanForm from '../components/AddToPlanForm.vue'
 import PageHeader from '../components/PageHeader.vue'
 import RecipeComments from '../components/RecipeComments.vue'
@@ -59,25 +60,7 @@ function closeActionsMenu() {
   showActionsMenu.value = false
 }
 
-function handleActionsOutsideClick(event: MouseEvent) {
-  if (showActionsMenu.value && actionsEl.value && !actionsEl.value.contains(event.target as Node)) {
-    closeActionsMenu()
-  }
-}
-
-function handleActionsKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') closeActionsMenu()
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleActionsOutsideClick)
-  document.addEventListener('keydown', handleActionsKeydown)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleActionsOutsideClick)
-  document.removeEventListener('keydown', handleActionsKeydown)
-})
+useClickOutside(actionsEl, closeActionsMenu)
 
 async function load() {
   recipe.value = await getRecipe(props.id)
