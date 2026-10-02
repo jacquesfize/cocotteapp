@@ -19,13 +19,14 @@ Logging in and signing up share the same page, with two tabs: **Log in** and **S
     | **Password** | At least 8 characters. Use the eye button to show or hide what you type. |
     | **Diet** | **Omnivore**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
     | **Activity level** | **Sedentary**, **Moderate** or **Athlete**. Used for nutrition alerts. |
+    | **Consent** | A required checkbox: you explicitly consent to Cocotte processing your diet, activity level and allergies (data that may relate to your health). See [Health data consent](#health-data-consent). |
 
 4. Click **Create my account**.
 
 You are logged in straight away and taken to the recipe list. You can change all of these
 fields later in **My account**.
 
-![The sign-up form with username, email, password, diet and activity level](../assets/screenshots/register.png)
+![The sign-up form with username, email, password, diet, activity level and the health data consent checkbox](../assets/screenshots/register.png)
 
 > [!TIP]
 > Diet and activity level set the daily minimums used by the planner's nutrition alerts. See
@@ -132,6 +133,22 @@ Once saved, Cocotte uses them in several places:
 > **not** hidden by the allergen filter. See
 > [Nutrition & carbon](nutrition-and-carbon.md#allergen-data).
 
+### Health data consent
+
+Your diet, activity level and allergies may reveal information about your health, so Cocotte only
+processes them with your explicit consent. The **Health data consent** card shows the date you
+consented at sign-up.
+
+![The Health data consent card, with the consent date and the option to withdraw or give consent](../assets/screenshots/account-consent.png)
+
+- **Withdraw my consent** erases your diet, activity level, allergies and intolerances (they go back
+  to the defaults) after a confirmation. Your recipes, planner and shopping lists are kept.
+- **Give my consent** appears instead once you have withdrawn it (or if you signed up before
+  consent was recorded), and lets you consent again.
+
+The **Privacy policy** link, also in the footer of every page next to **Legal notice**, explains what
+is stored, for how long, and how to exercise your rights.
+
 ### Password
 
 To change your password while logged in:
@@ -149,7 +166,7 @@ Click **Download the archive** to get a ZIP file (`cocotte-donnees-YYYY-MM-DD.zi
 JSON files with your profile, your recipes, your planner entries and your shopping lists. Use it
 as a personal backup or to see what Cocotte stores about you.
 
-![The Share or back up my recipes, Share my agenda and Danger zone cards](../assets/screenshots/account-data.png)
+![The Export my data, Share or back up my recipes, Share my agenda and Danger zone cards, with the option to keep public recipes](../assets/screenshots/account-data.png)
 
 ### Share or back up my recipes
 
@@ -190,11 +207,16 @@ See [Meal planning](planning.md#shared-agendas).
 ### Danger zone: delete my account
 
 Click **Delete my account** and confirm. This **permanently** deletes your account, your
-recipes, your planner and your shopping lists. It cannot be undone.
+planner and your shopping lists, and by default your recipes. It cannot be undone.
+
+Tick **Keep my public recipes, published under the name "Utilisateur supprimé"** first if you want
+your public recipes to stay available to others (including people who planned them). They are then
+attributed to an anonymous account instead of you. Your private recipes, planner and lists are
+deleted anyway, and the comments you left stay but no longer carry your name.
 
 > [!CAUTION]
-> Your recipes are deleted too, including recipes other people may have planned. Download
-> **Export my data** and **Export my recipes** first if you might want them later.
+> Without that option your recipes are deleted too, including recipes other people may have
+> planned. Download **Export my data** and **Export my recipes** first if you might want them later.
 
 ### App version
 

@@ -111,6 +111,20 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/AdminIngredientsView.vue'),
     meta: { requiresStaff: true },
   },
+  {
+    path: '/legal',
+    name: 'legal',
+    component: () => import('../views/LegalView.vue'),
+    props: { page: 'legal' },
+    meta: { public: true },
+  },
+  {
+    path: '/privacy',
+    name: 'privacy',
+    component: () => import('../views/LegalView.vue'),
+    props: { page: 'privacy' },
+    meta: { public: true },
+  },
   { path: '/:pathMatch(.*)*', redirect: '/recipes' },
 ]
 

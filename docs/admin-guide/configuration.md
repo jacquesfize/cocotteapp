@@ -169,6 +169,25 @@ An error here (authentication, TLS, connection refused) is the same error a pass
 would hit. If the SMTP server is unreachable when a user requests a reset, the request fails with
 a server error.
 
+## Privacy and GDPR
+
+These variables feed the **Legal notice** and **Privacy policy** pages and the inactive-account
+purge. See [GDPR compliance](gdpr.md) for the full checklist.
+
+| Variable | Default | Description |
+|---|---|---|
+| `LEGAL_PUBLISHER_NAME` | *(empty)* | Name of the person or organisation running the instance (legal notice). |
+| `LEGAL_PUBLISHER_ADDRESS` | *(empty)* | Postal address of the publisher. |
+| `LEGAL_CONTACT_EMAIL` | *(empty)* | Contact email shown in the legal notice. |
+| `LEGAL_HOST_NAME` | *(empty)* | Name of the hosting provider. |
+| `LEGAL_HOST_ADDRESS` | *(empty)* | Address of the hosting provider. |
+| `PRIVACY_CONTACT_EMAIL` | `LEGAL_CONTACT_EMAIL` | Address (or DPO) users write to in order to exercise their rights. |
+| `PRIVACY_POLICY_VERSION` | `1` | Stored with each user's consent. Increase it when the policy changes significantly. |
+| `INACTIVE_ACCOUNT_RETENTION_DAYS` | `730` | Accounts with no login for this many days are deleted by `purge_inactive_users`. `0` disables the purge. |
+| `INACTIVE_ACCOUNT_WARNING_DAYS` | `30` | How many days before deletion the warning email is sent. |
+
+Fields left empty appear as "Not provided by the instance administrator." on the public pages.
+
 ## HTTPS and security
 
 These settings live in `config/settings/prod.py` and only apply in production.

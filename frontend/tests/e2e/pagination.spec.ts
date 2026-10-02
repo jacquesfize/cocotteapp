@@ -9,6 +9,7 @@ test('paginates the recipe list once there are more than one page of results', a
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 

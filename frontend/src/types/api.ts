@@ -59,6 +59,7 @@ export interface RegisterPayload {
   password: string
   diet_type?: DietType
   activity_level?: ActivityLevel
+  health_data_consent: boolean
 }
 
 export interface ChangePasswordPayload {

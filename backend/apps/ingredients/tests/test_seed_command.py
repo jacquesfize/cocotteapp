@@ -58,3 +58,11 @@ def test_seeded_ingredient_has_carbon_footprint():
     beef = Ingredient.objects.get(name="Bœuf haché 5%")
     lentils = Ingredient.objects.get(name="Lentilles corail")
     assert beef.carbon_kg_co2e_per_kg > lentils.carbon_kg_co2e_per_kg > 0
+
+
+@pytest.mark.django_db
+def test_seed_provides_the_ingredients_the_docs_screenshots_rely_on():
+    # tests/docs/demoData.ts résout ses recettes de démo sur ces noms exacts.
+    call_command("seed_common_ingredients")
+
+    assert Ingredient.objects.filter(name="Tomates concassées").exists()

@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from apps.planning.models import MealPlanEntry
+from apps.planning.models import MealPlanEntry, PlanningShare
 from apps.planning.serializers import MealPlanEntrySerializer
 from apps.recipes.models import Recipe
 from apps.recipes.serializers import RecipeSerializer
@@ -31,6 +31,7 @@ from .serializers import (
     RegisterSerializer,
     UserSerializer,
 )
+from .services import delete_account
 
 
 class RegisterView(generics.CreateAPIView):
@@ -44,6 +45,11 @@ class MeView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+    def perform_destroy(self, instance):
+        # ?keep_recipes=true : garde les recettes publiques sous un auteur anonyme.
+        keep_recipes = self.request.query_params.get("keep_recipes", "").lower() in ("1", "true")
+        delete_account(instance, keep_recipes=keep_recipes)
 
 
 class PasswordResetRequestView(APIView):
@@ -110,6 +116,45 @@ class ChangePasswordView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class HealthDataConsentView(APIView):
+    """Donne ou retire le consentement au traitement des données de santé (RGPD art. 9).
+
+    Retirer le consentement efface le régime, le niveau d'activité et les allergies.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        consent = request.data.get("consent")
+        if not isinstance(consent, bool):
+            return Response({"consent": ["Un booléen est attendu."]}, status=status.HTTP_400_BAD_REQUEST)
+        if consent:
+            request.user.grant_health_data_consent()
+        else:
+            request.user.withdraw_health_data_consent()
+        return Response(UserSerializer(request.user).data)
+
+
+class LegalInfoView(APIView):
+    """Informations légales et de confidentialité de l'instance, configurées par l'admin."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response(
+            {
+                "policy_version": settings.PRIVACY_POLICY_VERSION,
+                "publisher_name": settings.LEGAL_PUBLISHER_NAME,
+                "publisher_address": settings.LEGAL_PUBLISHER_ADDRESS,
+                "contact_email": settings.LEGAL_CONTACT_EMAIL,
+                "host_name": settings.LEGAL_HOST_NAME,
+                "host_address": settings.LEGAL_HOST_ADDRESS,
+                "privacy_contact_email": settings.PRIVACY_CONTACT_EMAIL,
+                "inactive_retention_days": settings.INACTIVE_ACCOUNT_RETENTION_DAYS,
+            }
+        )
+
+
 class ExportDataView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -121,8 +166,34 @@ class ExportDataView(APIView):
         meal_plan_entries = MealPlanEntry.objects.filter(user=user).select_related("recipe")
         shopping_lists = ShoppingList.objects.filter(user=user).prefetch_related("items__ingredient")
 
+        shares_given = PlanningShare.objects.filter(owner=user).select_related("shared_with")
+        shares_received = PlanningShare.objects.filter(shared_with=user).select_related("owner")
+        comments = user.recipe_comments.select_related("recipe")
+        ratings = user.recipe_ratings.select_related("recipe")
+
+        profile = UserSerializer(user).data
+        profile["health_data_consent_version"] = user.health_data_consent_version
+        profile["last_login"] = user.last_login
+
         files = {
-            "profil.json": UserSerializer(user).data,
+            "profil.json": profile,
+            "partages_agenda.json": {
+                "donnes": [
+                    {"avec": s.shared_with.email, "permission": s.permission, "date": s.created_at}
+                    for s in shares_given
+                ],
+                "recus": [
+                    {"de": s.owner.email, "permission": s.permission, "date": s.created_at}
+                    for s in shares_received
+                ],
+            },
+            "commentaires.json": [
+                {"recette": c.recipe.title, "nom_affiche": c.author_name, "texte": c.body, "date": c.created_at}
+                for c in comments
+            ],
+            "notes.json": [
+                {"recette": r.recipe.title, "note": r.value, "date": r.updated_at} for r in ratings
+            ],
             "recettes.json": RecipeSerializer(recipes, many=True, context={"request": request}).data,
             "agenda.json": MealPlanEntrySerializer(meal_plan_entries, many=True).data,
             "listes_de_courses.json": ShoppingListSerializer(shopping_lists, many=True).data,
@@ -164,4 +235,5 @@ class AdminUserViewSet(ModelViewSet):
 
     def perform_destroy(self, instance):
         self._guard_against_self(instance)
-        instance.delete()
+        keep_recipes = self.request.query_params.get("keep_recipes", "").lower() in ("1", "true")
+        delete_account(instance, keep_recipes=keep_recipes)

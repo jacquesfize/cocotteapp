@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from apps.ingredients.models import Allergen
@@ -11,14 +13,34 @@ User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
+    # Consentement explicite (RGPD art. 9) au traitement du régime, de l'activité et des allergies.
+    health_data_consent = serializers.BooleanField(write_only=True)
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password", "diet_type", "activity_level"]
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "diet_type",
+            "activity_level",
+            "health_data_consent",
+        ]
+
+    def validate_health_data_consent(self, value):
+        if not value:
+            raise serializers.ValidationError("Le consentement est requis pour créer un compte.")
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        user = User(**validated_data)
+        validated_data.pop("health_data_consent")
+        user = User(
+            **validated_data,
+            health_data_consent_at=timezone.now(),
+            health_data_consent_version=settings.PRIVACY_POLICY_VERSION,
+        )
         user.set_password(password)
         user.save()
         return user
@@ -46,8 +68,9 @@ class UserSerializer(serializers.ModelSerializer):
             "intolerances",
             "is_staff",
             "date_joined",
+            "health_data_consent_at",
         ]
-        read_only_fields = ["id", "is_staff", "date_joined"]
+        read_only_fields = ["id", "is_staff", "date_joined", "health_data_consent_at"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

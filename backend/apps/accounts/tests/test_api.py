@@ -1,3 +1,4 @@
+import json
 import re
 import zipfile
 from io import BytesIO
@@ -21,7 +22,12 @@ def test_register_and_login():
     client = APIClient()
     response = client.post(
         "/api/auth/register/",
-        {"username": "alice", "password": "s3cret-pass", "email": "alice@example.com"},
+        {
+            "username": "alice",
+            "password": "s3cret-pass",
+            "email": "alice@example.com",
+            "health_data_consent": True,
+        },
     )
     assert response.status_code == 201
 
@@ -143,6 +149,9 @@ def test_export_data_returns_a_zip_scoped_to_the_user():
         "recettes.json",
         "agenda.json",
         "listes_de_courses.json",
+        "partages_agenda.json",
+        "commentaires.json",
+        "notes.json",
     }
     recettes_json = archive.read("recettes.json").decode("utf-8")
     assert "Ma recette" in recettes_json
@@ -213,7 +222,12 @@ def test_registering_with_an_email_already_in_use_is_rejected():
 
     response = client.post(
         "/api/auth/register/",
-        {"username": "someone", "password": "s3cret-pass", "email": "taken@example.com"},
+        {
+            "username": "someone",
+            "password": "s3cret-pass",
+            "email": "taken@example.com",
+            "health_data_consent": True,
+        },
     )
 
     assert response.status_code == 400
@@ -302,3 +316,209 @@ def test_password_reset_confirm_rejects_a_malformed_uid():
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("extra", [{}, {"health_data_consent": False}])
+def test_register_requires_health_data_consent(extra):
+    response = APIClient().post(
+        "/api/auth/register/",
+        {"username": "alice", "password": "s3cret-pass", "email": "alice@example.com", **extra},
+    )
+
+    assert response.status_code == 400
+    assert "health_data_consent" in response.data
+
+
+@pytest.mark.django_db
+def test_register_records_consent_date_and_policy_version(settings):
+    settings.PRIVACY_POLICY_VERSION = "3"
+    client = APIClient()
+    client.post(
+        "/api/auth/register/",
+        {
+            "username": "alice",
+            "password": "s3cret-pass",
+            "email": "alice@example.com",
+            "health_data_consent": True,
+        },
+    )
+
+    from apps.accounts.models import User
+
+    user = User.objects.get(email="alice@example.com")
+    assert user.health_data_consent_at is not None
+    assert user.health_data_consent_version == "3"
+
+
+@pytest.mark.django_db
+def test_withdrawing_health_data_consent_erases_health_data():
+    from apps.accounts.models import AllergySeverity, UserAllergen
+    from apps.ingredients.models import Allergen
+
+    user = UserFactory(diet_type="vegan", activity_level="athlete")
+    user.grant_health_data_consent()
+    UserAllergen.objects.create(
+        user=user, allergen=Allergen.objects.create(slug="gluten", name="Gluten"),
+        severity=AllergySeverity.ALLERGY,
+    )
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": False}, format="json")
+
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.health_data_consent_at is None
+    assert (user.diet_type, user.activity_level) == ("omnivore", "moderate")
+    assert user.allergen_links.count() == 0
+    assert response.data["allergies"] == []
+
+
+@pytest.mark.django_db
+def test_granting_health_data_consent_again_records_the_date():
+    user = UserFactory()
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": True}, format="json")
+
+    assert response.status_code == 200
+    assert response.data["health_data_consent_at"] is not None
+
+
+@pytest.mark.django_db
+def test_health_data_consent_requires_a_boolean():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+
+    response = client.post("/api/auth/me/health-data-consent/", {"consent": "yes"}, format="json")
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_legal_info_is_public_and_reflects_settings(settings):
+    settings.LEGAL_PUBLISHER_NAME = "Association Cocotte"
+    settings.PRIVACY_CONTACT_EMAIL = "privacy@example.org"
+
+    response = APIClient().get("/api/auth/legal/")
+
+    assert response.status_code == 200
+    assert response.data["publisher_name"] == "Association Cocotte"
+    assert response.data["privacy_contact_email"] == "privacy@example.org"
+
+
+@pytest.mark.django_db
+def test_deleting_account_deletes_recipes_by_default():
+    from apps.recipes.models import Recipe
+
+    user = UserFactory()
+    RecipeFactory(author=user, is_public=True)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.delete("/api/auth/me/")
+
+    assert response.status_code == 204
+    assert Recipe.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_deleting_account_with_keep_recipes_anonymises_public_recipes_only():
+    from apps.accounts.models import User
+    from apps.accounts.services import ANONYMOUS_EMAIL
+    from apps.recipes.models import Recipe
+
+    user = UserFactory(username="alice", email="alice@example.com")
+    public = RecipeFactory(author=user, is_public=True)
+    RecipeFactory(author=user, is_public=False)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.delete("/api/auth/me/?keep_recipes=true")
+
+    assert response.status_code == 204
+    assert not User.objects.filter(email="alice@example.com").exists()
+    assert Recipe.objects.count() == 1
+    public.refresh_from_db()
+    assert public.author.email == ANONYMOUS_EMAIL
+    assert public.author.username != "alice"
+    assert not public.author.is_active
+    assert not public.author.has_usable_password()
+
+
+@pytest.mark.django_db
+def test_anonymous_author_is_reused_across_deletions():
+    from apps.accounts.services import delete_account
+
+    for _ in range(2):
+        user = UserFactory()
+        RecipeFactory(author=user, is_public=True)
+        delete_account(user, keep_recipes=True)
+
+    from apps.accounts.models import User
+
+    assert User.objects.filter(is_active=False).count() == 1
+
+
+@pytest.mark.django_db
+def test_deleting_account_removes_the_name_from_remaining_comments():
+    from apps.recipes.models import RecipeComment
+
+    user = UserFactory(username="alice")
+    comment = RecipeComment.objects.create(
+        recipe=RecipeFactory(), author_name="alice", user=user, body="Délicieux"
+    )
+
+    from apps.accounts.services import delete_account
+
+    delete_account(user)
+
+    comment.refresh_from_db()
+    assert comment.user is None
+    assert "alice" not in comment.author_name
+    assert comment.body == "Délicieux"
+
+
+@pytest.mark.django_db
+def test_export_includes_consent_shares_comments_and_ratings():
+    from apps.planning.models import PlanningShare
+    from apps.recipes.models import RecipeComment, RecipeRating
+
+    user = UserFactory()
+    user.grant_health_data_consent()
+    other = UserFactory(email="friend@example.com")
+    PlanningShare.objects.create(owner=user, shared_with=other)
+    recipe = RecipeFactory()
+    RecipeComment.objects.create(recipe=recipe, author_name="me", user=user, body="Bon")
+    RecipeRating.objects.create(recipe=recipe, user=user, value=4)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.get("/api/auth/me/export/")
+
+    archive = zipfile.ZipFile(BytesIO(response.content))
+    profile = json.loads(archive.read("profil.json"))
+    assert profile["health_data_consent_at"] is not None
+    assert profile["health_data_consent_version"] == "1"
+    shares = json.loads(archive.read("partages_agenda.json"))
+    assert shares["donnes"][0]["avec"] == "friend@example.com"
+    assert json.loads(archive.read("commentaires.json"))[0]["texte"] == "Bon"
+    assert json.loads(archive.read("notes.json"))[0]["note"] == 4
+
+
+@pytest.mark.django_db
+def test_staff_deleting_a_user_can_keep_their_public_recipes():
+    from apps.recipes.models import Recipe
+
+    staff = UserFactory(is_staff=True)
+    victim = UserFactory()
+    RecipeFactory(author=victim, is_public=True)
+    client = APIClient()
+    client.force_authenticate(staff)
+
+    response = client.delete(f"/api/admin/users/{victim.pk}/?keep_recipes=true")
+
+    assert response.status_code == 204
+    assert Recipe.objects.count() == 1

@@ -10,6 +10,7 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
@@ -71,6 +72,7 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.getByLabel("Nom d'utilisateur").fill(username)
   await page.getByLabel('Email').fill(`${username}@example.com`)
   await page.getByLabel('Mot de passe').fill('password123!')
+  await page.locator('#health_data_consent').check()
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 

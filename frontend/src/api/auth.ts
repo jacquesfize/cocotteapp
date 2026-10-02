@@ -6,7 +6,7 @@ import type {
   RegisterPayload,
   TokenPair,
 } from '../types/api'
-import type { User } from '../types/models'
+import type { LegalInfo, User } from '../types/models'
 
 const AUTH_BASE = '/api/auth/'
 
@@ -30,8 +30,8 @@ export function updateMe(payload: Partial<User>): Promise<User> {
   return client.patch('auth/me/', payload).then((r) => r.data)
 }
 
-export function deleteMe() {
-  return client.delete('auth/me/')
+export function deleteMe(keepRecipes = false) {
+  return client.delete('auth/me/', { params: keepRecipes ? { keep_recipes: true } : undefined })
 }
 
 export function changePassword(payload: ChangePasswordPayload) {
@@ -48,4 +48,12 @@ export function requestPasswordReset(email: string): Promise<void> {
 
 export function confirmPasswordReset(payload: PasswordResetConfirmPayload): Promise<void> {
   return axios.post(`${AUTH_BASE}password-reset/confirm/`, payload).then((r) => r.data)
+}
+
+export function setHealthDataConsent(consent: boolean): Promise<User> {
+  return client.post('auth/me/health-data-consent/', { consent }).then((r) => r.data)
+}
+
+export function fetchLegalInfo(): Promise<LegalInfo> {
+  return axios.get(`${AUTH_BASE}legal/`).then((r) => r.data)
 }

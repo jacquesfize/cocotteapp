@@ -96,6 +96,10 @@ uv run python manage.py seed_thematic_pages
 | `seed_nutrient_requirements` | Daily minimums for protein, iron, vitamin B12, calcium, omega-3 and zinc, for every diet type and activity level. | The planner never shows nutrition alerts. |
 | `seed_thematic_pages` | Three home page shortcuts: *Produits de saison* (in season), *Spécial végan* and *Prêt en 30 minutes* (30 minutes of prep or less), with their images. | The **Explore** section of the home page stays empty. |
 
+> [!TIP]
+> Running a public instance? Fill in the `LEGAL_*` variables and schedule `purge_inactive_users`:
+> see [GDPR compliance](../admin-guide/gdpr.md).
+
 > [!NOTE]
 > `seed_common_ingredients` needs the allergen list to tag ingredients. It runs `seed_allergens`
 > itself first, so nothing breaks if you skip that step. Running `seed_allergens` explicitly

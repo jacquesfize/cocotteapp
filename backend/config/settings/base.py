@@ -116,6 +116,8 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    # Sert de repère d'activité à la purge des comptes inactifs (RGPD, durée de conservation).
+    "UPDATE_LAST_LOGIN": True,
 }
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["http://localhost:5173"])
@@ -133,3 +135,19 @@ DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Cocotte <noreply@cocotte
 # Sert à construire le lien de réinitialisation de mot de passe envoyé par email
 # (le frontend et l'API vivent sur des origines différentes en dev).
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+
+# RGPD : informations affichées sur les pages « Mentions légales » et « Confidentialité »
+# (GET /api/auth/legal/). À renseigner par l'administrateur de l'instance.
+PRIVACY_POLICY_VERSION = env("PRIVACY_POLICY_VERSION", default="1")
+LEGAL_PUBLISHER_NAME = env("LEGAL_PUBLISHER_NAME", default="")
+LEGAL_PUBLISHER_ADDRESS = env("LEGAL_PUBLISHER_ADDRESS", default="")
+LEGAL_CONTACT_EMAIL = env("LEGAL_CONTACT_EMAIL", default="")
+LEGAL_HOST_NAME = env("LEGAL_HOST_NAME", default="")
+LEGAL_HOST_ADDRESS = env("LEGAL_HOST_ADDRESS", default="")
+# Contact pour exercer ses droits (ou DPO) ; repli sur LEGAL_CONTACT_EMAIL.
+PRIVACY_CONTACT_EMAIL = env("PRIVACY_CONTACT_EMAIL", default="") or LEGAL_CONTACT_EMAIL
+
+# Suppression des comptes sans connexion depuis N jours (0 = désactivée), précédée d'un e-mail
+# de préavis N_WARNING jours avant. Appliquée par `manage.py purge_inactive_users`.
+INACTIVE_ACCOUNT_RETENTION_DAYS = env.int("INACTIVE_ACCOUNT_RETENTION_DAYS", default=730)
+INACTIVE_ACCOUNT_WARNING_DAYS = env.int("INACTIVE_ACCOUNT_WARNING_DAYS", default=30)

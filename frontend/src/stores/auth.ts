@@ -5,6 +5,7 @@ import {
   obtainToken,
   refreshTokenRequest,
   register as registerRequest,
+  setHealthDataConsent,
   updateMe,
 } from '../api/auth'
 import { clearPrivateOfflineData } from '../offline/sync'
@@ -42,8 +43,12 @@ export const useAuthStore = defineStore('auth', {
       this.user = await updateMe(payload)
     },
 
-    async deleteAccount() {
-      await deleteMe()
+    async setHealthConsent(consent: boolean) {
+      this.user = await setHealthDataConsent(consent)
+    },
+
+    async deleteAccount(keepRecipes = false) {
+      await deleteMe(keepRecipes)
       this.logout()
     },
 

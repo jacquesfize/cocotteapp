@@ -6,6 +6,12 @@ import type { Locator, Page } from '@playwright/test'
 
 export const SCREENSHOT_DIR = fileURLToPath(new URL('../../../docs/assets/screenshots/', import.meta.url))
 
+// SHOTS=register,account-data : ne régénère que ces captures (les autres fichiers ne sont pas
+// touchés, ce qui évite de réécrire — et de re-stocker dans Git LFS — des images inchangées).
+// Non défini : toutes les captures. Les scénarios tournent quand même en entier.
+const ONLY = process.env.SHOTS?.split(',').map((name) => name.trim()).filter(Boolean)
+const wanted = (name: string) => !ONLY || ONLY.includes(name)
+
 const OPTIONS = { animations: 'disabled', caret: 'hide' } as const
 
 export async function settle(page: Page) {
@@ -24,17 +30,20 @@ export async function settle(page: Page) {
 }
 
 export async function shotPage(page: Page, name: string, options: { fullPage?: boolean } = {}) {
+  if (!wanted(name)) return
   await settle(page)
   await page.screenshot({ ...OPTIONS, path: `${SCREENSHOT_DIR}${name}.png`, fullPage: options.fullPage ?? false })
 }
 
 export async function shotElement(locator: Locator, name: string) {
+  if (!wanted(name)) return
   await settle(locator.page())
   await locator.screenshot({ ...OPTIONS, path: `${SCREENSHOT_DIR}${name}.png` })
 }
 
 /** Capture la zone englobant plusieurs éléments (ex. un bouton et son menu déroulant). */
 export async function shotAround(page: Page, locators: Locator[], name: string, padding = 16) {
+  if (!wanted(name)) return
   await settle(page)
   const boxes = []
   for (const locator of locators) {

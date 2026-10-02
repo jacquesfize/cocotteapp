@@ -101,6 +101,27 @@ async function handlePasswordSubmit() {
   }
 }
 
+const consentError = ref('')
+const isUpdatingConsent = ref(false)
+
+async function handleConsent(consent: boolean) {
+  if (!consent && !window.confirm(t('account.consentWithdrawConfirm'))) return
+  consentError.value = ''
+  isUpdatingConsent.value = true
+  try {
+    await authStore.setHealthConsent(consent)
+    // Retirer le consentement efface régime, activité et allergies côté serveur.
+    profile.value.diet_type = authStore.user?.diet_type || 'omnivore'
+    profile.value.activity_level = authStore.user?.activity_level || 'moderate'
+    profile.value.allergies = [...(authStore.user?.allergies || [])]
+    profile.value.intolerances = [...(authStore.user?.intolerances || [])]
+  } catch {
+    consentError.value = t('account.consentError')
+  } finally {
+    isUpdatingConsent.value = false
+  }
+}
+
 const isExporting = ref(false)
 
 async function handleExport() {
@@ -184,12 +205,13 @@ async function handleRevokeShare(share: PlanningShare) {
 }
 
 const deleteError = ref('')
+const keepRecipes = ref(false)
 
 async function handleDeleteAccount() {
   if (!confirm(t('account.deleteAccountConfirm'))) return
   deleteError.value = ''
   try {
-    await authStore.deleteAccount()
+    await authStore.deleteAccount(keepRecipes.value)
     router.push({ name: 'home' })
   } catch {
     deleteError.value = t('account.deleteAccountError')
@@ -337,6 +359,34 @@ async function handleDeleteAccount() {
       </form>
     </div>
 
+    <div class="card" style="margin-bottom: 1rem" data-testid="consent-card">
+      <h2>{{ $t('account.consentTitle') }}</h2>
+      <p class="muted">
+        {{
+          authStore.user?.health_data_consent_at
+            ? $t('account.consentGranted', {
+                date: new Date(authStore.user.health_data_consent_at).toLocaleDateString($i18n.locale),
+              })
+            : $t('account.consentMissing')
+        }}
+      </p>
+      <p v-if="consentError" class="error">{{ consentError }}</p>
+      <div class="row" style="align-items: center">
+        <button
+          v-if="authStore.user?.health_data_consent_at"
+          class="secondary"
+          :disabled="isUpdatingConsent"
+          @click="handleConsent(false)"
+        >
+          {{ $t('account.consentWithdraw') }}
+        </button>
+        <button v-else class="secondary" :disabled="isUpdatingConsent" @click="handleConsent(true)">
+          {{ $t('account.consentGrant') }}
+        </button>
+        <RouterLink :to="{ name: 'privacy' }">{{ $t('account.privacyLink') }}</RouterLink>
+      </div>
+    </div>
+
     <div class="card" style="margin-bottom: 1rem">
       <h2>{{ $t('account.exportTitle') }}</h2>
       <p class="muted">{{ $t('account.exportDescription') }}</p>
@@ -432,6 +482,10 @@ async function handleDeleteAccount() {
     <div class="card danger-zone">
       <h2>{{ $t('account.dangerZoneTitle') }}</h2>
       <p class="muted">{{ $t('account.deleteAccountDescription') }}</p>
+      <label class="keep-recipes">
+        <input v-model="keepRecipes" type="checkbox" data-testid="keep-recipes" />
+        <span>{{ $t('account.keepRecipesLabel') }}</span>
+      </label>
       <p v-if="deleteError" class="error">{{ deleteError }}</p>
       <button class="danger" @click="handleDeleteAccount">
         <Trash2 :size="16" />{{ $t('account.deleteAccountButton') }}
@@ -514,6 +568,20 @@ async function handleDeleteAccount() {
   border: none;
   background: none;
   cursor: pointer;
+}
+
+.keep-recipes {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.keep-recipes input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 .danger-zone {

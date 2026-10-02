@@ -82,9 +82,18 @@ describe('auth store', () => {
     await store.login('alice', 'password123')
     await store.deleteAccount()
 
-    expect(deleteMe).toHaveBeenCalled()
+    expect(deleteMe).toHaveBeenCalledWith(false)
     expect(store.isAuthenticated).toBe(false)
     expect(store.user).toBeNull()
     expect(localStorage.getItem('access_token')).toBeNull()
+  })
+
+  it('can keep the public recipes when deleting the account', async () => {
+    vi.mocked(deleteMe).mockResolvedValue(undefined as never)
+
+    const store = useAuthStore()
+    await store.deleteAccount(true)
+
+    expect(deleteMe).toHaveBeenCalledWith(true)
   })
 })
