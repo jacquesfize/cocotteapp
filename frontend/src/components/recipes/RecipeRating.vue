@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { rateRecipe, type RecipeRatingResult } from '../api/recipes'
-import { getErrorStatus } from '../utils/apiError'
+import { rateRecipe, type RecipeRatingResult } from '../../api/recipes'
+import { getErrorStatus } from '../../utils/apiError'
 
 const props = defineProps<{
   recipeId: number | string

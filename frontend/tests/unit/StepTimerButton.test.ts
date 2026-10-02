@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import StepTimerButton from '../../src/components/StepTimerButton.vue'
+import StepTimerButton from '../../src/components/recipes/StepTimerButton.vue'
 import { useStepTimer } from '../../src/composables/useStepTimer'
 import { i18n } from '../../src/i18n'
 

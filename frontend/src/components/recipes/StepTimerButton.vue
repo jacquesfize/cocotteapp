@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Pause, Play, RotateCcw, Timer } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
-import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
+import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
 
 const props = defineProps<{
   /** Durée du minuteur en secondes (ignoré si `handle` est fourni) */

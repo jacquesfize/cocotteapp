@@ -2,13 +2,13 @@
 import { Check, ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, RotateCcw, X } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import ImageWithCredit from './shared/ImageWithCredit.vue'
+import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import StepTimerButton from './StepTimerButton.vue'
-import { useStepTimer, type StepTimerHandle } from '../composables/useStepTimer'
-import { formatQuantity, formatUnit } from '../utils/format'
-import { buildStepSegments, groupIngredients } from '../utils/recipeSteps'
-import { recipeImageUrl } from '../utils/recipeImageUrl'
-import type { Recipe, RecipeIngredient } from '../types/models'
+import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
+import { formatQuantity, formatUnit } from '../../utils/format'
+import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
+import { recipeImageUrl } from '../../utils/recipeImageUrl'
+import type { Recipe, RecipeIngredient } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe

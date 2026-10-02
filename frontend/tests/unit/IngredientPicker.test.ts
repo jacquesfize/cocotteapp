@@ -9,8 +9,8 @@ vi.mock('../../src/api/ingredients', () => ({
 }))
 
 import { createIngredient, listIngredients } from '../../src/api/ingredients'
-import IngredientEditModal from '../../src/components/IngredientEditModal.vue'
-import IngredientPicker from '../../src/components/IngredientPicker.vue'
+import IngredientEditModal from '../../src/components/recipes/IngredientEditModal.vue'
+import IngredientPicker from '../../src/components/recipes/IngredientPicker.vue'
 import type { Ingredient } from '../../src/types/models'
 
 function ingredient(overrides?: Partial<Ingredient>): Ingredient {

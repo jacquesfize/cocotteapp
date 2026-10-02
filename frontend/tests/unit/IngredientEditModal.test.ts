@@ -13,7 +13,7 @@ vi.mock('../../src/api/ingredients', () => ({
 }))
 
 import { createIngredient, suggestIngredientNutrition } from '../../src/api/ingredients'
-import IngredientEditModal from '../../src/components/IngredientEditModal.vue'
+import IngredientEditModal from '../../src/components/recipes/IngredientEditModal.vue'
 import { i18n } from '../../src/i18n'
 import type { Ingredient } from '../../src/types/models'
 

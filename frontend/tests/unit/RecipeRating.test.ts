@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import RecipeRating from '../../src/components/RecipeRating.vue'
+import RecipeRating from '../../src/components/recipes/RecipeRating.vue'
 import { i18n } from '../../src/i18n'
 
 const { rateRecipe } = vi.hoisted(() => ({

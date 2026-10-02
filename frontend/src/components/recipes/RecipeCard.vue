@@ -2,13 +2,13 @@
 import { Clock, Download, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth'
-import { formatDuration } from '../utils/format'
-import { isImportedRecipe } from '../utils/recipeOrigin'
-import { recipeImageUrl } from '../utils/recipeImageUrl'
-import AllergenBadges from './AllergenBadges.vue'
-import ImageWithCredit from './shared/ImageWithCredit.vue'
-import type { Recipe } from '../types/models'
+import { useAuthStore } from '../../stores/auth'
+import { formatDuration } from '../../utils/format'
+import { isImportedRecipe } from '../../utils/recipeOrigin'
+import { recipeImageUrl } from '../../utils/recipeImageUrl'
+import AllergenBadges from '../AllergenBadges.vue'
+import ImageWithCredit from '../shared/ImageWithCredit.vue'
+import type { Recipe } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe

@@ -2,13 +2,13 @@
 import { Sparkles } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import BaseModal from './shared/BaseModal.vue'
-import { listAllergens } from '../api/allergens'
-import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../api/ingredients'
-import { allergenEmoji } from '../utils/allergens'
-import { NUTRIENT_LABEL_KEYS } from '../utils/nutrition'
-import { formatUnit } from '../utils/format'
-import type { Allergen, Ingredient, IngredientCategory, Unit } from '../types/models'
+import BaseModal from '../shared/BaseModal.vue'
+import { listAllergens } from '../../api/allergens'
+import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../../api/ingredients'
+import { allergenEmoji } from '../../utils/allergens'
+import { NUTRIENT_LABEL_KEYS } from '../../utils/nutrition'
+import { formatUnit } from '../../utils/format'
+import type { Allergen, Ingredient, IngredientCategory, Unit } from '../../types/models'
 
 const { t } = useI18n()
 

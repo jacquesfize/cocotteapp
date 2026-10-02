@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createRecipeComment, hideRecipeComment, listRecipeComments } from '../api/recipes'
-import type { RecipeComment } from '../types/models'
+import { createRecipeComment, hideRecipeComment, listRecipeComments } from '../../api/recipes'
+import type { RecipeComment } from '../../types/models'
 
 const props = defineProps<{
   recipeId: number | string

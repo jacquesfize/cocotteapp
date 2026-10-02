@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useDebouncedSearch } from '../composables/useDebouncedSearch'
-import { listRecipes } from '../api/recipes'
-import type { Recipe } from '../types/models'
+import { useDebouncedSearch } from '../../composables/useDebouncedSearch'
+import { listRecipes } from '../../api/recipes'
+import type { Recipe } from '../../types/models'
 
 const { t } = useI18n()
 

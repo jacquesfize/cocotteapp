@@ -3,9 +3,9 @@ import { ChefHat, Plus, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import CooklangStepInput from '../components/CooklangStepInput.vue'
+import CooklangStepInput from '../components/recipes/CooklangStepInput.vue'
 import ImageUploadWithCredit from '../components/shared/ImageUploadWithCredit.vue'
-import IngredientPicker from '../components/IngredientPicker.vue'
+import IngredientPicker from '../components/recipes/IngredientPicker.vue'
 import PageHeader from '../components/shared/PageHeader.vue'
 import {
   createRecipe,

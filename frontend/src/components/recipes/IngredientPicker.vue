@@ -2,9 +2,9 @@
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
-import { useDebouncedSearch } from '../composables/useDebouncedSearch'
-import { listIngredients } from '../api/ingredients'
-import type { Ingredient } from '../types/models'
+import { useDebouncedSearch } from '../../composables/useDebouncedSearch'
+import { listIngredients } from '../../api/ingredients'
+import type { Ingredient } from '../../types/models'
 
 const { t } = useI18n()
 

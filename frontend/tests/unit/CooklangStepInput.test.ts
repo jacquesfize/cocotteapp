@@ -8,8 +8,8 @@ vi.mock('../../src/api/ingredients', () => ({
 }))
 
 import { listIngredients } from '../../src/api/ingredients'
-import CooklangStepInput from '../../src/components/CooklangStepInput.vue'
-import IngredientEditModal from '../../src/components/IngredientEditModal.vue'
+import CooklangStepInput from '../../src/components/recipes/CooklangStepInput.vue'
+import IngredientEditModal from '../../src/components/recipes/IngredientEditModal.vue'
 import { i18n } from '../../src/i18n'
 import type { Ingredient } from '../../src/types/models'
 
