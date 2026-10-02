@@ -183,7 +183,7 @@ function reset() {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgb(0 0 0 / 0.4);
+    background: var(--color-overlay);
     z-index: 90;
   }
   .panel {
