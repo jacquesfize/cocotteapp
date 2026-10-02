@@ -3,6 +3,7 @@ import { AtSign, TriangleAlert, Timer } from '@lucide/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
+import { useDebouncedSearch } from '../composables/useDebouncedSearch'
 import { listIngredients } from '../api/ingredients'
 import { findOrphanMentions, toMentionToken } from '../utils/cooklangMentions'
 import type { Ingredient } from '../types/models'
@@ -23,9 +24,11 @@ const textareaEl = ref<HTMLTextAreaElement | null>(null)
 const isOpen = ref(false)
 const mentionStart = ref<number | null>(null)
 const mentionQuery = ref('')
-const dbSuggestions = ref<Ingredient[]>([])
 const showCreateModal = ref(false)
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
+const { results: dbSuggestions, search, cancel } = useDebouncedSearch<Ingredient>(
+  async (value) => (await listIngredients({ search: value.replace(/_/g, ' ') })).results,
+  { onResults: () => { isOpen.value = true } },
+)
 
 // Ce qui suit le "@" tel que l'utilisateur le tape (underscores compris), converti en nom
 // lisible pour la recherche et l'affichage — ex. "creme_fraiche" -> "creme fraiche".
@@ -38,17 +41,13 @@ const exactMatch = computed(() =>
 const orphanMentions = computed(() => findOrphanMentions(props.modelValue, props.ingredientNames))
 
 watch(mentionQuery, (value) => {
-  clearTimeout(debounceTimer)
   if (!value) {
+    cancel()
     dbSuggestions.value = []
     isOpen.value = false
     return
   }
-  debounceTimer = setTimeout(async () => {
-    const data = await listIngredients({ search: value.replace(/_/g, ' ') })
-    dbSuggestions.value = data.results
-    isOpen.value = true
-  }, 250)
+  search(value)
 })
 
 function detectMention(text: string, cursor: number) {
@@ -134,9 +133,8 @@ async function insertMentionTemplate() {
   mentionStart.value = at
   mentionQuery.value = ''
   await nextTick()
-  clearTimeout(debounceTimer)
-  const data = await listIngredients({ search: '' })
-  dbSuggestions.value = data.results
+  cancel()
+  dbSuggestions.value = (await listIngredients({ search: '' })).results
   isOpen.value = true
 }
 

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
+import { useDebouncedSearch } from '../composables/useDebouncedSearch'
 import { listIngredients } from '../api/ingredients'
 import type { Ingredient } from '../types/models'
 
@@ -16,9 +17,10 @@ const emit = defineEmits<{
 }>()
 
 const query = ref(props.modelValue?.name ?? '')
-const suggestions = ref<Ingredient[]>([])
+const { results: suggestions, search, cancel, clear } = useDebouncedSearch<Ingredient>(
+  async (value) => (await listIngredients({ search: value })).results,
+)
 const isOpen = ref(false)
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
 // `query` n'est initialisé qu'une fois à partir de `modelValue` : si le parent remplace la
 // valeur après coup (ex. RecipeFormView qui charge la recette de manière asynchrone en mode
@@ -36,26 +38,19 @@ watch(
 const activeIndex = ref(-1)
 
 function onInput() {
-  clearTimeout(debounceTimer)
   activeIndex.value = -1
   const value = query.value
   if (!value) {
-    suggestions.value = []
+    clear()
     isOpen.value = false
     return
   }
   isOpen.value = true
-  debounceTimer = setTimeout(async () => {
-    const data = await listIngredients({ search: value })
-    if (value !== query.value) return
-    suggestions.value = data.results
-  }, 250)
+  search(value)
 }
 
-onBeforeUnmount(() => clearTimeout(debounceTimer))
-
 function close() {
-  clearTimeout(debounceTimer)
+  cancel()
   isOpen.value = false
   activeIndex.value = -1
 }

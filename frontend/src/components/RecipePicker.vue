@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useDebouncedSearch } from '../composables/useDebouncedSearch'
 import { listRecipes } from '../api/recipes'
 import type { Recipe } from '../types/models'
 
@@ -15,9 +16,11 @@ const emit = defineEmits<{
 }>()
 
 const query = ref(props.modelValue?.title ?? '')
-const suggestions = ref<Recipe[]>([])
 const isOpen = ref(false)
-let debounceTimer: ReturnType<typeof setTimeout> | undefined
+const { results: suggestions, search, clear } = useDebouncedSearch<Recipe>(
+  async (value) => (await listRecipes({ search: value })).results,
+  { onResults: () => { isOpen.value = true } },
+)
 
 // Même précaution que IngredientPicker.vue : resynchronise l'affichage si le parent
 // remplace `modelValue` après le montage (ex. rechargement asynchrone d'un formulaire).
@@ -29,16 +32,11 @@ watch(
 )
 
 watch(query, (value) => {
-  clearTimeout(debounceTimer)
   if (!value) {
-    suggestions.value = []
+    clear()
     return
   }
-  debounceTimer = setTimeout(async () => {
-    const data = await listRecipes({ search: value })
-    suggestions.value = data.results
-    isOpen.value = true
-  }, 250)
+  search(value)
 })
 
 function select(recipe: Recipe) {
