@@ -13,7 +13,9 @@ import type { Recipe } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
-  variant?: 'row' | 'tile'
+  // 'feature' : grande carte verticale (photo en haut sur 60 % de la hauteur, détails en
+  // dessous), utilisée par la page Recette au hasard.
+  variant?: 'row' | 'tile' | 'feature'
   // Affiche les boutons Modifier/Supprimer (variante ligne, recettes de l'utilisateur uniquement).
   manageable?: boolean
 }>()
@@ -34,7 +36,8 @@ useClickOutside(actionsMenuEl, closeActionsMenu)
 
 const MAX_TAGS = 3
 
-const isRow = computed(() => props.variant !== 'tile')
+const isRow = computed(() => !props.variant || props.variant === 'row')
+const isTile = computed(() => props.variant === 'tile')
 const isOwner = computed(() => Boolean(authStore.user) && props.recipe.author_id === authStore.user?.id)
 const isImported = computed(() => isImportedRecipe(props.recipe))
 // "importé par X" toujours affiché (même pour ses propres recettes) ; "par X" seulement pour
@@ -66,7 +69,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 </script>
 
 <template>
-  <article class="recipe-card" :class="{ tile: !isRow }">
+  <article class="recipe-card" :class="{ tile: isTile, feature: variant === 'feature' }">
     <ImageWithCredit
       v-if="recipeImageUrl(recipe)"
       class="thumb-wrapper"
@@ -82,7 +85,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
       overlay-align="right"
     />
     <div v-else-if="!isRow" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
-    <div v-if="!isRow" class="scrim" />
+    <div v-if="isTile" class="scrim" />
     <div class="recipe-card-body">
       <div v-if="showActions" ref="actionsMenuEl" class="card-actions">
         <button
@@ -119,7 +122,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
         <Lock v-if="recipe.content_restricted" :size="14" class="restricted-icon" :aria-label="$t('recipes.restrictedNotice')" />
       </h3>
 
-      <p v-if="!isRow" class="muted">
+      <p v-if="isTile" class="muted">
         {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
       </p>
       <ul v-else class="meta">
@@ -140,7 +143,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
         <li v-if="authorLine" class="author"><Download v-if="isImported" :size="14" />{{ authorLine }}</li>
       </ul>
 
-      <ul v-if="isRow && (visibleTags.length || recipe.version_label)" class="tags">
+      <ul v-if="!isTile && (visibleTags.length || recipe.version_label)" class="tags">
         <li v-if="recipe.version_label" class="tag version-tag">{{ recipe.version_label }}</li>
         <li v-for="tag in visibleTags" :key="tag.id" class="tag">{{ tag.name }}</li>
         <li v-if="hiddenTagCount" class="tag more-tag">+{{ hiddenTagCount }}</li>
@@ -433,6 +436,63 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   /* Pas de survol sur mobile : bouton toujours visible. */
   .actions-toggle {
     opacity: 1;
+  }
+}
+
+/* Variante "feature" (Recette au hasard) : hauteur fixe pour que la photo occupe 60 % de la
+   carte, les détails se partagent le reste. */
+.recipe-card.feature {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  height: 26rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  border-bottom: 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.feature .thumb-wrapper,
+.feature .thumb {
+  flex: 0 0 60%;
+  width: 100%;
+  min-height: 0;
+  border-radius: 0;
+}
+
+.feature .thumb-wrapper :deep(.image-with-credit),
+.feature .thumb-wrapper :deep(.image-with-credit-frame) {
+  width: 100%;
+  height: 100%;
+}
+
+.feature .thumb-wrapper :deep(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.feature .thumb-placeholder {
+  font-size: 4rem;
+}
+
+.feature .recipe-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 1rem 1.25rem;
+}
+
+.feature h3 {
+  font-size: 1.3rem;
+}
+
+@media (max-width: 600px) {
+  .recipe-card.feature {
+    height: 24rem;
   }
 }
 

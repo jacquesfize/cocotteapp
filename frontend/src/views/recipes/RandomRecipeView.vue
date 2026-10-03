@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { Dices, ListFilter, Shuffle } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
-import AddToPlanForm from '../../components/planning/AddToPlanForm.vue'
+import { Shuffle } from '@lucide/vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
-import RecipeRestrictedNotice from '../../components/recipes/RecipeRestrictedNotice.vue'
-import RecipeSummary from '../../components/recipes/RecipeSummary.vue'
-import AsyncState from '../../components/shared/AsyncState.vue'
-import { listAllergens } from '../../api/allergens'
+import DiceRoller from '../../components/recipes/DiceRoller.vue'
+import RecipeCard from '../../components/recipes/RecipeCard.vue'
+import RecipeFilters, { type RecipeFilterValues } from '../../components/recipes/RecipeFilters.vue'
 import { getRandomRecipe } from '../../api/recipes'
 import { getErrorStatus } from '../../utils/apiError'
 import { useAuthStore } from '../../stores/auth'
 import type { RecipeListParams } from '../../types/api'
-import type { Allergen, DietType, Recipe } from '../../types/models'
+import type { Recipe } from '../../types/models'
+
+// Durée minimale d'un lancer : laisse le temps au dé de rouler même si l'API répond tout de
+// suite (supprimée si l'utilisateur préfère réduire les animations).
+const ROLL_MS = 900
 
 const authStore = useAuthStore()
 
@@ -23,176 +25,143 @@ const myAllergens = computed(() => [
 const recipe = ref<Recipe | null>(null)
 const isLoading = ref(false)
 const notFound = ref(false)
-const isFiltersOpen = ref(false)
-const allergens = ref<Allergen[]>([])
+// Tant que rien n'a été tiré, la page n'affiche que le grand dé.
+const hasRolled = computed(() => recipe.value !== null || notFound.value)
 
-const filters = ref<{ diet_type: DietType | ''; in_season: boolean; exclude_allergens: string[] }>({
+// Mêmes filtres que la liste des recettes (l'endpoint /random/ partage son FilterSet).
+const filters = ref<RecipeFilterValues>({
+  search: '',
   diet_type: '',
+  max_prep_time: '',
+  max_cook_time: '',
+  ingredients: '',
   in_season: false,
+  carbon_level: '',
   // Pré-rempli avec les allergies/intolérances du profil, si elles sont définies (décochable).
-  exclude_allergens: [...myAllergens.value],
+  exclude_allergens: myAllergens.value.join(','),
 })
 
-const activeFiltersCount = computed(
-  () =>
-    (filters.value.diet_type ? 1 : 0) +
-    (filters.value.in_season ? 1 : 0) +
-    (filters.value.exclude_allergens.length ? 1 : 0),
-)
+const prefersReducedMotion = () =>
+  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function toggleFilters() {
-  isFiltersOpen.value = !isFiltersOpen.value
+function rollDelay() {
+  return new Promise<void>((resolve) => setTimeout(resolve, prefersReducedMotion() ? 0 : ROLL_MS))
 }
 
+// Un filtre modifié pendant un lancer relance le dé juste après, plutôt que d'être ignoré.
+let redrawQueued = false
+
 async function draw() {
+  if (isLoading.value) {
+    redrawQueued = true
+    return
+  }
   isLoading.value = true
-  notFound.value = false
-  try {
-    const params: RecipeListParams = {}
-    if (filters.value.diet_type) params.diet_type = filters.value.diet_type
-    if (filters.value.in_season) params.in_season = true
-    if (filters.value.exclude_allergens.length) params.exclude_allergens = filters.value.exclude_allergens.join(',')
-    recipe.value = await getRandomRecipe(params)
-  } catch (err) {
+  const params: RecipeListParams = {}
+  for (const [key, value] of Object.entries(filters.value)) {
+    if (value !== '' && value !== false) (params as Record<string, unknown>)[key] = value
+  }
+  const [result] = await Promise.allSettled([getRandomRecipe(params), rollDelay()])
+  if (result.status === 'fulfilled') {
+    recipe.value = result.value
+    notFound.value = false
+  } else {
     recipe.value = null
-    if (getErrorStatus(err) === 404) notFound.value = true
-  } finally {
-    isLoading.value = false
+    notFound.value = getErrorStatus(result.reason) === 404
+  }
+  isLoading.value = false
+  if (redrawQueued) {
+    redrawQueued = false
+    draw()
   }
 }
 
-onMounted(() => {
-  listAllergens()
-    .then((data) => {
-      allergens.value = data
-    })
-    .catch(() => {
-      allergens.value = []
-    })
-  draw()
-})
+// Une fois un premier tirage fait, changer un filtre relance le dé (après une courte pause,
+// pour ne pas tirer à chaque frappe dans la recherche) ; avant, les filtres s'appliqueront
+// simplement au premier lancer.
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
+watch(
+  filters,
+  () => {
+    clearTimeout(debounceTimer)
+    if (hasRolled.value) debounceTimer = setTimeout(draw, 300)
+  },
+  { deep: true },
+)
+
+onBeforeUnmount(() => clearTimeout(debounceTimer))
 </script>
 
 <template>
   <div>
-    <div class="row page-header">
-      <PageHeader :icon="Shuffle" :title="$t('random.title')" />
-      <div class="row header-actions">
-        <button :disabled="isLoading" @click="draw"><Dices :size="16" />{{ $t('random.another') }}</button>
-        <button
-          type="button"
-          class="secondary toggle"
-          :aria-expanded="isFiltersOpen"
-          aria-controls="random-filters-panel"
-          :aria-label="$t('random.toggleFilters')"
-          @click="toggleFilters"
-        >
-          <ListFilter :size="16" />
-          <span
-            v-if="activeFiltersCount"
-            class="badge"
-            data-testid="filters-badge"
-            :aria-label="$t('recipes.activeFilters', { count: activeFiltersCount })"
-          >{{ activeFiltersCount }}</span>
-        </button>
-      </div>
-    </div>
+    <PageHeader :icon="Shuffle" :title="$t('random.title')" />
 
-    <div v-show="isFiltersOpen" id="random-filters-panel" class="card filters">
-      <div class="row">
-        <div class="field">
-          <label for="random-diet">{{ $t('recipes.dietFilter') }}</label>
-          <select id="random-diet" v-model="filters.diet_type" @change="draw">
-            <option value="">{{ $t('recipes.allDiets') }}</option>
-            <option value="omnivore">{{ $t('diet.omnivore') }}</option>
-            <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
-            <option value="vegan">{{ $t('diet.vegan') }}</option>
-          </select>
-        </div>
-        <div class="field checkbox-field">
-          <input id="random-in-season" v-model="filters.in_season" type="checkbox" style="width: auto" @change="draw" />
-          <label for="random-in-season" style="margin: 0">{{ $t('recipes.inSeasonOnly') }}</label>
-        </div>
-      </div>
-      <div class="field">
-        <label for="random-exclude-allergens">{{ $t('random.excludeAllergens') }}</label>
-        <select
-          id="random-exclude-allergens"
-          v-model="filters.exclude_allergens"
-          multiple
-          @change="draw"
-        >
-          <option v-for="allergen in allergens" :key="allergen.slug" :value="allergen.slug">
-            {{ allergen.name }}
-          </option>
-        </select>
-      </div>
-    </div>
+    <RecipeFilters v-model="filters" collapsible :my-allergens="myAllergens" class="random-filters" />
 
-    <AsyncState
-      v-if="isLoading || notFound"
-      :loading="isLoading"
-      :loading-text="$t('common.loading')"
-      :empty-text="$t('random.noResult')"
-    />
+    <section v-if="!hasRolled" class="dice-stage">
+      <DiceRoller :label="$t('random.roll')" :rolling="isLoading" :disabled="isLoading" @roll="draw" />
+      <p class="dice-prompt">{{ $t('random.rollPrompt') }}</p>
+    </section>
 
-    <template v-if="recipe && !isLoading">
-      <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="random-title-link">
-        <h2>{{ recipe.title }}</h2>
-      </RouterLink>
-      <!-- Une recette restreinte arrive sans ingrédients ni étapes : RecipeSummary n'en
-           supporte pas l'absence (comme dans RecipeDetailView.vue). -->
-      <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" />
-      <RecipeRestrictedNotice v-else :recipe="recipe" />
-      <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
-    </template>
+    <section v-else class="random-result">
+      <RecipeCard v-if="recipe" :key="recipe.id" :recipe="recipe" variant="feature" :class="{ stale: isLoading }" />
+      <p v-else class="muted no-result">{{ $t('random.noResult') }}</p>
+
+      <div class="reroll">
+        <DiceRoller
+          :label="$t('random.another')"
+          size="small"
+          :rolling="isLoading"
+          :disabled="isLoading"
+          @roll="draw"
+        />
+        <span class="muted" aria-hidden="true">{{ $t('random.another') }}</span>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.page-header {
-  justify-content: space-between;
-  align-items: center;
+.random-filters {
   margin-bottom: 1rem;
 }
 
-.header-actions {
-  align-items: center;
-}
-
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.badge {
-  min-width: 1.35rem;
-  height: 1.35rem;
-  padding: 0 0.35rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: inline-flex;
+.dice-stage {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
+  min-height: 50vh;
+  text-align: center;
 }
 
-.filters {
-  margin-bottom: 1rem;
+.dice-prompt {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--color-muted);
 }
 
-.checkbox-field {
-  align-self: center;
-  flex-direction: row;
+.random-result {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.stale {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.no-result {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.reroll {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.random-title-link {
-  text-decoration: none;
-  color: inherit;
+  gap: 0.25rem;
+  margin: 1rem 0 1.5rem;
 }
 </style>
