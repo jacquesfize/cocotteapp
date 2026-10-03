@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChefHat, Image as ImageIcon, Plus, Scale, Trash2 } from '@lucide/vue'
+import { ChefHat, Image as ImageIcon, Info, Plus, Scale, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -659,7 +659,10 @@ async function handleSubmit() {
           <input type="checkbox" v-model="form.content_publicly_licensed" />
           {{ $t('recipes.publicLicenseOptIn') }}
         </label>
-        <p v-if="form.source_url" class="muted">{{ $t('recipes.publicLicenseHint') }}</p>
+        <div v-if="form.source_url" class="public-license-hint" role="note">
+          <Info :size="18" />
+          <p>{{ $t('recipes.publicLicenseHint') }}</p>
+        </div>
         <div v-if="form.source_url && form.content_publicly_licensed" class="copyright-notice" role="note">
           <p class="copyright-notice-title"><Scale :size="18" />{{ $t('recipes.copyrightNoticeTitle') }}</p>
           <ul>
@@ -711,6 +714,29 @@ async function handleSubmit() {
 
 .free-images-button {
   margin-bottom: 0.75rem;
+}
+
+.public-license-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  /* Gris neutre (les jetons --color-surface-muted/--color-border sont teintés chauds), dérivé de la
+     surface pour rester lisible en thème sombre. */
+  border: 1px solid color-mix(in srgb, #808080 22%, var(--color-surface));
+  border-radius: 14px;
+  background: color-mix(in srgb, #808080 9%, var(--color-surface));
+  color: var(--color-muted);
+}
+
+.public-license-hint svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.public-license-hint p {
+  margin: 0;
 }
 
 .copyright-notice {
