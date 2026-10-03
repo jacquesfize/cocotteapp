@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Clock, Download, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
-import { computed } from 'vue'
+import { Clock, Download, EllipsisVertical, EyeOff, Leaf, Lock, Pencil, Trash2, Users } from '@lucide/vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useClickOutside } from '../../composables/useClickOutside'
 import { useAuthStore } from '../../stores/auth'
 import { formatDuration } from '../../utils/format'
 import { isImportedRecipe } from '../../utils/recipeOrigin'
@@ -21,6 +22,15 @@ const emit = defineEmits<{ delete: [recipe: Recipe] }>()
 
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
+
+const showActionsMenu = ref(false)
+const actionsMenuEl = ref<HTMLElement | null>(null)
+
+function closeActionsMenu() {
+  showActionsMenu.value = false
+}
+
+useClickOutside(actionsMenuEl, closeActionsMenu)
 
 const MAX_TAGS = 3
 
@@ -74,10 +84,36 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
     <div v-else-if="!isRow" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
     <div v-if="!isRow" class="scrim" />
     <div class="recipe-card-body">
+      <div v-if="showActions" ref="actionsMenuEl" class="card-actions">
+        <button
+          class="actions-toggle"
+          type="button"
+          :aria-expanded="showActionsMenu"
+          aria-controls="recipe-card-actions"
+          :aria-label="$t('recipes.actions')"
+          @click="showActionsMenu = !showActionsMenu"
+        >
+          <EllipsisVertical :size="16" />
+        </button>
+
+        <div id="recipe-card-actions" class="actions-panel" :class="{ 'is-open': showActionsMenu }">
+          <RouterLink
+            :to="{ name: 'recipe-edit', params: { id: recipe.id } }"
+            class="actions-link"
+            @click="closeActionsMenu"
+          >
+            <Pencil :size="16" /><span>{{ $t('common.edit') }}</span>
+          </RouterLink>
+          <button class="actions-link actions-link-danger" @click="emit('delete', recipe); closeActionsMenu()">
+            <Trash2 :size="16" /><span>{{ $t('common.delete') }}</span>
+          </button>
+        </div>
+      </div>
+
       <h3>
         <!-- Lien "étiré" (::after) sur toute la carte : la carte reste cliquable partout sans
              imbriquer les boutons d'action dans un <a>, ce qui serait du HTML invalide. -->
-        <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="card-link">
+        <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="card-link" :title="recipe.title">
           {{ recipe.title }}
         </RouterLink>
         <Lock v-if="recipe.content_restricted" :size="14" class="restricted-icon" :aria-label="$t('recipes.restrictedNotice')" />
@@ -112,26 +148,6 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
       <AllergenBadges :allergens="recipe.allergens ?? []" only-mine class="card-allergens" />
       <p v-if="recipe.description" class="description">{{ recipe.description }}</p>
-    </div>
-
-    <div v-if="showActions" class="card-actions">
-      <RouterLink
-        :to="{ name: 'recipe-edit', params: { id: recipe.id } }"
-        class="action-btn"
-        :title="$t('common.edit')"
-        :aria-label="`${$t('common.edit')} — ${recipe.title}`"
-      >
-        <Pencil :size="16" />
-      </RouterLink>
-      <button
-        type="button"
-        class="action-btn danger-btn"
-        :title="$t('common.delete')"
-        :aria-label="`${$t('common.delete')} — ${recipe.title}`"
-        @click="emit('delete', recipe)"
-      >
-        <Trash2 :size="16" />
-      </button>
     </div>
   </article>
 </template>
@@ -186,6 +202,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 }
 
 .recipe-card-body {
+  position: relative;
   flex: 1;
   min-width: 0;
 }
@@ -193,6 +210,15 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 .recipe-card h3 {
   margin: 0 0 0.4rem;
   line-height: 1.3;
+}
+
+/* Titre tronqué à 2 lignes plutôt que de pousser le reste de la carte : le titre complet
+   reste consultable via l'attribut title (infobulle native) sur le lien. */
+.recipe-card:not(.tile) h3 .card-link {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .restricted-icon {
@@ -212,6 +238,12 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   list-style: none;
   font-size: 0.85rem;
   color: var(--color-muted);
+}
+
+/* Toujours sous le bouton d'actions flottant, même quand le titre tient sur une seule
+   ligne plus courte que le bouton. */
+.meta {
+  clear: right;
 }
 
 .meta li {
@@ -293,44 +325,89 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   -webkit-box-orient: vertical;
 }
 
-/* Au-dessus du lien étiré pour rester cliquables. */
+/* Flottant à droite : le titre s'enroule naturellement autour du bouton sur sa première
+   ligne puis reprend toute la largeur en dessous (contrairement à un positionnement absolu,
+   qui aurait forcé un padding constant sur toutes les lignes du titre). */
 .card-actions {
   position: relative;
+  float: right;
+  margin-left: 0.5rem;
   z-index: 1;
-  display: flex;
-  gap: 0.35rem;
-  flex-shrink: 0;
-  opacity: 0.6;
-  transition: opacity 0.15s ease;
 }
 
-.recipe-card:hover .card-actions,
-.card-actions:focus-within {
-  opacity: 1;
-}
-
-.action-btn {
+.actions-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  min-height: 2.25rem;
   padding: 0;
   border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text);
-  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
 }
 
-.action-btn:hover {
+.recipe-card:hover .actions-toggle {
+  opacity: 1;
+}
+
+.actions-toggle:hover {
   background: var(--color-primary-soft-hover);
   color: var(--color-primary-dark);
 }
 
-.action-btn.danger-btn:hover {
-  background: var(--color-danger-soft-hover);
+.actions-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 160px;
+  background: var(--color-surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 0.4rem;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 20;
+}
+
+.actions-panel.is-open {
+  display: flex;
+}
+
+.actions-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.actions-link:hover {
+  background: var(--color-surface-muted);
+}
+
+.actions-link-danger {
   color: var(--color-danger);
+}
+
+.actions-link-danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface-muted));
 }
 
 @media (max-width: 600px) {
@@ -353,9 +430,8 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
     height: 64px;
   }
 
-  /* Pas de survol sur mobile : actions toujours visibles. */
-  .card-actions {
-    flex-direction: column;
+  /* Pas de survol sur mobile : bouton toujours visible. */
+  .actions-toggle {
     opacity: 1;
   }
 }

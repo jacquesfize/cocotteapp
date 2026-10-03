@@ -140,7 +140,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
       const picker = page.locator(`#ingredient-${index}`)
       await picker.fill(name)
       await page
-        .locator('.picker .suggestions li', { hasText: new RegExp(`^\\s*${name}\\s*$`) })
+        .locator('.picker .suggestions-dropdown li', { hasText: new RegExp(`^\\s*${name}\\s*$`) })
         .first()
         .click()
       await page.locator(`#quantity-${index}`).fill(quantity)
@@ -159,13 +159,13 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await step2.click()
     await step2.pressSequentially('Fill with the tomato and feta mixture, then top with @Basil', { delay: 20 })
     const stepsCard = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Steps' }) })
-    const suggestions = stepsCard.locator('.suggestions')
+    const suggestions = stepsCard.locator('.suggestions-dropdown')
     await expect(suggestions).toBeVisible()
     await shotAround(page, [stepsCard, suggestions], 'recipe-form-mention', 12)
 
     await step2.fill('')
     await step2.pressSequentially('Crumble the @smoked_tofu', { delay: 20 })
-    const create = stepsCard.locator('.suggestions .create')
+    const create = stepsCard.locator('.suggestions-dropdown .create')
     await expect(create).toBeVisible()
     await create.dispatchEvent('mousedown')
     const modal = page.getByRole('dialog')
@@ -212,12 +212,12 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await breakfastCell.getByRole('button', { name: 'Add a meal' }).click()
     const pickerInput = breakfastCell.locator('.picker input')
     await pickerInput.fill('gratin')
-    await breakfastCell.locator('.suggestions li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
+    await breakfastCell.locator('.suggestions-dropdown li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
     // La recherche (avec délai) relancée par la sélection rouvre la liste : on attend
     // qu'elle ait eu lieu avant de quitter le champ.
     await page.waitForTimeout(800)
     await pickerInput.blur()
-    await expect(breakfastCell.locator('.suggestions')).toBeHidden()
+    await expect(breakfastCell.locator('.suggestions-dropdown')).toBeHidden()
     await breakfastCell
       .locator('.add-form .allergen-warning')
       .waitFor({ timeout: 3000 })
@@ -229,11 +229,18 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await shotAround(page, [dinnerCell, breakfastCell, breakfastRow.nth(3)], 'planning-add-meal', 12)
     await breakfastCell.getByRole('button', { name: 'Cancel' }).click()
 
-    await page.getByRole('button', { name: 'Nutritional intake' }).click()
-    const dialog = page.getByRole('dialog')
-    await expect(dialog.locator('.carbon-summary')).toBeVisible()
-    await shotElement(dialog, 'planning-nutrition')
-    await dialog.getByRole('button', { name: 'Close' }).click()
+    // Alertes nutritionnelles : bascule d'instance elle aussi désactivée par défaut (voir
+    // NUTRITION_ALERTS_ENABLED plus haut) — le bouton est alors absent du planner.
+    const nutritionButton = page.getByRole('button', { name: 'Nutritional intake' })
+    if (await nutritionButton.count()) {
+      await nutritionButton.click()
+      const dialog = page.getByRole('dialog')
+      await expect(dialog.locator('.carbon-summary')).toBeVisible()
+      await shotElement(dialog, 'planning-nutrition')
+      await dialog.getByRole('button', { name: 'Close' }).click()
+    } else {
+      console.warn('NUTRITION_ALERTS_ENABLED is off: planning-nutrition screenshot skipped.')
+    }
 
     await page.getByRole('button', { name: 'Export to calendar' }).click()
     const menu = page.locator('.calendar-export .menu')

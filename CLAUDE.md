@@ -168,12 +168,28 @@ something a user, admin or contributor sees or does** — in the same PR, not la
   `admin-guide/deployment.md`);
 - an entry under `## [Unreleased]` in `CHANGELOG.md` for any user-visible change;
 - regenerated screenshots, but **only the ones showing the feature you actually changed**, never
-  speculatively. `npm run docs:screenshots` (`cd frontend`, against a running, seeded stack)
-  regenerates every PNG under `docs/assets/screenshots/`, so after running it, `git status
+  speculatively. From `frontend/`, against the already-running, seeded dev stack:
+
+  ```bash
+  E2E_ADMIN_EMAIL=e2e-admin@example.com E2E_ADMIN_PASSWORD=e2e-admin-password \
+    SHOTS=recipe-list,recipe-list-filters npm run docs:screenshots
+  ```
+
+  `SHOTS` (comma-separated screenshot names, no `.png`) is the key lever: the full
+  `tests/docs/screenshots.spec.ts` scenario always runs end to end regardless, but only the
+  listed files are written/compressed — everything else in `docs/assets/screenshots/` is left
+  untouched, so there's nothing to filter out of `git status` afterward and no needless Git LFS
+  churn. Map your change to screenshot names by grepping `shotPage`/`shotElement`/`shotAround`
+  calls in `screenshots.spec.ts` and checking which view/component renders that screen (e.g.
+  `RecipeCard.vue` → `recipe-list` via `RecipeListView.vue`/`HomeView.vue`); when a component is
+  shared, check every page that renders it, not just the one you were looking at.
+  `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` log into the admin screenshots and are needed for
+  clean-up even when your change isn't admin-related — the dev stack already has this account
+  seeded with the credentials above. Omitting `SHOTS` regenerates every PNG instead (only do
+  this when you're unsure of the blast radius); in that case `git status
   docs/assets/screenshots/` and stage only the files whose feature you touched — small rendering
   noise (fonts, anti-aliasing) can flag unrelated images as changed even though nothing about
-  them actually did. See "When to regenerate" in `docs/developer/documentation.md`. Images are
-  Git LFS-tracked, so committing an unrelated one creates needless diff/LFS churn.
+  them actually did. See "When to regenerate" in `docs/developer/documentation.md`.
 
 Authoring conventions (see `docs/developer/documentation.md`): relative `.md` links, GitHub
 alerts (`> [!NOTE]`) for callouts, `/// tab | Docker` / `/// tab | Classic` blocks for command

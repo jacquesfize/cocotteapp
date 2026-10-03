@@ -13,6 +13,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `NUTRITION_ALERTS_ENABLED` is off (the default), instead of only hiding the deficiency list
   inside its dialog.
 
+### Fixed
+
+- Recipe list: a long recipe title no longer runs under the owner's actions (**⋮**) menu button —
+  the title now clamps to two lines (hover to see the full title) and the button no longer
+  overlaps the text.
+
 ### Added
 
 - Recipe list: active filters now also show as removable pills next to the **Filters** button
