@@ -19,7 +19,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   instead of the all-or-nothing "Hide recipes containing my allergens" checkbox. Your own
   allergies and intolerances are still selected by default, and **Add my allergies and
   intolerances** puts them back after removing some.
-
+- The **Random recipe** page's filters (diet, in-season ingredients, and a new allergen
+  exclusion filter) are now hidden by default behind a filter toggle button next to **Another
+  one**, with a badge showing how many are active. The new allergen filter is pre-filled from
+  the signed-in user's own allergies/intolerances, like the main recipe list already does.
 - Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
   that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
   Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On

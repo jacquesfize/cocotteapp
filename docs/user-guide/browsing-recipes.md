@@ -117,8 +117,12 @@ mobile tab bar).
 
 The **Random recipe** page shows a random recipe with its ingredients and steps. You can:
 
-- narrow the draw with **Diet** and **In-season ingredients only**. A new recipe is drawn as
-  soon as you change them.
+- click the filter button next to **Another one** to show the filters panel (hidden by
+  default; a badge on the button shows how many filters are active),
+- narrow the draw with **Diet**, **In-season ingredients only**, and **Exclude allergens**. A
+  new recipe is drawn as soon as you change them. If you've set allergies or intolerances on
+  your [account](account.md), **Exclude allergens** starts pre-filled with them, so a random
+  draw doesn't surprise you with something you can't eat — you can still change the selection.
 - click **Another one** for a new draw,
 - click the recipe title to open its full page,
 - if you're logged in, add it straight to your planner with the **Add to planner** form.

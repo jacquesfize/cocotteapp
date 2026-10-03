@@ -122,6 +122,7 @@ Once saved, Cocotte uses them in several places:
 | Where | What happens |
 |---|---|
 | Recipe list | Recipes that contain **any** of your allergies or intolerances are hidden by default. Remove them from **Exclude allergens** in the filters to see them. |
+| [Random recipe](browsing-recipes.md#random-recipe) | The **Exclude allergens** filter starts pre-filled with your allergies and intolerances. Open the filters panel to change the selection. |
 | Recipe cards | Only *your* allergens are shown as badges, allergies first. |
 | Recipe page | All the recipe's allergens are shown, with yours highlighted. |
 | Planner and **Add to planner** | A warning (**Contains:** for allergies, **May bother you:** for intolerances) when a recipe contains one of your allergens. It doesn't stop you from adding it. |
