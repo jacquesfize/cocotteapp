@@ -178,6 +178,36 @@ describe('RecipeFilters', () => {
     expect(state.filters.exclude_allergens).toBe('peanut,lactose')
   })
 
+  it('shows one removable chip per active filter, including one per list value', async () => {
+    const { wrapper, state } = await mountFilters({
+      diet_type: 'vegan',
+      in_season: true,
+      ingredients: 'Ail,Tomate',
+      max_prep_time: 30,
+      exclude_allergens: 'gluten,lactose',
+    })
+    // Le même résumé existe en double dans le DOM (copie mobile à côté du bouton, copie desktop
+    // rattachée au panneau — cf. CSS .active-filters--mobile/--desktop) : jsdom n'évalue pas les
+    // media queries, donc on se restreint à une seule des deux pour ne pas compter chaque pilule
+    // deux fois.
+    const chips = () => wrapper.findAll('.active-filters--mobile .filter-chip')
+    expect(chips().map((chip) => chip.text())).toEqual([
+      expect.stringContaining('Végan'),
+      expect.stringContaining('De saison'),
+      'Ail',
+      'Tomate',
+      expect.stringContaining('30 min'),
+      'Gluten',
+      'Lactose',
+    ])
+
+    await chips().find((chip) => chip.text() === 'Tomate')!.trigger('click')
+    expect(state.filters.ingredients).toBe('Ail')
+
+    await chips().find((chip) => chip.text() === 'Gluten')!.trigger('click')
+    expect(state.filters.exclude_allergens).toBe('lactose')
+  })
+
   it('resets every filter', async () => {
     const { wrapper, state } = await mountFilters({ search: 'tarte', diet_type: 'vegan', in_season: true })
     const reset = wrapper.find('button.reset')

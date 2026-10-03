@@ -15,6 +15,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Recipe list: active filters now also show as removable pills next to the **Filters** button
+  (one pill per selected ingredient/allergen), so you can clear a single filter without opening
+  the filters panel.
 - Recipe list: the **Exclude allergens** filter lets you choose individual allergens to hide,
   instead of the all-or-nothing "Hide recipes containing my allergens" checkbox. Your own
   allergies and intolerances are still selected by default, and **Add my allergies and

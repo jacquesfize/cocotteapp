@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { Leaf, ListFilter, RotateCcw, X } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref, type WritableComputedRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import VueMultiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
 import { listAllergens } from '../../api/allergens'
 import { listIngredients } from '../../api/ingredients'
 import { formatDuration } from '../../utils/format'
 import type { Allergen } from '../../types/models'
+
+const { t } = useI18n()
 
 export interface RecipeFilterValues {
   search: string
@@ -173,6 +176,76 @@ const carbonPosition = computed<number>({
   },
 })
 const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
+
+// --- Pilules "filtres actifs" -------------------------------------------------------------
+// Résumé compact, affiché à côté du bouton "Filtres" (utile surtout sur mobile, où le panneau
+// est replié) : un filtre par pilule, supprimable individuellement sans ouvrir le panneau. Les
+// filtres à valeurs multiples (ingrédients, allergènes) donnent une pilule par valeur.
+interface FilterChip {
+  id: string
+  label: string
+  remove: () => void
+}
+
+const filterChips = computed<FilterChip[]>(() => {
+  const chips: FilterChip[] = []
+
+  if (filters.value.search) {
+    const value = filters.value.search
+    chips.push({ id: 'search', label: value, remove: () => { filters.value.search = '' } })
+  }
+  if (filters.value.diet_type) {
+    chips.push({
+      id: 'diet',
+      label: t(`diet.${filters.value.diet_type}`),
+      remove: () => { filters.value.diet_type = '' },
+    })
+  }
+  if (filters.value.in_season) {
+    chips.push({ id: 'season', label: t('recipes.inSeason'), remove: () => { filters.value.in_season = false } })
+  }
+  for (const name of selectedIngredients.value) {
+    chips.push({
+      id: `ingredient-${name}`,
+      label: name,
+      remove: () => { selectedIngredients.value = selectedIngredients.value.filter((n) => n !== name) },
+    })
+  }
+  const prepLabel = timeLabel(filters.value.max_prep_time)
+  if (prepLabel) {
+    chips.push({
+      id: 'prep',
+      label: t('recipes.maxPrepTimeChip', { time: prepLabel }),
+      remove: () => { filters.value.max_prep_time = '' },
+    })
+  }
+  const cookLabel = timeLabel(filters.value.max_cook_time)
+  if (cookLabel) {
+    chips.push({
+      id: 'cook',
+      label: t('recipes.maxCookTimeChip', { time: cookLabel }),
+      remove: () => { filters.value.max_cook_time = '' },
+    })
+  }
+  if (filters.value.carbon_level) {
+    chips.push({
+      id: 'carbon',
+      label: t(CARBON_LABELS[filters.value.carbon_level as (typeof CARBON_LEVELS)[number]]),
+      remove: () => { filters.value.carbon_level = '' },
+    })
+  }
+  for (const allergen of selectedAllergens.value) {
+    chips.push({
+      id: `allergen-${allergen.slug}`,
+      label: allergen.name,
+      remove: () => {
+        selectedAllergens.value = selectedAllergens.value.filter((a) => a.slug !== allergen.slug)
+      },
+    })
+  }
+
+  return chips
+})
 </script>
 
 <template>
@@ -193,6 +266,27 @@ const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
       >{{ activeCount }}</span>
     </button>
 
+    <!-- Sur mobile : résumé à côté du bouton "Filtres", visible sans ouvrir le panneau. Sur
+         desktop (panneau toujours ouvert, pas de bouton) : même liste, rattachée au panneau
+         juste sous l'en-tête "Filtres" (cf. règles --mobile/--desktop plus bas). -->
+    <ul
+      v-if="filterChips.length"
+      class="active-filters active-filters--mobile"
+      :aria-label="$t('recipes.activeFiltersList')"
+    >
+      <li v-for="chip in filterChips" :key="chip.id">
+        <button
+          type="button"
+          class="filter-chip"
+          :aria-label="$t('recipes.removeFilterChip', { label: chip.label })"
+          @click="chip.remove"
+        >
+          {{ chip.label }}
+          <X :size="12" aria-hidden="true" />
+        </button>
+      </li>
+    </ul>
+
     <aside
       id="recipe-filters-panel"
       class="card panel"
@@ -212,6 +306,24 @@ const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
           <X :size="16" />
         </button>
       </div>
+
+      <ul
+        v-if="filterChips.length"
+        class="active-filters active-filters--desktop"
+        :aria-label="$t('recipes.activeFiltersList')"
+      >
+        <li v-for="chip in filterChips" :key="chip.id">
+          <button
+            type="button"
+            class="filter-chip"
+            :aria-label="$t('recipes.removeFilterChip', { label: chip.label })"
+            @click="chip.remove"
+          >
+            {{ chip.label }}
+            <X :size="12" aria-hidden="true" />
+          </button>
+        </li>
+      </ul>
 
       <div class="field">
         <label for="search">{{ $t('recipes.search') }}</label>
@@ -359,6 +471,36 @@ const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
   align-items: center;
   justify-content: center;
 }
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  list-style: none;
+}
+.active-filters--mobile {
+  display: none;
+  margin: 0.6rem 0 0;
+}
+.active-filters--desktop {
+  margin: 0 0 1rem;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: auto;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.filter-chip:hover {
+  background: var(--color-primary-soft-hover);
+}
+
 .panel {
   padding: 1.1rem;
 }
@@ -579,6 +721,12 @@ const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
   }
   .toggle {
     display: inline-flex;
+  }
+  .active-filters--mobile {
+    display: flex;
+  }
+  .active-filters--desktop {
+    display: none;
   }
   .panel {
     display: none;

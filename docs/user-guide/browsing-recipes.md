@@ -73,6 +73,9 @@ On a computer, the filter panel is always shown on the left of the list; a numbe
 list to open the panel (the same number appears on the button), and **Show results** to fold
 it away again.
 
+Active filters also show as removable pills next to **Filters** (one pill per selected
+ingredient or allergen) — click a pill's **×** to clear that filter without opening the panel.
+
 ![The filter panel on the left of the recipe list](../assets/screenshots/recipe-list-filters.png)
 
 | Filter | How it works |
