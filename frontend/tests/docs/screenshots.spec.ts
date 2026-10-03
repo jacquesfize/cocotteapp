@@ -192,66 +192,52 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
   })
 
   await test.step('planning', async () => {
-    // À 1280 px la grille de la semaine déborde (défilement horizontal) : on élargit le viewport
-    // le temps des captures du planning pour que lundi → dimanche soient visibles.
-    const defaultViewport = page.viewportSize()!
-    await page.setViewportSize({ width: 1600, height: 1000 })
     await page.goto('/planning')
-    // Le conteneur principal reste limité en largeur : on le desserre (pour ces captures
-    // uniquement) afin que la grille tienne sans barre de défilement.
-    await page.addStyleTag({ content: 'main.container { max-width: 1520px; }' })
-    await expect(page.locator('.agenda-cell a').first()).toBeVisible()
+    // La grille n'affiche qu'un jour à la fois : on sélectionne le premier jour qui a des repas.
+    const chips = page.locator('.day-chip')
+    const visibleMeal = page.locator('.agenda-cell.is-active-day a').first()
+    for (let i = 0; i < 7 && !(await visibleMeal.isVisible()); i++) {
+      await chips.nth(i).click()
+    }
+    await expect(visibleMeal).toBeVisible()
     await shotPage(page, 'planning-week', { fullPage: true })
 
     // La collation est désactivée par défaut (PLANNING_SNACK_ENABLED) : on illustre l'ajout
     // d'un repas sur une case petit-déjeuner vide plutôt que sur la collation.
     const emptyBreakfastDate = new Date(data.weekStart.getTime() + 86_400_000)
+    await chips.nth(1).click()
     const breakfastCell = page.locator(
       `.agenda-cell[data-meal-type="breakfast"][data-date="${isoDate(emptyBreakfastDate)}"]`,
     )
     await breakfastCell.getByRole('button', { name: 'Add a meal' }).click()
-    const pickerInput = breakfastCell.locator('.picker input')
-    await pickerInput.fill('gratin')
-    await breakfastCell.locator('.suggestions-dropdown li', { hasText: /^\s*Creamy sweet potato gratin\s*$/ }).click()
-    // La recherche (avec délai) relancée par la sélection rouvre la liste : on attend
-    // qu'elle ait eu lieu avant de quitter le champ.
-    await page.waitForTimeout(800)
-    await pickerInput.blur()
-    await expect(breakfastCell.locator('.suggestions-dropdown')).toBeHidden()
-    await breakfastCell
-      .locator('.allergen-warning')
-      .waitFor({ timeout: 3000 })
-      .catch(() => {})
-    const dinnerCell = page.locator(
-      `.agenda-cell[data-meal-type="dinner"][data-date="${isoDate(emptyBreakfastDate)}"]`,
-    )
-    const breakfastRow = page.locator('.agenda-cell[data-meal-type="breakfast"]')
-    await shotAround(page, [dinnerCell, breakfastCell, breakfastRow.nth(3)], 'planning-add-meal', 12)
-    await breakfastCell.getByRole('button', { name: 'Cancel' }).click()
+    const dialog = page.getByRole('dialog')
+    await dialog.getByPlaceholder('Search a recipe...').fill('gratin')
+    await expect(dialog.locator('.picker-results li').first()).toBeVisible()
+    await shotElement(dialog, 'planning-add-meal')
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
 
     // Alertes nutritionnelles : bascule d'instance elle aussi désactivée par défaut (voir
     // NUTRITION_ALERTS_ENABLED plus haut) — le bouton est alors absent du planner.
     const nutritionButton = page.getByRole('button', { name: 'Nutritional intake' })
     if (await nutritionButton.count()) {
       await nutritionButton.click()
-      const dialog = page.getByRole('dialog')
-      await expect(dialog.locator('.carbon-summary')).toBeVisible()
-      await shotElement(dialog, 'planning-nutrition')
-      await dialog.getByRole('button', { name: 'Close' }).click()
+      const nutritionDialog = page.getByRole('dialog')
+      await expect(nutritionDialog.locator('.carbon-summary')).toBeVisible()
+      await shotElement(nutritionDialog, 'planning-nutrition')
+      await nutritionDialog.getByRole('button', { name: 'Close' }).click()
     } else {
       console.warn('NUTRITION_ALERTS_ENABLED is off: planning-nutrition screenshot skipped.')
     }
 
-    await page.getByRole('button', { name: 'Export to calendar' }).click()
+    await page.getByRole('button', { name: 'Export' }).click()
     const menu = page.locator('.calendar-export .menu')
     await expect(menu.getByText('Add to Google Calendar')).toBeVisible()
     await shotAround(page, [page.locator('.calendar-export'), menu], 'planning-calendar-export')
-    await page.getByRole('button', { name: 'Export to calendar' }).click()
+    await page.getByRole('button', { name: 'Export' }).click()
 
     await page.getByRole('button', { name: 'Month' }).click()
     await expect(page.locator('.month-entries a').first()).toBeVisible()
     await shotPage(page, 'planning-month', { fullPage: true })
-    await page.setViewportSize(defaultViewport)
   })
 
   await test.step('shopping lists', async () => {

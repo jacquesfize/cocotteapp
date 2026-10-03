@@ -90,15 +90,16 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.waitForURL(/\/recipes\/\d+$/)
 
   await page.getByRole('link', { name: 'Agenda' }).click()
-  const dinnerSlot = page.locator('.agenda-cell[data-meal-type="dinner"]').first()
+  const dinnerSlot = page.locator('.agenda-cell.is-active-day[data-meal-type="dinner"]')
   await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
-  await dinnerSlot.locator('.suggestions-dropdown').getByText(recipeTitle).click()
-  await dinnerSlot.getByRole('button', { name: 'Ajouter' }).click()
+  await dinnerSlot.locator('.picker-results').getByRole('button', { name: recipeTitle }).click()
+  await dinnerSlot.getByRole('button', { name: 'Ajouter', exact: true }).click()
   await expect(dinnerSlot.getByText(recipeTitle)).toBeVisible()
 
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Télécharger le PDF de la semaine' }).click()
+  await page.getByRole('button', { name: 'Exporter' }).click()
+  await page.getByRole('menuitem', { name: 'Télécharger le PDF de la semaine' }).click()
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/\.pdf$/)
 })

@@ -29,11 +29,11 @@ async function registerAndBuildShoppingList(page: Page, suffix: number) {
   const recipeUrl = page.url()
 
   await page.getByRole('link', { name: 'Agenda' }).click()
-  const dinnerSlot = page.locator('.agenda-cell[data-meal-type="dinner"]').first()
+  const dinnerSlot = page.locator('.agenda-cell.is-active-day[data-meal-type="dinner"]')
   await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
-  await dinnerSlot.locator('.suggestions-dropdown').getByText(recipeTitle).click()
-  await dinnerSlot.getByRole('button', { name: 'Ajouter' }).click()
+  await dinnerSlot.locator('.picker-results').getByRole('button', { name: recipeTitle }).click()
+  await dinnerSlot.getByRole('button', { name: 'Ajouter', exact: true }).click()
   await expect(dinnerSlot.getByText(recipeTitle)).toBeVisible()
 
   await page.getByRole('button', { name: /Générer la liste de courses/ }).click()

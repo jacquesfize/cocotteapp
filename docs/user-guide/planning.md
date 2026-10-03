@@ -11,7 +11,7 @@ flowchart LR
     R[Recipe] -->|Add to planner| P[Planner]
     P --> N[Nutritional intake]
     P --> PDF[Download the week as PDF]
-    P --> C[Export to calendar]
+    P --> C[Export to calendar app]
     P -->|Generate shopping list| S[Shopping list]
 ```
 
@@ -22,9 +22,11 @@ flowchart LR
 The **Week** / **Month** buttons at the top switch between the two views.
 
 **Week view**
-:   A grid with the seven days of the week (Monday to Sunday) as columns, and **Breakfast**,
-    **Lunch** and **Dinner** as rows. Each cell lists the recipes planned for that meal. Click a
-    recipe to open it. Today's column is tinted so you can spot it at a glance.
+:   A row of seven day buttons (Monday to Sunday) sits above the grid. Click one to show that
+    day, with **Breakfast**, **Lunch** and **Dinner** as rows. Each row lists the recipes planned
+    for that meal; click a recipe to open it. The planner opens on today, and today's day button
+    and cells are tinted so you can spot them at a glance. The layout is the same on a computer
+    and on a phone.
 
 > [!NOTE]
 > The instance administrator can also enable a fourth row, **Snack**, for everyone on the
@@ -32,14 +34,16 @@ The **Week** / **Month** buttons at the top switch between the two views.
 > [Configuration](../admin-guide/configuration.md#planning-and-nutrition-features).
 
 **Month view**
-:   A calendar of the whole month, listing the recipes planned each day. Click a **day number**
-    to jump to the week view of that week. Today's date is tinted the same way.
+:   A calendar of the whole month, listing the recipes planned each day with an icon for the
+    meal (☀️ breakfast, 🥗 lunch, 🌙 dinner). A day shows up to three recipes; click **+N more** or
+    the **day number** to open that day in the week view. On a phone, each day only shows dots
+    for its planned meals. Today's date is highlighted.
 
 ![The planner in month view](../assets/screenshots/planning-month.png)
 
 Use the **‹** and **›** arrows around the date range to move to the previous or next week (or
-month). When you are not on the current period, a **Today** button (with a reset icon, next to
-the date range) brings you back.
+month). When you are not on the current period, a **Today** button next to the date range
+brings you back.
 
 > [!IMPORTANT]
 > The buttons at the bottom of the planner apply to **the period currently displayed**: the week
@@ -50,16 +54,17 @@ the date range) brings you back.
 
 ### From the planner
 
-1. In week view, click the **+** button in the cell for the day and meal you want. This opens
-   the **Add a meal** dialog.
-2. Type part of a recipe's title in **Search a recipe...** and pick it from the list.
-3. Set the number of **servings** (default 2).
-4. Click **Add**. Use the **×** button, or click outside the dialog, to close it without adding.
+1. In week view, pick the day, then click the **+** in the row of the meal you want. In a row
+   that already has a recipe, the **+** appears under it when you hover the row. This opens the
+   **Add a meal** dialog.
+2. Type part of a recipe's title in **Search a recipe...** and click it in the list. Or click
+   **Surprise me** to get a random recipe.
+3. Set the number of **Servings** (it starts at the recipe's own number of servings). Click
+   **Choose another recipe** to go back to the search.
+4. Click **Add**. Use **Cancel**, **×**, or click outside the dialog to close it without
+   adding.
 
 ![The Add a meal dialog: typing a recipe title shows matching recipes to pick from](../assets/screenshots/planning-add-meal.png)
-
-<!-- Screenshot above still shows the old inline in-cell form; regenerate with
-     `npm run docs:screenshots` against a running, seeded stack to capture the new dialog. -->
 
 You can plan several recipes for the same meal, for example a main course and a dessert.
 You can't add the same recipe twice to the same meal on the same day. If you try, you see
@@ -80,10 +85,21 @@ written for 4 and planned for 2 counts as half the recipe.
 
 To change the servings of a planned meal, remove it and add it again with the new number.
 
+## Move or copy a meal
+
+Drag a recipe onto another meal row to move it there. To move it to another day, drop it on that
+day's button above the grid (it keeps the same meal, for example lunch stays lunch). In month
+view, drag a recipe onto another day. Hold **Alt** while dropping to copy the recipe instead of
+moving it.
+
+> [!NOTE]
+> Drag and drop needs a mouse or trackpad. On a phone, remove the meal and add it again.
+
 ## Remove a meal
 
-Click the small **×** (**Remove**) next to the recipe in its cell. It's removed immediately,
-without confirmation.
+Hover the recipe and click the small **×** in its corner (on a touch screen it's always
+visible). The meal is removed right away, and a message at the bottom of the screen offers
+**Undo** for a few seconds.
 
 ## Allergen warnings
 
@@ -121,16 +137,17 @@ seven days.
 
 ## Download the week as PDF
 
-Click **Download the week as PDF** to get a printable PDF of the displayed period
+Click **Export**, then **Download the week as PDF** (**Download the month as PDF** in month
+view) to get a printable PDF of the displayed period
 (`agenda-START-END.pdf`). It contains the meal grid plus the full detail of every recipe in it.
 You can take it to the kitchen or to the shop.
 
 ## Export to calendar
 
-Click **Export to calendar** to add your meals to Google Calendar, Apple Calendar, Outlook or
+Click **Export** at the bottom of the planner to add your meals to Google Calendar, Apple Calendar, Outlook or
 any calendar app that reads iCalendar (.ics).
 
-![The Export to calendar menu](../assets/screenshots/planning-calendar-export.png)
+![The Export menu](../assets/screenshots/planning-calendar-export.png)
 
 Each meal becomes a one-hour event titled with the recipe's name, at a fixed time:
 
@@ -179,7 +196,7 @@ top of your planner:
 
 - **My agenda**: your own planner,
 - ***Name*'s agenda (read only)**: you can see their meals, nutrition summary and PDF, but not
-  change anything. The add and remove buttons are hidden.
+  change anything. The add and remove buttons are hidden, and meals can't be dragged.
 - ***Name*'s agenda (read & write)**: you can also add and remove meals in their planner.
 
 The nutrition alerts of a shared agenda are computed with **its owner's** diet and activity
@@ -188,13 +205,14 @@ level.
 > [!NOTE]
 > Shopping lists can only be generated from **your own** agenda. With someone else's agenda
 > selected, the generated list comes out empty. Ask the owner to generate it, or plan the meals
-> in your own agenda. Likewise, **Export to calendar** subscriptions always cover your own
-> planner.
+> in your own agenda. Likewise, the calendar subscription in the **Export** menu always covers
+> your own planner.
 
 ## Generate a shopping list
 
-Click **Generate shopping list (N)** at the bottom of the planner. *N* is the number of meals in
-the displayed period. The button is disabled when there are none.
+Click **Generate shopping list** at the bottom of the planner. The line above it shows how many
+meals are planned in the displayed period (for example *2 meals planned this week*). The button
+is disabled when there are none.
 
 Cocotte creates a new shopping list from **all the meals of the displayed period** and opens
 it. Ingredients are added up across recipes and scaled to the servings you planned. See

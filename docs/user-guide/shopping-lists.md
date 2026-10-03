@@ -9,7 +9,7 @@ logged in.
 Shopping lists are created from the planner:
 
 1. Open **Planner** and display the week (or month) you want to shop for.
-2. Click **Generate shopping list (N)** at the bottom. *N* is the number of planned meals.
+2. Click **Generate shopping list** at the bottom.
 3. The new list opens.
 
 See [Meal planning](planning.md#generate-a-shopping-list) for details. Each click creates a

@@ -29,6 +29,7 @@
     "add": "Ajouter",
     "close": "Fermer",
     "cancel": "Annuler",
+    "undo": "Annuler",
     "previousPage": "Page précédente",
     "nextPage": "Page suivante",
     "pageOf": "Page {page} / {total}"
@@ -339,7 +340,6 @@
     "placeholder": "Rechercher une recette..."
   },
   "calendarExport": {
-    "button": "Exporter vers l'agenda",
     "downloadIcs": "Télécharger le fichier .ics de la semaine",
     "subscription": "Abonnement (se met à jour automatiquement)",
     "copyUrl": "Copier l'URL d'abonnement",
@@ -363,11 +363,20 @@
     "invalidServings": "Indiquez un nombre de portions d'au moins 1.",
     "addError": "Impossible d'ajouter cette entrée (date déjà planifiée pour cette recette et ce repas ?).",
     "plannedMeals": "Repas planifiés",
-    "generateShoppingList": "Générer la liste de courses ({n})",
+    "generateShoppingList": "Générer la liste de courses",
     "downloadWeekPdf": "Télécharger le PDF de la semaine",
     "noEntries": "Aucun repas planifié pour l'instant.",
-    "remove": "Retirer",
+    "remove": "Retirer {title}",
     "servingsUnit": "portions",
+    "noSearchResults": "Aucune recette ne correspond à « {query} ».",
+    "surpriseMe": "Surprends-moi",
+    "chooseAnotherRecipe": "Choisir une autre recette",
+    "dragHint": "Glissez un repas vers un autre moment ou sur un autre jour pour le déplacer (Alt pour copier).",
+    "removedToast": "« {title} » retiré.",
+    "periodWeek": "cette semaine",
+    "periodMonth": "ce mois-ci",
+    "plannedCountSingular": "repas planifié",
+    "plannedCountPlural": "repas planifiés",
     "today": "Aujourd'hui",
     "previousWeek": "Semaine précédente",
     "nutritionIntake": "Apports nutritionnels",
@@ -382,7 +391,17 @@
     "agendaSelectorLabel": "Agenda affiché",
     "myAgenda": "Mon agenda",
     "sharedAgendaReadLabel": "Agenda de {name} (lecture seule)",
-    "sharedAgendaWriteLabel": "Agenda de {name} (lecture et écriture)"
+    "sharedAgendaWriteLabel": "Agenda de {name} (lecture et écriture)",
+    "export": "Exporter",
+    "downloadMonthPdf": "Télécharger le PDF du mois",
+    "moreEntries": "+{n} de plus",
+    "monthHint": "Cliquez sur un jour pour voir sa semaine. Glissez un repas sur un autre jour pour le déplacer au même moment de la journée (Alt pour copier).",
+    "mealShort": {
+      "breakfast": "Petit-déj.",
+      "lunch": "Déjeuner",
+      "dinner": "Dîner",
+      "snack": "Collation"
+    }
   },
   "nutrition": {
     "title": "Valeurs nutritionnelles",
