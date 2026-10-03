@@ -213,24 +213,34 @@ flowchart LR
 
 ### Cooklang: two parsers
 
-Cocotte uses a small subset of the [Cooklang](https://cooklang.org/) markup: `@ingredient{qty%unit}`
-(multi-word names joined with an underscore, e.g. `@huile_olive{2%cs}`), `#cookware{}` and timers
-`~{10%minutes}`.
+Cocotte reads [Cooklang](https://cooklang.org/) markup: `@ingredient{qty%unit}(note)` (multi-word
+names with braces, or joined with an underscore as in `@huile_olive{2%cs}`), `#cookware{}`, timers
+`~name{10%minutes}`, sections, notes and metadata.
 
-- **Backend** (`apps/recipes/cooklang.py`): a self-contained parser producing a `ParsedRecipe`.
-  It **is wired in**: `apps/recipes/cooklang_import.py` turns the parse result into `Recipe`,
-  `RecipeIngredient` and `RecipeStep` rows (case-insensitive ingredient lookup or creation,
-  best-effort mapping of free-text units onto the `Unit` enum, quantity defaulting to 1), behind
-  `POST /api/recipes/import-cooklang/`. Steps keep their `@`/`~` tags so the frontend can render
-  them; only `#cookware` is flattened.
+- **Backend** (`apps/recipes/cooklang.py`): parsing is delegated to the
+  [`cooklang-py`](https://pypi.org/project/cooklang-py/) library (YAML front matter, inline
+  tags, comments). `cooklang.py` adapts its output into a `ParsedRecipe`: paragraphs become steps
+  (or each line, when the text has no blank line, Cocotte's historical format still written by the
+  YouTube agent), `= Section` titles label the ingredients below them, `> notes` are kept apart,
+  legacy `>> key: value` metadata is merged in, and step text is re-serialized in the tag syntax
+  the frontend parses (`@multi_word{qty%unit}`, `~name{qty%unit}`, cookware flattened). It also
+  works around a greedy `(note)` capture in the library (the note stops at the first `)`).
+  `apps/recipes/cooklang_import.py` maps the result onto the data model behind
+  `POST /api/recipes/import-cooklang/`: metadata to recipe fields (fields sent in the request
+  win), sections to `RecipeIngredient.group_name`, notes to the description, units through
+  `UNIT_ALIASES` then the URL importer's vocabulary (`apps.importer.ingredient_parsing.unit_from_word`),
+  and ingredients through the URL importer's matcher (`apps.importer.services.find_matching_ingredient`:
+  name, translations, close match), creating the ones that don't match. Ingredients created
+  during an import are only reused by exact name, never by close match. Unparseable text or a
+  missing title raises `CooklangParseError`, returned as a 400.
 - **Frontend** (`src/utils/cooklangMentions.ts`, `src/utils/cooklangTimers.ts`): an independent
-  client-side re-implementation of the same regular expressions (no code is shared). Step text is
+  client-side parser for the tags stored in step text (no code is shared). Step text is
   stored as free text; the frontend parses it when editing (`CooklangStepInput.vue`:
   autocomplete on `@` over the whole ingredient library, with on-the-fly creation) and when
   displaying (`RecipeSummary.vue`: mentions become links to the ingredient list, timers become
   `StepTimerButton` countdowns).
 
-If you change the supported syntax, update **both** parsers and their tests
+If you change the tag syntax stored in step text, update **both** sides and their tests
 (`backend/apps/recipes/tests/test_cooklang*.py`, `frontend/tests/unit/cooklang*.test.ts`).
 
 ### PDF export

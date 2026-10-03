@@ -112,17 +112,27 @@ def build_import_preview(url: str) -> dict:
     return preview
 
 
-def find_matching_ingredient(name: str) -> Ingredient | None:
-    # Table nom-normalisé -> Ingredient couvrant le nom français canonique et toutes ses
-    # traductions (`Ingredient.translations`), pour rapprocher un ingrédient importé quelle que
-    # soit la langue de la recette source (ex. "garlic" -> Ail via translations={"en": "garlic"}).
-    # Purement en lecture : ne crée jamais d'Ingredient (l'utilisateur confirme/corrige avant).
+def build_ingredient_catalog() -> dict[str, Ingredient]:
+    """Table nom-normalisé -> Ingredient couvrant le nom français canonique et toutes ses
+    traductions (`Ingredient.translations`). À construire une fois par import quand on rapproche
+    plusieurs ingrédients d'affilée (cf. `apps.recipes.cooklang_import`)."""
     catalog: dict[str, Ingredient] = {}
     for ingredient in Ingredient.objects.all():
         catalog[ingredient.name.strip().lower()] = ingredient
         for translated_name in ingredient.translations.values():
             if translated_name:
                 catalog[translated_name.strip().lower()] = ingredient
+    return catalog
+
+
+def find_matching_ingredient(name: str, catalog: dict[str, Ingredient] | None = None) -> Ingredient | None:
+    # Rapproche un ingrédient importé du catalogue quelle que soit la langue de la recette source
+    # (ex. "garlic" -> Ail via translations={"en": "garlic"}), d'abord à l'identique puis par
+    # proximité (difflib). Purement en lecture : ne crée jamais d'Ingredient (l'import par URL
+    # laisse l'utilisateur confirmer/corriger ; l'import Cooklang crée lui-même les manquants).
+    if catalog is None:
+        catalog = build_ingredient_catalog()
+    name = name.strip().lower()
 
     if name in catalog:
         return catalog[name]

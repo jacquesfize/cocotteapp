@@ -50,6 +50,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Paste Cooklang** now understands full Cooklang files, such as those downloaded from
+  recipes.cooklang.org: metadata (title, servings, prep/cook times, source link, description),
+  multi-word ingredient names, fractions (`1/2`, `½`), preparation notes (`@café{30%g}(moulu)`),
+  sections (used to group ingredients) and notes (added to the description). Title and servings
+  are now optional in the form when the file's metadata provides them. Pasted ingredients are
+  matched against the library like a URL import (by translation and close spelling too), and
+  `cl`/`dl`/`mg` quantities are converted. Parsing now relies on the `cooklang-py` library.
 - The "pièce" (piece) unit now accepts decimal quantities on a recipe (e.g. 0.5 for half a
   camembert); shopping lists still round up to a whole piece when aggregating.
 - Cook mode's button now uses a chef's hat icon instead of a generic expand icon, and reaching the

@@ -12,7 +12,8 @@ import type {
 } from '../types/models'
 
 export interface CooklangImportInput {
-  title: string
+  /** Facultatif si le texte Cooklang porte un `title:` dans ses métadonnées. */
+  title?: string
   raw_cooklang: string
   servings?: number
   prep_time_minutes?: number

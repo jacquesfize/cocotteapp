@@ -246,12 +246,14 @@ If the page can't be read, you see *Couldn't fetch this recipe. Check the URL an
 
 ## Paste a Cooklang recipe
 
-[Cooklang](https://cooklang.org/) is a simple markup for recipes. Cocotte understands a subset of
-it.
+[Cooklang](https://cooklang.org/) is a simple markup for recipes. You can paste a whole `.cook`
+file, for instance one downloaded from [recipes.cooklang.org](https://recipes.cooklang.org/),
+metadata and sections included.
 
 1. Click **New recipe**, then the **Paste Cooklang** tab.
-2. Enter the **Title** and **Servings**.
-3. Paste your text in **Cooklang text**.
+2. Paste your text in **Cooklang text**.
+3. Optionally enter the **Title** and **Servings**. Left empty (*From the file's metadata*), they
+   are read from the file's metadata. Filled in, they take precedence over it.
 4. Click **Import**.
 
 ![The Paste Cooklang tab](../assets/screenshots/recipe-form-cooklang.png)
@@ -260,35 +262,65 @@ The syntax Cocotte understands:
 
 | Syntax | Meaning |
 |---|---|
-| `@name` | An ingredient (one word). |
-| `@huile_olive{2%tbsp}` | An ingredient with a quantity and unit. Use underscores for multi-word names. |
-| `@oignon{1}` | A quantity without unit. |
+| `@sel` | An ingredient (one word). |
+| `@huile d'olive{2%tbsp}`, `@huile_olive{2%tbsp}` | An ingredient with a quantity and unit. Multi-word names work with braces, or with underscores. |
+| `@oignon{1}`, `@sucre{1/2%cup}` | A quantity without unit; fractions work. |
+| `@café{30%g}(moulu)` | A preparation note, kept in the step text. |
 | `~{10%minutes}`, `~repos{1%heure}` | A timer. |
-| `#poele` | Cookware. It's shown as plain text in the step. |
-| A line starting with `--` | A comment, ignored. |
-| Each other non-empty line | One step. |
+| `#poêle{}`, `#poêle à frire{}` | Cookware. It's shown as plain text in the step. |
+| `= Pâte` | A section title. The ingredients that follow are grouped under it. |
+| `> Astuce…` | A note. Notes are added to the recipe description, not to the steps. |
+| `-- …`, `[- … -]` | A comment, ignored. |
+| `---` block at the top, or `>> key: value` lines | Metadata (see below). |
+| Paragraphs separated by a blank line | One step each. If the text has **no** blank line at all, each line is a step. |
+
+The metadata Cocotte reads: `title`, `servings` (or `serves`, `yield`), `prep time`/`cook time`
+(e.g. `1h15`, `20 minutes`, or `prepMinutes`/`cookMinutes` as found on recipes.cooklang.org), a
+`source` that is a web address, `description` and `note`. Other entries (tags, category, …) are
+ignored.
 
 Example:
 
 ```text
-Faire revenir l'@oignon{1%pièce} dans l'@huile_olive{2%cs} pendant ~{5%minutes}.
-Ajouter les @tomates{400%g} et laisser mijoter ~{20%minutes}.
--- Astuce : on peut ajouter du basilic à la fin.
+---
+title: Sauce tomate
+servings: 4
+cook time: 25 minutes
+---
+
+= Base
+
+Faire revenir l'@oignon{1} dans l'@huile_olive{2%cs} pendant ~{5%minutes}.
+
+Ajouter les @tomates{400%g}(concassées) et laisser mijoter ~{20%minutes}.
+
+> On peut ajouter du basilic à la fin.
+-- Ce commentaire est ignoré.
 ```
 
 What happens on import:
 
 - The recipe is **created immediately**, and its edit form opens so you can check it.
-- Units are mapped to Cocotte's units. French and English abbreviations work: `g`, `kg`, `ml`,
-  `l`, `cs`/`c.à.s`/`tbsp`, `cc`/`c.à.c`/`tsp`, `pincée`/`pinch`, `pièce`/`piece`… A missing or
-  unknown unit becomes **piece**. A quantity that isn't a plain number (`1/2`, `2-3`,
-  `quelques`) becomes **1**.
-- Each ingredient is looked up by exact name (case-insensitive). **If it doesn't exist, it's
-  created with no nutrition, carbon or allergen data.** Ask an admin to complete it, or pick an
-  existing ingredient in the edit form instead.
-- Mentioning the same ingredient again without a quantity doesn't create a duplicate row.
-- Prep time, cook time and diet keep their default values (10 min, 20 min, Omnivore). Adjust
-  them in the edit form.
+- Units are mapped to Cocotte's units. French, English, German and Spanish words and
+  abbreviations work: `g`, `grams`, `kg`, `ml`, `l`, `cs`/`c.à.s`/`tbsp`, `cc`/`c.à.c`/`tsp`,
+  `pincée`/`pinch`, `pièce`/`piece`… `cl`, `dl` and `mg` are converted to ml and g. A missing or
+  unknown unit becomes **piece**.
+- Quantities can be whole or decimal numbers, fractions (`1/2`, `1 1/2`, `½`). A range (`2-3`)
+  keeps its first number. A quantity that isn't a number (`quelques`) becomes **1**.
+- Each ingredient is matched against the ingredient library the same way as a
+  [URL import](#import-a-recipe-from-a-url): by name, by translation (so `sugar` can find
+  *Sucre*), then by a close spelling. **If nothing matches, the ingredient is created with no
+  nutrition, carbon or allergen data.** Ask an admin to complete it, or pick an existing
+  ingredient in the edit form instead. Check the matches in the edit form, since a close
+  spelling can occasionally pick the wrong ingredient.
+- Mentioning the same ingredient again without a quantity doesn't create a duplicate row. Two
+  quantities of the same ingredient in the same section and unit are added up into one row.
+- Anything the metadata doesn't give keeps its default value (servings 4, prep and cook times
+  0 min, diet Omnivore). Adjust it in the edit form.
+- If the metadata's `source` is a web address, it's saved as the recipe's source link, so its
+  content is [restricted](browsing-recipes.md#recipes-with-restricted-content) like any import.
+- Without a title, either typed in or in the metadata, or with unreadable metadata, the import is
+  refused with an error message and nothing is created.
 
 ## Edit or delete a recipe
 

@@ -122,4 +122,29 @@ describe('RecipeFormView - Cooklang import mode', () => {
 
     expect(wrapper.text()).toContain("Échec de l'import du texte Cooklang.")
   })
+
+  it('leaves title and servings to the Cooklang metadata when left empty', async () => {
+    vi.mocked(importRecipeFromCooklang).mockResolvedValue(recipe())
+    const text = '---\ntitle: Tiramisu\nservings: 6\n---\nRør @mascarpone{500%g}.'
+
+    const wrapper = await mountRecipeForm()
+    await wrapper.findAll('button[role="tab"]')[1].trigger('click')
+    await wrapper.find('#cooklang-text').setValue(text)
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(importRecipeFromCooklang).toHaveBeenCalledWith({ raw_cooklang: text })
+  })
+
+  it('explains a 400 (unreadable text or missing title)', async () => {
+    vi.mocked(importRecipeFromCooklang).mockRejectedValue({ response: { status: 400 } })
+
+    const wrapper = await mountRecipeForm()
+    await wrapper.findAll('button[role="tab"]')[1].trigger('click')
+    await wrapper.find('#cooklang-text').setValue('Ajouter @sel.')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Texte Cooklang illisible')
+  })
 })
