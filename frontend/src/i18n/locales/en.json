@@ -18,7 +18,8 @@
     "adminThematicPages": "Thematic pages",
     "administration": "Administration",
     "adminIngredients": "Ingredients",
-    "language": "Language: {name}"
+    "language": "Language: {name}",
+    "blog": "Blog"
   },
   "common": {
     "loading": "Loading...",
@@ -264,7 +265,80 @@
     "hide": "Hide",
     "unhide": "Unhide",
     "hideError": "Could not update this comment.",
-    "hiddenBadge": "hidden"
+    "hiddenBadge": "hidden",
+    "closed": "Comments are closed for this post."
+  },
+  "blog": {
+    "title": "Blog",
+    "intro": "Stories, menus and tips from the community, with Cocotte recipes along the way.",
+    "newPost": "Write a post",
+    "empty": "No posts yet.",
+    "byline": "By {author} · {date}",
+    "updatedOn": "updated on {date}",
+    "loadError": "Could not load this post.",
+    "deleteConfirm": "Delete this post? This cannot be undone.",
+    "deleteError": "Could not delete this post.",
+    "commentPlaceholder": "What did you think of this post...",
+    "form": {
+      "newTitle": "Write a post",
+      "editTitle": "Edit post",
+      "title": "Title",
+      "content": "Content",
+      "commentsEnabled": "Allow comments",
+      "guidelinesTitle": "Before publishing",
+      "guidelinesRespect": "No racist, sexist, homophobic, transphobic or otherwise discriminatory language, and no hateful or harassing content.",
+      "guidelinesCopyright": "Texts and images must respect copyright: only publish your own, or content you are allowed to reuse (and credit its author).",
+      "acceptGuidelines": "My post follows these rules",
+      "guidelinesRequired": "Please confirm that your post follows the publishing rules.",
+      "emptyContent": "Your post is empty.",
+      "saveError": "Could not save this post.",
+      "publish": "Publish",
+      "cover": "Cover image",
+      "addCover": "Add a cover image",
+      "changeCover": "Change the image",
+      "removeCover": "Remove",
+      "coverHint": "Shown at the top of the post and on its card. Without one, the first image of the text is used on the card."
+    },
+    "editor": {
+      "toolbar": "Formatting",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "heading2": "Heading",
+      "heading3": "Subheading",
+      "bulletList": "Bulleted list",
+      "orderedList": "Numbered list",
+      "quote": "Quote",
+      "link": "Link",
+      "linkPrompt": "Link URL (leave empty to remove the link)",
+      "image": "Insert an image",
+      "imageUploading": "Uploading image...",
+      "imageUploadError": "Could not upload this image.",
+      "recipe": "Recipe",
+      "recipeShortcut": "Insert a Cocotte recipe: {shortcut}",
+      "recipeModalTitle": "Insert a recipe",
+      "recipeModalLabel": "Search for a recipe",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "embed": {
+      "kicker": "Cocotte recipe",
+      "servings": "{count} serving | {count} servings",
+      "view": "View the recipe",
+      "unavailable": "This recipe is no longer available."
+    },
+    "noResults": "No post matches these filters.",
+    "editNamed": "Edit “{title}”",
+    "deleteNamed": "Delete “{title}”",
+    "deleteNamedConfirm": "Delete the post “{title}”? This cannot be undone.",
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Title, text or author...",
+      "author": "Author",
+      "allAuthors": "All authors",
+      "noAuthor": "No author found.",
+      "authorChip": "By {author}"
+    }
   },
   "ratings": {
     "average": "{value} ★ ({count})",
@@ -296,7 +370,9 @@
     "heroEyebrowAuth": "{greeting}, {name} — today's pick",
     "heroEyebrowGuest": "{greeting} — today's pick",
     "planForLater": "Plan for later",
-    "planRecipeTitle": "Plan “{title}”"
+    "planRecipeTitle": "Plan “{title}”",
+    "latestPosts": "Latest blog posts",
+    "seeAllPosts": "See all posts"
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",

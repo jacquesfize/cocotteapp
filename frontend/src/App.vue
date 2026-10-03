@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import NavBar from './components/shared/NavBar.vue'
 import OfflineIndicator from './components/shared/OfflineIndicator.vue'
+
+const route = useRoute()
 </script>
 
 <template>
-  <NavBar />
-  <OfflineIndicator />
-  <main class="container">
-    <RouterView />
-  </main>
-  <footer class="site-footer">
-    <RouterLink :to="{ name: 'legal' }">{{ $t('legal.footerLegal') }}</RouterLink>
-    <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
-  </footer>
+  <RouterView v-if="route.meta.embed" />
+  <template v-else>
+    <NavBar />
+    <OfflineIndicator />
+    <main class="container">
+      <RouterView />
+    </main>
+    <footer class="site-footer">
+      <RouterLink :to="{ name: 'legal' }">{{ $t('legal.footerLegal') }}</RouterLink>
+      <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
+    </footer>
+  </template>
 </template>
 
 <style scoped>

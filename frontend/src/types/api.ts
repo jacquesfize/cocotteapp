@@ -21,6 +21,12 @@ export interface RecipeListParams {
   page_size?: number
 }
 
+export interface BlogPostListParams {
+  author?: number
+  search?: string
+  page?: number
+}
+
 export interface IngredientListParams {
   category?: string
   in_season?: boolean

@@ -36,4 +36,5 @@ def delete_account(user, keep_recipes=False):
         user.recipes.filter(is_public=True).update(author=anonymous)
     # Les commentaires survivent à la suppression (SET_NULL) : on retire le nom d'affichage.
     user.recipe_comments.update(author_name=ANONYMOUS_NAME)
+    user.blog_comments.update(author_name=ANONYMOUS_NAME)
     user.delete()

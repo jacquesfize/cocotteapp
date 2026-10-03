@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { expect, test, type Page } from '../e2e/fixtures'
 import { CAMILLE, isoDate, obtainTokens, seedDemoData, type DemoData } from './demoData'
 import { loginWithTokens, settle, shotAround, shotElement, shotPage } from './shots'
@@ -257,6 +259,62 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await shotPage(page, 'offline-banner')
     await context.setOffline(false)
     await expect(page.locator('.offline-banner')).toBeHidden()
+  })
+
+  await test.step('blog', async () => {
+    // Article créé via l'API au nom de Camille : supprimé avec son compte au nettoyage.
+    const headers = { Authorization: `Bearer ${data.camilleToken}` }
+    const embed = (id: number, title: string) =>
+      `<iframe src="/embed/recipes/${id}" data-cocotte-recipe="${id}" title="${title}"></iframe>`
+    const response = await page.request.post('/api/blog/posts/', {
+      headers,
+      data: {
+        title: 'An autumn Sunday menu',
+        content:
+          '<p>The first cold weekend calls for the oven. Here is what I cooked for six, all of it ' +
+          'prepared ahead so I could enjoy the afternoon.</p>' +
+          '<h2>The main course</h2><p>A <strong>creamy gratin</strong>, assembled the night before:</p>' +
+          embed(data.recipes.gratin, 'Creamy sweet potato gratin') +
+          '<h2>On the side</h2><p>A big pot of ratatouille, even better reheated the next day.</p>' +
+          embed(data.recipes.ratatouille, 'Provençal ratatouille') +
+          '<blockquote>Tip: double the ratatouille and freeze half of it.</blockquote>',
+        comments_enabled: true,
+      },
+    })
+    const post = await response.json()
+    // Même photo de légumes que la page thématique "Produits de saison" du seed.
+    const cover = fileURLToPath(
+      new URL(
+        '../../../backend/apps/recipes/management/commands/seed_data/thematic_pages/produits-de-saison.jpg',
+        import.meta.url,
+      ),
+    )
+    await page.request.patch(`/api/blog/posts/${post.id}/cover/`, {
+      headers,
+      multipart: { cover_image: { name: 'cover.jpg', mimeType: 'image/jpeg', buffer: readFileSync(cover) } },
+    })
+    await page.request.post(`/api/blog/posts/${post.id}/comments/`, {
+      data: { author_name: 'Alex', body: 'Lovely menu, the gratin is now a regular at home!' },
+    })
+
+    // Liste filtrée sur Camille : stable quels que soient les autres articles de l'instance.
+    await page.goto(`/blog?author=${post.author_id}`)
+    await expect(page.locator('.blog-card')).toHaveCount(1)
+    await expect(page.locator('.active-filters--desktop .filter-chip')).toBeVisible()
+    await shotPage(page, 'blog-list')
+
+    await page.goto(`/blog/${post.id}`)
+    const cards = page.frameLocator('iframe[data-cocotte-recipe]').first().getByTestId('recipe-embed-card')
+    await expect(cards).toBeVisible()
+    await expect(page.locator('.comment').first()).toBeVisible()
+    await shotPage(page, 'blog-post', { fullPage: true })
+
+    await page.goto(`/blog/${post.id}/edit`)
+    await expect(page.getByLabel('Title')).toHaveValue('An autumn Sunday menu')
+    await expect(
+      page.frameLocator('.tiptap iframe[data-cocotte-recipe]').first().getByTestId('recipe-embed-card'),
+    ).toBeVisible()
+    await shotPage(page, 'blog-editor', { fullPage: true })
   })
 
   await test.step('account', async () => {

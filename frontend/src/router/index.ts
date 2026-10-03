@@ -5,6 +5,8 @@ declare module 'vue-router' {
   interface RouteMeta {
     public?: boolean
     requiresStaff?: boolean
+    // Rendered alone (no navbar/footer), to be displayed inside an <iframe>.
+    embed?: boolean
   }
 }
 
@@ -71,6 +73,37 @@ const routes: RouteRecordRaw[] = [
     name: 'recipe-edit',
     component: () => import('../views/recipes/RecipeFormView.vue'),
     props: true,
+  },
+  {
+    path: '/blog',
+    name: 'blog',
+    component: () => import('../views/blog/BlogListView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/blog/new',
+    name: 'blog-new',
+    component: () => import('../views/blog/BlogPostFormView.vue'),
+  },
+  {
+    path: '/blog/:id',
+    name: 'blog-detail',
+    component: () => import('../views/blog/BlogPostDetailView.vue'),
+    props: true,
+    meta: { public: true },
+  },
+  {
+    path: '/blog/:id/edit',
+    name: 'blog-edit',
+    component: () => import('../views/blog/BlogPostFormView.vue'),
+    props: true,
+  },
+  {
+    path: '/embed/recipes/:id',
+    name: 'recipe-embed',
+    component: () => import('../views/embed/RecipeEmbedView.vue'),
+    props: true,
+    meta: { public: true, embed: true },
   },
   {
     path: '/planning',

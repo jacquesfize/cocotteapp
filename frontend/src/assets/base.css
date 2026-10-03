@@ -341,3 +341,39 @@ input[type='checkbox'] {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
 }
+
+/* Contenu d'un article de blog : partagé par l'éditeur (BlogEditor.vue) et la lecture
+   (BlogContent.vue), pour que l'aperçu en cours d'écriture corresponde au rendu final. */
+.blog-prose {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.blog-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+  border-radius: 14px;
+}
+
+.blog-prose iframe[data-cocotte-recipe] {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: 140px;
+  margin: 1rem auto;
+  border: none;
+  border-radius: 16px;
+}
+
+.blog-prose blockquote {
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  border-left: 4px solid var(--color-primary-soft);
+  color: var(--color-muted);
+}
+
+.blog-prose a {
+  color: var(--color-primary-dark);
+}

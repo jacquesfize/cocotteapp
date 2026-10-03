@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { Clock, Compass, Leaf, Link2, Users } from '@lucide/vue'
+import { Clock, Compass, Leaf, Link2, Newspaper, Users } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AddToPlanForm from '../components/planning/AddToPlanForm.vue'
+import BlogPostCard from '../components/blog/BlogPostCard.vue'
 import BaseModal from '../components/shared/BaseModal.vue'
 import HomeWeekStrip from '../components/planning/HomeWeekStrip.vue'
 import ImageWithCredit from '../components/shared/ImageWithCredit.vue'
 import RecipeCard from '../components/recipes/RecipeCard.vue'
 import AsyncState from '../components/shared/AsyncState.vue'
+import { listBlogPosts } from '../api/blog'
 import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { listThematicPages } from '../api/thematicPages'
@@ -16,7 +18,7 @@ import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { setPendingImportDraft } from '../utils/pendingImportDraft'
 import { recipeImageUrl } from '../utils/recipeImageUrl'
-import type { Recipe, ThematicPage } from '../types/models'
+import type { BlogPostSummary, Recipe, ThematicPage } from '../types/models'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -27,6 +29,7 @@ const authStore = useAuthStore()
 const latestRecipes = ref<Recipe[]>([])
 const thematicPages = ref<ThematicPage[]>([])
 const seasonalRecipes = ref<Recipe[]>([])
+const latestPosts = ref<BlogPostSummary[]>([])
 
 const isLoading = ref(true)
 const loadError = ref(false)
@@ -101,10 +104,11 @@ const heroEyebrow = computed(() => {
 })
 
 onMounted(async () => {
-  const [recipesRes, pagesRes, seasonRes] = await Promise.allSettled([
+  const [recipesRes, pagesRes, seasonRes, postsRes] = await Promise.allSettled([
     listRecipes(),
     listThematicPages(),
     listRecipes({ in_season: true }),
+    listBlogPosts(),
   ])
   if (recipesRes.status === 'fulfilled') {
     latestRecipes.value = recipesRes.value.results.slice(0, 5)
@@ -118,6 +122,7 @@ onMounted(async () => {
     const shown = new Set(latestRecipes.value.map((recipe) => recipe.id))
     seasonalRecipes.value = seasonRes.value.results.filter((recipe) => !shown.has(recipe.id)).slice(0, 4)
   }
+  if (postsRes.status === 'fulfilled') latestPosts.value = postsRes.value.results.slice(0, 3)
   isLoading.value = false
 })
 
@@ -337,6 +342,21 @@ async function handleImport() {
         </div>
       </section>
     </div>
+
+    <section v-if="latestPosts.length" class="card home-blog" data-testid="home-latest-posts">
+      <div class="row home-panel-header">
+        <h2><Newspaper :size="20" class="home-panel-icon" aria-hidden="true" />{{ $t('home.latestPosts') }}</h2>
+        <RouterLink
+          :to="{ name: 'blog' }"
+          class="home-panel-see-all"
+          :aria-label="$t('home.seeAllPosts')"
+          :title="$t('home.seeAllPosts')"
+        >+</RouterLink>
+      </div>
+      <div class="home-blog-grid">
+        <BlogPostCard v-for="post in latestPosts" :key="post.id" :post="post" compact />
+      </div>
+    </section>
   </div>
 </template>
 
@@ -748,6 +768,16 @@ async function handleImport() {
 .home-panel-see-all:hover {
   background: var(--color-primary);
   color: var(--color-on-primary);
+}
+
+.home-blog {
+  margin-bottom: 2rem;
+}
+
+.home-blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
 .recipe-grid {

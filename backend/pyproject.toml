@@ -17,6 +17,7 @@ dependencies = [
     "requests==2.34.2",
     "beautifulsoup4==4.15.0",
     "cooklang-py==1.0.1",
+    "nh3==0.3.7",
 ]
 
 [project.optional-dependencies]

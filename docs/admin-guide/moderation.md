@@ -1,6 +1,7 @@
 # Moderation
 
-This page covers the content-related duties of a staff member: moderating recipe comments,
+This page covers the content-related duties of a staff member: moderating recipe and blog comments
+and blog posts,
 understanding recipe visibility and the protection of imported (possibly copyrighted) recipes,
 exporting the whole recipe base, and answering users' personal-data requests.
 
@@ -19,12 +20,13 @@ hiding comments.
 | Who | Can hide and unhide | Sees hidden comments |
 |---|---|---|
 | The recipe's author | Comments on their own recipes | On their own recipes |
-| Staff | Comments on every recipe | Everywhere |
+| The blog post's author | Comments on their own posts | On their own posts |
+| Staff | Comments on every recipe and post | Everywhere |
 | Everyone else | No | No |
 
 ### Hide a comment
 
-1. Open the recipe and scroll to the **Comments** section.
+1. Open the recipe (or blog post) and scroll to the **Comments** section.
 2. Click **Hide** under the comment.
 
 The comment disappears for everyone else. You and the recipe's author still see it, marked
@@ -40,6 +42,31 @@ personal data someone asks you to erase), use the [Django admin](django-admin.md
 1. Go to `/django-admin/` and open **Recipes** > **Recipe comments**.
 2. Search by author name, comment text or recipe title, or filter on the hidden status.
 3. Tick the comments, choose the delete action in the action menu, and confirm.
+
+Blog post comments follow the same rules and the same rate limit. Their author can also turn
+comments off for a post (**Allow comments** in the post form): no new comment can then be posted,
+and the existing ones stay visible. Delete blog comments in the Django admin under **Blog** >
+**Blog post comments**.
+
+## Blog posts
+
+Any logged-in user can publish a [blog post](../user-guide/blog.md), immediately: there is no
+pre-moderation either. The post form displays the publishing rules (no discriminatory, hateful
+or harassing content; texts and images must respect copyright) and the author must confirm them
+on every save.
+
+As staff, you see **Edit** and **Delete** on every post, in the blog list and on the post itself. If a post breaks the rules, or a rights
+holder complains about a text or picture, edit out the problem or delete the post (its comments
+go with it). The Django admin (**Blog** > **Blog posts**) lists posts with their author and dates,
+searchable by title or author.
+
+The post content is HTML, cleaned by the server on every save: scripts, styles, event handlers
+and any embedded frame other than a Cocotte recipe card are removed, so a post can't run code in
+its readers' browsers. Pictures uploaded from the editor are stored under `media/blog/` and are
+listed in the Django admin under **Blog** > **Blog images**; they are not deleted when the post
+using them is. Cover images (`media/blog/covers/`) belong to their post: replace or remove one with
+**Edit** on the post, and the file is deleted with the post (also from the Django admin or when the
+author's account is deleted).
 
 ## Recipe visibility
 
@@ -127,8 +154,9 @@ Users can serve most requests themselves from **My account** (see
 ### Access and portability
 
 **Export my data** > **Download the archive** gives the user a ZIP with their profile
-(`profil.json`), recipes (`recettes.json`), planner (`agenda.json`) and shopping lists
-(`listes_de_courses.json`). **Export my recipes** gives a re-importable archive of their recipes
+(`profil.json`), recipes (`recettes.json`), planner (`agenda.json`), shopping lists
+(`listes_de_courses.json`), blog posts (`articles_blog.json`) and blog comments
+(`commentaires_blog.json`). **Export my recipes** gives a re-importable archive of their recipes
 with images.
 
 Only the user can generate these exports for their own account; there is no staff button to
@@ -142,14 +170,14 @@ records in the [Django admin](django-admin.md).
 - A staff member can delete the account from the **Users** page (see
   [Delete an account](users.md#delete-an-account)).
 
-Either way, the account, its recipes (with their comments), planner, shopping lists, allergies
-and planner shares are deleted immediately.
+Either way, the account, its recipes (with their comments), blog posts (with their comments),
+planner, shopping lists, allergies and planner shares are deleted immediately.
 
 > [!IMPORTANT]
-> Comments the user posted on **other people's** recipes survive account deletion: they are
-> detached from the account but keep the display name the user typed. For a complete erasure,
-> search for that name in **Recipes** > **Recipe comments** in the Django admin and delete the
-> comments. The same search handles requests from people who commented without an account.
+> Comments the user posted on **other people's** recipes and blog posts survive account deletion:
+> they are detached from the account but keep the display name the user typed. For a complete
+> erasure, search for that name in **Recipes** > **Recipe comments** and **Blog** > **Blog post
+> comments** in the Django admin and delete the comments. The same search handles requests from people who commented without an account.
 
 Deleted data remains in your database backups until they expire. Mention this retention in your
 answer to the user, and in your privacy policy if you publish one.
