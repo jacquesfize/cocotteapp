@@ -172,6 +172,8 @@ class ExportDataView(APIView):
         shares_received = PlanningShare.objects.filter(shared_with=user).select_related("owner")
         comments = user.recipe_comments.select_related("recipe")
         ratings = user.recipe_ratings.select_related("recipe")
+        blog_posts = user.blog_posts.all()
+        blog_comments = user.blog_comments.select_related("post")
 
         profile = UserSerializer(user).data
         profile["health_data_consent_version"] = user.health_data_consent_version
@@ -192,6 +194,14 @@ class ExportDataView(APIView):
             "commentaires.json": [
                 {"recette": c.recipe.title, "nom_affiche": c.author_name, "texte": c.body, "date": c.created_at}
                 for c in comments
+            ],
+            "articles_blog.json": [
+                {"titre": p.title, "contenu_html": p.content, "creation": p.created_at, "modification": p.updated_at}
+                for p in blog_posts
+            ],
+            "commentaires_blog.json": [
+                {"article": c.post.title, "nom_affiche": c.author_name, "texte": c.body, "date": c.created_at}
+                for c in blog_comments
             ],
             "notes.json": [
                 {"recette": r.recipe.title, "note": r.value, "date": r.updated_at} for r in ratings

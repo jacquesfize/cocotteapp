@@ -164,7 +164,8 @@ the new password.
 ### Export my data
 
 Click **Download the archive** to get a ZIP file (`cocotte-donnees-YYYY-MM-DD.zip`) containing
-JSON files with your profile, your recipes, your planner entries and your shopping lists. Use it
+JSON files with your profile, your recipes, your planner entries, your shopping lists, your blog
+posts and your comments. Use it
 as a personal backup or to see what Cocotte stores about you.
 
 ![The Export my data, Share or back up my recipes, Share my agenda and Danger zone cards, with the option to keep public recipes](../assets/screenshots/account-data.png)
@@ -208,7 +209,7 @@ See [Meal planning](planning.md#shared-agendas).
 ### Danger zone: delete my account
 
 Click **Delete my account** and confirm. This **permanently** deletes your account, your
-planner and your shopping lists, and by default your recipes. It cannot be undone.
+planner, your shopping lists and your blog posts, and by default your recipes. It cannot be undone.
 
 Tick **Keep my public recipes, published under the name "Utilisateur supprimé"** first if you want
 your public recipes to stay available to others (including people who planned them). They are then

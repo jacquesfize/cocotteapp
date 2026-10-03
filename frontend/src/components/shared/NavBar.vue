@@ -95,6 +95,14 @@ onBeforeUnmount(() => {
           </svg>
           <span>{{ $t('nav.recipes') }}</span>
         </RouterLink>
+        <RouterLink to="/blog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 4.5h11a2 2 0 0 1 2 2V19a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 19V4.5Z" />
+            <path d="M18 9h1.5a.5.5 0 0 1 .5.5V19a1.5 1.5 0 0 1-3 0" />
+            <path d="M8 8.5h7M8 12h7M8 15.5h4" />
+          </svg>
+          <span>{{ $t('nav.blog') }}</span>
+        </RouterLink>
         <template v-if="authStore.isAuthenticated">
           <RouterLink to="/planning">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -264,6 +272,14 @@ onBeforeUnmount(() => {
         <path d="M20 5.5c-2-1-4.5-1-6.5 0v13c2-1 4.5-1 6.5 0v-13Z" />
       </svg>
       <span>{{ $t('nav.recipes') }}</span>
+    </RouterLink>
+    <RouterLink to="/blog" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 4.5h11a2 2 0 0 1 2 2V19a1.5 1.5 0 0 1-1.5 1.5H6.5A1.5 1.5 0 0 1 5 19V4.5Z" />
+        <path d="M18 9h1.5a.5.5 0 0 1 .5.5V19a1.5 1.5 0 0 1-3 0" />
+        <path d="M8 8.5h7M8 12h7M8 15.5h4" />
+      </svg>
+      <span>{{ $t('nav.blog') }}</span>
     </RouterLink>
     <RouterLink to="/recipes/random" class="tab-item">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -605,9 +621,11 @@ onBeforeUnmount(() => {
     color: var(--color-muted);
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 0.3rem 0.5rem;
+    padding: 0.3rem 0.15rem;
     border-radius: 12px;
     flex: 1;
+    min-width: 0;
+    white-space: nowrap;
   }
 
   .tab-item svg {

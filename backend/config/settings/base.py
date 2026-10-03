@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apps.planning",
     "apps.shopping",
     "apps.importer",
+    "apps.blog",
 ]
 
 MIDDLEWARE = [

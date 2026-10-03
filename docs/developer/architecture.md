@@ -60,6 +60,7 @@ view/serializer lives in the app's `services.py`, or in a dedicated module for l
 | `planning` | `MealPlanEntry`, planner sharing, weekly nutrition summary, week PDF, calendar export | `ics.py` (iCalendar), `CalendarFeedToken` |
 | `shopping` | `ShoppingList` generated from planner entries | `services.py` (aggregation, owned items, text export) |
 | `importer` | Recipe import from a URL (preview only, nothing written) | `services.py` (scraping, free image search via Openverse), `ingredient_parsing.py` |
+| `blog` | `BlogPost` (HTML content written in a WYSIWYG editor), its comments, images uploaded from the editor | `sanitize.py` (server-side HTML allow-list, see [Blog posts](#blog-posts)) |
 
 All app URLs are mounted under `/api/` in `config/urls.py`. JWT endpoints
 (`/api/auth/token/`, `/api/auth/token/refresh/`) are wired directly there with SimpleJWT views,
@@ -82,6 +83,8 @@ erDiagram
     Recipe |o--o{ Recipe : "root_recipe (versions)"
     Recipe ||--o{ RecipeComment : "receives"
     User |o--o{ RecipeComment : "optionally posted by"
+    User ||--o{ BlogPost : "writes"
+    BlogPost ||--o{ BlogPostComment : "receives"
     User ||--o{ MealPlanEntry : "plans"
     Recipe ||--o{ MealPlanEntry : "scheduled as"
     User ||--o{ PlanningShare : "owner"
@@ -187,6 +190,35 @@ A few rules worth knowing:
 - **Planner sharing**: `MealPlanEntryViewSet` accepts an `?owner=` parameter resolved through a
   single helper that checks the `PlanningShare` permission; entries created through a write
   share belong to the planner's owner.
+
+### Blog posts
+
+A post's `content` is HTML produced by the frontend editor
+([TipTap](https://tiptap.dev/), `components/blog/BlogEditor.vue`) and rendered with `v-html`
+(`components/blog/BlogContent.vue`). The API is therefore the only barrier against stored XSS:
+`BlogPostSerializer.validate_content` runs it through `apps/blog/sanitize.py`
+([nh3](https://nh3.readthedocs.io/)), a tag/attribute allow-list where `<img src>` must be
+`http(s)://` or `/media/…` and the only `<iframe>` kept is a recipe embed whose `src` is exactly
+`/embed/recipes/<id>`. Extend the allow-list there, and in the editor's extensions, together.
+
+A recipe embed is a custom TipTap node (`components/blog/recipeEmbed.ts`, an atom block node
+with an `insertRecipeEmbed` command and the `Mod-Alt-r` shortcut) serialised as
+`<iframe data-cocotte-recipe="<id>" src="/embed/recipes/<id>">`. That route renders
+`views/embed/RecipeEmbedView.vue` with `meta.embed` (no navbar or footer, see `App.vue`); the
+view posts its height to the parent window (`utils/embedMessages.ts`), and
+`composables/useEmbedAutoHeight.ts` resizes the matching iframe, same origin only.
+
+The list (`views/blog/BlogListView.vue`) follows the recipe list pattern: `search`/`author`/
+`page` synced with the URL query string, and a `components/blog/BlogFilters.vue` panel that
+mirrors `RecipeFilters.vue`, fed by `GET /api/blog/posts/authors/` (users with at least one post).
+`?search=` matches the title, the HTML content and the author's username.
+The optional `cover_image` is a model field set with a separate multipart
+`PATCH`/`DELETE /api/blog/posts/{id}/cover/` (the form uploads it after saving the post); in the
+list, `cover_image` falls back to the first `<img>` of the content.
+
+Comments reuse the recipe comment rules (anonymous posting, `comment_create` throttle, hiding by
+the post's author or staff) and the same `components/shared/CommentThread.vue`, which takes the
+list/create/hide API calls as props.
 
 ### Recipe import paths
 
@@ -330,10 +362,14 @@ sequenceDiagram
 
 ### Routing
 
-`src/router/index.ts` uses two route-meta flags checked in a single global `beforeEach`:
+`src/router/index.ts` uses route-meta flags, the first two checked in a single global
+`beforeEach`:
 
 - `meta.public`: the route is reachable without being logged in (home, recipe list and detail,
-  random recipe, login/register, password reset). Everything else redirects to `/login`.
+  random recipe, blog list and posts, recipe embeds, login/register, password reset). Everything
+  else redirects to `/login`.
+- `meta.embed`: the route is meant to be shown inside an `<iframe>` (`/embed/recipes/:id`), so
+  `App.vue` renders it without the navbar, offline indicator and footer.
 - `meta.requiresStaff`: staff-only pages (`/admin/users`, `/admin/thematic-pages`,
   `/admin/ingredients`). This is a client-side hint only, to avoid flashing a page before
   redirecting: the API itself enforces staff-only access.

@@ -51,6 +51,16 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Planner: removing a meal shows an **Undo** message for a few seconds.
 - Recipe list: a **Recipes per page** selector below the list shows 10, 20 or 50 recipes per
   page. The choice is kept in the page address and remembered in the browser.
+- **Blog**: a new **Blog** section (top bar and phone tab bar) where any logged-in user can
+  **Write a post**, with an optional cover image, using a rich-text editor (headings, lists,
+  quotes, links, uploaded pictures) and embed Cocotte recipes in the text as clickable cards, with
+  the **Recipe** button or **Ctrl+Alt+R** (**⌘ ⌥ R** on a Mac). Everyone can read posts and comment
+  on them; the author can turn comments off with **Allow comments**. Before publishing, the form recalls the rules (no
+  discriminatory or hateful language, texts and images must respect copyright) and asks to
+  confirm them. The blog list has **Search** and **Author** filters, laid out like the recipe
+  list's, and **Edit** / **Delete** buttons on your own posts. The home page shows the **Latest
+  blog posts**. Blog posts and comments are included in **Export my data** and deleted with the
+  account.
 
 ## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 

@@ -48,6 +48,11 @@ From top to bottom:
     recipes made only of ingredients that are in season this month. The **+** button opens the
     full list with the in-season filter on.
 
+**Latest blog posts**
+:   The three most recent [blog posts](blog.md), with their cover image, title, author, date and first
+    lines. Click one to read it; the **+** button opens the blog. The card is hidden while the
+    blog has no post.
+
 ![The home page for a visitor, with the Sign up button](../assets/screenshots/home-public.png)
 
 ## The recipe list

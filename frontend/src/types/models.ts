@@ -134,9 +134,8 @@ export interface RecipeVersion {
   author: string
 }
 
-export interface RecipeComment {
+export interface Comment {
   id: number
-  recipe: number
   author_name: string
   username: string | null
   body: string
@@ -144,9 +143,62 @@ export interface RecipeComment {
   created_at: string
 }
 
-export interface RecipeCommentInput {
+export interface CommentInput {
   author_name?: string
   body: string
+}
+
+export interface RecipeComment extends Comment {
+  recipe: number
+}
+
+export type RecipeCommentInput = CommentInput
+
+export interface BlogPostComment extends Comment {
+  post: number
+}
+
+/** A blog post as listed by `GET /api/blog/posts/`: no HTML content, an excerpt instead. */
+export interface BlogPostSummary {
+  id: number
+  title: string
+  author: string
+  author_id: number
+  excerpt: string
+  cover_image: string | null
+  comments_enabled: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface BlogPost {
+  id: number
+  title: string
+  author: string
+  author_id: number
+  /** HTML, sanitized server-side. */
+  content: string
+  cover_image: string | null
+  comments_enabled: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface BlogAuthor {
+  id: number
+  username: string
+}
+
+export interface BlogPostInput {
+  title: string
+  content: string
+  comments_enabled: boolean
+}
+
+export interface BlogImage {
+  id: number
+  image: string
+  created_at: string
 }
 
 export interface Recipe {

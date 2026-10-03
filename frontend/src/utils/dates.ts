@@ -19,3 +19,8 @@ export function toISODate(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
+/** "3 October 2026" / "3 octobre 2026", in the given UI locale. */
+export function formatLongDate(value: Date | string, locale: string): string {
+  return new Date(value).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
+}

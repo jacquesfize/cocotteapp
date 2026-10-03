@@ -95,8 +95,8 @@ Daily cron entry:
 Deleting an account (by the user in **My account**, or by staff in [Users](users.md)) can keep
 the account's **public** recipes: they are reassigned to a shared, inactive account named
 "Utilisateur supprimé" (`deleted-user@cocotte.invalid`) that cannot log in and is never purged.
-Private recipes, planner entries, shopping lists and ratings are always deleted, and comments
-left by the user lose their display name.
+Private recipes, blog posts, planner entries, shopping lists and ratings are always deleted, and
+comments left by the user (on recipes and blog posts) lose their display name.
 
 > [!NOTE]
 > The anonymisation covers the author. Free-text fields the user typed themselves, such as an
@@ -106,7 +106,8 @@ left by the user lose their display name.
 
 **Export my data** contains `profil.json` (including consent date and policy version and last
 login), `recettes.json`, `agenda.json`, `listes_de_courses.json`, `partages_agenda.json`
-(agendas shared by or with the user), `commentaires.json` and `notes.json`.
+(agendas shared by or with the user), `commentaires.json`, `articles_blog.json` (blog posts, with
+their HTML content), `commentaires_blog.json` and `notes.json`.
 
 ## What remains your responsibility
 

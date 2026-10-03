@@ -150,6 +150,21 @@ edit tags through the API, so the list may need occasional cleaning.
 - `filters` is edited as raw JSON; see
   [Advanced filters](thematic-pages.md#advanced-filters) for the accepted keys.
 
+### Blog
+
+**Blog posts**.
+
+- List columns: title, author, creation and last-modification dates, comments enabled.
+- The form also shows the **Cover image** (stored under `media/blog/covers/`).
+- List filter: comments enabled. Search: title, author's username.
+- `content` is the post's HTML. It is cleaned by the API on save, **not** by the Django admin:
+  avoid editing it here, use **Edit** on the post in the app instead.
+
+**Blog post comments**. Same columns, filter and search as **Recipe comments** (with the post
+title instead of the recipe title). This is where blog comments are deleted.
+
+**Blog images**. Pictures uploaded from the post editor, with their owner and upload date.
+
 ### Shopping
 
 **Shopping lists**. Name, owner and creation date, with the list items as an inline. Useful for

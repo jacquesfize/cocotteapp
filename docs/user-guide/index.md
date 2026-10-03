@@ -19,6 +19,7 @@ From left to right:
 | **Cocotte** logo | Back to the home page. |
 | **Home** | The home page: latest recipes, your week, thematic shortcuts, seasonal recipes. See [Browsing recipes](browsing-recipes.md#the-home-page). |
 | **Recipes** | The full recipe list with search and filters. |
+| **Blog** | Posts written by the community, with recipes embedded in them. See [Blog](blog.md). |
 | **Planner** | Your meal planner. *Logged-in users only.* See [Meal planning](planning.md). |
 | **Shopping** | Your shopping lists. *Logged-in users only.* See [Shopping lists](shopping-lists.md). |
 | Dice button (**Surprise me**) | Opens a random recipe. See [Random recipe](browsing-recipes.md#random-recipe). |
@@ -69,7 +70,7 @@ You can also change the **accent colour** of the app in **My account** → **App
 On narrow screens (up to 600 px wide), the text links and the dice button move out of the top
 bar into a **tab bar at the bottom of the screen**:
 
-- **Home**, **Recipes** and **Surprise me** for everyone,
+- **Home**, **Recipes**, **Blog** and **Surprise me** for everyone,
 - **Planner** and **Shopping** when you are logged in.
 
 The top bar keeps the logo, the language, theme and account buttons.
@@ -91,6 +92,8 @@ You can use part of Cocotte without an account. The login page has a
 | Read a recipe, its nutrition facts and carbon footprint | ✅ | ✅ |
 | Download a recipe as PDF | ✅ | ✅ |
 | Read and post comments (visitors must enter a name) | ✅ | ✅ |
+| Read blog posts | ✅ | ✅ |
+| Write blog posts | — | ✅ |
 | Create, import, edit and delete your own recipes | — | ✅ |
 | Create a variant of a recipe | — | ✅ |
 | Add a recipe to the planner, use the planner | — | ✅ |
@@ -112,3 +115,4 @@ page. After you log in, you land back on the page you asked for.
 - [Browsing recipes](browsing-recipes.md): find and read recipes.
 - [Creating recipes](creating-recipes.md): add your own.
 - [Meal planning](planning.md) and [Shopping lists](shopping-lists.md): plan the week and shop.
+- [Blog](blog.md): read and write posts, with recipes embedded in them.

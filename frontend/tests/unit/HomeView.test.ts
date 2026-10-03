@@ -7,16 +7,20 @@ import { i18n } from '../../src/i18n'
 vi.mock('../../src/api/recipes', () => ({
   listRecipes: vi.fn(),
 }))
+vi.mock('../../src/api/blog', () => ({
+  listBlogPosts: vi.fn().mockResolvedValue({ count: 0, next: null, previous: null, results: [] }),
+}))
 vi.mock('../../src/api/thematicPages', () => ({
   listThematicPages: vi.fn(),
 }))
 
+import { listBlogPosts } from '../../src/api/blog'
 import { listRecipes } from '../../src/api/recipes'
 import { listThematicPages } from '../../src/api/thematicPages'
 import BaseModal from '../../src/components/shared/BaseModal.vue'
 import HomeView from '../../src/views/HomeView.vue'
 import { useAuthStore } from '../../src/stores/auth'
-import type { Recipe } from '../../src/types/models'
+import type { BlogPostSummary, Recipe } from '../../src/types/models'
 
 const weekStripReload = vi.fn()
 
@@ -69,6 +73,37 @@ beforeEach(() => {
 })
 
 describe('HomeView', () => {
+  it('lists the 3 latest blog posts with a link to the blog', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe(1)], count: 1, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+    const posts = [1, 2, 3, 4].map(
+      (id) => ({ id, title: `Article ${id}`, author: 'chef', author_id: 1, excerpt: '', cover_image: null, created_at: '2026-10-01T10:00:00Z' }) as BlogPostSummary,
+    )
+    vi.mocked(listBlogPosts).mockResolvedValueOnce({ results: posts, count: 4, next: null, previous: null })
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    const section = wrapper.find('[data-testid="home-latest-posts"]')
+    expect(section.text()).toContain('Derniers articles du blog')
+    expect(section.findAll('.blog-card').map((card) => card.find('h3').text())).toEqual([
+      'Article 1',
+      'Article 2',
+      'Article 3',
+    ])
+    expect(section.findAll('a').some((a) => a.attributes('data-to') === JSON.stringify({ name: 'blog' }))).toBe(true)
+  })
+
+  it('hides the blog section when there is no post', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe(1)], count: 1, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="home-latest-posts"]').exists()).toBe(false)
+  })
+
   it('shows the hero recipe, a dot per latest recipe, and thematic pages as links to filtered lists', async () => {
     vi.mocked(listRecipes).mockImplementation(async (params) => ({
       results: params?.in_season ? [] : Array.from({ length: 8 }, (_, i) => recipe(i + 1)),

@@ -151,6 +151,8 @@ def test_export_data_returns_a_zip_scoped_to_the_user():
         "listes_de_courses.json",
         "partages_agenda.json",
         "commentaires.json",
+        "articles_blog.json",
+        "commentaires_blog.json",
         "notes.json",
     }
     recettes_json = archive.read("recettes.json").decode("utf-8")
@@ -540,6 +542,23 @@ def test_export_includes_consent_shares_comments_and_ratings():
     assert shares["donnes"][0]["avec"] == "friend@example.com"
     assert json.loads(archive.read("commentaires.json"))[0]["texte"] == "Bon"
     assert json.loads(archive.read("notes.json"))[0]["note"] == 4
+
+
+@pytest.mark.django_db
+def test_export_includes_blog_posts_and_blog_comments():
+    from apps.blog.factories import BlogPostCommentFactory, BlogPostFactory
+
+    user = UserFactory()
+    BlogPostFactory(author=user, title="Mon article")
+    BlogPostCommentFactory(user=user, body="Bel article")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.get("/api/auth/me/export/")
+
+    archive = zipfile.ZipFile(BytesIO(response.content))
+    assert json.loads(archive.read("articles_blog.json"))[0]["titre"] == "Mon article"
+    assert json.loads(archive.read("commentaires_blog.json"))[0]["texte"] == "Bel article"
 
 
 @pytest.mark.django_db

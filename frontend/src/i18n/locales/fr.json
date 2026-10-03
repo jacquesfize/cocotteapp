@@ -18,7 +18,8 @@
     "adminThematicPages": "Pages thématiques",
     "administration": "Administration",
     "adminIngredients": "Ingrédients",
-    "language": "Langue : {name}"
+    "language": "Langue : {name}",
+    "blog": "Blog"
   },
   "common": {
     "loading": "Chargement...",
@@ -264,7 +265,80 @@
     "hide": "Masquer",
     "unhide": "Réafficher",
     "hideError": "Impossible de modifier ce commentaire.",
-    "hiddenBadge": "masqué"
+    "hiddenBadge": "masqué",
+    "closed": "Les commentaires sont fermés pour cet article."
+  },
+  "blog": {
+    "title": "Blog",
+    "intro": "Récits, menus et astuces de la communauté, avec des recettes Cocotte au fil du texte.",
+    "newPost": "Écrire un article",
+    "empty": "Aucun article pour l'instant.",
+    "byline": "Par {author} · {date}",
+    "updatedOn": "modifié le {date}",
+    "loadError": "Impossible de charger cet article.",
+    "deleteConfirm": "Supprimer cet article ? Cette action est irréversible.",
+    "deleteError": "Impossible de supprimer cet article.",
+    "commentPlaceholder": "Qu'avez-vous pensé de cet article...",
+    "form": {
+      "newTitle": "Écrire un article",
+      "editTitle": "Modifier l'article",
+      "title": "Titre",
+      "content": "Contenu",
+      "commentsEnabled": "Autoriser les commentaires",
+      "guidelinesTitle": "Avant de publier",
+      "guidelinesRespect": "Aucun propos raciste, sexiste, homophobe, transphobe ou discriminatoire de quelque nature que ce soit, ni contenu haineux ou harcelant.",
+      "guidelinesCopyright": "Les textes et les images doivent respecter le droit d'auteur : ne publiez que les vôtres, ou des contenus que vous avez le droit de réutiliser (en créditant leur auteur).",
+      "acceptGuidelines": "Mon article respecte ces règles",
+      "guidelinesRequired": "Merci de confirmer que votre article respecte les règles de publication.",
+      "emptyContent": "Votre article est vide.",
+      "saveError": "Impossible d'enregistrer cet article.",
+      "publish": "Publier",
+      "cover": "Image de couverture",
+      "addCover": "Ajouter une image de couverture",
+      "changeCover": "Changer l'image",
+      "removeCover": "Retirer",
+      "coverHint": "Affichée en tête de l'article et sur sa carte. À défaut, la carte reprend la première image du texte."
+    },
+    "editor": {
+      "toolbar": "Mise en forme",
+      "bold": "Gras",
+      "italic": "Italique",
+      "underline": "Souligné",
+      "heading2": "Titre",
+      "heading3": "Sous-titre",
+      "bulletList": "Liste à puces",
+      "orderedList": "Liste numérotée",
+      "quote": "Citation",
+      "link": "Lien",
+      "linkPrompt": "Adresse du lien (laisser vide pour retirer le lien)",
+      "image": "Insérer une image",
+      "imageUploading": "Envoi de l'image...",
+      "imageUploadError": "Impossible d'envoyer cette image.",
+      "recipe": "Recette",
+      "recipeShortcut": "Insérer une recette Cocotte : {shortcut}",
+      "recipeModalTitle": "Insérer une recette",
+      "recipeModalLabel": "Rechercher une recette",
+      "undo": "Annuler",
+      "redo": "Rétablir"
+    },
+    "embed": {
+      "kicker": "Recette Cocotte",
+      "servings": "{count} part | {count} parts",
+      "view": "Voir la recette",
+      "unavailable": "Cette recette n'est plus disponible."
+    },
+    "noResults": "Aucun article ne correspond à ces filtres.",
+    "editNamed": "Modifier « {title} »",
+    "deleteNamed": "Supprimer « {title} »",
+    "deleteNamedConfirm": "Supprimer l'article « {title} » ? Cette action est irréversible.",
+    "filters": {
+      "search": "Rechercher",
+      "searchPlaceholder": "Titre, texte ou auteur...",
+      "author": "Auteur",
+      "allAuthors": "Tous les auteurs",
+      "noAuthor": "Aucun auteur trouvé.",
+      "authorChip": "Par {author}"
+    }
   },
   "ratings": {
     "average": "{value} ★ ({count})",
@@ -296,7 +370,9 @@
     "heroEyebrowAuth": "{greeting}, {name} — l'idée du jour",
     "heroEyebrowGuest": "{greeting} — l'idée du jour",
     "planForLater": "Planifier plus tard",
-    "planRecipeTitle": "Planifier « {title} »"
+    "planRecipeTitle": "Planifier « {title} »",
+    "latestPosts": "Derniers articles du blog",
+    "seeAllPosts": "Voir tous les articles"
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",
