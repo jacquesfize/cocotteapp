@@ -425,9 +425,9 @@
   "random": {
     "title": "Recette au hasard",
     "another": "Une autre",
-    "noResult": "Aucune recette ne correspond à ces critères.",
-    "toggleFilters": "Afficher ou masquer les filtres",
-    "excludeAllergens": "Exclure des allergènes"
+    "roll": "Lancer le dé",
+    "rollPrompt": "Lancez le dé pour tirer une recette au hasard",
+    "noResult": "Aucune recette ne correspond à ces critères."
   },
   "shopping": {
     "title": "Listes de courses",

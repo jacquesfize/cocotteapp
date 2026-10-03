@@ -83,7 +83,10 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
       await route.fulfill({ response })
     })
     await page.goto('/recipes/random')
+    await page.getByRole('button', { name: 'Roll the dice' }).click()
     await expect(page.getByRole('heading', { name: 'Provençal ratatouille' })).toBeVisible()
+    // Laisse le dé se poser (animation de fin de lancer) avant la capture.
+    await page.waitForTimeout(400)
     await shotPage(page, 'random-recipe')
     await page.unroute(/\/api\/recipes\/random\//)
   })

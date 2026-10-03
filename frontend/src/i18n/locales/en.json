@@ -425,9 +425,9 @@
   "random": {
     "title": "Random recipe",
     "another": "Another one",
-    "noResult": "No recipe matches these criteria.",
-    "toggleFilters": "Show or hide filters",
-    "excludeAllergens": "Exclude allergens"
+    "roll": "Roll the dice",
+    "rollPrompt": "Roll the dice to pick a recipe at random",
+    "noResult": "No recipe matches these criteria."
   },
   "shopping": {
     "title": "Shopping lists",

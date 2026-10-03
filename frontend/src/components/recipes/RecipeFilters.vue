@@ -29,11 +29,16 @@ export interface RecipeFilterValues {
 // Le badge et le bouton "Réinitialiser" sont génériques (ils parcourent les clés).
 const filters = defineModel<RecipeFilterValues>({ required: true })
 
-// Slugs du profil (allergies + intolérances) : raccourci "ajouter mes allergènes".
-const props = defineProps<{ myAllergens?: string[] }>()
+const props = defineProps<{
+  // Slugs du profil (allergies + intolérances) : raccourci "ajouter mes allergènes".
+  myAllergens?: string[]
+  // Replié derrière le bouton "Filtres" quelle que soit la largeur d'écran (page Recette au
+  // hasard), au lieu de la colonne latérale toujours visible sur desktop.
+  collapsible?: boolean
+}>()
 
-// Sur mobile seulement : le panneau est replié derrière le bouton "Filtres". Sur desktop,
-// il est toujours affiché en colonne latérale (cf. CSS) et ce bouton est masqué.
+// Sur mobile (ou en mode `collapsible`) : le panneau est replié derrière le bouton "Filtres".
+// Sur desktop, il est toujours affiché en colonne latérale (cf. CSS) et ce bouton est masqué.
 const isOpen = ref(false)
 
 const activeCount = computed(
@@ -249,7 +254,7 @@ const filterChips = computed<FilterChip[]>(() => {
 </script>
 
 <template>
-  <div class="recipe-filters">
+  <div class="recipe-filters" :class="{ collapsible }">
     <button
       type="button"
       class="secondary toggle"
@@ -711,6 +716,32 @@ const filterChips = computed<FilterChip[]>(() => {
 }
 .link-btn:hover {
   background: none;
+}
+
+/* Mode `collapsible` : même comportement que sur mobile (ci-dessous), quelle que soit la
+   largeur d'écran. */
+.collapsible .toggle {
+  display: inline-flex;
+}
+.collapsible .active-filters--mobile {
+  display: flex;
+}
+.collapsible .active-filters--desktop {
+  display: none;
+}
+.collapsible .panel {
+  display: none;
+  margin-top: 0.75rem;
+}
+.collapsible .panel.is-open {
+  display: block;
+}
+.collapsible .header-badge {
+  display: none;
+}
+.collapsible .close,
+.collapsible .apply {
+  display: inline-flex;
 }
 
 /* Mobile : le panneau est replié derrière le bouton "Filtres" et s'ouvre au-dessus de la

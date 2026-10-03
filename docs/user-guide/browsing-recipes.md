@@ -122,17 +122,21 @@ mobile tab bar).
 
 ![The Random recipe page](../assets/screenshots/random-recipe.png)
 
-The **Random recipe** page shows a random recipe with its ingredients and steps. You can:
+The **Random recipe** page opens on a big dice. Click it (**Roll the dice**) to draw a recipe:
+the dice rolls for a moment, then the recipe appears as a large card — photo on top, diet, time,
+servings, carbon footprint, tags and description below. Underneath, a smaller dice (**Another
+one**) rolls again for a new recipe. You can:
 
-- click the filter button next to **Another one** to show the filters panel (hidden by
-  default; a badge on the button shows how many filters are active),
-- narrow the draw with **Diet**, **In-season ingredients only**, and **Exclude allergens**. A
-  new recipe is drawn as soon as you change them. If you've set allergies or intolerances on
-  your [account](account.md), **Exclude allergens** starts pre-filled with them, so a random
-  draw doesn't surprise you with something you can't eat — you can still change the selection.
-- click **Another one** for a new draw,
-- click the recipe title to open its full page,
-- if you're logged in, add it straight to your planner with the **Add to planner** form.
+- click the recipe card to open its full page (to read the ingredients and steps, or add it to
+  your planner),
+- click **Filters** to narrow the draw with the same filters as the
+  [recipe list](#filter-the-list) (search, **In season**, diet, ingredients, maximum times,
+  carbon impact, **Exclude allergens**). The panel is folded away by default; a badge on the
+  button shows how many filters are active. Before your first roll the filters simply apply
+  to it; once a recipe is shown, a new recipe is drawn as soon as you change them. If you've set
+  allergies or intolerances on your [account](account.md), **Exclude allergens** starts
+  pre-filled with them, so a random draw doesn't surprise you with something you can't eat —
+  you can still change the selection.
 
 If no recipe matches, you see *No recipe matches these criteria.*
 

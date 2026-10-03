@@ -17,6 +17,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The **Add a meal** dialog lists matching recipes as you type, offers **Surprise me** to pick a
   random recipe, and starts the servings at the recipe's own number of servings.
 - Recipe list: 10 recipes per page by default instead of 20.
+- Random recipe redesign: the page now opens on a big dice to roll. The drawn recipe is shown as
+  a large card (photo on top, details below) with a smaller dice underneath to roll again. The
+  page no longer shows the full ingredients and steps, nor the **Add to planner** form: click the
+  recipe to open its page. Its filters are now the same as the recipe list's (search,
+  ingredients, maximum times and carbon impact are new there).
 
 ### ✨ Added
 
