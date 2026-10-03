@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
-import Pagination from '../../src/components/Pagination.vue'
+import Pagination from '../../src/components/shared/Pagination.vue'
 import { i18n } from '../../src/i18n'
 
 function mountPagination(props: { page: number; count: number; pageSize?: number }) {

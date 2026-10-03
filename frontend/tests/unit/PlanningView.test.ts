@@ -18,7 +18,7 @@ vi.mock('../../src/api/auth', () => ({
 
 import { fetchLegalInfo } from '../../src/api/auth'
 import { getNutritionSummary, listMealPlanEntries, listSharedWithMe } from '../../src/api/planning'
-import PlanningView from '../../src/views/PlanningView.vue'
+import PlanningView from '../../src/views/planning/PlanningView.vue'
 import type { LegalInfo, PlanningShareReceived } from '../../src/types/models'
 
 async function mountPlanningView() {

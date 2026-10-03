@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defineComponent, reactive } from 'vue'
 import { i18n } from '../../src/i18n'
-import RecipeFilters, { type RecipeFilterValues } from '../../src/components/RecipeFilters.vue'
+import RecipeFilters, { type RecipeFilterValues } from '../../src/components/recipes/RecipeFilters.vue'
 
 function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilterValues {
   return {

@@ -16,7 +16,7 @@ vi.mock('../../src/api/auth', () => ({
 import { fetchLegalInfo } from '../../src/api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../../src/api/planning'
 import { listShoppingLists } from '../../src/api/shopping'
-import HomeWeekStrip from '../../src/components/HomeWeekStrip.vue'
+import HomeWeekStrip from '../../src/components/planning/HomeWeekStrip.vue'
 
 function mountStrip() {
   return mount(HomeWeekStrip, {

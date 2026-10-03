@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import AllergenWarning from '../../src/components/AllergenWarning.vue'
+import AllergenWarning from '../../src/components/nutrition/AllergenWarning.vue'
 import { i18n } from '../../src/i18n'
 import { matchUserAllergens } from '../../src/utils/allergens'
 import { useAuthStore } from '../../src/stores/auth'

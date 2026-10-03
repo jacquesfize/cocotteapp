@@ -3,16 +3,18 @@ import { Clock, Compass, Leaf, Link2, Users } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import BaseModal from '../components/BaseModal.vue'
-import HomeWeekStrip from '../components/HomeWeekStrip.vue'
-import ImageWithCredit from '../components/ImageWithCredit.vue'
-import RecipeCard from '../components/RecipeCard.vue'
+import BaseModal from '../components/shared/BaseModal.vue'
+import HomeWeekStrip from '../components/planning/HomeWeekStrip.vue'
+import ImageWithCredit from '../components/shared/ImageWithCredit.vue'
+import RecipeCard from '../components/recipes/RecipeCard.vue'
+import AsyncState from '../components/shared/AsyncState.vue'
 import { previewImportFromUrl } from '../api/importer'
 import { listRecipes } from '../api/recipes'
 import { listThematicPages } from '../api/thematicPages'
 import { useAuthStore } from '../stores/auth'
 import { formatDuration } from '../utils/format'
 import { setPendingImportDraft } from '../utils/pendingImportDraft'
+import { recipeImageUrl } from '../utils/recipeImageUrl'
 import type { Recipe, ThematicPage } from '../types/models'
 
 const { t } = useI18n()
@@ -212,10 +214,10 @@ async function handleImport() {
               <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }" class="hero-deck-front">
                 <Transition name="hero-deck-fade">
                   <div :key="heroRecipe.id" class="hero-deck-face">
-                    <template v-if="heroRecipe.image || heroRecipe.image_url">
+                    <template v-if="recipeImageUrl(heroRecipe)">
                       <ImageWithCredit
                         class="hero-deck-image"
-                        :image-url="heroRecipe.image || heroRecipe.image_url"
+                        :image-url="recipeImageUrl(heroRecipe)"
                         :source-url="heroRecipe.image ? null : heroRecipe.source_url"
                         :license="heroRecipe.image_license"
                         :credit-author="heroRecipe.image_credit_author"
@@ -253,7 +255,7 @@ async function handleImport() {
           />
         </div>
       </template>
-      <p v-else class="muted">{{ $t('home.noRecipes') }}</p>
+      <AsyncState v-else :empty-text="$t('home.noRecipes')" />
     </div>
 
     <BaseModal v-if="showImportForm" :title="$t('recipes.importFromUrl')" @close="showImportForm = false">
@@ -400,7 +402,7 @@ async function handleImport() {
 
 .hero-diet {
   padding: 0.1rem 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: 0.8rem;
   background: var(--color-surface-muted);
@@ -408,13 +410,13 @@ async function handleImport() {
 }
 
 .hero-diet.diet-vegetarian {
-  background: color-mix(in srgb, #3fa34d 15%, var(--color-surface));
-  color: color-mix(in srgb, #3fa34d 75%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegetarian) 15%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegetarian) 75%, var(--color-text));
 }
 
 .hero-diet.diet-vegan {
-  background: color-mix(in srgb, #2f8f5b 20%, var(--color-surface));
-  color: color-mix(in srgb, #2f8f5b 80%, var(--color-text));
+  background: color-mix(in srgb, var(--color-vegan) 20%, var(--color-surface));
+  color: color-mix(in srgb, var(--color-vegan) 80%, var(--color-text));
 }
 
 .hero-meta-item {
@@ -513,7 +515,7 @@ async function handleImport() {
 }
 
 .hero-deck-title-light {
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .hero-deck-title-dark {
@@ -648,7 +650,7 @@ async function handleImport() {
 
   .hero-title {
     font-size: 2rem;
-    color: #fff;
+    color: var(--color-on-primary);
   }
 }
 
@@ -717,7 +719,7 @@ async function handleImport() {
 
 .home-panel-see-all:hover {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .recipe-grid {

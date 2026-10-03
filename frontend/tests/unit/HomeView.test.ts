@@ -13,7 +13,7 @@ vi.mock('../../src/api/thematicPages', () => ({
 
 import { listRecipes } from '../../src/api/recipes'
 import { listThematicPages } from '../../src/api/thematicPages'
-import BaseModal from '../../src/components/BaseModal.vue'
+import BaseModal from '../../src/components/shared/BaseModal.vue'
 import HomeView from '../../src/views/HomeView.vue'
 import { useAuthStore } from '../../src/stores/auth'
 import type { Recipe } from '../../src/types/models'

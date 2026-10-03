@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import RecipeCookMode from '../../src/components/RecipeCookMode.vue'
+import RecipeCookMode from '../../src/components/recipes/RecipeCookMode.vue'
 import { i18n } from '../../src/i18n'
 import type { Recipe, RecipeStep } from '../../src/types/models'
 

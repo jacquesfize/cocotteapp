@@ -13,7 +13,7 @@ vi.mock('../../src/api/recipes', () => ({
 }))
 
 import { previewImportFromUrl } from '../../src/api/importer'
-import RecipeListView from '../../src/views/RecipeListView.vue'
+import RecipeListView from '../../src/views/recipes/RecipeListView.vue'
 import { deleteRecipe, listRecipes } from '../../src/api/recipes'
 import { useAuthStore } from '../../src/stores/auth'
 import { takePendingImportDraft } from '../../src/utils/pendingImportDraft'

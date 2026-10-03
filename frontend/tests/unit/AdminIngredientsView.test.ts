@@ -18,7 +18,7 @@ import {
   listIngredients,
   updateIngredient,
 } from '../../src/api/ingredients'
-import AdminIngredientsView from '../../src/views/AdminIngredientsView.vue'
+import AdminIngredientsView from '../../src/views/admin/AdminIngredientsView.vue'
 import type { Ingredient } from '../../src/types/models'
 
 async function mountView() {

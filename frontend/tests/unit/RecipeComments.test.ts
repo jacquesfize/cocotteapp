@@ -1,6 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import RecipeComments from '../../src/components/RecipeComments.vue'
+import RecipeComments from '../../src/components/recipes/RecipeComments.vue'
 import { i18n } from '../../src/i18n'
 import type { RecipeComment } from '../../src/types/models'
 

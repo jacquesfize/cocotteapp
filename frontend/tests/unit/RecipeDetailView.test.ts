@@ -14,7 +14,7 @@ vi.mock('../../src/api/recipes', () => ({
 
 import { forkRecipe, getRecipe } from '../../src/api/recipes'
 import { useAuthStore } from '../../src/stores/auth'
-import RecipeDetailView from '../../src/views/RecipeDetailView.vue'
+import RecipeDetailView from '../../src/views/recipes/RecipeDetailView.vue'
 import type { Recipe, User } from '../../src/types/models'
 
 function baseRecipe(overrides: Partial<Recipe> = {}): Recipe {

@@ -44,7 +44,7 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   const dinnerSlot = page.locator('.agenda-cell[data-meal-type="dinner"]').first()
   await dinnerSlot.getByRole('button', { name: 'Ajouter un repas' }).click()
   await dinnerSlot.getByPlaceholder('Rechercher une recette...').fill(recipeTitle)
-  await dinnerSlot.locator('.suggestions').getByText(recipeTitle).click()
+  await dinnerSlot.locator('.suggestions-dropdown').getByText(recipeTitle).click()
   await dinnerSlot.getByRole('button', { name: 'Ajouter' }).click()
 
   await expect(dinnerSlot.getByText(recipeTitle)).toBeVisible()

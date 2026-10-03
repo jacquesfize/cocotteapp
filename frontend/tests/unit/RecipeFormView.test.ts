@@ -18,7 +18,7 @@ vi.mock('../../src/api/ingredients', () => ({
 }))
 
 import { importRecipeFromCooklang } from '../../src/api/recipes'
-import RecipeFormView from '../../src/views/RecipeFormView.vue'
+import RecipeFormView from '../../src/views/recipes/RecipeFormView.vue'
 import type { Recipe } from '../../src/types/models'
 
 async function mountRecipeForm() {

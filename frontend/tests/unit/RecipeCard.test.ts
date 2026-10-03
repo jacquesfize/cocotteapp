@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import RecipeCard from '../../src/components/RecipeCard.vue'
+import RecipeCard from '../../src/components/recipes/RecipeCard.vue'
 import { useAuthStore } from '../../src/stores/auth'
 import { i18n } from '../../src/i18n'
 import type { Recipe, User } from '../../src/types/models'

@@ -17,6 +17,13 @@
   --color-danger-soft-hover: #fbd9d8;
   --color-overlay: rgba(36, 31, 29, 0.35);
   --shadow-card: 0 1px 2px rgba(36, 31, 29, 0.04), 0 8px 20px rgba(36, 31, 29, 0.06);
+  --radius-pill: 999px;
+  --radius-card: 20px;
+  --radius-sheet: 16px;
+  /* Couleurs sémantiques des badges régime/carbone (RecipeCard, HomeView hero). */
+  --color-vegetarian: #3fa34d;
+  --color-vegan: #2f8f5b;
+  --color-carbon-medium: #d9922b;
   font-family:
     'Inter Variable',
     -apple-system,
@@ -221,4 +228,116 @@ input[type='checkbox'] {
 .muted {
   color: var(--color-muted);
   font-size: 0.9rem;
+}
+
+/* Liste de suggestions flottante (IngredientPicker, RecipePicker, CooklangStepInput). */
+.suggestions-dropdown {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--color-surface);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--shadow-card);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.suggestions-dropdown li {
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.suggestions-dropdown li:hover,
+.suggestions-dropdown li.active {
+  background: var(--color-surface-muted);
+}
+
+.suggestions-dropdown li.create {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+/* Table admin générique (AdminUsersView, AdminIngredientsView, AdminThematicPagesView) : chaque
+   vue garde ses propres règles d'overflow/mobile selon qu'elle propose un repli en cartes. */
+.admin-table-wrapper {
+  padding: 0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 0.85rem 1.25rem;
+}
+
+.admin-table thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Pastille flottante au centre d'une photo (RecipeSummary, RecipeRestrictedNotice), pour relier
+   vers la source de l'image importée. */
+.photo-cta-pill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-card);
+  white-space: nowrap;
+}
+
+.photo-cta-pill:hover {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Lien "étiré" (::after) sur toute une carte (RecipeCard, ShoppingListCard) : la carte reste
+   cliquable partout sans imbriquer les boutons d'action dans un <a>. Le parent doit avoir
+   position: relative. */
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card-link:focus-visible {
+  outline: none;
+}
+
+.card-link:focus-visible::after {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }

@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import RecipeSummary from '../../src/components/RecipeSummary.vue'
-import StepTimerButton from '../../src/components/StepTimerButton.vue'
+import RecipeSummary from '../../src/components/recipes/RecipeSummary.vue'
+import StepTimerButton from '../../src/components/recipes/StepTimerButton.vue'
 import { i18n } from '../../src/i18n'
 import type { Recipe, RecipeStep } from '../../src/types/models'
 

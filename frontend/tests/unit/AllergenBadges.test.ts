@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import AllergenBadges from '../../src/components/AllergenBadges.vue'
+import AllergenBadges from '../../src/components/nutrition/AllergenBadges.vue'
 import { i18n } from '../../src/i18n'
 import { useAuthStore } from '../../src/stores/auth'
 import type { User } from '../../src/types/models'

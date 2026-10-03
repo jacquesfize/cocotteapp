@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import RecipeRestrictedNotice from '../../src/components/RecipeRestrictedNotice.vue'
+import RecipeRestrictedNotice from '../../src/components/recipes/RecipeRestrictedNotice.vue'
 import { i18n } from '../../src/i18n'
 import type { Recipe } from '../../src/types/models'
 

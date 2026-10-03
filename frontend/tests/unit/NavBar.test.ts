@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { i18n } from '../../src/i18n'
-import NavBar from '../../src/components/NavBar.vue'
+import NavBar from '../../src/components/shared/NavBar.vue'
 import { useAuthStore } from '../../src/stores/auth'
 
 function mountNavBar() {

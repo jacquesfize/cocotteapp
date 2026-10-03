@@ -22,7 +22,7 @@ vi.mock('../../src/utils/download', () => ({
 
 import { exportShoppingList, getShoppingList, markOwned } from '../../src/api/shopping'
 import { downloadBlob } from '../../src/utils/download'
-import ShoppingListDetailView from '../../src/views/ShoppingListDetailView.vue'
+import ShoppingListDetailView from '../../src/views/shopping/ShoppingListDetailView.vue'
 import type { ShoppingList } from '../../src/types/models'
 
 function item(overrides: Record<string, unknown> = {}) {
