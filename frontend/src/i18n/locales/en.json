@@ -29,6 +29,7 @@
     "add": "Add",
     "close": "Close",
     "cancel": "Cancel",
+    "undo": "Undo",
     "previousPage": "Previous page",
     "nextPage": "Next page",
     "pageOf": "Page {page} of {total}"
@@ -339,7 +340,6 @@
     "placeholder": "Search a recipe..."
   },
   "calendarExport": {
-    "button": "Export to calendar",
     "downloadIcs": "Download the week as .ics file",
     "subscription": "Subscription (updates automatically)",
     "copyUrl": "Copy subscription URL",
@@ -363,11 +363,20 @@
     "invalidServings": "Enter a number of servings of at least 1.",
     "addError": "Could not add this entry (date already planned for this recipe and meal?).",
     "plannedMeals": "Planned meals",
-    "generateShoppingList": "Generate shopping list ({n})",
+    "generateShoppingList": "Generate shopping list",
     "downloadWeekPdf": "Download the week as PDF",
     "noEntries": "No meal planned yet.",
-    "remove": "Remove",
+    "remove": "Remove {title}",
     "servingsUnit": "servings",
+    "noSearchResults": "No recipe matches \"{query}\".",
+    "surpriseMe": "Surprise me",
+    "chooseAnotherRecipe": "Choose another recipe",
+    "dragHint": "Drag a meal to another meal or onto another day to move it (hold Alt to copy).",
+    "removedToast": "\"{title}\" removed.",
+    "periodWeek": "this week",
+    "periodMonth": "this month",
+    "plannedCountSingular": "meal planned",
+    "plannedCountPlural": "meals planned",
     "today": "Today",
     "previousWeek": "Previous week",
     "nutritionIntake": "Nutritional intake",
@@ -382,7 +391,17 @@
     "agendaSelectorLabel": "Displayed agenda",
     "myAgenda": "My agenda",
     "sharedAgendaReadLabel": "{name}'s agenda (read only)",
-    "sharedAgendaWriteLabel": "{name}'s agenda (read & write)"
+    "sharedAgendaWriteLabel": "{name}'s agenda (read & write)",
+    "export": "Export",
+    "downloadMonthPdf": "Download the month as PDF",
+    "moreEntries": "+{n} more",
+    "monthHint": "Click a day to see its week. Drag a meal onto another day to move it to the same meal (Alt to copy).",
+    "mealShort": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    }
   },
   "nutrition": {
     "title": "Nutrition facts",

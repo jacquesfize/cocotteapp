@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarPlus } from '@lucide/vue'
+import { ChevronDown } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClickOutside } from '../../composables/useClickOutside'
@@ -60,17 +60,18 @@ async function handleRegenerate() {
 
 <template>
   <div ref="root" class="calendar-export">
-    <button class="secondary" type="button" :aria-expanded="open" @click="toggle">
-      <CalendarPlus :size="16" />{{ $t('calendarExport.button') }}
+    <button class="secondary export-trigger" type="button" aria-haspopup="menu" :aria-expanded="open" @click="toggle">
+      {{ $t('planning.export') }}<ChevronDown :size="14" />
     </button>
     <div v-if="open" class="menu" role="menu">
-      <button class="secondary" type="button" role="menuitem" @click="handleDownload">
+      <slot :close="() => (open = false)" />
+      <button class="menu-item" type="button" role="menuitem" @click="handleDownload">
         {{ $t('calendarExport.downloadIcs') }}
       </button>
       <p v-if="error" class="hint">{{ $t('calendarExport.error') }}</p>
       <template v-else-if="feed">
         <strong class="label">{{ $t('calendarExport.subscription') }}</strong>
-        <button class="secondary" type="button" role="menuitem" @click="handleCopy">
+        <button class="menu-item" type="button" role="menuitem" @click="handleCopy">
           {{ copied ? $t('calendarExport.copied') : $t('calendarExport.copyUrl') }}
         </button>
         <a class="google" :href="googleUrl" target="_blank" rel="noopener" role="menuitem">
@@ -88,7 +89,7 @@ async function handleRegenerate() {
           </svg>
           <span>{{ $t('calendarExport.addToGoogle') }}</span>
         </a>
-        <button class="secondary" type="button" role="menuitem" @click="handleRegenerate">
+        <button class="menu-item" type="button" role="menuitem" @click="handleRegenerate">
           {{ $t('calendarExport.regenerate') }}
         </button>
         <p class="hint">{{ $t('calendarExport.secretHint') }}</p>
@@ -103,30 +104,71 @@ async function handleRegenerate() {
   display: inline-block;
 }
 
+.export-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.export-trigger:hover {
+  background: var(--color-primary-soft);
+}
+
 .menu {
   position: absolute;
   right: 0;
   bottom: 100%;
-  margin-bottom: 0.4rem;
-  z-index: 10;
+  margin-bottom: 0.5rem;
+  z-index: 20;
   min-width: 17rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.75rem;
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #ddd);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+  gap: 0.15rem;
+  padding: 0.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgb(60 20 15 / 18%);
+}
+
+.menu > .menu-item,
+.menu :slotted(.menu-item) {
+  justify-content: flex-start;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 500;
+  padding: 0.6rem 0.75rem;
+  border-radius: 9px;
+  min-height: auto;
+}
+
+.menu > .menu-item:hover,
+.menu :slotted(.menu-item:hover) {
+  background: var(--color-primary-soft);
 }
 
 .label {
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-muted);
+  margin: 0.4rem 0.75rem 0;
+}
+
+.google {
+  margin: 0.2rem 0.4rem;
 }
 
 .hint {
-  margin: 0;
+  margin: 0.2rem 0.75rem 0.3rem;
   font-size: 0.8rem;
   opacity: 0.75;
 }

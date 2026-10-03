@@ -17,6 +17,14 @@ export function deleteMealPlanEntry(id: number | string, owner?: number | string
   return client.delete(`meal-plan-entries/${id}/`, { params: owner ? { owner } : {} })
 }
 
+export function updateMealPlanEntry(
+  id: number | string,
+  payload: Partial<Pick<MealPlanEntry, 'date' | 'meal_type' | 'servings'>>,
+  owner?: number | string,
+): Promise<MealPlanEntry> {
+  return client.patch(`meal-plan-entries/${id}/`, payload, { params: owner ? { owner } : {} }).then((r) => r.data)
+}
+
 export function getNutritionSummary(params: MealPlanEntryListParams = {}): Promise<NutritionSummary> {
   return client.get('meal-plan-entries/nutrition_summary/', { params }).then((r) => r.data)
 }

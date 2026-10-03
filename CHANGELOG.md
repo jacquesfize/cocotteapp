@@ -7,6 +7,22 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### 🔄 Changed
+
+- Planner redesign: the week view now shows one day at a time, picked from a row of day buttons,
+  on both computers and phones. Meals appear as cards with the recipe photo, and each meal row has
+  an icon. The month view shows meal icons, up to three recipes per day with a **+N more** link,
+  and dots on phones. The PDF download and calendar export are grouped in a single **Export**
+  menu, and the footer shows how many meals are planned in the displayed period.
+- The **Add a meal** dialog lists matching recipes as you type, offers **Surprise me** to pick a
+  random recipe, and starts the servings at the recipe's own number of servings.
+
+### ✨ Added
+
+- Planner: drag a meal to another meal row or onto another day's button to move it, and hold
+  **Alt** while dropping to copy it. This also works between days in the month view.
+- Planner: removing a meal shows an **Undo** message for a few seconds.
+
 ## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 
 ### ✨ Added

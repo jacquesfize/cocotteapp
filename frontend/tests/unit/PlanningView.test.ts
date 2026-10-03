@@ -8,6 +8,8 @@ vi.mock('../../src/api/planning', () => ({
   getNutritionSummary: vi.fn(),
   downloadWeekPdf: vi.fn(),
   listSharedWithMe: vi.fn(),
+  createMealPlanEntry: vi.fn(),
+  updateMealPlanEntry: vi.fn(),
 }))
 vi.mock('../../src/api/shopping', () => ({
   createShoppingList: vi.fn(),
@@ -155,7 +157,7 @@ describe('PlanningView calendar views', () => {
     const now = new Date()
     const todayIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 
-    const weekHeads = wrapper.findAll('.agenda-day-head.is-today')
+    const weekHeads = wrapper.findAll('.day-chip.today')
     expect(weekHeads).toHaveLength(1)
     const cells = wrapper.findAll('.agenda-cell.is-today')
     expect(cells.length).toBeGreaterThan(0)
@@ -184,7 +186,7 @@ describe('PlanningView calendar views', () => {
         date_before: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(last)}`,
       }),
     )
-    expect(wrapper.text()).toContain('PDF')
+    expect(wrapper.find('.export-trigger').exists()).toBe(true)
   })
 })
 
