@@ -646,8 +646,10 @@ const carbonLevel = computed(() => CARBON_LEVELS[carbonPosition.value])
   font-size: 0.82rem;
 }
 .recipe-filters .multiselect__tag-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-pill);
-  line-height: 1.6rem;
   width: 1.4rem;
 }
 .recipe-filters .multiselect__tag-icon::after {
