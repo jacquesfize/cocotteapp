@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures'
 
-test('draws a random recipe, can reroll, and can add it to the planner', async ({ page }) => {
+test('rolls the dice to draw a random recipe, then rerolls', async ({ page }) => {
   const suffix = Date.now()
   const username = `random-${suffix}`
   const recipeTitle = `Soupe de saison ${suffix}`
@@ -28,13 +28,11 @@ test('draws a random recipe, can reroll, and can add it to the planner', async (
 
   await page.goto('/recipes/random')
   await expect(page.locator('h1')).toHaveText('Recette au hasard')
-  await expect(page.locator('h2').first()).toBeVisible()
+  await expect(page.locator('.recipe-card')).toHaveCount(0)
+
+  await page.getByRole('button', { name: 'Lancer le dé' }).click()
+  await expect(page.locator('.recipe-card.feature h3')).toBeVisible()
 
   await page.getByRole('button', { name: 'Une autre' }).click()
-  await expect(page.locator('h2').first()).toBeVisible()
-
-  const today = new Date().toISOString().slice(0, 10)
-  await page.locator('input[type="date"]').fill(today)
-  await page.getByRole('button', { name: 'Ajouter' }).click()
-  await expect(page.getByText("Ajoutée à l'agenda.")).toBeVisible()
+  await expect(page.locator('.recipe-card.feature h3')).toBeVisible()
 })

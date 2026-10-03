@@ -35,6 +35,28 @@ describe('RecipeCard', () => {
     expect(mountVariant().find('.thumb-placeholder').exists()).toBe(false)
   })
 
+  it('feature variant puts the photo (or a placeholder) on top and keeps the detailed meta below', () => {
+    const recipe = {
+      id: 1,
+      title: 'Soupe',
+      diet_type: 'vegan',
+      total_time_minutes: 10,
+      servings: 4,
+      tags: [{ id: 1, name: 'Hiver' }],
+    } as Recipe
+    const wrapper = mount(RecipeCard, {
+      props: { recipe, variant: 'feature' },
+      global: { plugins: [i18n, createPinia()], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
+    })
+
+    expect(wrapper.classes()).toContain('feature')
+    expect(wrapper.classes()).not.toContain('tile')
+    expect(wrapper.find('.thumb-placeholder').exists()).toBe(true)
+    expect(wrapper.find('.scrim').exists()).toBe(false)
+    expect(wrapper.find('.meta .diet-badge').text()).toBe('Végan')
+    expect(wrapper.find('.tags').text()).toContain('Hiver')
+  })
+
   it('renders the title, diet type and total time', () => {
     const wrapper = mountCard({
       id: 1,
