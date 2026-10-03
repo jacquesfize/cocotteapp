@@ -49,7 +49,7 @@ From top to bottom:
 
 ## The recipe list
 
-Click **Recipes** to see all recipes, newest first, 20 per page. On a computer, recipes are
+Click **Recipes** to see all recipes, newest first, 10 per page. On a computer, recipes are
 shown two per row, with the filters in a column on the left.
 
 ![The recipe list](../assets/screenshots/recipe-list.png)
@@ -100,7 +100,7 @@ The list updates as you change the filters. **Reset** clears every filter.
 The active filters and the page number are part of the page address, for example:
 
 ```text
-/recipes?diet_type=vegan&in_season=true&carbon_level=low&page=2
+/recipes?diet_type=vegan&in_season=true&carbon_level=low&page=2&page_size=20
 ```
 
 Copy the address to share the exact same view, or bookmark it. The **Explore** shortcuts on the
@@ -108,8 +108,12 @@ home page work the same way.
 
 ### Pages
 
-When there are more than 20 results, use the arrows at the bottom of the list (**Previous
-page** / **Next page**) to move between pages. *Page X of Y* shows where you are.
+When there are more results than fit on one page, use the arrows at the bottom of the list
+(**Previous page** / **Next page**) to move between pages. *Page X of Y* shows where you are.
+
+To see more recipes at once, pick 10, 20 or 50 in **Recipes per page**, below the list (it only
+appears when there are more than 10 results). The list goes back to the first page, and your
+choice is remembered in this browser for your next visits.
 
 ## Random recipe
 

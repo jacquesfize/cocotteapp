@@ -98,6 +98,7 @@
     "importNotFound": "Non trouvé",
     "search": "Recherche",
     "searchPlaceholder": "Titre, description...",
+    "perPage": "Recettes par page",
     "dietFilter": "Régime",
     "allDiets": "Tous",
     "ingredientsFilter": "Ingrédients",

@@ -16,12 +16,15 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   menu, and the footer shows how many meals are planned in the displayed period.
 - The **Add a meal** dialog lists matching recipes as you type, offers **Surprise me** to pick a
   random recipe, and starts the servings at the recipe's own number of servings.
+- Recipe list: 10 recipes per page by default instead of 20.
 
 ### ✨ Added
 
 - Planner: drag a meal to another meal row or onto another day's button to move it, and hold
   **Alt** while dropping to copy it. This also works between days in the month view.
 - Planner: removing a meal shows an **Undo** message for a few seconds.
+- Recipe list: a **Recipes per page** selector below the list shows 10, 20 or 50 recipes per
+  page. The choice is kept in the page address and remembered in the browser.
 
 ## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 

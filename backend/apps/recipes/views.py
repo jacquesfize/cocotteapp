@@ -18,6 +18,7 @@ from apps.nutrition.services import compute_recipe_carbon_footprint, compute_rec
 from .cooklang_import import CooklangParseError, create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
+from .pagination import RecipePagination
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
 from .rating_utils import voter_hash_for_request
 from .serializers import (
@@ -45,6 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = RecipeFilter
     search_fields = ["title", "description"]
+    pagination_class = RecipePagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

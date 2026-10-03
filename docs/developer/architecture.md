@@ -280,6 +280,11 @@ filtered, paginated view is a shareable link. `RecipeListView.vue` is the refere
 implementation (`filters`/`page` refs synced from `route.query`, `router.replace` after each
 fetch).
 
+The API pages at 20 items by default (`PAGE_SIZE` in `config/settings/base.py`). Recipes are the
+exception: `RecipeViewSet` uses `apps/recipes/pagination.py` (10 per page, overridable with
+`?page_size=` up to 50), and the list's **Recipes per page** selector offers the same choices
+(`PAGE_SIZES` in `RecipeListView.vue`, kept in sync by hand with `RECIPE_PAGE_SIZES`).
+
 ### Authentication flow
 
 ```mermaid
