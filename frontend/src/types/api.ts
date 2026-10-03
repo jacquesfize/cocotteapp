@@ -18,6 +18,7 @@ export interface RecipeListParams {
   max_carbon?: number | string
   exclude_allergens?: string
   page?: number
+  page_size?: number
 }
 
 export interface IngredientListParams {

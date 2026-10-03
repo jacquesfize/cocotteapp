@@ -116,14 +116,27 @@ def test_recipe_list_is_paginated():
 
     first_page = client.get("/api/recipes/")
     assert first_page.data["count"] == 25
-    assert len(first_page.data["results"]) == 20
+    assert len(first_page.data["results"]) == 10
     assert first_page.data["next"] is not None
     assert first_page.data["previous"] is None
 
-    second_page = client.get("/api/recipes/?page=2")
-    assert len(second_page.data["results"]) == 5
-    assert second_page.data["next"] is None
-    assert second_page.data["previous"] is not None
+    last_page = client.get("/api/recipes/?page=3")
+    assert len(last_page.data["results"]) == 5
+    assert last_page.data["next"] is None
+    assert last_page.data["previous"] is not None
+
+
+@pytest.mark.django_db
+def test_recipe_list_page_size_can_be_changed():
+    RecipeFactory.create_batch(25)
+    client = APIClient()
+
+    response = client.get("/api/recipes/?page_size=20")
+    assert len(response.data["results"]) == 20
+
+    # Au-delà du plafond, on retombe sur le maximum autorisé plutôt que sur une erreur.
+    response = client.get("/api/recipes/?page_size=1000")
+    assert len(response.data["results"]) == 25
 
 
 @pytest.mark.django_db

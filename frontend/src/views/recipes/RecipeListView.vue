@@ -47,6 +47,28 @@ function pageFromQuery(query: LocationQuery) {
   return Number(query.page) || 1
 }
 
+// Mêmes choix que RECIPE_PAGE_SIZES côté backend (apps/recipes/pagination.py) ; le premier est
+// le défaut de l'API, donc omis de l'URL. Le dernier choix est retenu dans le navigateur pour
+// que la liste garde la même taille d'une visite à l'autre.
+const PAGE_SIZES = [10, 20, 50]
+const DEFAULT_PAGE_SIZE = PAGE_SIZES[0]
+const PAGE_SIZE_STORAGE_KEY = 'recipe_list_page_size'
+
+function storedPageSize() {
+  try {
+    return Number(localStorage.getItem(PAGE_SIZE_STORAGE_KEY))
+  } catch {
+    return 0
+  }
+}
+
+function pageSizeFromQuery(query: LocationQuery) {
+  const fromQuery = Number(query.page_size)
+  if (PAGE_SIZES.includes(fromQuery)) return fromQuery
+  const stored = storedPageSize()
+  return PAGE_SIZES.includes(stored) ? stored : DEFAULT_PAGE_SIZE
+}
+
 // Le routeur déclenche ses hooks afterEach (ex. la fermeture du menu compte dans NavBar.vue)
 // pour toute navigation, même un router.replace() vers une query string strictement
 // identique. Sans cette comparaison, chaque chargement de la liste — y compris le cas le
@@ -69,6 +91,7 @@ if (!('exclude_allergens' in route.query) && myAllergens.value.length) {
   filters.value.exclude_allergens = myAllergens.value.join(',')
 }
 const page = ref(pageFromQuery(route.query))
+const pageSize = ref(pageSizeFromQuery(route.query))
 
 async function load() {
   isLoading.value = true
@@ -78,6 +101,7 @@ async function load() {
       if (value !== '' && value !== false) (params as Record<string, unknown>)[key] = value
     }
     if (page.value > 1) params.page = page.value
+    if (pageSize.value !== DEFAULT_PAGE_SIZE) params.page_size = pageSize.value
     const data = await listRecipes(params)
     recipes.value = data.results
     count.value = data.count
@@ -110,6 +134,16 @@ function goToPage(newPage: number) {
   load()
 }
 
+function changePageSize() {
+  try {
+    localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize.value))
+  } catch {
+    // Stockage indisponible (navigation privée...) : le choix vaut pour cette visite seulement.
+  }
+  page.value = 1
+  load()
+}
+
 let debounceTimer: ReturnType<typeof setTimeout> | undefined
 watch(
   filters,
@@ -134,6 +168,8 @@ watch(
     if (changed) filters.value = next
     const nextPage = pageFromQuery(query)
     if (nextPage !== page.value) page.value = nextPage
+    const nextPageSize = pageSizeFromQuery(query)
+    if (nextPageSize !== pageSize.value) pageSize.value = nextPageSize
   },
 )
 
@@ -269,7 +305,14 @@ async function handleImport() {
           </div>
         </div>
 
-        <Pagination :page="page" :count="count" @update:page="goToPage" />
+        <Pagination :page="page" :count="count" :page-size="pageSize" @update:page="goToPage" />
+
+        <form v-if="count > PAGE_SIZES[0]" class="page-size-form" @submit.prevent>
+          <label for="recipe-page-size">{{ $t('recipes.perPage') }}</label>
+          <select id="recipe-page-size" v-model.number="pageSize" @change="changePageSize">
+            <option v-for="size in PAGE_SIZES" :key="size" :value="size">{{ size }}</option>
+          </select>
+        </form>
       </div>
     </div>
   </div>
@@ -339,6 +382,18 @@ async function handleImport() {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
+}
+.page-size-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.page-size-form label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
 }
 .recipe-tile {
   min-width: 0;
