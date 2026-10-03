@@ -219,7 +219,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await pickerInput.blur()
     await expect(breakfastCell.locator('.suggestions-dropdown')).toBeHidden()
     await breakfastCell
-      .locator('.add-form .allergen-warning')
+      .locator('.allergen-warning')
       .waitFor({ timeout: 3000 })
       .catch(() => {})
     const dinnerCell = page.locator(
@@ -307,7 +307,7 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     const tokens = await obtainTokens(page.request, ADMIN_EMAIL!, ADMIN_PASSWORD!)
     if (!tokens) throw new Error('Could not log in as the admin account')
     await loginWithTokens(page, tokens.access, tokens.refresh, '/')
-    await expect(page.locator('.thematic-card').first()).toBeVisible()
+    await expect(page.locator('.thematic-avatar').first()).toBeVisible()
 
     await page.getByRole('button', { name: 'Account' }).click()
     const panel = page.locator('#account-panel')
