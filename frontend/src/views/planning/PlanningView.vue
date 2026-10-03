@@ -134,10 +134,6 @@ const isCurrentPeriod = computed(() =>
   viewMode.value === 'month' ? monthOffset.value === 0 : weekOffset.value === 0,
 )
 
-function dayLabel(date: Date) {
-  return date.toLocaleDateString(locale.value, { weekday: 'short', day: 'numeric', month: 'short' })
-}
-
 function dayLongLabel(date: Date) {
   return date.toLocaleDateString(locale.value, { weekday: 'long', day: 'numeric', month: 'long' })
 }
