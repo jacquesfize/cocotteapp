@@ -58,8 +58,9 @@ Other visitors see a notice explaining that the recipe comes from a third-party 
 link to the original. They also cannot duplicate it as a new version, nor download it as PDF.
 Recipes written by hand (no source URL) are never restricted.
 
-The author can lift the restriction by ticking **I rewrote the steps in my own words: make the
-whole recipe public** in the recipe form, which only appears when the recipe has a source URL.
+The author can lift the restriction by ticking **I rewrote the steps in my own words and the
+images used respect copyright: make the whole recipe public** in the recipe form, which only
+appears when the recipe has a source URL.
 Ticking it shows a copyright reminder (ingredients and times are free to share, the steps and
 description must be rewritten, the source's photos must not be reused). Right after an import,
 the form refuses to save with the box ticked while a step is still identical to the imported

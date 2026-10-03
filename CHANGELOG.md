@@ -12,7 +12,8 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Imported recipes and copyright: importing a recipe from a URL no longer copies the website's
   photo. Their ingredients and times are now public for everyone (they're facts, not covered by
   copyright); only the description and steps stay restricted. The box to make the whole recipe
-  public now reads **I rewrote the steps in my own words: make the whole recipe public**, shows a
+  public now reads **I rewrote the steps in my own words and the images used respect copyright:
+  make the whole recipe public**, shows a
   copyright reminder when ticked, and right after an import refuses to save while a step is still
   the imported text.
 - Planner redesign: the week view now shows one day at a time, picked from a row of day buttons,

@@ -177,7 +177,7 @@
     "viewStepImage": "View step photo",
     "sourceUrl": "Source (link to the original recipe)",
     "videoUrl": "Video (YouTube link)",
-    "publicLicenseOptIn": "I rewrote the steps in my own words: make the whole recipe public",
+    "publicLicenseOptIn": "I rewrote the steps in my own words and the images used respect copyright: make the whole recipe public",
     "publicLicenseHint": "By default, an imported recipe publicly shows its title, source, ingredients, times, allergens and carbon footprint, but its description and steps stay reserved to you and to admins: the way a recipe is written is protected by its author's copyright. Check this box once you've rewritten them in your own words (or if you own the rights to them, or have explicit permission to share them).",
     "source": "Source",
     "downloadPdf": "Download as PDF",

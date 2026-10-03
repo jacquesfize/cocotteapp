@@ -203,8 +203,8 @@ are filled in for you, and the credit is shown next to the picture on the recipe
 
 #### Publicly licensed content
 
-As soon as a **Source** is filled in, an **I rewrote the steps in my own words: make the whole
-recipe public** checkbox appears.
+As soon as a **Source** is filled in, an **I rewrote the steps in my own words and the images
+used respect copyright: make the whole recipe public** checkbox appears.
 
 By default, a recipe with a source shows its title, picture, source link, **ingredients**, times,
 allergens and carbon footprint to other people: an ingredient list and cooking times are facts,
@@ -212,8 +212,8 @@ not protected by copyright. Its **description and steps stay visible only to you
 admins**: the way a recipe is written belongs to its original author. See
 [Recipes with restricted content](browsing-recipes.md#recipes-with-restricted-content).
 
-To make the whole recipe public, rewrite its steps (and description) in your own words, then
-tick the box. A **Copyright: before making this recipe public** reminder appears below it:
+To make the whole recipe public, rewrite its steps (and description) in your own words, make
+sure the recipe's and steps' pictures are your own or freely licensed, then tick the box. A **Copyright: before making this recipe public** reminder appears below it:
 
 - the ingredient list, quantities and times are always public;
 - the steps and description must be rewritten, not copied or changed by a few words;

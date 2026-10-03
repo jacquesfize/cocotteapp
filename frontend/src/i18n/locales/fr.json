@@ -177,7 +177,7 @@
     "viewStepImage": "Voir la photo de l'étape",
     "sourceUrl": "Source (lien de la recette d'origine)",
     "videoUrl": "Vidéo (lien YouTube)",
-    "publicLicenseOptIn": "J'ai réécrit les étapes avec mes propres mots : rendre toute la recette publique",
+    "publicLicenseOptIn": "J'ai réécrit les étapes avec mes propres mots et les images utilisées respectent le droit d'auteur : rendre toute la recette publique",
     "publicLicenseHint": "Par défaut, une recette importée montre publiquement son titre, sa source, ses ingrédients, ses temps, ses allergènes et son impact carbone, mais sa description et ses étapes restent réservées à vous et aux administrateurs : la façon dont une recette est rédigée est protégée par le droit d'auteur de son auteur. Cochez cette case une fois que vous les avez réécrites avec vos propres mots (ou si vous en détenez les droits, ou l'autorisation explicite de les partager).",
     "source": "Source",
     "downloadPdf": "Télécharger en PDF",
