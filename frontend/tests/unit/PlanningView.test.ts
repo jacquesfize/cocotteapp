@@ -65,6 +65,7 @@ function legalInfo(overrides?: Partial<LegalInfo>): LegalInfo {
     privacy_contact_email: '',
     inactive_retention_days: 730,
     planning_snack_enabled: false,
+    nutrition_alerts_enabled: false,
     ...overrides,
   }
 }
@@ -211,8 +212,28 @@ describe('PlanningView snack meal slot (instance toggle)', () => {
   })
 })
 
+describe('PlanningView nutrition intake button (instance toggle)', () => {
+  it('hides the nutrition button by default (instance setting disabled)', async () => {
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    expect(fetchLegalInfo).toHaveBeenCalled()
+    expect(wrapper.find('.nutrition-btn').exists()).toBe(false)
+  })
+
+  it('shows the nutrition button once the instance enables alerts', async () => {
+    vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo({ nutrition_alerts_enabled: true }))
+
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    expect(wrapper.find('.nutrition-btn').exists()).toBe(true)
+  })
+})
+
 describe('PlanningView nutrition modal', () => {
   it('opens from a button with the alerts and closes via Escape, outside click and close button', async () => {
+    vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo({ nutrition_alerts_enabled: true }))
     vi.mocked(getNutritionSummary).mockResolvedValue({
       totals: {} as never,
       daily_average: {} as never,
@@ -247,7 +268,11 @@ describe('PlanningView nutrition modal', () => {
 
   it('hides the deficiency banner when there are none (e.g. NUTRITION_ALERTS_ENABLED=False)', async () => {
     // beforeEach already mocks getNutritionSummary with an empty deficiencies list, matching
-    // what the backend returns when the instance-level nutrition alert toggle is off.
+    // what the backend returns when the instance-level nutrition alert toggle is off. The
+    // button itself is still shown here because the instance toggle is explicitly enabled below
+    // (a modal with no deficiencies is also reachable while the toggle is on, e.g. no alert this
+    // particular week).
+    vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo({ nutrition_alerts_enabled: true }))
     const wrapper = await mountPlanningView()
     await flushPromises()
 

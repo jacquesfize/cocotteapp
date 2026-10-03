@@ -7,6 +7,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The weekly planner's **Nutritional intake** button is now hidden entirely when
+  `NUTRITION_ALERTS_ENABLED` is off (the default), instead of only hiding the deficiency list
+  inside its dialog.
+
 ### Added
 
 - Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
