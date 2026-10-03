@@ -11,13 +11,16 @@ vi.mock('../../src/api/recipes', () => ({
   uploadRecipeImage: vi.fn(),
   importRecipeFromCooklang: vi.fn(),
 }))
+vi.mock('../../src/api/importer', () => ({ suggestFreeImages: vi.fn() }))
 vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
   createIngredient: vi.fn(),
 }))
 
-import { importRecipeFromCooklang } from '../../src/api/recipes'
+import { suggestFreeImages } from '../../src/api/importer'
+import { createRecipe, importRecipeFromCooklang } from '../../src/api/recipes'
+import { setPendingImportDraft } from '../../src/utils/pendingImportDraft'
 import RecipeFormView from '../../src/views/recipes/RecipeFormView.vue'
 import type { Recipe } from '../../src/types/models'
 
@@ -146,5 +149,104 @@ describe('RecipeFormView - Cooklang import mode', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Texte Cooklang illisible')
+  })
+})
+
+function importDraft() {
+  setPendingImportDraft({
+    title: 'Tarte aux poireaux',
+    servings: 4,
+    cook_time_minutes: 30,
+    source_url: 'https://cuisine.example/tarte',
+    steps: [{ order: 1, instruction: 'Émincer les poireaux.' }],
+    ingredients: [
+      { ingredient: { id: 7, name: 'poireau' } as never, quantity: '2', unit: 'piece', raw_line: '2 poireaux' },
+    ],
+  })
+}
+
+describe('RecipeFormView - imported recipe copyright', () => {
+  it('never pre-fills the source website photo', async () => {
+    importDraft()
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    expect((wrapper.find('input[type="url"]').element as HTMLInputElement).value).toBe('')
+    expect((wrapper.find('#source_url').element as HTMLInputElement).value).toBe('https://cuisine.example/tarte')
+  })
+
+  it('shows the copyright notice once the make-public box is checked', async () => {
+    importDraft()
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    expect(wrapper.find('.copyright-notice').exists()).toBe(false)
+    await wrapper.find('.checkbox-field input').setValue(true)
+
+    const notice = wrapper.find('.copyright-notice')
+    expect(notice.exists()).toBe(true)
+    expect(notice.text()).toContain('ne sont pas protégés par le droit d\'auteur')
+  })
+
+  it('refuses to make the recipe public while a step is still the imported text', async () => {
+    importDraft()
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    await wrapper.find('.checkbox-field input').setValue(true)
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(createRecipe).not.toHaveBeenCalled()
+    expect(wrapper.find('.error').text()).toContain('Réécrivez-les')
+  })
+
+  it('saves a rewritten imported recipe as public', async () => {
+    importDraft()
+    vi.mocked(createRecipe).mockResolvedValue(recipe({ steps: [] }))
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    await wrapper.find('.checkbox-field input').setValue(true)
+    await wrapper.findComponent({ name: 'CooklangStepInput' }).vm.$emit('update:modelValue', 'Couper les poireaux en rondelles.')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(createRecipe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content_publicly_licensed: true,
+        steps: [expect.objectContaining({ instruction: 'Couper les poireaux en rondelles.' })],
+      }),
+    )
+  })
+
+  it('fills the image and its credit from a free image suggestion', async () => {
+    vi.mocked(suggestFreeImages).mockResolvedValue([
+      {
+        url: 'https://upload.wikimedia.org/tarte.jpg',
+        thumbnail: 'https://api.openverse.org/thumb/1/',
+        title: 'Tarte',
+        image_license: 'cc_by',
+        image_credit_author: 'Alice',
+        image_credit_source_url: 'https://commons.wikimedia.org/wiki/File:Tarte.jpg',
+        image_credit_license_url: 'https://creativecommons.org/licenses/by/4.0/',
+      },
+    ])
+    importDraft()
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    await wrapper.find('.free-images-button').trigger('click')
+    await flushPromises()
+    expect(suggestFreeImages).toHaveBeenCalledWith('Tarte aux poireaux')
+
+    await wrapper.find('.free-image').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.free-image').exists()).toBe(false)
+    expect((wrapper.find('input[type="url"]').element as HTMLInputElement).value).toBe(
+      'https://upload.wikimedia.org/tarte.jpg',
+    )
+    expect((wrapper.find('select[id^="iuwc-license"]').element as HTMLSelectElement).value).toBe('cc_by')
   })
 })

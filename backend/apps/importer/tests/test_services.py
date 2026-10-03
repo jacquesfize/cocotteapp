@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from apps.importer.services import build_import_preview, fetch_og_image
+from apps.importer.services import build_import_preview, search_free_images
 from apps.ingredients.factories import IngredientFactory
 from apps.ingredients.models import Ingredient
 from apps.recipes.models import Recipe
@@ -17,9 +17,7 @@ def test_build_import_preview_uses_scraper_data():
     scraper.ingredients.return_value = ["2 poireaux", "1 pâte brisée"]
     scraper.instructions.return_value = "Préchauffer le four.\nCuire 30 minutes."
 
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": scraper.title(),
             "servings": 6,
@@ -36,161 +34,14 @@ def test_build_import_preview_uses_scraper_data():
 
 
 @pytest.mark.django_db
-def test_build_import_preview_captures_scraped_image():
-    with patch("apps.importer.services.scrape_url") as scrape_url:
-        scrape_url.return_value = {
-            "title": "Tarte aux poireaux",
-            "servings": 6,
-            "cook_time_minutes": 45,
-            "ingredients": ["1 pâte brisée"],
-            "instructions": ["Cuire 30 minutes."],
-            "image_url": "https://example.com/tarte.jpg",
-        }
-        preview = build_import_preview("https://example.com/recipe")
-
-    assert preview["image_url"] == "https://example.com/tarte.jpg"
-    # Pre-filled so the draft is submittable through RecipeSerializer (which now requires
-    # credit info for any non-blank image_url) without forcing fake credit data on the user.
-    assert preview["image_license"] == "unknown"
-    assert preview["image_credit_note"] == "Image importée depuis example.com"
-
-
-@pytest.mark.django_db
-def test_build_import_preview_without_image_defaults_to_blank():
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
-        scrape_url.return_value = {
-            "title": "Tarte aux poireaux",
-            "servings": 6,
-            "cook_time_minutes": 45,
-            "ingredients": ["1 pâte brisée"],
-            "instructions": ["Cuire 30 minutes."],
-            "image_url": "",
-        }
-        preview = build_import_preview("https://example.com/recipe")
-
-    assert preview["image_url"] == ""
-    # No image at all: no credit fields pre-filled, nothing to credit.
-    assert "image_license" not in preview
-    assert "image_credit_note" not in preview
-
-
-@pytest.mark.django_db
-def test_build_import_preview_falls_back_to_og_image_when_scraper_finds_none():
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value="https://example.com/og.jpg"
-    ) as og_image:
-        scrape_url.return_value = {
-            "title": "Tarte aux poireaux",
-            "servings": 6,
-            "cook_time_minutes": 45,
-            "ingredients": ["1 pâte brisée"],
-            "instructions": ["Cuire 30 minutes."],
-            "image_url": "",
-        }
-        preview = build_import_preview("https://example.com/recipe")
-
-    og_image.assert_called_once_with("https://example.com/recipe")
-    assert preview["image_url"] == "https://example.com/og.jpg"
-
-
-@pytest.mark.django_db
-def test_build_import_preview_does_not_use_og_image_fallback_when_scraper_found_one():
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image"
-    ) as og_image:
-        scrape_url.return_value = {
-            "title": "Tarte aux poireaux",
-            "servings": 6,
-            "cook_time_minutes": 45,
-            "ingredients": ["1 pâte brisée"],
-            "instructions": ["Cuire 30 minutes."],
-            "image_url": "https://example.com/tarte.jpg",
-        }
-        preview = build_import_preview("https://example.com/recipe")
-
-    og_image.assert_not_called()
-    assert preview["image_url"] == "https://example.com/tarte.jpg"
-
-
-def test_scrape_url_extracts_image_when_available():
-    from apps.importer.services import scrape_url
-
-    scraper = MagicMock()
-    scraper.title.return_value = "Tarte aux poireaux"
-    scraper.yields.return_value = "6 servings"
-    scraper.total_time = 45
-    scraper.ingredients.return_value = ["1 pâte brisée"]
-    scraper.instructions.return_value = "Cuire 30 minutes."
-    scraper.image.return_value = "https://example.com/tarte.jpg"
-
-    with patch("recipe_scrapers.scrape_me", return_value=scraper):
-        data = scrape_url("https://example.com/recipe")
-
-    assert data["image_url"] == "https://example.com/tarte.jpg"
-
-
-def test_scrape_url_defaults_to_blank_when_scraper_has_no_image():
-    from apps.importer.services import scrape_url
-
-    scraper = MagicMock()
-    scraper.title.return_value = "Tarte aux poireaux"
-    scraper.yields.return_value = "6 servings"
-    scraper.total_time = 45
-    scraper.ingredients.return_value = ["1 pâte brisée"]
-    scraper.instructions.return_value = "Cuire 30 minutes."
-    scraper.image.side_effect = Exception("no image found")
-
-    with patch("recipe_scrapers.scrape_me", return_value=scraper):
-        data = scrape_url("https://example.com/recipe")
-
-    assert data["image_url"] == ""
-
-
-def test_fetch_og_image_returns_content_when_meta_tag_present():
-    response = MagicMock()
-    response.text = '<html><head><meta property="og:image" content="https://example.com/og.jpg"></head></html>'
-    response.raise_for_status.return_value = None
-
-    with patch("requests.get", return_value=response):
-        assert fetch_og_image("https://example.com/recipe") == "https://example.com/og.jpg"
-
-
-def test_fetch_og_image_returns_none_when_tag_missing():
-    response = MagicMock()
-    response.text = "<html><head></head></html>"
-    response.raise_for_status.return_value = None
-
-    with patch("requests.get", return_value=response):
-        assert fetch_og_image("https://example.com/recipe") is None
-
-
-def test_fetch_og_image_returns_none_on_network_failure():
-    with patch("requests.get", side_effect=Exception("connection refused")):
-        assert fetch_og_image("https://example.com/recipe") is None
-
-
-def test_fetch_og_image_returns_none_on_http_error_status():
-    response = MagicMock()
-    response.raise_for_status.side_effect = Exception("404")
-
-    with patch("requests.get", return_value=response):
-        assert fetch_og_image("https://example.com/recipe") is None
-
-
-@pytest.mark.django_db
 def test_build_import_preview_parses_quantity_and_unit():
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
             "ingredients": ["200 g de pois chiches", "2 gousses d'ail", "sel"],
             "instructions": ["Mixer.", "Cuire."],
-            "image_url": "",
         }
         preview = build_import_preview("https://example.com/falafels")
 
@@ -208,16 +59,13 @@ def test_build_import_preview_does_not_write_to_database():
     recipe_count_before = Recipe.objects.count()
     ingredient_count_before = Ingredient.objects.count()
 
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
             "ingredients": ["200 g de pois chiches inconnus", "un ingrédient totalement inédit"],
             "instructions": ["Mixer."],
-            "image_url": "",
         }
         build_import_preview("https://example.com/falafels")
 
@@ -229,16 +77,13 @@ def test_build_import_preview_does_not_write_to_database():
 def test_build_import_preview_matches_existing_ingredient_by_exact_name():
     existing = IngredientFactory(name="pois chiches")
 
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
             "ingredients": ["200 g de pois chiches"],
             "instructions": ["Mixer."],
-            "image_url": "",
         }
         preview = build_import_preview("https://example.com/falafels")
 
@@ -251,16 +96,13 @@ def test_build_import_preview_matches_existing_ingredient_by_exact_name():
 def test_build_import_preview_matches_existing_ingredient_by_translation(raw_line):
     ail = IngredientFactory(name="Ail", translations={"en": "garlic", "de": "Knoblauch", "es": "ajo"})
 
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Recipe",
             "servings": 4,
             "cook_time_minutes": 10,
             "ingredients": [raw_line],
             "instructions": ["Cook."],
-            "image_url": "",
         }
         preview = build_import_preview("https://example.com/recipe")
 
@@ -274,16 +116,13 @@ def test_build_import_preview_matches_existing_ingredient_by_translation(raw_lin
 def test_build_import_preview_matches_existing_ingredient_by_close_match():
     existing = IngredientFactory(name="pois chiche")
 
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
             "ingredients": ["200 g de pois chiches"],
             "instructions": ["Mixer."],
-            "image_url": "",
         }
         preview = build_import_preview("https://example.com/falafels")
 
@@ -293,18 +132,115 @@ def test_build_import_preview_matches_existing_ingredient_by_close_match():
 
 @pytest.mark.django_db
 def test_build_import_preview_leaves_unmatched_ingredient_null():
-    with patch("apps.importer.services.scrape_url") as scrape_url, patch(
-        "apps.importer.services.fetch_og_image", return_value=None
-    ):
+    with patch("apps.importer.services.scrape_url") as scrape_url:
         scrape_url.return_value = {
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
             "ingredients": ["un ingrédient totalement inédit et jamais vu"],
             "instructions": ["Mixer."],
-            "image_url": "",
         }
         preview = build_import_preview("https://example.com/falafels")
 
     (item,) = preview["ingredients"]
     assert item["ingredient"] is None
+
+
+@pytest.mark.django_db
+def test_build_import_preview_never_includes_the_source_image():
+    """The source site's photo is copyrighted by its photographer: the preview must not carry
+    it (nor any pre-filled credit for it), so the user picks their own or a free one."""
+    with patch("apps.importer.services.scrape_url") as scrape_url:
+        scrape_url.return_value = {
+            "title": "Tarte aux poireaux",
+            "servings": 6,
+            "cook_time_minutes": 45,
+            "ingredients": ["1 pâte brisée"],
+            "instructions": ["Cuire 30 minutes."],
+        }
+        preview = build_import_preview("https://example.com/recipe")
+
+    assert "image_url" not in preview
+    assert "image_license" not in preview
+    assert "image_credit_note" not in preview
+
+
+def test_scrape_url_does_not_read_the_image():
+    from apps.importer.services import scrape_url
+
+    scraper = MagicMock()
+    scraper.title.return_value = "Tarte aux poireaux"
+    scraper.yields.return_value = "6 servings"
+    scraper.total_time = 45
+    scraper.ingredients.return_value = ["1 pâte brisée"]
+    scraper.instructions.return_value = "Cuire 30 minutes."
+
+    with patch("recipe_scrapers.scrape_me", return_value=scraper):
+        data = scrape_url("https://example.com/recipe")
+
+    scraper.image.assert_not_called()
+    assert "image_url" not in data
+
+
+def _openverse_response(results):
+    response = MagicMock()
+    response.json.return_value = {"results": results}
+    response.raise_for_status.return_value = None
+    return response
+
+
+def test_search_free_images_maps_openverse_results_to_credit_fields():
+    results = [
+        {
+            "url": "https://live.staticflickr.com/1/tarte.jpg",
+            "thumbnail": "https://api.openverse.org/v1/images/abc/thumb/",
+            "title": "Tarte",
+            "creator": "Alice",
+            "license": "by",
+            "license_url": "https://creativecommons.org/licenses/by/2.0/",
+            "foreign_landing_url": "https://www.flickr.com/photos/alice/1",
+        },
+        {
+            "url": "https://upload.wikimedia.org/tarte.jpg",
+            "title": "Tarte 2",
+            "creator": None,
+            "license": "cc0",
+            "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "foreign_landing_url": "https://commons.wikimedia.org/wiki/File:Tarte.jpg",
+        },
+    ]
+    with patch("requests.get", return_value=_openverse_response(results)) as get:
+        suggestions = search_free_images("tarte aux poireaux")
+
+    params = get.call_args.kwargs["params"]
+    assert params["q"] == "tarte aux poireaux"
+    assert set(params["license"].split(",")) == {"by", "by-sa", "cc0", "pdm"}
+    assert suggestions == [
+        {
+            "url": "https://live.staticflickr.com/1/tarte.jpg",
+            "thumbnail": "https://api.openverse.org/v1/images/abc/thumb/",
+            "title": "Tarte",
+            "image_license": "cc_by",
+            "image_credit_author": "Alice",
+            "image_credit_source_url": "https://www.flickr.com/photos/alice/1",
+            "image_credit_license_url": "https://creativecommons.org/licenses/by/2.0/",
+        },
+        {
+            "url": "https://upload.wikimedia.org/tarte.jpg",
+            "thumbnail": "https://upload.wikimedia.org/tarte.jpg",
+            "title": "Tarte 2",
+            "image_license": "public_domain",
+            "image_credit_author": "",
+            "image_credit_source_url": "https://commons.wikimedia.org/wiki/File:Tarte.jpg",
+            "image_credit_license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+        },
+    ]
+
+
+def test_search_free_images_skips_non_free_licenses_and_too_long_urls():
+    results = [
+        {"url": "https://example.com/nc.jpg", "license": "by-nc", "foreign_landing_url": ""},
+        {"url": "https://example.com/" + "x" * 200 + ".jpg", "license": "by", "foreign_landing_url": ""},
+    ]
+    with patch("requests.get", return_value=_openverse_response(results)):
+        assert search_free_images("tarte") == []

@@ -30,7 +30,6 @@ function preview(overrides?: Partial<ImportPreview>): ImportPreview {
     title: 'Falafels',
     servings: 4,
     cook_time_minutes: 20,
-    image_url: '',
     source_url: 'https://example.com/falafels',
     steps: [{ order: 1, instruction: 'Mixer.' }],
     ingredients: [

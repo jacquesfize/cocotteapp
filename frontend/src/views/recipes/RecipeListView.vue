@@ -207,7 +207,6 @@ async function handleImport() {
       title: preview.title,
       servings: preview.servings,
       cook_time_minutes: preview.cook_time_minutes,
-      image_url: preview.image_url,
       source_url: preview.source_url,
       steps: preview.steps,
       ingredients: preview.ingredients.map((item) => ({

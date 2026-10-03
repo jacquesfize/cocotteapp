@@ -59,7 +59,7 @@ describe('RecipeRestrictedNotice', () => {
     const bolded = banner.findAll('strong').map((el) => el.text())
     expect(bolded).toContain('peut être protégée par des droits d\'auteur')
     expect(bolded).toContain(
-      'sa description, ses ingrédients et ses étapes ne sont visibles que par l\'utilisateur qui l\'a importée et les administrateurs',
+      'sa description et ses étapes ne sont visibles que par l\'utilisateur qui l\'a importée et les administrateurs',
     )
   })
 
@@ -74,6 +74,31 @@ describe('RecipeRestrictedNotice', () => {
     const link = wrapper.find('.fallback-source-link')
     expect(link.exists()).toBe(true)
     expect(link.attributes('href')).toBe('https://cuisine.example/recette')
+  })
+
+  it('lists the ingredients, which are not covered by copyright', () => {
+    const wrapper = mountNotice({
+      ingredients: [
+        {
+          id: 1,
+          ingredient: { id: 7, name: 'poireau' },
+          quantity: '2',
+          unit: 'piece',
+          group_name: '',
+          order: 1,
+        },
+      ] as unknown as Recipe['ingredients'],
+    })
+
+    const section = wrapper.find('.restricted-ingredients')
+    expect(section.exists()).toBe(true)
+    expect(section.text()).toContain('poireau')
+  })
+
+  it('omits the ingredients section when the recipe has none', () => {
+    const wrapper = mountNotice({ ingredients: [] })
+
+    expect(wrapper.find('.restricted-ingredients').exists()).toBe(false)
   })
 
   it('always shows allergens and the carbon footprint', () => {

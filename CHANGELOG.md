@@ -9,6 +9,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🔄 Changed
 
+- Imported recipes and copyright: importing a recipe from a URL no longer copies the website's
+  photo. Their ingredients and times are now public for everyone (they're facts, not covered by
+  copyright); only the description and steps stay restricted. The box to make the whole recipe
+  public now reads **I rewrote the steps in my own words: make the whole recipe public**, shows a
+  copyright reminder when ticked, and right after an import refuses to save while a step is still
+  the imported text.
 - Planner redesign: the week view now shows one day at a time, picked from a row of day buttons,
   on both computers and phones. Meals appear as cards with the recipe photo, and each meal row has
   an icon. The month view shows meal icons, up to three recipes per day with a **+N more** link,
@@ -25,6 +31,8 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- Recipe form: **Suggest a free image** searches for freely licensed pictures (CC BY, CC BY-SA,
+  public domain, via Openverse) and fills in the image and its credit when you pick one.
 - Planner: drag a meal to another meal row or onto another day's button to move it, and hold
   **Alt** while dropping to copy it. This also works between days in the month view.
 - Planner: removing a meal shows an **Undo** message for a few seconds.

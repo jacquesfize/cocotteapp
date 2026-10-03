@@ -249,10 +249,21 @@ export interface ImportPreview {
   title: string
   servings: number
   cook_time_minutes: number
-  image_url: string
   source_url: string
   steps: ImportPreviewStep[]
   ingredients: ImportPreviewIngredient[]
+}
+
+// Image libre de droits proposée par `GET /api/import/image-suggestions/` (Openverse), avec ses
+// champs de crédit déjà au format attendu par le formulaire de recette.
+export interface FreeImageSuggestion {
+  url: string
+  thumbnail: string
+  title: string
+  image_license: 'cc_by' | 'cc_by_sa' | 'public_domain'
+  image_credit_author: string
+  image_credit_source_url: string
+  image_credit_license_url: string
 }
 
 export interface NutrientTotals {

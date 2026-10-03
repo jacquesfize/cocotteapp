@@ -61,9 +61,9 @@ class Recipe(models.Model):
     content_publicly_licensed = models.BooleanField(
         default=False,
         help_text=(
-            "Coché par l'auteur d'une recette importée (source_url renseignée) pour libérer "
-            "l'accès public à son contenu rédactionnel (description/ingrédients/étapes). Sans "
-            "effet sur une recette sans source_url, déjà pleinement publique."
+            "Coché par l'auteur d'une recette importée (source_url renseignée), après avoir "
+            "réécrit ses étapes et sa description avec ses propres mots, pour les rendre "
+            "publiques. Sans effet sur une recette sans source_url, déjà pleinement publique."
         ),
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="recipes")
@@ -108,8 +108,9 @@ class Recipe(models.Model):
         return sorted(slugs)
 
     def is_content_restricted(self, user):
-        """True si le contenu rédactionnel (description/ingrédients/étapes) de cette recette
-        doit être masqué pour `user` : réservé aux recettes importées (source_url non vide)
+        """True si le contenu rédactionnel (description/étapes) de cette recette doit être masqué
+        pour `user` — la liste d'ingrédients et les temps, simples faits non protégés par le droit
+        d'auteur, restent publics : réservé aux recettes importées (source_url non vide)
         non explicitement libérées par leur auteur, sauf pour l'auteur lui-même ou un membre
         du staff. Point de vérité unique, réutilisé par le serializer et la vue `fork`."""
         if not self.source_url or self.content_publicly_licensed:

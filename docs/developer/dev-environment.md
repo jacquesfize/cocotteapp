@@ -326,8 +326,9 @@ export COCOTTE_EMAIL=you@example.com COCOTTE_PASSWORD=...
 export COCOTTE_API=http://localhost:8000/api    # default
 ```
 
-Recipes created this way carry a source/video URL, so their content stays restricted to their
-owner and staff until the owner makes it public from the edit screen.
+Recipes created this way carry a source/video URL, so their description and steps stay
+restricted to their owner and staff until the owner rewrites them and makes them public from the
+edit screen.
 
 ## Next steps
 

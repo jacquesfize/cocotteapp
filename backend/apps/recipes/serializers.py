@@ -122,8 +122,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     my_rating = serializers.SerializerMethodField()
 
     # Champs retirés de la réponse par `to_representation` quand `content_restricted` est vrai
-    # pour le visiteur : le contenu rédactionnel copié de la source, pas les métadonnées neutres.
-    RESTRICTED_HIDDEN_FIELDS = ("description", "ingredients", "steps")
+    # pour le visiteur : le contenu rédactionnel copié de la source (texte des étapes, description),
+    # pas les ingrédients ni les temps, qui ne sont pas protégés par le droit d'auteur.
+    RESTRICTED_HIDDEN_FIELDS = ("description", "steps")
 
     class Meta:
         model = Recipe

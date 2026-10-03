@@ -46,9 +46,10 @@ personal data someone asks you to erase), use the [Django admin](django-admin.md
 ### Copyright-restricted imported recipes
 
 A recipe imported from a website (anything with a source URL) may contain text protected by
-copyright. By default, Cocotte therefore shows only its **metadata** publicly: title, image,
-source link, times, diet, allergens and carbon footprint. Its **description, ingredients and
-steps** are reserved to:
+copyright. Ingredient lists and times are facts, not covered by copyright, but the way the
+steps and description are written is. By default, Cocotte therefore publicly shows the title,
+image, source link, **ingredients**, times, diet, allergens and carbon footprint, while its
+**description and steps** are reserved to:
 
 - the user who imported it (its author);
 - staff members.
@@ -57,9 +58,15 @@ Other visitors see a notice explaining that the recipe comes from a third-party 
 link to the original. They also cannot duplicate it as a new version, nor download it as PDF.
 Recipes written by hand (no source URL) are never restricted.
 
-The author can lift the restriction by ticking **Make this recipe's content public** in the
-recipe form, which only appears when the recipe has a source URL. The form explains that they
-should only do so if they own the rights to the content or have explicit permission to share it.
+The author can lift the restriction by ticking **I rewrote the steps in my own words: make the
+whole recipe public** in the recipe form, which only appears when the recipe has a source URL.
+Ticking it shows a copyright reminder (ingredients and times are free to share, the steps and
+description must be rewritten, the source's photos must not be reused). Right after an import,
+the form refuses to save with the box ticked while a step is still identical to the imported
+text; on later edits, Cocotte can no longer compare and relies on the author's word.
+
+Imported recipes never get the source website's photo either: the author adds their own, or
+picks a freely licensed one with **Suggest a free image**.
 
 As staff:
 
@@ -67,7 +74,9 @@ As staff:
   recipe cards for other visitors is not shown to you. Remember that what you see is not what the
   public sees: log out (or use a private window) to check a recipe as a visitor.
 - You can edit any recipe, including this checkbox. Only tick it on someone else's behalf if the
-  rights situation is clear; the safe default is to leave imported content restricted.
+  steps have clearly been rewritten; the safe default is to leave imported content restricted.
+- Recipes imported before this change may still use the source website's photo. Replace or
+  remove it when you come across one.
 - If a rights holder complains about a recipe whose content was made public, untick the box (or
   delete the recipe).
 

@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .services import build_import_preview
+from .services import build_import_preview, search_free_images
 
 
 class ImportRecipeFromUrlView(APIView):
@@ -25,3 +25,25 @@ class ImportRecipeFromUrlView(APIView):
             )
 
         return Response(preview, status=status.HTTP_200_OK)
+
+
+class FreeImageSuggestionsView(APIView):
+    """`GET /api/import/image-suggestions/?q=...` : images libres de droits proposées pour illustrer
+    une recette (une recette importée ne reprend jamais la photo de son site source)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        query = (request.query_params.get("q") or "").strip()
+        if not query:
+            return Response({"detail": "q is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            suggestions = search_free_images(query[:200])
+        except Exception:
+            return Response(
+                {"detail": "Impossible de récupérer des suggestions d'images."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response({"results": suggestions}, status=status.HTTP_200_OK)
