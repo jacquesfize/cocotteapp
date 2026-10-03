@@ -34,13 +34,19 @@ const isEditing = Boolean(props.id)
 // créée est ensuite ouverte en édition pour vérifier/corriger le résultat de l'auto-parsing
 // (unités par défaut, quantités non reconnues).
 const creationMode = ref<'manual' | 'cooklang'>('manual')
-const cooklangForm = ref({ title: '', servings: 4, raw_cooklang: '' })
+// Titre et portions facultatifs : laissés vides, le serveur les lit dans les métadonnées du
+// fichier Cooklang (front matter `title:` / `servings:`) ; renseignés, ils les remplacent.
+const cooklangForm = ref<{ title: string; servings: number | ''; raw_cooklang: string }>({
+  title: '',
+  servings: '',
+  raw_cooklang: '',
+})
 const cooklangError = ref('')
 const isImportingCooklang = ref(false)
 
 function validateCooklangForm(): string {
-  if (!cooklangForm.value.title.trim()) return t('recipes.missingTitle')
-  if (!Number.isFinite(cooklangForm.value.servings) || cooklangForm.value.servings < 1) {
+  const { servings } = cooklangForm.value
+  if (servings !== '' && (!Number.isFinite(servings) || servings < 1)) {
     return t('recipes.invalidServings')
   }
   if (!cooklangForm.value.raw_cooklang.trim()) return t('recipes.cooklangTextRequired')
@@ -56,14 +62,17 @@ async function handleCooklangSubmit() {
   }
   isImportingCooklang.value = true
   try {
+    const { title, servings, raw_cooklang } = cooklangForm.value
     const recipe = await importRecipeFromCooklang({
-      title: cooklangForm.value.title,
-      servings: cooklangForm.value.servings,
-      raw_cooklang: cooklangForm.value.raw_cooklang,
+      ...(title.trim() ? { title: title.trim() } : {}),
+      ...(servings !== '' ? { servings } : {}),
+      raw_cooklang,
     })
     router.push({ name: 'recipe-edit', params: { id: recipe.id } })
-  } catch {
-    cooklangError.value = t('recipes.cooklangImportError')
+  } catch (error) {
+    // 400 du serveur : texte illisible ou titre absent (ni saisi, ni dans les métadonnées).
+    const status = (error as { response?: { status?: number } })?.response?.status
+    cooklangError.value = t(status === 400 ? 'recipes.cooklangInvalid' : 'recipes.cooklangImportError')
   } finally {
     isImportingCooklang.value = false
   }
@@ -428,11 +437,17 @@ async function handleSubmit() {
     >
       <div class="field">
         <label for="cooklang-title">{{ $t('recipes.formTitle') }}</label>
-        <input id="cooklang-title" v-model="cooklangForm.title" required />
+        <input id="cooklang-title" v-model="cooklangForm.title" :placeholder="$t('recipes.cooklangFromMetadata')" />
       </div>
       <div class="field" style="width: 140px">
         <label for="cooklang-servings">{{ $t('planning.servings') }}</label>
-        <input id="cooklang-servings" v-model.number="cooklangForm.servings" type="number" min="1" required />
+        <input
+          id="cooklang-servings"
+          v-model.number="cooklangForm.servings"
+          type="number"
+          min="1"
+          :placeholder="$t('recipes.cooklangFromMetadata')"
+        />
       </div>
       <div class="field">
         <label for="cooklang-text">{{ $t('recipes.cooklangText') }}</label>

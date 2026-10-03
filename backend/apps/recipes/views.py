@@ -15,7 +15,7 @@ from weasyprint import HTML
 
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
-from .cooklang_import import create_recipe_from_cooklang
+from .cooklang_import import CooklangParseError, create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
@@ -155,7 +155,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def import_cooklang(self, request):
         serializer = CooklangImportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        recipe = create_recipe_from_cooklang(author=request.user, **serializer.validated_data)
+        try:
+            recipe = create_recipe_from_cooklang(author=request.user, **serializer.validated_data)
+        except CooklangParseError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"], url_path="export", permission_classes=[IsAuthenticated])

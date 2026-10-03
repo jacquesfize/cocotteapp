@@ -49,7 +49,8 @@ From top to bottom:
 
 ## The recipe list
 
-Click **Recipes** to see all recipes, newest first, 20 per page.
+Click **Recipes** to see all recipes, newest first, 20 per page. On a computer, recipes are
+shown two per row, with the filters in a column on the left.
 
 ![The recipe list](../assets/screenshots/recipe-list.png)
 
@@ -67,24 +68,28 @@ right. Delete asks for confirmation first.
 
 ### Filter the list
 
-Click **Filters** to open the filter panel. A number on the button shows how many filters are
-active.
+On a computer, the filter panel is always shown on the left of the list; a number next to its
+**Filters** heading shows how many filters are active. On a phone, click **Filters** above the
+list to open the panel (the same number appears on the button), and **Show results** to fold
+it away again.
 
-![The filter panel open over the recipe list](../assets/screenshots/recipe-list-filters.png)
+Active filters also show as removable pills next to **Filters** (one pill per selected
+ingredient or allergen) — click a pill's **×** to clear that filter without opening the panel.
+
+![The filter panel on the left of the recipe list](../assets/screenshots/recipe-list-filters.png)
 
 | Filter | How it works |
 |---|---|
 | **Search** | Looks for your text in the recipe title and description. |
-| **Diet** | **All**, **Omnivore**, **Vegetarian** or **Vegan**. |
-| **Ingredients (comma-separated)** | For example `tomato, onion`. Shows recipes that contain **all** the listed ingredients. Each name must match an ingredient's full name, but case and accents don't matter (`creme fraiche` finds *Crème fraîche*). The English names of library ingredients work too. |
-| **Max prep time (min)** | Prep time at most this many minutes. |
-| **Max cook time (min)** | Cook time at most this many minutes. |
-| **Carbon impact per serving** | **Any**, **Low (≤ 0.5 kg CO₂e)**, **Medium (0.5 to 1.5 kg CO₂e)** or **High (> 1.5 kg CO₂e)**. See [Nutrition & carbon](nutrition-and-carbon.md#carbon-levels). |
-| **In-season ingredients only** | Hides recipes that use any ingredient that is out of season this month. Ingredients without a season are considered available all year. |
-| **Hide recipes containing my allergens** | Only shown when your profile has allergies or intolerances. **Ticked by default**. See [Allergies and intolerances](account.md#allergies-and-intolerances). |
+| **In season** | A leaf button, crossed out while the filter is off; click it to switch it on (hover it to read *In-season ingredients only*). Hides recipes that use any ingredient that is out of season this month. Ingredients without a season are considered available all year. |
+| **Diet** | A list of choices: **All**, **Omnivore**, **Vegetarian** or **Vegan**. |
+| **Ingredients** | Type in **Search an ingredient…** and pick ingredients from the list; each one becomes a pill (click its **×** to remove it). Shows recipes that contain **all** the chosen ingredients. To use a name that isn't in the list, type it and press Enter: it must match an ingredient's full name, but case and accents don't matter (`creme fraiche` finds *Crème fraîche*), and the English names of library ingredients work too. |
+| **Max prep time** | A slider, in steps of 5 minutes up to 3 h. All the way to the right means **No limit**. |
+| **Max cook time** | Same as **Max prep time**, for the cook time. |
+| **Carbon impact per serving** | A slider with four positions: **Any**, then **Low (≤ 0.5 kg CO₂e)** (green), **Medium (0.5 to 1.5 kg CO₂e)** (orange) and **High (> 1.5 kg CO₂e)** (red) — the same colours as the leaf badge on each recipe. See [Nutrition & carbon](nutrition-and-carbon.md#carbon-levels). |
+| **Exclude allergens** | Hides recipes containing any of the chosen allergens. Pick them in **Pick allergens…**; each one becomes a pill you can remove. When your profile has allergies or intolerances, they're **selected by default**, and **Add my allergies and intolerances** puts back any you removed. See [Allergies and intolerances](account.md#allergies-and-intolerances). |
 
-The list updates as you type. **Show results** closes the panel, and **Reset** clears every
-filter.
+The list updates as you change the filters. **Reset** clears every filter.
 
 > [!TIP]
 > In a recipe page, clicking an ingredient name opens the recipe list filtered on that
@@ -115,8 +120,12 @@ mobile tab bar).
 
 The **Random recipe** page shows a random recipe with its ingredients and steps. You can:
 
-- narrow the draw with **Diet** and **In-season ingredients only**. A new recipe is drawn as
-  soon as you change them.
+- click the filter button next to **Another one** to show the filters panel (hidden by
+  default; a badge on the button shows how many filters are active),
+- narrow the draw with **Diet**, **In-season ingredients only**, and **Exclude allergens**. A
+  new recipe is drawn as soon as you change them. If you've set allergies or intolerances on
+  your [account](account.md), **Exclude allergens** starts pre-filled with them, so a random
+  draw doesn't surprise you with something you can't eat — you can still change the selection.
 - click **Another one** for a new draw,
 - click the recipe title to open its full page,
 - if you're logged in, add it straight to your planner with the **Add to planner** form.

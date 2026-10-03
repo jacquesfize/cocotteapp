@@ -186,6 +186,18 @@ def _strip_leading_connector(text: str) -> str:
     return _LEADING_CONNECTOR_RE.sub("", text, count=1).strip()
 
 
+def unit_from_word(word: str) -> str | None:
+    """`Unit` désigné par un mot d'unité isolé (français, anglais, allemand ou espagnol, accents
+    ignorés), ex. "grammes" -> "g", "Esslöffel" -> "tbsp", "gousses" -> "piece" ; None si inconnu.
+    Réutilisé par l'import Cooklang, dont les unités sont du texte libre."""
+    normalized = _strip_accents(word.strip().lower())
+    if normalized in _WORD_UNITS:
+        return _WORD_UNITS[normalized]
+    if normalized in _WORD_UNITS_BARE:
+        return Unit.PIECE
+    return None
+
+
 def _match_word_unit(rest: str) -> tuple[str | None, str | None]:
     """Essaie de reconnaître une unité en tête de `rest`. Retourne (unit, remaining_name)
     ou (None, None) si aucune unité n'est reconnue en tête de chaîne."""

@@ -1,120 +1,234 @@
-"""Turns a parsed Cooklang recipe (see `cooklang.py`) into `Recipe` +
-`RecipeIngredient` + `RecipeStep` rows.
+"""Turns a parsed Cooklang recipe (see `cooklang.py`, built on the `cooklang-py` library) into
+`Recipe` + `RecipeIngredient` + `RecipeStep` rows.
 
-This is the only place that bridges the free-text Cooklang world (arbitrary
-ingredient names, arbitrary unit abbreviations) and the app's normalized data
-model (a closed `Ingredient` table, a closed `Unit` enum). Everything here is
-therefore best-effort: unknown units fall back to a sane default and bad
-quantities default to 1 rather than raising, so a recipe always gets created
-even if it then needs manual clean-up in the edit view.
+This is the only place that bridges the free-text Cooklang world (arbitrary ingredient names,
+arbitrary unit abbreviations, free-form metadata) and the app's normalized data model (a closed
+`Ingredient` table, a closed `Unit` enum). Everything here is therefore best-effort: unknown
+units fall back to a sane default and bad quantities default to 1 rather than raising, so a
+recipe always gets created even if it then needs manual clean-up in the edit view.
+
+Mapping summary:
+- metadata `title`, `servings` (`serves`, `yield`), prep/cook times (`prep time`/`cook time`,
+  or cooklang.org's `prepMinutes`/`cookMinutes`), `source` URL, `description` -> recipe fields;
+  values passed explicitly by the caller always win over the metadata;
+- `> notes` (and a `note` metadata entry) are appended to the description;
+- `= Section` titles -> `RecipeIngredient.group_name`;
+- ingredients are matched against the library like the URL import does
+  (`apps.importer.services.find_matching_ingredient`: name, translations, then close match),
+  and created when nothing matches;
+- the same ingredient quantified twice in the same section with the same unit is summed into
+  one line (e.g. sugar 70 g in one step + 30 g in another -> 100 g).
 """
+import re
+import unicodedata
 from decimal import Decimal, InvalidOperation
+from fractions import Fraction
 
 from django.db import transaction
 
+from apps.importer.ingredient_parsing import unit_from_word
+from apps.importer.services import build_ingredient_catalog, find_matching_ingredient
 from apps.ingredients.models import Ingredient, Unit
 
-from .cooklang import ParsedRecipe, parse
+from .cooklang import CooklangParseError, ParsedRecipe, parse
 from .models import Recipe, RecipeIngredient, RecipeStep, SourceType
 
-# Free-text unit abbreviations (as found in real Cooklang recipes, French and
-# English) mapped to the app's closed `Unit` enum. This is a judgment call,
-# not a lossless mapping: Cooklang units aren't validated against any enum,
-# so several abbreviations must collapse onto the same `Unit` member (e.g.
-# "cs"/"c.à.s"/"tbsp" all mean tablespoon), and anything not listed here -
-# including no unit at all - falls back to PIECE, the least surprising
-# default for a "1 egg" / "2 onions" style ingredient.
+__all__ = ["CooklangParseError", "create_recipe_from_cooklang", "map_unit", "parse_quantity"]
+
+# Free-text unit abbreviations (as found in real Cooklang recipes, French and English) mapped to
+# the app's closed `Unit` enum. Checked before the shared multilingual unit vocabulary of the URL
+# importer (`unit_from_word`). Anything unknown - including no unit at all - falls back to PIECE,
+# the least surprising default for a "1 egg" / "2 onions" style ingredient.
 UNIT_ALIASES = {
-    "g": Unit.GRAM,
-    "gr": Unit.GRAM,
-    "gramme": Unit.GRAM,
-    "grammes": Unit.GRAM,
-    "kg": Unit.KILOGRAM,
-    "kilogramme": Unit.KILOGRAM,
-    "kilogrammes": Unit.KILOGRAM,
-    "ml": Unit.MILLILITER,
-    "millilitre": Unit.MILLILITER,
-    "millilitres": Unit.MILLILITER,
-    "l": Unit.LITER,
-    "litre": Unit.LITER,
-    "litres": Unit.LITER,
-    "cs": Unit.TABLESPOON,
     "c.à.s": Unit.TABLESPOON,
     "c.a.s": Unit.TABLESPOON,
     "càs": Unit.TABLESPOON,
     "cas": Unit.TABLESPOON,
-    "tbsp": Unit.TABLESPOON,
     "tbs": Unit.TABLESPOON,
-    "cuillère à soupe": Unit.TABLESPOON,
-    "cuillères à soupe": Unit.TABLESPOON,
-    "cc": Unit.TEASPOON,
+    "spsk": Unit.TABLESPOON,
     "c.à.c": Unit.TEASPOON,
     "c.a.c": Unit.TEASPOON,
     "càc": Unit.TEASPOON,
     "cac": Unit.TEASPOON,
-    "tsp": Unit.TEASPOON,
-    "cuillère à café": Unit.TEASPOON,
-    "cuillères à café": Unit.TEASPOON,
-    "pincée": Unit.PINCH,
-    "pincees": Unit.PINCH,
-    "pincées": Unit.PINCH,
-    "pinch": Unit.PINCH,
+    "tsk": Unit.TEASPOON,
     "piece": Unit.PIECE,
     "pièce": Unit.PIECE,
     "pièces": Unit.PIECE,
     "pieces": Unit.PIECE,
+    "pc": Unit.PIECE,
+    "pcs": Unit.PIECE,
+    "stk": Unit.PIECE,
 }
+
+# Units the enum lacks but that convert exactly into one it has.
+SCALED_UNITS = {
+    "mg": (Unit.GRAM, Decimal("0.001")),
+    "cl": (Unit.MILLILITER, Decimal("10")),
+    "dl": (Unit.MILLILITER, Decimal("100")),
+}
+
+_MAX_QUANTITY = Decimal("999999.99")  # RecipeIngredient.quantity: max_digits=8, decimal_places=2
+_NUMBER_RE = re.compile(r"(?:(\d+)\s+)?(\d+)\s*/\s*(\d+)|(\d+(?:[.,]\d+)?)")
+_MINUTES_RE = re.compile(
+    r"(\d+(?:[.,]\d+)?)\s*(h|hr|hrs|hours?|heures?|timer?|min|mins|minutes?|minutter|m)?(?![a-zà-ÿ])", re.IGNORECASE
+)
 
 
 def map_unit(raw_unit: str | None) -> str:
-    """Best-effort mapping from a free-text Cooklang unit to `Unit`.
-
-    Missing or unrecognized units fall back to `Unit.PIECE` (see the module
-    docstring/table above for the reasoning).
-    """
+    """Best-effort mapping from a free-text Cooklang unit to `Unit` (PIECE when unknown)."""
     if not raw_unit:
         return Unit.PIECE
-    return UNIT_ALIASES.get(raw_unit.strip().lower(), Unit.PIECE)
+    key = raw_unit.strip().lower()
+    if key in UNIT_ALIASES:
+        return UNIT_ALIASES[key]
+    if key in SCALED_UNITS:
+        return SCALED_UNITS[key][0]
+    return unit_from_word(key) or unit_from_word(key.rstrip(".")) or Unit.PIECE
 
 
 def parse_quantity(raw_quantity: str | None) -> Decimal:
     """Best-effort parsing of a free-text Cooklang quantity into a Decimal.
 
-    Falls back to 1 when missing, non-numeric (e.g. "quelques"), or a
-    fraction/range Cooklang doesn't itself normalize (e.g. "1/2", "2-3") -
-    never raises, so a single odd ingredient never blocks the whole import.
+    Handles "2", "2,5", "1/2", "1 1/2", "½" and ranges ("2-3" -> 2, the first number). Falls back
+    to 1 when missing or non-numeric (e.g. "quelques") - never raises, so a single odd ingredient
+    never blocks the whole import.
     """
     if not raw_quantity:
         return Decimal("1")
-    text = raw_quantity.strip().replace(",", ".")
-    try:
-        return Decimal(text)
-    except InvalidOperation:
+    text = unicodedata.normalize("NFKC", raw_quantity).replace("⁄", "/")
+    match = _NUMBER_RE.search(text)
+    if not match:
         return Decimal("1")
+    whole, numerator, denominator, plain = match.groups()
+    try:
+        if plain:
+            value = Decimal(plain.replace(",", "."))
+        else:
+            fraction = Fraction(int(numerator), int(denominator)) + int(whole or 0)
+            value = Decimal(fraction.numerator) / Decimal(fraction.denominator)
+    except (InvalidOperation, ZeroDivisionError):
+        return Decimal("1")
+    if value <= 0:
+        return Decimal("1")
+    return min(value, _MAX_QUANTITY).quantize(Decimal("0.01"))
 
 
-def get_or_create_ingredient(name: str) -> Ingredient:
-    """Find-or-create an `Ingredient` by case-insensitive name match.
+def _quantity_and_unit(raw_quantity: str | None, raw_unit: str | None) -> tuple[Decimal, str]:
+    quantity = parse_quantity(raw_quantity)
+    scaled = SCALED_UNITS.get((raw_unit or "").strip().lower())
+    if scaled:
+        unit, factor = scaled
+        return min(quantity * factor, _MAX_QUANTITY).quantize(Decimal("0.01")), unit
+    return quantity, map_unit(raw_unit)
 
-    Mirrors the merge logic in `seed_common_ingredients`: an ingredient
-    referenced as "@tomate" should reuse an existing "Tomate" row rather than
-    creating a duplicate that would collide on slug anyway.
-    """
-    existing = Ingredient.objects.filter(name__iexact=name).first()
-    if existing:
-        return existing
-    return Ingredient.objects.create(name=name)
+
+def _first_int(value) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, dict):  # {"min": .., "max": ..} (format exporté par cooklang.org)
+        return _first_int(value.get("max", value.get("min")))
+    match = re.search(r"\d+", str(value or ""))
+    return int(match.group()) if match else None
+
+
+def _minutes(value) -> int | None:
+    """"45", 45, "1h30", "1 hour 15 minutes", {"min": 30, "max": 40} -> minutes (max if range)."""
+    if isinstance(value, dict):
+        return _minutes(value.get("max", value.get("min")))
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return int(value)
+    total, found = Decimal(0), False
+    for amount, unit in _MINUTES_RE.findall(str(value)):
+        found = True
+        number = Decimal(amount.replace(",", "."))
+        total += number * 60 if unit and unit.lower()[0] in "ht" else number
+    return int(total) if found else None
+
+
+def _metadata_value(metadata, *keys):
+    for key in keys:
+        value = metadata.get(key)
+        if value not in (None, ""):
+            return value
+    return None
+
+
+def _source_url(metadata) -> str | None:
+    source = _metadata_value(metadata, "source.url", "source", "source.name", "url")
+    if isinstance(source, dict):
+        source = source.get("url")
+    if isinstance(source, str) and re.match(r"https?://\S+$", source.strip()):
+        return source.strip()
+    return None
+
+
+def _clamp(value: int | None, minimum: int, maximum: int = 32767) -> int | None:
+    return None if value is None else max(minimum, min(value, maximum))
+
+
+def recipe_fields_from_metadata(parsed: ParsedRecipe) -> dict:
+    """Champs de `Recipe` déductibles des métadonnées Cooklang et des notes `>`."""
+    metadata = parsed.metadata
+    fields = {}
+
+    title = _metadata_value(metadata, "title")
+    if title:
+        fields["title"] = str(title).strip()[:200]
+    servings = _clamp(_first_int(_metadata_value(metadata, "servings")), 1)
+    if servings:
+        fields["servings"] = servings
+    prep = _clamp(_minutes(_metadata_value(metadata, "time.prep", "prepMinutes", "prep_time")), 0)
+    if prep is not None:
+        fields["prep_time_minutes"] = prep
+    cook = _clamp(_minutes(_metadata_value(metadata, "time.cook", "cookMinutes", "cook_time")), 0)
+    if cook is not None:
+        fields["cook_time_minutes"] = cook
+    source_url = _source_url(metadata)
+    if source_url:
+        fields["source_url"] = source_url
+
+    description_parts = [
+        str(part).strip()
+        for part in (_metadata_value(metadata, "description"), _metadata_value(metadata, "note", "notes"))
+        if part
+    ]
+    description_parts += parsed.notes
+    if description_parts:
+        fields["description"] = "\n\n".join(description_parts)
+    return fields
+
+
+def _resolve_ingredient(name: str, catalog: dict[str, Ingredient], created: dict[str, Ingredient]) -> Ingredient:
+    """Même rapprochement que l'import par URL (nom, traductions, puis nom proche) ; à défaut,
+    crée l'ingrédient (sans valeurs nutritionnelles : à compléter dans la bibliothèque).
+
+    Les ingrédients créés pendant cet import ne sont retrouvés qu'à l'identique (`created`), jamais
+    par proximité : sinon "pasteuriseret æggehvide" serait fondu dans "pasteuriseret æggeblomme"
+    créé une étape plus tôt."""
+    key = name.strip().lower()
+    if key in created:
+        return created[key]
+    ingredient = find_matching_ingredient(name, catalog)
+    if ingredient is None:
+        ingredient = Ingredient.objects.filter(name__iexact=name).first() or Ingredient.objects.create(name=name)
+        created[key] = ingredient
+    return ingredient
 
 
 @transaction.atomic
-def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, prep_time_minutes=None,
+def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=None, prep_time_minutes=None,
                                  cook_time_minutes=None, diet_type=None, source_url=None, video_url=None,
                                  image_url=None, content_publicly_licensed=False) -> Recipe:
     """Parse `raw_cooklang` and persist the resulting Recipe + children.
 
-    `raw_cooklang` is kept verbatim on the created recipe (so it can be
-    displayed/re-parsed later) even though the parsed ingredients/steps are
-    what's actually rendered.
+    `raw_cooklang` is kept verbatim on the created recipe (so it can be displayed/re-parsed
+    later) even though the parsed ingredients/steps are what's actually rendered. Explicit
+    arguments override what the Cooklang metadata says; `title` may be omitted only when the
+    metadata carries one. Raises `CooklangParseError` on unparseable text or a missing title.
 
     `video_url`/`source_url`/`image_url` let a YouTube import create the recipe in a single
     call (see `scripts/youtube_recipes/post_cooklang.py`): a `video_url` marks `source_type` as
@@ -123,54 +237,71 @@ def create_recipe_from_cooklang(*, author, title, raw_cooklang, servings=None, p
     """
     parsed: ParsedRecipe = parse(raw_cooklang)
 
-    recipe_kwargs = {
-        "author": author,
-        "title": title,
-        "source_type": SourceType.YOUTUBE if video_url else SourceType.COOKLANG,
-        "raw_cooklang": raw_cooklang,
-        "content_publicly_licensed": content_publicly_licensed,
+    explicit = {
+        "title": title.strip() if title else None,
+        "servings": servings,
+        "prep_time_minutes": prep_time_minutes,
+        "cook_time_minutes": cook_time_minutes,
+        "diet_type": diet_type,
+        "source_url": source_url,
+        "video_url": video_url,
+        "image_url": image_url,
     }
-    if servings is not None:
-        recipe_kwargs["servings"] = servings
-    if prep_time_minutes is not None:
-        recipe_kwargs["prep_time_minutes"] = prep_time_minutes
-    if cook_time_minutes is not None:
-        recipe_kwargs["cook_time_minutes"] = cook_time_minutes
-    if diet_type is not None:
-        recipe_kwargs["diet_type"] = diet_type
-    if source_url is not None:
-        recipe_kwargs["source_url"] = source_url
-    if video_url is not None:
-        recipe_kwargs["video_url"] = video_url
-    if image_url is not None:
-        recipe_kwargs["image_url"] = image_url
+    recipe_kwargs = {
+        **recipe_fields_from_metadata(parsed),
+        **{key: value for key, value in explicit.items() if value not in (None, "")},
+    }
+    if not recipe_kwargs.get("title"):
+        raise CooklangParseError("A title is required (none given and no `title` in the Cooklang metadata).")
 
-    recipe = Recipe.objects.create(**recipe_kwargs)
+    recipe = Recipe.objects.create(
+        author=author,
+        source_type=SourceType.YOUTUBE if video_url else SourceType.COOKLANG,
+        raw_cooklang=raw_cooklang,
+        content_publicly_licensed=content_publicly_licensed,
+        **recipe_kwargs,
+    )
 
+    catalog, created = build_ingredient_catalog(), {}
     # Une mention sans quantité d'un ingrédient déjà déclaré (ex. "@oignon" à l'étape 3 après
-    # "@oignon{1}" à l'étape 1) ne fait que référencer la ligne existante : pas de doublon.
+    # "@oignon{1}" à l'étape 1) ne fait que référencer la ligne existante : pas de doublon. Deux
+    # mentions quantifiées dans la même section et la même unité s'additionnent.
+    lines: dict[tuple, RecipeIngredient] = {}
+    defaulted_lines = set()  # lignes créées par une mention sans quantité (quantité 1 par défaut)
     seen_names = set()
-    order = 0
     for parsed_ingredient in parsed.ingredients:
         key = parsed_ingredient.name.strip().lower()
         if key in seen_names and not parsed_ingredient.quantity:
             continue
         seen_names.add(key)
-        order += 1
-        ingredient = get_or_create_ingredient(parsed_ingredient.name)
-        RecipeIngredient.objects.create(
+        quantity, unit = _quantity_and_unit(parsed_ingredient.quantity, parsed_ingredient.unit)
+        ingredient = _resolve_ingredient(parsed_ingredient.name, catalog, created)
+        group_name = parsed_ingredient.section[:60]
+
+        line_key = (ingredient.pk, unit, group_name)
+        if parsed_ingredient.quantity and line_key in lines:
+            line = lines[line_key]
+            if line_key in defaulted_lines:
+                line.quantity = quantity
+                defaulted_lines.discard(line_key)
+            else:
+                line.quantity = min(line.quantity + quantity, _MAX_QUANTITY)
+            continue
+        if not parsed_ingredient.quantity:
+            defaulted_lines.add(line_key)
+        lines[line_key] = RecipeIngredient(
             recipe=recipe,
             ingredient=ingredient,
-            quantity=parse_quantity(parsed_ingredient.quantity),
-            unit=map_unit(parsed_ingredient.unit),
-            order=order,
+            quantity=quantity,
+            unit=unit,
+            group_name=group_name,
+            order=len(lines) + 1,
         )
+    RecipeIngredient.objects.bulk_create(lines.values())
 
-    order = 0
-    for step_text in parsed.tagged_steps:
-        if not step_text.strip():
-            continue
-        order += 1
-        RecipeStep.objects.create(recipe=recipe, order=order, instruction=step_text.strip())
+    RecipeStep.objects.bulk_create(
+        RecipeStep(recipe=recipe, order=order, instruction=step_text)
+        for order, step_text in enumerate(parsed.tagged_steps, start=1)
+    )
 
     return recipe

@@ -14,7 +14,8 @@ test('homepage shows the intro and the recipe just created', async ({ page }) =>
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()

@@ -183,7 +183,8 @@ describe('RecipeCard actions', () => {
 
     expect(wrapper.find('.card-actions').exists()).toBe(true)
     expect(wrapper.text()).not.toContain('par alice')
-    await wrapper.find('button.danger-btn').trigger('click')
+    await wrapper.find('button.actions-toggle').trigger('click')
+    await wrapper.find('button.actions-link-danger').trigger('click')
     expect(wrapper.emitted('delete')?.[0]).toEqual([recipe])
   })
 

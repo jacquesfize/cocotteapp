@@ -46,6 +46,7 @@ export interface LegalInfo {
   privacy_contact_email: string
   inactive_retention_days: number
   planning_snack_enabled: boolean
+  nutrition_alerts_enabled: boolean
 }
 
 export interface AdminUser {

@@ -14,7 +14,8 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()
@@ -76,7 +77,8 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.getByRole('button', { name: 'Créer mon compte' }).click()
   await page.waitForURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()

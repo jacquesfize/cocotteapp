@@ -7,8 +7,31 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The weekly planner's **Nutritional intake** button is now hidden entirely when
+  `NUTRITION_ALERTS_ENABLED` is off (the default), instead of only hiding the deficiency list
+  inside its dialog.
+
+### Fixed
+
+- Recipe list: a long recipe title no longer runs under the owner's actions (**⋮**) menu button —
+  the title now clamps to two lines (hover to see the full title) and the button no longer
+  overlaps the text.
+
 ### Added
 
+- Recipe list: active filters now also show as removable pills next to the **Filters** button
+  (one pill per selected ingredient/allergen), so you can clear a single filter without opening
+  the filters panel.
+- Recipe list: the **Exclude allergens** filter lets you choose individual allergens to hide,
+  instead of the all-or-nothing "Hide recipes containing my allergens" checkbox. Your own
+  allergies and intolerances are still selected by default, and **Add my allergies and
+  intolerances** puts them back after removing some.
+- The **Random recipe** page's filters (diet, in-season ingredients, and a new allergen
+  exclusion filter) are now hidden by default behind a filter toggle button next to **Another
+  one**, with a badge showing how many are active. The new allergen filter is pre-filled from
+  the signed-in user's own allergies/intolerances, like the main recipe list already does.
 - Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
   that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
   Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On
@@ -44,6 +67,20 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **Paste Cooklang** now understands full Cooklang files, such as those downloaded from
+  recipes.cooklang.org: metadata (title, servings, prep/cook times, source link, description),
+  multi-word ingredient names, fractions (`1/2`, `½`), preparation notes (`@café{30%g}(moulu)`),
+  sections (used to group ingredients) and notes (added to the description). Title and servings
+  are now optional in the form when the file's metadata provides them. Pasted ingredients are
+  matched against the library like a URL import (by translation and close spelling too), and
+  `cl`/`dl`/`mg` quantities are converted. Parsing now relies on the `cooklang-py` library.
+- Recipe list redesign: on a computer the filters now sit in a column on the left of the list
+  (always visible) and recipes are shown two per row; on a phone the **Filters** button opens the
+  panel above the list instead of a bottom sheet. Ingredients are picked from a searchable
+  multi-select shown as pills, the diet is a list of radio buttons, max prep/cook times are
+  sliders, carbon impact is a colour-coded slider (green / orange / red), and the in-season
+  checkbox is now an **In season** leaf toggle. The **New recipe** and **Import** buttons are
+  merged into a single **New recipe** menu (**Create manually** / **Import from a URL**).
 - The "pièce" (piece) unit now accepts decimal quantities on a recipe (e.g. 0.5 for half a
   camembert); shopping lists still round up to a whole piece when aggregating.
 - Cook mode's button now uses a chef's hat icon instead of a generic expand icon, and reaching the
@@ -102,6 +139,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Form validation errors (recipe details, ingredients, planner entries) are now shown consistently
   via inline messages instead of relying on the browser's native validation bubbles, which could be
   invisible or badly positioned on mobile.
+- Fixed autocomplete dropdowns reopening after selecting a suggestion (noticeable on the recipe
+  picker used when adding a recipe to the planner, and on the ingredient-mention autocomplete in
+  recipe step text), which made it look like the first click didn't register and required
+  clicking the suggestion a second time.
 
 ## [0.1.0] "Tiramisu" 🍰 - 2026-09-27
 

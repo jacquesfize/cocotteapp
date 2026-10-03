@@ -7,6 +7,12 @@ import { i18n } from '../../src/i18n'
 vi.mock('../../src/api/importer', () => ({
   previewImportFromUrl: vi.fn(),
 }))
+vi.mock('../../src/api/allergens', () => ({
+  listAllergens: vi.fn().mockResolvedValue([
+    { slug: 'peanut', name: 'Arachide' },
+    { slug: 'lactose', name: 'Lactose' },
+  ]),
+}))
 vi.mock('../../src/api/recipes', () => ({
   listRecipes: vi.fn().mockResolvedValue({ results: [], count: 0, next: null, previous: null }),
   deleteRecipe: vi.fn().mockResolvedValue({}),
@@ -72,6 +78,7 @@ describe('RecipeListView import', () => {
     const { wrapper, router } = await mountList()
     const pushSpy = vi.spyOn(router, 'push')
 
+    await wrapper.find('button[aria-controls="recipe-create-panel"]').trigger('click')
     await wrapper.find('button[aria-controls="import-form"]').trigger('click')
     await wrapper.find('#import-url').setValue('https://example.com/falafels')
     await wrapper.find('form').trigger('submit.prevent')
@@ -90,6 +97,7 @@ describe('RecipeListView import', () => {
 
     const { wrapper } = await mountList()
 
+    await wrapper.find('button[aria-controls="recipe-create-panel"]').trigger('click')
     await wrapper.find('button[aria-controls="import-form"]').trigger('click')
     await wrapper.find('#import-url').setValue('https://example.com/unsupported')
     await wrapper.find('form').trigger('submit.prevent')
@@ -113,7 +121,6 @@ describe('RecipeListView filters', () => {
     expect(wrapper.find('[data-testid="filters-badge"]').text()).toBe('2')
 
     vi.useFakeTimers()
-    await wrapper.find('button.toggle').trigger('click')
     await wrapper.find('#search').setValue('tarte')
     await vi.advanceTimersByTimeAsync(400)
     vi.useRealTimers()
@@ -123,7 +130,7 @@ describe('RecipeListView filters', () => {
     expect(wrapper.find('[data-testid="filters-badge"]').text()).toBe('3')
   })
 
-  it('hides recipes with the profile allergens by default, and the checkbox turns it off', async () => {
+  it('hides recipes with the profile allergens by default, and each one can be removed', async () => {
     useAuthStore().user = { allergies: ['peanut'], intolerances: ['lactose'] } as unknown as User
     const router = createRouter({
       history: createMemoryHistory(),
@@ -136,13 +143,16 @@ describe('RecipeListView filters', () => {
 
     expect(listRecipes).toHaveBeenLastCalledWith({ exclude_allergens: 'peanut,lactose' })
 
+    const allergenField = wrapper.findAll('.multiselect')[1]
+    expect(allergenField.findAll('.multiselect__tag').map((tag) => tag.text())).toEqual(['Arachide', 'Lactose'])
+
     vi.useFakeTimers()
-    await wrapper.find('#hide_allergens').setValue(false)
+    await allergenField.findAll('.multiselect__tag-icon')[0].trigger('mousedown')
     await vi.advanceTimersByTimeAsync(400)
     vi.useRealTimers()
     await flushPromises()
 
-    expect(listRecipes).toHaveBeenLastCalledWith({})
+    expect(listRecipes).toHaveBeenLastCalledWith({ exclude_allergens: 'lactose' })
   })
 })
 
@@ -154,7 +164,8 @@ describe('RecipeListView delete', () => {
 
     const { wrapper } = await mountList()
     vi.mocked(listRecipes).mockClear()
-    await wrapper.find('button.danger-btn').trigger('click')
+    await wrapper.find('button.actions-toggle').trigger('click')
+    await wrapper.find('button.actions-link-danger').trigger('click')
     await flushPromises()
 
     expect(deleteRecipe).toHaveBeenCalledWith(7)

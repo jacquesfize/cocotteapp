@@ -168,6 +168,26 @@ def test_random_recipe_404_when_no_match():
 
 
 @pytest.mark.django_db
+def test_random_recipe_respects_exclude_allergens():
+    from apps.ingredients.models import Allergen
+
+    gluten = Allergen.objects.create(slug="gluten", name="gluten")
+    with_gluten_ingredient = IngredientFactory()
+    with_gluten_ingredient.allergens.add(gluten)
+    with_gluten = RecipeFactory(diet_type="omnivore")
+    RecipeIngredientFactory(recipe=with_gluten, ingredient=with_gluten_ingredient)
+
+    plain = RecipeFactory(diet_type="omnivore")
+    RecipeIngredientFactory(recipe=plain, ingredient=IngredientFactory())
+
+    client = APIClient()
+    response = client.get("/api/recipes/random/?exclude_allergens=gluten")
+
+    assert response.status_code == 200
+    assert response.data["id"] == plain.id
+
+
+@pytest.mark.django_db
 def test_recipe_nutrition_action_returns_per_serving_values():
     from decimal import Decimal
 

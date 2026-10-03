@@ -183,7 +183,7 @@ When at least one ingredient of a recipe is **not reviewed**, the recipe shows *
 verified for some ingredients*. The absence of a badge then proves nothing.
 
 > [!WARNING]
-> The **Hide recipes containing my allergens** filter only hides recipes with a **known**
+> The **Exclude allergens** filter only hides recipes with a **known**
 > allergen. Recipes with unverified ingredients are **not** hidden. Processed products
 > (stock cubes, sauces, charcuterie…) vary between brands. Allergen information in Cocotte is
 > indicative: **always check product labels**.

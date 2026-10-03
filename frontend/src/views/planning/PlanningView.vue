@@ -20,10 +20,12 @@ import type { MealPlanEntry, MealType, NutrientDeficiency, PlanningShareReceived
 const { t, locale } = useI18n()
 const router = useRouter()
 
-// La collation est une bascule d'instance (désactivée par défaut, voir GET /api/auth/legal/) :
-// on ne sait si elle doit apparaître qu'une fois fetchLegalInfo() revenu (onMounted ci-dessous).
+// La collation et les alertes nutritionnelles sont des bascules d'instance (désactivées par
+// défaut, voir GET /api/auth/legal/) : on ne sait si elles doivent apparaître qu'une fois
+// fetchLegalInfo() revenu (onMounted ci-dessous).
 const ALL_MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack']
 const snackEnabled = ref(false)
+const nutritionAlertsEnabled = ref(false)
 const MEAL_TYPES = computed<MealType[]>(() =>
   snackEnabled.value ? ALL_MEAL_TYPES : ALL_MEAL_TYPES.filter((mealType) => mealType !== 'snack'),
 )
@@ -164,6 +166,7 @@ async function loadInstanceSettings() {
   try {
     const info = await fetchLegalInfo()
     snackEnabled.value = info.planning_snack_enabled
+    nutritionAlertsEnabled.value = info.nutrition_alerts_enabled
   } catch {
     // Reste désactivée (valeur par défaut) si l'appel échoue.
   }
@@ -329,7 +332,12 @@ const rangeLabel = computed(() => {
     </BaseModal>
 
     <div class="week-footer">
-      <button class="secondary nutrition-btn" type="button" @click="showNutrition = true">
+      <button
+        v-if="nutritionAlertsEnabled"
+        class="secondary nutrition-btn"
+        type="button"
+        @click="showNutrition = true"
+      >
         <Apple :size="16" />{{ $t('planning.nutritionIntake') }}
       </button>
       <button class="secondary" @click="handleDownloadWeekPdf">

@@ -196,7 +196,11 @@ one command whenever the interface changes.
 1. Start the full stack (backend on `:8000`, frontend on `:5173`) with a migrated **and seeded**
    database: the shots rely on the ingredient library, allergens, nutrient thresholds and thematic
    pages. See [Development environment](dev-environment.md).
-2. Make sure a **staff account** exists. It is needed for the admin screenshots and to clean up
+2. Set `NUTRITION_ALERTS_ENABLED=True` in the backend's `.env` (restart the backend after
+   changing it) so the planner's **Nutritional intake** button renders and `planning-nutrition.png`
+   gets captured — it's off by default (see [Configuration](../admin-guide/configuration.md)).
+   Without it, that one screenshot is skipped (with a console warning) rather than failing the run.
+3. Make sure a **staff account** exists. It is needed for the admin screenshots and to clean up
    ingredients created during the run:
 
     ```bash
@@ -207,7 +211,7 @@ one command whenever the interface changes.
 
     (prefix with `docker compose exec backend` in the Docker setup). You can reuse the e2e staff
     account.
-3. Run the generator from `frontend/`:
+4. Run the generator from `frontend/`:
 
     ```bash
     cd frontend
