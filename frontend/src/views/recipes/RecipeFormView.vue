@@ -11,7 +11,7 @@ import PageHeader from '../../components/shared/PageHeader.vue'
 import {
   createRecipe,
   getRecipe,
-  importRecipeFromCooklang,
+  previewRecipeFromCooklang,
   updateRecipe,
   uploadRecipeImage,
   uploadStepImage,
@@ -20,7 +20,7 @@ import { formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { FreeImageSuggestion, RecipeInput } from '../../types/models'
 import type { DietType, Ingredient, Unit } from '../../types/models'
-import { takePendingImportDraft } from '../../utils/pendingImportDraft'
+import { takePendingImportDraft, type PendingImportDraft } from '../../utils/pendingImportDraft'
 
 const props = defineProps<{
   id?: string | number | null
@@ -30,9 +30,9 @@ const router = useRouter()
 const isEditing = Boolean(props.id)
 
 // Nouvelle recette uniquement : saisie manuelle (formulaire habituel) ou collage direct
-// de markup Cooklang, parsé côté serveur pour pré-remplir ingrédients/étapes. La recette
-// créée est ensuite ouverte en édition pour vérifier/corriger le résultat de l'auto-parsing
-// (unités par défaut, quantités non reconnues).
+// de markup Cooklang, parsé côté serveur (sans rien créer) pour pré-remplir le formulaire
+// manuel : l'utilisateur y vérifie/corrige le résultat de l'auto-parsing (unités par défaut,
+// quantités non reconnues, ingrédients non rapprochés) avant d'enregistrer.
 const creationMode = ref<'manual' | 'cooklang'>('manual')
 // Titre et portions facultatifs : laissés vides, le serveur les lit dans les métadonnées du
 // fichier Cooklang (front matter `title:` / `servings:`) ; renseignés, ils les remplacent.
@@ -63,14 +63,25 @@ async function handleCooklangSubmit() {
   isImportingCooklang.value = true
   try {
     const { title, servings, raw_cooklang } = cooklangForm.value
-    const recipe = await importRecipeFromCooklang({
+    const preview = await previewRecipeFromCooklang({
       ...(title.trim() ? { title: title.trim() } : {}),
       ...(servings !== '' ? { servings } : {}),
       raw_cooklang,
     })
-    router.push({ name: 'recipe-edit', params: { id: recipe.id } })
+    applyImportDraft({
+      title: preview.title,
+      description: preview.description,
+      servings: preview.servings ?? form.value.servings,
+      prep_time_minutes: preview.prep_time_minutes ?? form.value.prep_time_minutes,
+      cook_time_minutes: preview.cook_time_minutes ?? form.value.cook_time_minutes,
+      source_url: preview.source_url,
+      source_type: 'cooklang',
+      steps: preview.steps,
+      ingredients: preview.ingredients,
+    })
+    creationMode.value = 'manual'
   } catch (error) {
-    // 400 du serveur : texte illisible ou titre absent (ni saisi, ni dans les métadonnées).
+    // 400 du serveur : texte Cooklang illisible.
     const status = (error as { response?: { status?: number } })?.response?.status
     cooklangError.value = t(status === 400 ? 'recipes.cooklangInvalid' : 'recipes.cooklangImportError')
   } finally {
@@ -249,35 +260,45 @@ onMounted(async () => {
     return
   }
 
-  // Recette pré-remplie depuis un import d'URL (voir RecipeListView.vue::handleImport) : les
-  // ingrédients déjà rapprochés du catalogue arrivent avec leur Ingredient, les autres arrivent
-  // vides et marqués `unmatched` pour que l'utilisateur les choisisse ou les crée ici même
-  // (IngredientPicker gère déjà recherche + création, et la soumission reste bloquée tant qu'une
-  // ligne n'a pas d'ingrédient — pas besoin d'un écran de vérification séparé).
+  // Recette pré-remplie depuis un import d'URL (voir RecipeListView.vue::handleImport).
   const draft = takePendingImportDraft()
-  if (!draft) return
+  if (draft) applyImportDraft(draft)
+})
 
+// Pré-remplit le formulaire depuis un aperçu d'import (URL ou Cooklang collé) : les ingrédients
+// déjà rapprochés du catalogue arrivent avec leur Ingredient, les autres arrivent vides et marqués
+// `unmatched` pour que l'utilisateur les choisisse ou les crée ici même (IngredientPicker gère déjà
+// recherche + création, et la soumission reste bloquée tant qu'une ligne n'a pas d'ingrédient —
+// pas besoin d'un écran de vérification séparé).
+function applyImportDraft(draft: PendingImportDraft) {
   form.value = {
     ...form.value,
     title: draft.title,
+    description: draft.description ?? form.value.description,
     servings: draft.servings,
+    prep_time_minutes: draft.prep_time_minutes ?? form.value.prep_time_minutes,
     cook_time_minutes: draft.cook_time_minutes,
     source_url: draft.source_url,
+    ...(draft.source_type ? { source_type: draft.source_type } : {}),
   }
   // Pas de photo : celle du site source n'est jamais reprise (droit d'auteur du photographe),
   // l'utilisateur ajoute la sienne ou en choisit une libre de droits (FreeImageSuggestions).
-  importedStepTexts.value = new Set(draft.steps.map((step) => step.instruction.trim()))
+  // Les étapes d'un Cooklang collé sont le texte de l'utilisateur : rien à réécrire.
+  importedStepTexts.value =
+    draft.source_type === 'cooklang' ? new Set() : new Set(draft.steps.map((step) => step.instruction.trim()))
   ingredientRows.value = draft.ingredients.map((item, index) => ({
     ingredient: item.ingredient,
     unmatched: !item.ingredient,
     raw_line: item.raw_line,
     quantity: item.quantity,
     unit: item.unit,
-    group_name: '',
+    group_name: item.group_name ?? '',
     order: index + 1,
   }))
+  if (!ingredientRows.value.length) addIngredientRow()
   stepRows.value = draft.steps.map((step) => ({ ...emptyStepRow(step.order), instruction: step.instruction }))
-})
+  if (!stepRows.value.length) stepRows.value = [emptyStepRow(1)]
+}
 
 function addIngredientRow() {
   ingredientRows.value.push({

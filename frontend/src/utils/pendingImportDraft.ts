@@ -14,6 +14,7 @@ export interface PendingImportIngredientRow {
   // RecipeFormView tant que l'ingrédient n'a pas été rapproché, pour donner du contexte quand
   // le nom parsé seul ne suffit pas à retrouver/recréer le bon ingrédient.
   raw_line: string
+  group_name?: string
 }
 
 export interface PendingImportDraft {
@@ -21,6 +22,11 @@ export interface PendingImportDraft {
   servings: number
   cook_time_minutes: number
   source_url: string
+  // Seulement pour un aperçu Cooklang (RecipeFormView.vue::handleCooklangSubmit), qui ne passe
+  // pas par ce relais mais pré-remplit le formulaire par la même fonction.
+  description?: string
+  prep_time_minutes?: number
+  source_type?: 'cooklang'
   steps: { instruction: string; order: number }[]
   ingredients: PendingImportIngredientRow[]
 }

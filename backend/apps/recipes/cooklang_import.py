@@ -1,5 +1,7 @@
 """Turns a parsed Cooklang recipe (see `cooklang.py`, built on the `cooklang-py` library) into
-`Recipe` + `RecipeIngredient` + `RecipeStep` rows.
+`Recipe` + `RecipeIngredient` + `RecipeStep` rows (`create_recipe_from_cooklang`, used by the
+YouTube import script), or into a no-write preview that pre-fills the recipe form
+(`build_cooklang_preview`, used by the "Paste Cooklang" tab).
 
 This is the only place that bridges the free-text Cooklang world (arbitrary ingredient names,
 arbitrary unit abbreviations, free-form metadata) and the app's normalized data model (a closed
@@ -29,11 +31,18 @@ from django.db import transaction
 from apps.importer.ingredient_parsing import unit_from_word
 from apps.importer.services import build_ingredient_catalog, find_matching_ingredient
 from apps.ingredients.models import Ingredient, Unit
+from apps.ingredients.serializers import IngredientSerializer
 
 from .cooklang import CooklangParseError, ParsedRecipe, parse
 from .models import Recipe, RecipeIngredient, RecipeStep, SourceType
 
-__all__ = ["CooklangParseError", "create_recipe_from_cooklang", "map_unit", "parse_quantity"]
+__all__ = [
+    "CooklangParseError",
+    "build_cooklang_preview",
+    "create_recipe_from_cooklang",
+    "map_unit",
+    "parse_quantity",
+]
 
 # Free-text unit abbreviations (as found in real Cooklang recipes, French and English) mapped to
 # the app's closed `Unit` enum. Checked before the shared multilingual unit vocabulary of the URL
@@ -219,6 +228,49 @@ def _resolve_ingredient(name: str, catalog: dict[str, Ingredient], created: dict
     return ingredient
 
 
+def _ingredient_lines(parsed: ParsedRecipe, resolve) -> list[dict]:
+    """Lignes d'ingrédients (`ingredient`, `quantity`, `unit`, `group_name`) déduites des mentions.
+
+    `resolve(name)` renvoie `(clé, ingrédient)` : la clé identifie l'ingrédient pour le
+    regroupement des lignes, l'ingrédient est ce qui finit dans la ligne (éventuellement `None`
+    pour une prévisualisation qui n'a rien rapproché).
+
+    Une mention sans quantité d'un ingrédient déjà déclaré (ex. "@oignon" à l'étape 3 après
+    "@oignon{1}" à l'étape 1) ne fait que référencer la ligne existante : pas de doublon. Deux
+    mentions quantifiées dans la même section et la même unité s'additionnent."""
+    lines: dict[tuple, dict] = {}
+    defaulted_lines = set()  # lignes créées par une mention sans quantité (quantité 1 par défaut)
+    seen_names = set()
+    for parsed_ingredient in parsed.ingredients:
+        key = parsed_ingredient.name.strip().lower()
+        if key in seen_names and not parsed_ingredient.quantity:
+            continue
+        seen_names.add(key)
+        quantity, unit = _quantity_and_unit(parsed_ingredient.quantity, parsed_ingredient.unit)
+        ingredient_key, ingredient = resolve(parsed_ingredient.name)
+        group_name = parsed_ingredient.section[:60]
+
+        line_key = (ingredient_key, unit, group_name)
+        if parsed_ingredient.quantity and line_key in lines:
+            line = lines[line_key]
+            if line_key in defaulted_lines:
+                line["quantity"] = quantity
+                defaulted_lines.discard(line_key)
+            else:
+                line["quantity"] = min(line["quantity"] + quantity, _MAX_QUANTITY)
+            continue
+        if not parsed_ingredient.quantity:
+            defaulted_lines.add(line_key)
+        lines[line_key] = {
+            "name": parsed_ingredient.name.strip(),
+            "ingredient": ingredient,
+            "quantity": quantity,
+            "unit": unit,
+            "group_name": group_name,
+        }
+    return list(lines.values())
+
+
 @transaction.atomic
 def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=None, prep_time_minutes=None,
                                  cook_time_minutes=None, diet_type=None, source_url=None, video_url=None,
@@ -263,41 +315,22 @@ def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=No
     )
 
     catalog, created = build_ingredient_catalog(), {}
-    # Une mention sans quantité d'un ingrédient déjà déclaré (ex. "@oignon" à l'étape 3 après
-    # "@oignon{1}" à l'étape 1) ne fait que référencer la ligne existante : pas de doublon. Deux
-    # mentions quantifiées dans la même section et la même unité s'additionnent.
-    lines: dict[tuple, RecipeIngredient] = {}
-    defaulted_lines = set()  # lignes créées par une mention sans quantité (quantité 1 par défaut)
-    seen_names = set()
-    for parsed_ingredient in parsed.ingredients:
-        key = parsed_ingredient.name.strip().lower()
-        if key in seen_names and not parsed_ingredient.quantity:
-            continue
-        seen_names.add(key)
-        quantity, unit = _quantity_and_unit(parsed_ingredient.quantity, parsed_ingredient.unit)
-        ingredient = _resolve_ingredient(parsed_ingredient.name, catalog, created)
-        group_name = parsed_ingredient.section[:60]
 
-        line_key = (ingredient.pk, unit, group_name)
-        if parsed_ingredient.quantity and line_key in lines:
-            line = lines[line_key]
-            if line_key in defaulted_lines:
-                line.quantity = quantity
-                defaulted_lines.discard(line_key)
-            else:
-                line.quantity = min(line.quantity + quantity, _MAX_QUANTITY)
-            continue
-        if not parsed_ingredient.quantity:
-            defaulted_lines.add(line_key)
-        lines[line_key] = RecipeIngredient(
+    def resolve(name):
+        ingredient = _resolve_ingredient(name, catalog, created)
+        return ingredient.pk, ingredient
+
+    RecipeIngredient.objects.bulk_create(
+        RecipeIngredient(
             recipe=recipe,
-            ingredient=ingredient,
-            quantity=quantity,
-            unit=unit,
-            group_name=group_name,
-            order=len(lines) + 1,
+            order=order,
+            ingredient=line["ingredient"],
+            quantity=line["quantity"],
+            unit=line["unit"],
+            group_name=line["group_name"],
         )
-    RecipeIngredient.objects.bulk_create(lines.values())
+        for order, line in enumerate(_ingredient_lines(parsed, resolve), start=1)
+    )
 
     RecipeStep.objects.bulk_create(
         RecipeStep(recipe=recipe, order=order, instruction=step_text)
@@ -305,3 +338,52 @@ def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=No
     )
 
     return recipe
+
+
+def build_cooklang_preview(*, raw_cooklang, title=None, servings=None) -> dict:
+    """Parse `raw_cooklang` sans rien écrire en base, au même format que la prévisualisation
+    d'un import d'URL (`apps.importer.services.build_import_preview`) : le formulaire de recette
+    s'ouvre pré-rempli et l'utilisateur corrige avant de créer la recette via `POST /api/recipes/`.
+
+    Les ingrédients sont rapprochés du catalogue comme à l'import (`find_matching_ingredient`),
+    mais ceux qui ne correspondent à rien ne sont pas créés : ils arrivent sans `ingredient`, à
+    choisir ou créer dans le formulaire. Le titre peut manquer (le formulaire l'exige de toute
+    façon). Lève `CooklangParseError` sur un texte illisible."""
+    parsed: ParsedRecipe = parse(raw_cooklang)
+    fields = recipe_fields_from_metadata(parsed)
+    if title and title.strip():
+        fields["title"] = title.strip()
+    if servings:
+        fields["servings"] = servings
+
+    catalog = build_ingredient_catalog()
+
+    def resolve(name):
+        ingredient = find_matching_ingredient(name, catalog)
+        # Les ingrédients non rapprochés ne se regroupent qu'à nom identique (comme ceux créés
+        # pendant un import), jamais par proximité.
+        return (ingredient.pk if ingredient else f"name:{name.strip().lower()}"), ingredient
+
+    return {
+        "title": fields.get("title", ""),
+        "description": fields.get("description", ""),
+        "servings": fields.get("servings"),
+        "prep_time_minutes": fields.get("prep_time_minutes"),
+        "cook_time_minutes": fields.get("cook_time_minutes"),
+        "source_url": fields.get("source_url", ""),
+        "steps": [
+            {"order": order, "instruction": instruction}
+            for order, instruction in enumerate(parsed.tagged_steps, start=1)
+        ],
+        "ingredients": [
+            {
+                "raw_line": line["name"],
+                "name": line["name"],
+                "quantity": str(line["quantity"]),
+                "unit": line["unit"],
+                "group_name": line["group_name"],
+                "ingredient": IngredientSerializer(line["ingredient"]).data if line["ingredient"] else None,
+            }
+            for line in _ingredient_lines(parsed, resolve)
+        ],
+    }

@@ -386,6 +386,15 @@ class RecipeRatingSerializer(serializers.ModelSerializer):
         fields = ["value"]
 
 
+class CooklangPreviewSerializer(serializers.Serializer):
+    """Input for POST /api/recipes/preview-cooklang/: raw Cooklang text plus the optional title
+    and servings that override its metadata."""
+
+    title = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    raw_cooklang = serializers.CharField()
+    servings = serializers.IntegerField(required=False, min_value=1)
+
+
 class CooklangImportSerializer(serializers.Serializer):
     """Input for POST /api/recipes/import-cooklang/: raw Cooklang text plus optional
     recipe-level fields. Each field given here overrides the Cooklang metadata (front matter);

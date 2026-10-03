@@ -202,7 +202,7 @@
     "cooklangPlaceholder": "Faire revenir \\@oignon{'{'}1%piece{'}'} dans \\@huile_olive{'{'}2%cs{'}'}...",
     "cooklangImportButton": "Importer",
     "cooklangImportError": "Échec de l'import du texte Cooklang.",
-    "cooklangInvalid": "Texte Cooklang illisible, ou titre manquant (ni saisi, ni dans les métadonnées).",
+    "cooklangInvalid": "Texte Cooklang illisible.",
     "cookMode": "Mode cuisine",
     "cookModeStep": "Étape {current} / {total}",
     "cookModeIngredients": "Voir les ingrédients",
