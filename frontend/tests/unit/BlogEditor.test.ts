@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import BlogEditor from '../../src/components/blog/BlogEditor.vue'
 import { i18n } from '../../src/i18n'
@@ -24,6 +24,19 @@ function mountEditor(modelValue = '<p>Bonjour</p>') {
     global: { plugins: [i18n], stubs: { RecipePicker: RecipePickerStub } },
   })
 }
+
+// TipTap's focus() scrolls the selection into view in a requestAnimationFrame; ProseMirror then
+// measures the DOM with layout APIs jsdom doesn't implement. Without these stubs the callback
+// throws an unhandled error whenever it runs before the test unmounts the editor (slow CI).
+beforeAll(() => {
+  const emptyRect = () => new DOMRect(0, 0, 0, 0)
+  const emptyRects = () => Object.assign([], { item: () => null }) as unknown as DOMRectList
+  for (const proto of [Range.prototype, Element.prototype]) {
+    if (!proto.getClientRects) proto.getClientRects = emptyRects
+    if (!proto.getBoundingClientRect) proto.getBoundingClientRect = emptyRect
+  }
+  if (!document.elementFromPoint) document.elementFromPoint = () => null
+})
 
 beforeEach(() => {
   i18n.global.locale.value = 'fr'
@@ -54,6 +67,8 @@ describe('BlogEditor', () => {
     expect(html).toContain('src="/embed/recipes/7"')
     expect(html).toContain('title="Curry"')
     expect(wrapper.find('.pick-recipe').exists()).toBe(false)
+    // Let TipTap's deferred focus/scroll run, as it does on a slow CI runner.
+    await new Promise((resolve) => setTimeout(resolve, 50))
     wrapper.unmount()
   })
 
