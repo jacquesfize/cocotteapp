@@ -164,7 +164,8 @@ describe('RecipeListView delete', () => {
 
     const { wrapper } = await mountList()
     vi.mocked(listRecipes).mockClear()
-    await wrapper.find('button.danger-btn').trigger('click')
+    await wrapper.find('button.actions-toggle').trigger('click')
+    await wrapper.find('button.actions-link-danger').trigger('click')
     await flushPromises()
 
     expect(deleteRecipe).toHaveBeenCalledWith(7)
