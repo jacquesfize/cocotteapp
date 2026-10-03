@@ -16,15 +16,16 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await expect(page).toHaveURL(/\/recipes$/)
 
   // L'import depuis une URL reste replié par défaut (gain de place sur mobile) et
-  // s'ouvre au clic sur le bouton "Importer" à côté de "Nouvelle recette".
-  const importToggle = page.locator('.page-header').getByRole('button', { name: 'Importer' })
+  // s'ouvre depuis le menu du bouton unique "Nouvelle recette".
   await expect(page.getByLabel(/Importer depuis une URL/)).toHaveCount(0)
-  await importToggle.click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Importer depuis une URL' }).click()
   await expect(page.getByLabel(/Importer depuis une URL/)).toBeVisible()
-  await importToggle.click()
+  await page.locator('#import-form').getByRole('button', { name: 'Fermer' }).click()
   await expect(page.getByLabel(/Importer depuis une URL/)).toHaveCount(0)
 
-  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()

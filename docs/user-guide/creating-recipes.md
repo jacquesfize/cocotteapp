@@ -4,8 +4,8 @@ You need to be logged in to add recipes. There are three ways to create one:
 
 | Method | Best for | Where |
 |---|---|---|
-| **Manual entry** | Your own recipes | **Recipes** → **New recipe**, or **New recipe** → **Create manually** on the home page |
-| **Import from a URL** | A recipe from a cooking website | **Recipes** → **Import**, or **New recipe** → **Import from a URL** on the home page |
+| **Manual entry** | Your own recipes | **New recipe** → **Create manually**, on the **Recipes** page or the home page |
+| **Import from a URL** | A recipe from a cooking website | **New recipe** → **Import from a URL**, on the **Recipes** page or the home page |
 | **Paste Cooklang** | A recipe already written in [Cooklang](https://cooklang.org/) markup | **New recipe** → **Paste Cooklang** tab |
 
 Whichever you choose, you end up in the same recipe form, where you can check and fix everything
@@ -13,7 +13,7 @@ before or after saving.
 
 ## Write a recipe by hand
 
-1. Click **Recipes** in the top bar, then **New recipe**.
+1. Click **Recipes** in the top bar, then **New recipe** → **Create manually**.
 2. Make sure the **Manual entry** tab is selected.
 3. Fill in the cards described below.
 4. Click **Save**. The recipe page opens.
@@ -211,8 +211,9 @@ it. Then everyone can see the full recipe.
 Cocotte can read recipes from many cooking websites (the ones supported by
 [recipe-scrapers](https://github.com/hhursev/recipe-scrapers)).
 
-1. On the **Recipes** page, click **Import**. On the home page, click **New recipe** then
-   **Import from a URL**, which opens the same form in a dialog.
+1. On the **Recipes** page or the home page, click **New recipe** then **Import from a URL**.
+   On the **Recipes** page the form opens above the list (the **Close** button hides it again);
+   on the home page it opens in a dialog.
 2. Paste the recipe's address in **Import from a URL**.
 3. Click **Import** and wait a few seconds.
 

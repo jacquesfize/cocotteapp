@@ -15,6 +15,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Recipe list: the **Exclude allergens** filter lets you choose individual allergens to hide,
+  instead of the all-or-nothing "Hide recipes containing my allergens" checkbox. Your own
+  allergies and intolerances are still selected by default, and **Add my allergies and
+  intolerances** puts them back after removing some.
+
 - Shopping-list export now offers a **Share** option (using the device's share sheet) on devices
   that support the Web Share API, so a list can be sent directly into a notes or to-do app (Apple
   Notes, Google Keep, Reminders, Todoist, etc.) instead of only downloading a `.txt` file. On
@@ -57,6 +62,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   are now optional in the form when the file's metadata provides them. Pasted ingredients are
   matched against the library like a URL import (by translation and close spelling too), and
   `cl`/`dl`/`mg` quantities are converted. Parsing now relies on the `cooklang-py` library.
+- Recipe list redesign: on a computer the filters now sit in a column on the left of the list
+  (always visible) and recipes are shown two per row; on a phone the **Filters** button opens the
+  panel above the list instead of a bottom sheet. Ingredients are picked from a searchable
+  multi-select shown as pills, the diet is a list of radio buttons, max prep/cook times are
+  sliders, carbon impact is a colour-coded slider (green / orange / red), and the in-season
+  checkbox is now an **In season** leaf toggle. The **New recipe** and **Import** buttons are
+  merged into a single **New recipe** menu (**Create manually** / **Import from a URL**).
 - The "pièce" (piece) unit now accepts decimal quantities on a recipe (e.g. 0.5 for half a
   camembert); shopping lists still round up to a whole piece when aggregating.
 - Cook mode's button now uses a chef's hat icon instead of a generic expand icon, and reaching the

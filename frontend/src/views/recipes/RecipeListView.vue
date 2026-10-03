@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, Link2, Plus, X } from '@lucide/vue'
+import { BookOpen, ChevronDown, Link2, Pencil, Plus, X } from '@lucide/vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
@@ -10,6 +10,7 @@ import RecipeFilters, { type RecipeFilterValues } from '../../components/recipes
 import AsyncState from '../../components/shared/AsyncState.vue'
 import { previewImportFromUrl } from '../../api/importer'
 import { deleteRecipe, listRecipes } from '../../api/recipes'
+import { useClickOutside } from '../../composables/useClickOutside'
 import { useAuthStore } from '../../stores/auth'
 import { setPendingImportDraft } from '../../utils/pendingImportDraft'
 import type { RecipeListParams } from '../../types/api'
@@ -63,7 +64,7 @@ function queryMatches(current: LocationQuery, next: Record<string, unknown>) {
 // /recipes?in_season=true deviennent ainsi de vraies pages thématiques, partageables.
 const filters = ref<RecipeFilterValues>(filtersFromQuery(route.query))
 // À l'arrivée sur la liste sans filtre explicite, on masque par défaut les recettes qui
-// contiennent un allergène du profil (décochable dans le panneau de filtres).
+// contiennent un allergène du profil (modifiable allergène par allergène dans les filtres).
 if (!('exclude_allergens' in route.query) && myAllergens.value.length) {
   filters.value.exclude_allergens = myAllergens.value.join(',')
 }
@@ -144,11 +145,16 @@ const isImporting = ref(false)
 const showImportForm = ref(false)
 const importUrlInput = ref<HTMLInputElement | null>(null)
 
-function toggleImportForm() {
-  showImportForm.value = !showImportForm.value
-  if (showImportForm.value) {
-    nextTick(() => importUrlInput.value?.focus())
-  }
+const showCreateMenu = ref(false)
+const createMenuEl = ref<HTMLElement | null>(null)
+useClickOutside(createMenuEl, () => {
+  showCreateMenu.value = false
+})
+
+function openImportForm() {
+  showCreateMenu.value = false
+  showImportForm.value = true
+  nextTick(() => importUrlInput.value?.focus())
 }
 
 // Le scraping est rapproché du catalogue d'ingrédients (voir apps/importer/services.py) mais
@@ -188,20 +194,32 @@ async function handleImport() {
   <div>
     <div class="row page-header">
       <PageHeader :icon="BookOpen" :title="$t('recipes.title')" />
-      <div class="row">
-        <RouterLink v-if="authStore.isAuthenticated" :to="{ name: 'recipe-new' }">
-          <button><Plus :size="16" />{{ $t('recipes.newRecipe') }}</button>
-        </RouterLink>
+      <!-- Un seul point d'entrée : "Nouvelle recette" ouvre un petit menu (créer / importer),
+           comme le bouton équivalent de l'accueil (HomeWeekStrip.vue). -->
+      <div v-if="authStore.isAuthenticated" ref="createMenuEl" class="create-menu">
         <button
-          v-if="authStore.isAuthenticated"
-          class="secondary"
           type="button"
-          :aria-expanded="showImportForm"
-          aria-controls="import-form"
-          @click="toggleImportForm"
+          class="create-toggle"
+          :aria-expanded="showCreateMenu"
+          aria-controls="recipe-create-panel"
+          @click="showCreateMenu = !showCreateMenu"
         >
-          <component :is="showImportForm ? X : Link2" :size="16" />{{ $t('recipes.importButton') }}
+          <Plus :size="16" />{{ $t('recipes.newRecipe') }}<ChevronDown :size="16" class="chevron" />
         </button>
+        <div v-show="showCreateMenu" id="recipe-create-panel" class="create-panel">
+          <RouterLink :to="{ name: 'recipe-new' }" class="create-link" @click="showCreateMenu = false">
+            <Pencil :size="16" /><span>{{ $t('recipes.createManually') }}</span>
+          </RouterLink>
+          <button
+            type="button"
+            class="create-link"
+            :aria-expanded="showImportForm"
+            aria-controls="import-form"
+            @click="openImportForm"
+          >
+            <Link2 :size="16" /><span>{{ $t('recipes.importFromUrl') }}</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -221,30 +239,39 @@ async function handleImport() {
         <button type="submit" :disabled="isImporting">
           <Link2 :size="16" />{{ isImporting ? $t('common.loading') : $t('recipes.importButton') }}
         </button>
+        <button
+          type="button"
+          class="secondary icon-btn"
+          :aria-label="$t('common.close')"
+          @click="showImportForm = false"
+        >
+          <X :size="16" />
+        </button>
       </form>
       <p v-if="importError" class="muted">{{ importError }}</p>
     </div>
 
-    <RecipeFilters v-model="filters" :my-allergens="myAllergens" />
+    <!-- Desktop : filtres en colonne latérale à gauche ; mobile : au-dessus de la liste. -->
+    <div class="recipes-layout">
+      <RecipeFilters v-model="filters" class="recipes-sidebar" :my-allergens="myAllergens" />
 
-    <p v-if="deleteError" class="error">{{ deleteError }}</p>
-    <AsyncState
-      v-if="isLoading || !recipes.length"
-      :loading="isLoading"
-      :loading-text="$t('common.loading')"
-      :empty-text="$t('recipes.noResults')"
-    />
-    <div v-else class="card recipe-list">
-      <RecipeCard
-        v-for="recipe in recipes"
-        :key="recipe.id"
-        :recipe="recipe"
-        manageable
-        @delete="handleDelete"
-      />
+      <div class="recipes-main">
+        <p v-if="deleteError" class="error">{{ deleteError }}</p>
+        <AsyncState
+          v-if="isLoading || !recipes.length"
+          :loading="isLoading"
+          :loading-text="$t('common.loading')"
+          :empty-text="$t('recipes.noResults')"
+        />
+        <div v-else class="recipe-grid">
+          <div v-for="recipe in recipes" :key="recipe.id" class="recipe-tile">
+            <RecipeCard :recipe="recipe" manageable @delete="handleDelete" />
+          </div>
+        </div>
+
+        <Pagination :page="page" :count="count" @update:page="goToPage" />
+      </div>
     </div>
-
-    <Pagination :page="page" :count="count" @update:page="goToPage" />
   </div>
 </template>
 
@@ -254,8 +281,89 @@ async function handleImport() {
   align-items: center;
   margin-bottom: 1rem;
 }
-.recipe-list {
-  padding: 0;
+
+.create-menu {
+  position: relative;
+}
+.create-toggle .chevron {
+  margin-left: -0.1rem;
+  transition: transform 0.15s ease;
+}
+.create-toggle[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+.create-panel {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  z-index: 20;
+}
+.create-link {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.55rem 0.6rem;
+  border-radius: 10px;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  background: none;
+  border: none;
+  min-height: auto;
+}
+.create-link:hover {
+  background: var(--color-surface-muted);
+}
+
+.recipes-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.recipes-main {
+  min-width: 0;
+}
+.recipe-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+.recipe-tile {
+  min-width: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
+}
+
+/* Desktop large : deux recettes par ligne. */
+@media (min-width: 900px) {
+  .recipe-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .recipe-tile {
+    display: flex;
+  }
+  .recipe-tile > :deep(.recipe-card) {
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .recipes-layout {
+    display: block;
+  }
 }
 </style>

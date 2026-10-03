@@ -14,7 +14,8 @@ async function registerAndBuildShoppingList(page: Page, suffix: number) {
 
   await expect(page).toHaveURL(/\/recipes$/)
 
-  await page.getByRole('link', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('button', { name: 'Nouvelle recette' }).click()
+  await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
   await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
   await page.getByText(`+ Créer « ${ingredientName} »`).click()

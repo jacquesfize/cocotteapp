@@ -65,11 +65,11 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
 
   await test.step('recipe list', async () => {
     await page.goto('/recipes')
-    await expect(page.locator('.recipe-list')).toBeVisible()
+    await expect(page.locator('.recipe-grid')).toBeVisible()
     await shotPage(page, 'recipe-list')
 
     await page.goto('/recipes?diet_type=vegan&max_prep_time=20&ingredients=Pois%20chiches')
-    await page.getByRole('button', { name: /Filters/ }).click()
+    // Desktop : le panneau de filtres est toujours affiché en colonne latérale.
     await expect(page.locator('#recipe-filters-panel')).toBeVisible()
     await shotElement(page.locator('#recipe-filters-panel'), 'recipe-list-filters')
   })
