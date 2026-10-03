@@ -185,7 +185,10 @@ something a user, admin or contributor sees or does** — in the same PR, not la
   shared, check every page that renders it, not just the one you were looking at.
   `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` log into the admin screenshots and are needed for
   clean-up even when your change isn't admin-related — the dev stack already has this account
-  seeded with the credentials above. Omitting `SHOTS` regenerates every PNG instead (only do
+  seeded with the credentials above. The backend's `.env` also needs
+  `NUTRITION_ALERTS_ENABLED=True` (restart the backend after setting it) or
+  `planning-nutrition.png` is silently skipped instead of captured — it's off by default.
+  Omitting `SHOTS` regenerates every PNG instead (only do
   this when you're unsure of the blast radius); in that case `git status
   docs/assets/screenshots/` and stage only the files whose feature you touched — small rendering
   noise (fonts, anti-aliasing) can flag unrelated images as changed even though nothing about
