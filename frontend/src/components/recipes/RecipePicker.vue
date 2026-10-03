@@ -17,7 +17,7 @@ const emit = defineEmits<{
 
 const query = ref(props.modelValue?.title ?? '')
 const isOpen = ref(false)
-const { results: suggestions, search, clear } = useDebouncedSearch<Recipe>(
+const { results: suggestions, search, cancel, clear } = useDebouncedSearch<Recipe>(
   async (value) => (await listRecipes({ search: value })).results,
   { onResults: () => { isOpen.value = true } },
 )
@@ -31,24 +31,36 @@ watch(
   },
 )
 
-watch(query, (value) => {
+// La recherche n'est déclenchée que par une saisie de l'utilisateur (événement `input`), pas par
+// un changement programmatique de `query` (sélection, resynchronisation depuis le parent) : sinon
+// la liste se rouvrirait juste après la sélection (le `watch(query, ...)` qu'il y avait ici avant
+// réagissait aussi à `select()` affectant `query.value`, ce qui rouvrait le menu ~250ms après le
+// clic sur une suggestion).
+function onInput() {
+  const value = query.value
   if (!value) {
     clear()
+    isOpen.value = false
     return
   }
+  isOpen.value = true
   search(value)
-})
+}
+
+function close() {
+  cancel()
+  isOpen.value = false
+}
 
 function select(recipe: Recipe) {
   query.value = recipe.title
-  isOpen.value = false
+  suggestions.value = []
+  close()
   emit('update:modelValue', recipe)
 }
 
 function closeSoon() {
-  setTimeout(() => {
-    isOpen.value = false
-  }, 150)
+  setTimeout(close, 150)
 }
 </script>
 
@@ -59,6 +71,7 @@ function closeSoon() {
       v-model="query"
       type="text"
       :placeholder="t('recipePicker.placeholder')"
+      @input="onInput"
       @focus="isOpen = true"
       @blur="closeSoon"
     />

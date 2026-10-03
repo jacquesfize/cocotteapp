@@ -108,6 +108,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Form validation errors (recipe details, ingredients, planner entries) are now shown consistently
   via inline messages instead of relying on the browser's native validation bubbles, which could be
   invisible or badly positioned on mobile.
+- Fixed autocomplete dropdowns reopening after selecting a suggestion (noticeable on the recipe
+  picker used when adding a recipe to the planner, and on the ingredient-mention autocomplete in
+  recipe step text), which made it look like the first click didn't register and required
+  clicking the suggestion a second time.
 
 ## [0.1.0] "Tiramisu" 🍰 - 2026-09-27
 

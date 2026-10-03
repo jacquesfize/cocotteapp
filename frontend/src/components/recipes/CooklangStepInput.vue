@@ -82,6 +82,10 @@ function insertToken(name: string) {
   const token = `${toMentionToken(name)} `
   const next = props.modelValue.slice(0, start) + token + props.modelValue.slice(end)
   emit('update:modelValue', next)
+  // Annule une recherche en cours (lancée par la frappe précédente, pas encore résolue) : sinon
+  // elle peut se résoudre après la sélection et rouvrir le menu via `onResults`, reproduisant le
+  // même bug que la réouverture pilotée par un `watch` sur une resélection programmatique.
+  cancel()
   isOpen.value = false
 
   const caret = start + token.length
@@ -102,6 +106,7 @@ function selectSuggestion(ingredient: Ingredient) {
 }
 
 function openCreateModal() {
+  cancel()
   isOpen.value = false
   showCreateModal.value = true
 }
@@ -142,12 +147,14 @@ async function insertMentionTemplate() {
 const TIMER_TEMPLATE = '~{10%minutes}'
 
 function insertTimerTemplate() {
+  cancel()
   isOpen.value = false
   insertAtCursor(TIMER_TEMPLATE, [2, 4])
 }
 
 function closeSoon() {
   setTimeout(() => {
+    cancel()
     isOpen.value = false
   }, 150)
 }
