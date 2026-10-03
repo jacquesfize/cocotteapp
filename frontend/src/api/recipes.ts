@@ -1,7 +1,7 @@
 import client from './client'
 import type { Paginated, RecipeListParams } from '../types/api'
 import type {
-  DietType,
+  CooklangPreview,
   Recipe,
   RecipeComment,
   RecipeCommentInput,
@@ -10,16 +10,6 @@ import type {
   RecipeStep,
   Tag,
 } from '../types/models'
-
-export interface CooklangImportInput {
-  /** Facultatif si le texte Cooklang porte un `title:` dans ses métadonnées. */
-  title?: string
-  raw_cooklang: string
-  servings?: number
-  prep_time_minutes?: number
-  cook_time_minutes?: number
-  diet_type?: DietType
-}
 
 export function listRecipes(params: RecipeListParams = {}): Promise<Paginated<Recipe>> {
   return client.get('recipes/', { params }).then((r) => r.data)
@@ -41,8 +31,15 @@ export function createRecipe(payload: RecipeInput): Promise<Recipe> {
   return client.post('recipes/', payload).then((r) => r.data)
 }
 
-export function importRecipeFromCooklang(payload: CooklangImportInput): Promise<Recipe> {
-  return client.post('recipes/import-cooklang/', payload).then((r) => r.data)
+export interface CooklangPreviewInput {
+  title?: string
+  raw_cooklang: string
+  servings?: number
+}
+
+/** Parse du Cooklang sans rien créer, pour pré-remplir le formulaire de recette. */
+export function previewRecipeFromCooklang(payload: CooklangPreviewInput): Promise<CooklangPreview> {
+  return client.post('recipes/preview-cooklang/', payload).then((r) => r.data)
 }
 
 export function updateRecipe(id: number | string, payload: RecipeInput): Promise<Recipe> {

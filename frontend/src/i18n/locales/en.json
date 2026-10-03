@@ -202,7 +202,7 @@
     "cooklangPlaceholder": "Fry the \\@onion{'{'}1%piece{'}'} in \\@olive_oil{'{'}2%tbsp{'}'}...",
     "cooklangImportButton": "Import",
     "cooklangImportError": "Failed to import the Cooklang text.",
-    "cooklangInvalid": "Unreadable Cooklang text, or missing title (neither entered nor in the metadata).",
+    "cooklangInvalid": "Unreadable Cooklang text.",
     "cookMode": "Cook mode",
     "cookModeStep": "Step {current} / {total}",
     "cookModeIngredients": "Show ingredients",

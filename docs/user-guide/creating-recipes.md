@@ -277,7 +277,8 @@ metadata and sections included.
 2. Paste your text in **Cooklang text**.
 3. Optionally enter the **Title** and **Servings**. Left empty (*From the file's metadata*), they
    are read from the file's metadata. Filled in, they take precedence over it.
-4. Click **Import**.
+4. Click **Import**. The **Manual entry** tab opens, filled in with what was read from the text.
+   Check and correct it, then click **Save** as for a [recipe written by hand](#write-a-recipe-by-hand).
 
 ![The Paste Cooklang tab](../assets/screenshots/recipe-form-cooklang.png)
 
@@ -323,7 +324,9 @@ Ajouter les @tomates{400%g}(concassées) et laisser mijoter ~{20%minutes}.
 
 What happens on import:
 
-- The recipe is **created immediately**, and its edit form opens so you can check it.
+- **Nothing is created yet.** The text fills in the title, description, servings, times, source
+  link, ingredients and steps of the **Manual entry** form; the recipe only exists once you click
+  **Save**. Leaving the page before that discards it.
 - Units are mapped to Cocotte's units. French, English, German and Spanish words and
   abbreviations work: `g`, `grams`, `kg`, `ml`, `l`, `cs`/`c.à.s`/`tbsp`, `cc`/`c.à.c`/`tsp`,
   `pincée`/`pinch`, `pièce`/`piece`… `cl`, `dl` and `mg` are converted to ml and g. A missing or
@@ -332,18 +335,17 @@ What happens on import:
   keeps its first number. A quantity that isn't a number (`quelques`) becomes **1**.
 - Each ingredient is matched against the ingredient library the same way as a
   [URL import](#import-a-recipe-from-a-url): by name, by translation (so `sugar` can find
-  *Sucre*), then by a close spelling. **If nothing matches, the ingredient is created with no
-  nutrition, carbon or allergen data.** Ask an admin to complete it, or pick an existing
-  ingredient in the edit form instead. Check the matches in the edit form, since a close
-  spelling can occasionally pick the wrong ingredient.
+  *Sucre*), then by a close spelling. A row whose ingredient matched nothing shows a **Not found**
+  badge followed by the name from the text: pick or create its ingredient before saving. Check
+  the other matches too, since a close spelling can occasionally pick the wrong ingredient.
 - Mentioning the same ingredient again without a quantity doesn't create a duplicate row. Two
   quantities of the same ingredient in the same section and unit are added up into one row.
-- Anything the metadata doesn't give keeps its default value (servings 4, prep and cook times
-  0 min, diet Flexitarian). Adjust it in the edit form.
+- Anything the text doesn't give keeps the form's default value (servings 4, prep time 10 min,
+  cook time 20 min, diet Flexitarian). Adjust it before saving.
 - If the metadata's `source` is a web address, it's saved as the recipe's source link, so its
   content is [restricted](browsing-recipes.md#recipes-with-restricted-content) like any import.
-- Without a title, either typed in or in the metadata, or with unreadable metadata, the import is
-  refused with an error message and nothing is created.
+- With unreadable metadata, you see *Unreadable Cooklang text.* and stay on the **Paste
+  Cooklang** tab. A missing title is fine: type it in the form before saving.
 
 ## Edit or delete a recipe
 

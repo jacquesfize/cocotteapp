@@ -228,6 +228,8 @@ export interface RecipeInput {
   image_credit_source_url?: string
   image_credit_license_url?: string
   image_credit_note?: string
+  // Seulement à la création d'une recette pré-remplie depuis du Cooklang collé.
+  source_type?: RecipeSourceType
   ingredients: RecipeIngredientInput[]
   steps: RecipeStepInput[]
 }
@@ -252,6 +254,19 @@ export interface ImportPreview {
   source_url: string
   steps: ImportPreviewStep[]
   ingredients: ImportPreviewIngredient[]
+}
+
+// `POST /api/recipes/preview-cooklang/` : même forme que l'aperçu d'un import d'URL, plus ce que
+// les métadonnées Cooklang peuvent porter. Les champs absents du texte (et non saisis) sont `null`.
+export interface CooklangPreview {
+  title: string
+  description: string
+  servings: number | null
+  prep_time_minutes: number | null
+  cook_time_minutes: number | null
+  source_url: string
+  steps: ImportPreviewStep[]
+  ingredients: (ImportPreviewIngredient & { group_name: string })[]
 }
 
 // Image libre de droits proposée par `GET /api/import/image-suggestions/` (Openverse), avec ses

@@ -9,6 +9,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🔄 Changed
 
+- **Paste Cooklang** no longer creates the recipe straight away: **Import** now opens the
+  **Manual entry** form filled in with what was read from the text (title, description,
+  servings, times, source, ingredients and steps), so you can correct it before clicking
+  **Save**. Ingredients that match nothing in the library are no longer created automatically:
+  they show a **Not found** badge until you pick or create one. A missing title no longer
+  blocks the import; type it in the form.
 - Home page: **Plan for later** and the **+** buttons of the **This week** card no longer send you
   to the planner. **Plan for later** opens a dialog to pick the date and meal for that recipe, and
   a **+** button opens the **Add a meal** dialog for that day and meal, right on the home page.

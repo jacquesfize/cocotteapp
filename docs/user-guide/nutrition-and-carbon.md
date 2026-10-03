@@ -32,8 +32,8 @@ particular) matters far more than transport distance.
 
 > [!WARNING]
 > Ingredients created on the fly without values count as zero. The same goes for ingredients
-> created automatically by a [Cooklang import](creating-recipes.md#paste-a-cooklang-recipe). A
-> recipe that uses them will look lighter and lower-carbon than it really is. Admins can
+> created automatically by the YouTube import script or by a Cooklang import made before it
+> opened the recipe form. A recipe that uses them will look lighter and lower-carbon than it really is. Admins can
 > complete them in the [Ingredient library](../admin-guide/ingredients.md).
 
 ## How per-serving nutrition is computed
@@ -177,7 +177,8 @@ allergens:
   and contains none.
 - Ingredients created by users are reviewed only if they have at least one allergen ticked, or
   if the creator ticked **I checked: this ingredient contains none of the listed allergens**.
-  Ingredients created by a Cooklang import are never reviewed.
+  Ingredients created automatically by the YouTube import script (or by a Cooklang import made
+  before it opened the recipe form) are never reviewed.
 
 When at least one ingredient of a recipe is **not reviewed**, the recipe shows *Allergens not
 verified for some ingredients*. The absence of a badge then proves nothing.

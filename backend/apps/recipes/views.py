@@ -15,7 +15,7 @@ from weasyprint import HTML
 
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
-from .cooklang_import import CooklangParseError, create_recipe_from_cooklang
+from .cooklang_import import CooklangParseError, build_cooklang_preview, create_recipe_from_cooklang
 from .filters import RecipeFilter
 from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
 from .pagination import RecipePagination
@@ -24,6 +24,7 @@ from .rating_utils import voter_hash_for_request
 from .serializers import (
     AdminThematicPageSerializer,
     CooklangImportSerializer,
+    CooklangPreviewSerializer,
     RecipeCommentSerializer,
     RecipeImageUploadSerializer,
     RecipeRatingSerializer,
@@ -162,6 +163,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         except CooklangParseError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
         return Response(self.get_serializer(recipe).data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="preview-cooklang",
+        permission_classes=[IsAuthenticated],
+    )
+    def preview_cooklang(self, request):
+        """Parse du Cooklang collé sans rien écrire en base : le formulaire de création s'ouvre
+        pré-rempli pour corriger le résultat avant `POST /api/recipes/`."""
+        serializer = CooklangPreviewSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            preview = build_cooklang_preview(**serializer.validated_data)
+        except CooklangParseError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(preview, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["get"], url_path="export", permission_classes=[IsAuthenticated])
     def export_library(self, request):

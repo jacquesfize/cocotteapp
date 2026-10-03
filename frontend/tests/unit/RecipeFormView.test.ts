@@ -9,7 +9,7 @@ vi.mock('../../src/api/recipes', () => ({
   getRecipe: vi.fn(),
   updateRecipe: vi.fn(),
   uploadRecipeImage: vi.fn(),
-  importRecipeFromCooklang: vi.fn(),
+  previewRecipeFromCooklang: vi.fn(),
 }))
 vi.mock('../../src/api/importer', () => ({ suggestFreeImages: vi.fn() }))
 vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
@@ -19,10 +19,10 @@ vi.mock('../../src/api/ingredients', () => ({
 }))
 
 import { suggestFreeImages } from '../../src/api/importer'
-import { createRecipe, importRecipeFromCooklang } from '../../src/api/recipes'
+import { createRecipe, previewRecipeFromCooklang } from '../../src/api/recipes'
 import { setPendingImportDraft } from '../../src/utils/pendingImportDraft'
 import RecipeFormView from '../../src/views/recipes/RecipeFormView.vue'
-import type { Recipe } from '../../src/types/models'
+import type { CooklangPreview, Recipe } from '../../src/types/models'
 
 async function mountRecipeForm() {
   const router = createRouter({
@@ -72,6 +72,30 @@ function recipe(overrides?: Partial<Recipe>): Recipe {
   } as unknown as Recipe
 }
 
+function cooklangPreview(overrides?: Partial<CooklangPreview>): CooklangPreview {
+  return {
+    title: 'Curry rapide',
+    description: 'Un curry express.',
+    servings: 2,
+    prep_time_minutes: 5,
+    cook_time_minutes: null,
+    source_url: '',
+    steps: [{ order: 1, instruction: 'Faire revenir @oignon{1%piece} dans @huile_olive{2%cs}.' }],
+    ingredients: [
+      {
+        raw_line: 'oignon',
+        name: 'oignon',
+        quantity: '1.00',
+        unit: 'piece',
+        group_name: 'Base',
+        ingredient: { id: 7, name: 'Oignon' } as CooklangPreview['ingredients'][number]['ingredient'],
+      },
+      { raw_line: 'huile_olive', name: 'huile olive', quantity: '2.00', unit: 'tbsp', group_name: '', ingredient: null },
+    ],
+    ...overrides,
+  }
+}
+
 beforeEach(() => {
   i18n.global.locale.value = 'fr'
   setActivePinia(createPinia())
@@ -85,8 +109,8 @@ describe('RecipeFormView - Cooklang import mode', () => {
     expect(wrapper.text()).toContain('Coller du Cooklang')
   })
 
-  it('switches to the Cooklang form and imports it on submit', async () => {
-    vi.mocked(importRecipeFromCooklang).mockResolvedValue(recipe())
+  it('switches to the Cooklang form and pre-fills the manual form with the parsed values', async () => {
+    vi.mocked(previewRecipeFromCooklang).mockResolvedValue(cooklangPreview())
 
     const wrapper = await mountRecipeForm()
     const tabs = wrapper.findAll('button[role="tab"]')
@@ -103,16 +127,52 @@ describe('RecipeFormView - Cooklang import mode', () => {
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
 
-    expect(importRecipeFromCooklang).toHaveBeenCalledWith({
+    expect(previewRecipeFromCooklang).toHaveBeenCalledWith({
       title: 'Curry rapide',
       servings: 2,
       raw_cooklang: 'Faire revenir @oignon{1%piece} dans @huile_olive{2%cs}.',
     })
-    expect(wrapper.vm.$route.fullPath).toBe('/recipes/42/edit')
+    // Rien n'est créé : on reste sur la page de création, en saisie manuelle pré-remplie.
+    expect(createRecipe).not.toHaveBeenCalled()
+    expect(wrapper.vm.$route.fullPath).toBe('/recipes/new')
+    expect(wrapper.find('#cooklang-text').exists()).toBe(false)
+    expect((wrapper.find('#title').element as HTMLInputElement).value).toBe('Curry rapide')
+    expect((wrapper.find('#description').element as HTMLTextAreaElement).value).toBe('Un curry express.')
+    expect((wrapper.find('#prep').element as HTMLInputElement).value).toBe('5')
+    // Absent du Cooklang : la valeur par défaut du formulaire est gardée.
+    expect((wrapper.find('#cook').element as HTMLInputElement).value).toBe('20')
+    expect(wrapper.text()).toContain('Non trouvé')
+    expect(wrapper.text()).toContain('huile_olive')
+  })
+
+  it('creates the recipe as a Cooklang one once the pre-filled form is completed and saved', async () => {
+    vi.mocked(previewRecipeFromCooklang).mockResolvedValue(
+      cooklangPreview({ ingredients: cooklangPreview().ingredients.slice(0, 1) }),
+    )
+    vi.mocked(createRecipe).mockResolvedValue(recipe())
+
+    const wrapper = await mountRecipeForm()
+    await wrapper.findAll('button[role="tab"]')[1].trigger('click')
+    await wrapper.find('#cooklang-text').setValue('Faire revenir @oignon{1%piece}.')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(createRecipe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Curry rapide',
+        source_type: 'cooklang',
+        ingredients: [expect.objectContaining({ ingredient_id: 7, quantity: '1.00', unit: 'piece', group_name: 'Base' })],
+        steps: [expect.objectContaining({ instruction: 'Faire revenir @oignon{1%piece} dans @huile_olive{2%cs}.' })],
+      }),
+    )
+    expect(wrapper.vm.$route.fullPath).toBe('/recipes/42')
   })
 
   it('shows an error message when the import fails', async () => {
-    vi.mocked(importRecipeFromCooklang).mockRejectedValue(new Error('boom'))
+    vi.mocked(previewRecipeFromCooklang).mockRejectedValue(new Error('boom'))
 
     const wrapper = await mountRecipeForm()
     const tabs = wrapper.findAll('button[role="tab"]')
@@ -127,7 +187,7 @@ describe('RecipeFormView - Cooklang import mode', () => {
   })
 
   it('leaves title and servings to the Cooklang metadata when left empty', async () => {
-    vi.mocked(importRecipeFromCooklang).mockResolvedValue(recipe())
+    vi.mocked(previewRecipeFromCooklang).mockResolvedValue(cooklangPreview())
     const text = '---\ntitle: Tiramisu\nservings: 6\n---\nRør @mascarpone{500%g}.'
 
     const wrapper = await mountRecipeForm()
@@ -136,11 +196,11 @@ describe('RecipeFormView - Cooklang import mode', () => {
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
 
-    expect(importRecipeFromCooklang).toHaveBeenCalledWith({ raw_cooklang: text })
+    expect(previewRecipeFromCooklang).toHaveBeenCalledWith({ raw_cooklang: text })
   })
 
-  it('explains a 400 (unreadable text or missing title)', async () => {
-    vi.mocked(importRecipeFromCooklang).mockRejectedValue({ response: { status: 400 } })
+  it('explains a 400 (unreadable text)', async () => {
+    vi.mocked(previewRecipeFromCooklang).mockRejectedValue({ response: { status: 400 } })
 
     const wrapper = await mountRecipeForm()
     await wrapper.findAll('button[role="tab"]')[1].trigger('click')

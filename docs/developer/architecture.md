@@ -197,8 +197,9 @@ flowchart LR
     URL["Recipe page URL"] -->|"POST /api/import/url/"| Preview["importer: scrape + parse<br/>(no DB write)"]
     Preview --> Form["RecipeFormView pre-filled<br/>(user reviews ingredients)"]
     Form -->|"POST /api/recipes/"| Recipe[(Recipe)]
-    Paste["Pasted Cooklang"] -->|"POST /api/recipes/import-cooklang/"| Convert["cooklang.py + cooklang_import.py"]
-    YT["YouTube video"] -->|"subagent + post_cooklang.py"| Convert
+    Paste["Pasted Cooklang"] -->|"POST /api/recipes/preview-cooklang/"| CPreview["cooklang.py + cooklang_import.py<br/>(no DB write)"]
+    CPreview --> Form
+    YT["YouTube video"] -->|"subagent + post_cooklang.py<br/>POST /api/recipes/import-cooklang/"| Convert["cooklang.py + cooklang_import.py"]
     Convert --> Recipe
     Convert -.->|"then"| Edit["/recipes/:id/edit for review"]
 ```
@@ -211,8 +212,13 @@ flowchart LR
    (`utils/pendingImportDraft.ts`) and opens the recipe form, where the user fixes unmatched
    ingredients before saving with a normal `POST /api/recipes/`.
 2. **Cooklang paste**: the recipe form's "Cooklang" mode (creation only) posts raw markup to
-   `POST /api/recipes/import-cooklang/`, which creates the recipe (`source_type = cooklang`,
-   `raw_cooklang` kept) and redirects to the edit view for review.
+   `POST /api/recipes/preview-cooklang/` (`build_cooklang_preview`), which returns a **preview
+   only**, in the same shape as the URL import's plus `description`, `prep_time_minutes` and each
+   ingredient's `group_name`. Unmatched ingredients come back with `ingredient: null` instead of
+   being created, and a missing title is allowed (the form requires one). `RecipeFormView`
+   fills the manual form with it (`applyImportDraft`, shared with the URL import) and the user
+   saves with a normal `POST /api/recipes/` carrying `source_type = cooklang`; `raw_cooklang` is
+   not kept on this path.
 3. **YouTube**: the Claude Code subagent (`.claude/agents/youtube-recipe-importer.md`) writes
    Cooklang from a video transcript and posts it to the same endpoint with
    `scripts/youtube_recipes/post_cooklang.py`, in one call carrying the video/source/image URLs.
@@ -232,13 +238,14 @@ names with braces, or joined with an underscore as in `@huile_olive{2%cs}`), `#c
   the frontend parses (`@multi_word{qty%unit}`, `~name{qty%unit}`, cookware flattened). It also
   works around a greedy `(note)` capture in the library (the note stops at the first `)`).
   `apps/recipes/cooklang_import.py` maps the result onto the data model behind
-  `POST /api/recipes/import-cooklang/`: metadata to recipe fields (fields sent in the request
+  `POST /api/recipes/import-cooklang/` (and, without writing, `preview-cooklang`): metadata to recipe fields (fields sent in the request
   win), sections to `RecipeIngredient.group_name`, notes to the description, units through
   `UNIT_ALIASES` then the URL importer's vocabulary (`apps.importer.ingredient_parsing.unit_from_word`),
   and ingredients through the URL importer's matcher (`apps.importer.services.find_matching_ingredient`:
-  name, translations, close match), creating the ones that don't match. Ingredients created
-  during an import are only reused by exact name, never by close match. Unparseable text or a
-  missing title raises `CooklangParseError`, returned as a 400.
+  name, translations, close match), creating the ones that don't match (the preview leaves them
+  empty). Ingredients created (or left unmatched) during an import are only merged by exact name,
+  never by close match. Unparseable text, or a missing title on `import-cooklang`, raises
+  `CooklangParseError`, returned as a 400.
 - **Frontend** (`src/utils/cooklangMentions.ts`, `src/utils/cooklangTimers.ts`): an independent
   client-side parser for the tags stored in step text (no code is shared). Step text is
   stored as free text; the frontend parses it when editing (`CooklangStepInput.vue`:

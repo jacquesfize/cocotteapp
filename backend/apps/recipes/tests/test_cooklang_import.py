@@ -322,3 +322,60 @@ def test_import_cooklang_endpoint_rejects_missing_title_and_invalid_text():
     )
     assert invalid.status_code == 400
     assert not Recipe.objects.exists()
+
+
+@pytest.mark.django_db
+def test_preview_cooklang_endpoint_prefills_without_writing_anything():
+    sucre = IngredientFactory(name="Sucre", translations={"da": "sukker"})
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+    ingredients_before = Ingredient.objects.count()
+
+    response = client.post("/api/recipes/preview-cooklang/", {"raw_cooklang": TIRAMISU}, format="json")
+
+    assert response.status_code == 200
+    assert response.data["title"] == "Tiramisu"
+    assert response.data["servings"] == 6
+    assert response.data["steps"][0]["order"] == 1
+    sugar = next(line for line in response.data["ingredients"] if line["name"] == "sukker")
+    assert sugar["ingredient"]["id"] == sucre.id
+    unmatched = next(line for line in response.data["ingredients"] if line["name"] == "pasteuriseret æggeblomme")
+    assert unmatched["ingredient"] is None
+    assert unmatched["raw_line"] == "pasteuriseret æggeblomme"
+    assert not Recipe.objects.exists()
+    assert Ingredient.objects.count() == ingredients_before
+
+
+@pytest.mark.django_db
+def test_preview_cooklang_merges_lines_and_applies_explicit_fields():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+    text = "Mix @sugar{70%g} with @flour{1/2%kg}.\n\nAdd @sugar{30%g} and @flour.\n"
+
+    response = client.post(
+        "/api/recipes/preview-cooklang/", {"raw_cooklang": text, "title": "Cake", "servings": 3}, format="json"
+    )
+
+    assert response.status_code == 200
+    assert (response.data["title"], response.data["servings"]) == ("Cake", 3)
+    lines = [(line["name"], line["quantity"], line["unit"]) for line in response.data["ingredients"]]
+    assert lines == [("sugar", "100.00", Unit.GRAM), ("flour", "0.50", Unit.KILOGRAM)]
+    assert len(response.data["steps"]) == 2
+
+
+@pytest.mark.django_db
+def test_preview_cooklang_allows_missing_title_but_rejects_invalid_text():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+
+    no_title = client.post("/api/recipes/preview-cooklang/", {"raw_cooklang": "Add @salt{1%pinch}."}, format="json")
+    assert no_title.status_code == 200
+    assert no_title.data["title"] == ""
+
+    invalid = client.post(
+        "/api/recipes/preview-cooklang/", {"raw_cooklang": "---\ntitle: [oops\n---\nAdd @salt."}, format="json"
+    )
+    assert invalid.status_code == 400
+
+    client.force_authenticate(None)
+    assert client.post("/api/recipes/preview-cooklang/", {"raw_cooklang": "x"}, format="json").status_code == 401
