@@ -26,6 +26,10 @@
 Cocotte lets you store recipes (written by hand or imported from a URL), search them by ingredient, season, diet or cooking time, and plan them over a week — for yourself or for a household. Each recipe carries its nutritional values and its estimated CO2 impact, and the
 weekly planner rolls both up so you can see, at a glance, what a week of meals costs your body and the planet.
 
+<p align="center">
+  <img src="docs/assets/screenshots/readme-banner.png" alt="Cocotte home page, a recipe detail with nutrition info, the weekly planner, and a shopping list" width="100%">
+</p>
+
 #### 💫 Main features
 
 - **Recipe management** — manual entry or import from a URL (image fetched automatically when the source page has one), recipe image/video/source link, PDF export.

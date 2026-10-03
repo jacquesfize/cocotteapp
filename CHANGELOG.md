@@ -7,19 +7,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Changed
+## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 
-- The weekly planner's **Nutritional intake** button is now hidden entirely when
-  `NUTRITION_ALERTS_ENABLED` is off (the default), instead of only hiding the deficiency list
-  inside its dialog.
-
-### Fixed
-
-- Recipe list: a long recipe title no longer runs under the owner's actions (**⋮**) menu button —
-  the title now clamps to two lines (hover to see the full title) and the button no longer
-  overlaps the text.
-
-### Added
+### ✨ Added
 
 - Recipe list: active filters now also show as removable pills next to the **Filters** button
   (one pill per selected ingredient/allergen), so you can clear a single filter without opening
@@ -65,8 +55,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Each recipe step can optionally have its own photo, added via an "Add an image" button and
   viewable by tapping a small photo icon next to the step (on the recipe page and in cook mode).
 
-### Changed
+### 🔄 Changed
 
+- The weekly planner's **Nutritional intake** button is now hidden entirely when
+  `NUTRITION_ALERTS_ENABLED` is off (the default), instead of only hiding the deficiency list
+  inside its dialog.
 - **Paste Cooklang** now understands full Cooklang files, such as those downloaded from
   recipes.cooklang.org: metadata (title, servings, prep/cook times, source link, description),
   multi-word ingredient names, fractions (`1/2`, `½`), preparation notes (`@café{30%g}(moulu)`),
@@ -133,8 +126,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   anchored next to it instead of a full modal dialog; on a mouse, the popover also appears just by
   hovering over the name.
 
-### Fixed
+### 🐛 Fixed
 
+- Recipe list: a long recipe title no longer runs under the owner's actions (**⋮**) menu button —
+  the title now clamps to two lines (hover to see the full title) and the button no longer
+  overlaps the text.
 - On a phone, the page footer no longer gets hidden behind the bottom tab bar.
 - Form validation errors (recipe details, ingredients, planner entries) are now shown consistently
   via inline messages instead of relying on the browser's native validation bubbles, which could be
@@ -303,5 +299,6 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Celery and Redis: URL import runs synchronously and no background worker is needed any more.
 - The separate `requirements/*.txt` files, replaced by `pyproject.toml` and `uv.lock`.
 
-[Unreleased]: https://github.com/jacquesfize/cocotteapp/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jacquesfize/cocotteapp/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jacquesfize/cocotteapp/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jacquesfize/cocotteapp/releases/tag/v0.1.0
