@@ -42,8 +42,8 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   // Mentionner un ingrédient qui existe déjà en base (mais pas dans cette recette) doit
   // l'ajouter automatiquement à la liste, avec son unité par défaut.
   await step1.fill(`Ajouter le @${existingElsewhere}`)
-  await page.locator('.cooklang-input .suggestions li').first().waitFor()
-  await page.locator('.cooklang-input .suggestions li').first().click()
+  await page.locator('.cooklang-input .suggestions-dropdown li').first().waitFor()
+  await page.locator('.cooklang-input .suggestions-dropdown li').first().click()
 
   const ingredientInputs = page.getByPlaceholder('Rechercher un ingrédient...')
   await expect(ingredientInputs).toHaveCount(2)
@@ -58,8 +58,8 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   // .fill() atomique (un seul évènement "input"), comme pour la première mention plus haut.
   const textWithFirstMention = await step1.inputValue()
   await step1.fill(`${textWithFirstMention} puis @${brandNew}`)
-  await page.locator('.cooklang-input .suggestions li.create').waitFor()
-  await page.locator('.cooklang-input .suggestions li.create').click()
+  await page.locator('.cooklang-input .suggestions-dropdown li.create').waitFor()
+  await page.locator('.cooklang-input .suggestions-dropdown li.create').click()
 
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.locator('#ingredient-modal-name')).toHaveValue(brandNew)
