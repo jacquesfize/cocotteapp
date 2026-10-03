@@ -22,7 +22,15 @@ function mountStrip() {
   return mount(HomeWeekStrip, {
     global: {
       plugins: [i18n],
-      stubs: { RouterLink: { props: ['to'], template: '<a><slot /></a>' } },
+      stubs: {
+        RouterLink: { props: ['to'], template: '<a><slot /></a>' },
+        AddMealModal: {
+          name: 'AddMealModal',
+          props: ['date', 'mealType'],
+          emits: ['close', 'added'],
+          template: '<div class="stub-add-meal" />',
+        },
+      },
     },
   })
 }
@@ -133,5 +141,39 @@ describe('HomeWeekStrip', () => {
 
     expect(wrapper.emitted('open-import')).toHaveLength(1)
     expect(wrapper.find('#home-create-panel').classes()).not.toContain('is-open')
+  })
+
+  it('opens the add-meal dialog for an empty slot and refreshes the tiles once a meal is added', async () => {
+    vi.mocked(listMealPlanEntries).mockResolvedValue([])
+    vi.mocked(listShoppingLists).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
+    vi.mocked(getNutritionSummary).mockResolvedValue({ deficiencies: [] } as never)
+    vi.mocked(fetchLegalInfo).mockResolvedValue({ planning_snack_enabled: false } as never)
+
+    const wrapper = await mountStrip()
+    await flushPromises()
+    expect(wrapper.findComponent({ name: 'AddMealModal' }).exists()).toBe(false)
+
+    // Today's slots come first: breakfast, lunch, dinner.
+    await wrapper.findAll('.week-slot-empty')[1].trigger('click')
+    const modal = wrapper.findComponent({ name: 'AddMealModal' })
+    expect(modal.props()).toEqual({ date: isoToday(), mealType: 'lunch' })
+
+    vi.mocked(listMealPlanEntries).mockResolvedValue([
+      {
+        id: 3,
+        recipe: 30,
+        recipe_title: 'Salade',
+        recipe_image: null,
+        recipe_image_url: '',
+        date: isoToday(),
+        meal_type: 'lunch',
+        servings: 2,
+      },
+    ])
+    modal.vm.$emit('added')
+    await flushPromises()
+
+    expect(wrapper.findComponent({ name: 'AddMealModal' }).exists()).toBe(false)
+    expect(wrapper.find('.week-tile:not(.week-slot-empty)').text()).toContain('Salade')
   })
 })

@@ -9,6 +9,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🔄 Changed
 
+- Home page: **Plan for later** and the **+** buttons of the **This week** card no longer send you
+  to the planner. **Plan for later** opens a dialog to pick the date and meal for that recipe, and
+  a **+** button opens the **Add a meal** dialog for that day and meal, right on the home page.
 - The **Omnivore** diet is now called **Flexitarian**. Since a flexitarian eats everything, the
   diet filter no longer offers it as a separate choice: **All (flexitarian)** covers it, and old
   links filtering on it now show every recipe.

@@ -3,6 +3,7 @@ import { Clock, Compass, Leaf, Link2, Users } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import AddToPlanForm from '../components/planning/AddToPlanForm.vue'
 import BaseModal from '../components/shared/BaseModal.vue'
 import HomeWeekStrip from '../components/planning/HomeWeekStrip.vue'
 import ImageWithCredit from '../components/shared/ImageWithCredit.vue'
@@ -122,6 +123,30 @@ onMounted(async () => {
 
 onBeforeUnmount(stopAutoAdvance)
 
+// "Plan for later" opens a date/meal picker in place rather than sending the user off to the
+// planner; the recipe is captured on open so the hero carousel advancing doesn't swap it.
+const planRecipe = ref<Recipe | null>(null)
+const weekStrip = ref<InstanceType<typeof HomeWeekStrip> | null>(null)
+
+function openPlanModal(recipe: Recipe) {
+  if (!authStore.isAuthenticated) {
+    router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+    return
+  }
+  stopAutoAdvance()
+  planRecipe.value = recipe
+}
+
+function closePlanModal() {
+  planRecipe.value = null
+  startAutoAdvance()
+}
+
+function handlePlanned() {
+  closePlanModal()
+  weekStrip.value?.reload()
+}
+
 const importUrl = ref('')
 const importError = ref('')
 const isImporting = ref(false)
@@ -200,9 +225,9 @@ async function handleImport() {
               <RouterLink :to="{ name: 'recipe-detail', params: { id: heroRecipe.id } }">
                 <button>{{ $t('home.viewRecipe') }}</button>
               </RouterLink>
-              <RouterLink :to="{ name: 'planning' }">
-                <button class="secondary">{{ $t('home.planForLater') }}</button>
-              </RouterLink>
+              <button type="button" class="secondary" @click="openPlanModal(heroRecipe)">
+                {{ $t('home.planForLater') }}
+              </button>
             </div>
           </div>
 
@@ -270,7 +295,11 @@ async function handleImport() {
       <p v-if="importError" class="muted">{{ importError }}</p>
     </BaseModal>
 
-    <HomeWeekStrip v-if="authStore.isAuthenticated" @open-import="openImportForm" />
+    <BaseModal v-if="planRecipe" :title="$t('home.planRecipeTitle', { title: planRecipe.title })" @close="closePlanModal">
+      <AddToPlanForm :recipe="planRecipe" in-modal @added="handlePlanned" />
+    </BaseModal>
+
+    <HomeWeekStrip v-if="authStore.isAuthenticated" ref="weekStrip" @open-import="openImportForm" />
 
     <div v-if="thematicPages.length || seasonalRecipes.length" class="home-panel-row">
       <section v-if="thematicPages.length" class="card home-panel">

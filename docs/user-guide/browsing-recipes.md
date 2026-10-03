@@ -24,16 +24,19 @@ From top to bottom:
 **Today's pick**
 :   One of your 5 most recent recipes, with its picture, diet, total time and servings. It
     auto-advances every few seconds; the dots below it jump straight to one and pause the
-    auto-advance while you're looking. **View recipe** opens it; **Plan for later** opens the
-    planner.
+    auto-advance while you're looking. **View recipe** opens it; **Plan for later** opens a dialog
+    right on the home page where you pick the date (today by default), the meal and the number of
+    servings, then **Add** puts that recipe in your planner without leaving the page.
 
 **This week** *(logged-in users only)*
 :   A separate **Latest shopping list** card opens your most recent shopping list and shows its
     bought/total progress. Next to it, the **This week** card has a centered heading and lists
     **Today** and **Tomorrow** side by side: each meal (Breakfast, Lunch, Dinner, and Snack if
     your administrator enabled it) gets its own tile, all the same size — a photo tile with the
-    recipe's picture, meal and title for a planned meal, or a **+** button for an empty slot, both
-    opening the recipe or the planner respectively. A red badge such as *2 nutrition alerts*
+    recipe's picture, meal and title for a planned meal (opens the recipe), or a **+** button for
+    an empty slot. The **+** button opens the same **Add a meal** dialog as the planner (see
+    [Add a meal](planning.md#add-a-meal)) for that day and meal, so you only pick the recipe and
+    servings; the tile updates as soon as you add it. A red badge such as *2 nutrition alerts*
     appears next to the heading when the next seven days of your planner fall short of your daily
     minimums (opens the planner).
 
