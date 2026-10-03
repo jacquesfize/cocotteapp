@@ -35,7 +35,7 @@
     "pageOf": "Page {page} of {total}"
   },
   "diet": {
-    "omnivore": "Omnivore",
+    "omnivore": "Flexitarian",
     "vegetarian": "Vegetarian",
     "vegan": "Vegan"
   },
@@ -100,7 +100,7 @@
     "searchPlaceholder": "Title, description...",
     "perPage": "Recipes per page",
     "dietFilter": "Diet",
-    "allDiets": "All",
+    "allDiets": "All (flexitarian)",
     "ingredientsFilter": "Ingredients",
     "ingredientsPlaceholder": "Search an ingredient…",
     "ingredientsNoResult": "No matching ingredient.",
@@ -555,7 +555,7 @@
     "formIsActive": "Visible on the homepage",
     "filtersSectionTitle": "Filters",
     "filterDietType": "Diet",
-    "filterAnyDiet": "Any diet",
+    "filterAnyDiet": "Any diet (flexitarian)",
     "filterInSeason": "In-season recipes only",
     "filterIngredients": "Ingredients (comma-separated)",
     "filterIngredientsPlaceholder": "e.g. Zucchini, Tomato",

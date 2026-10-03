@@ -132,7 +132,7 @@ function openEditForm(page: AdminThematicPage) {
     icon: page.icon,
     order: page.order,
     is_active: page.is_active,
-    diet_type: hasUnknownKeys ? '' : ((filters.diet_type as DietType) || ''),
+    diet_type: hasUnknownKeys || filters.diet_type === 'omnivore' ? '' : ((filters.diet_type as DietType) || ''),
     in_season: !hasUnknownKeys && filters.in_season === 'true',
     ingredients: hasUnknownKeys ? '' : filters.ingredients || '',
     max_prep_time: hasUnknownKeys ? '' : filters.max_prep_time || '',
@@ -272,7 +272,6 @@ async function handleDelete(page: AdminThematicPage) {
               <label for="tp-diet">{{ $t('adminThematicPages.filterDietType') }}</label>
               <select id="tp-diet" v-model="form.diet_type">
                 <option value="">{{ $t('adminThematicPages.filterAnyDiet') }}</option>
-                <option value="omnivore">{{ $t('diet.omnivore') }}</option>
                 <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
                 <option value="vegan">{{ $t('diet.vegan') }}</option>
               </select>

@@ -57,7 +57,7 @@ cases:
 
 | Field | Filter added | Effect on the recipe list |
 |---|---|---|
-| **Diet** | `diet_type` = `omnivore`, `vegetarian` or `vegan` | Recipes of that diet only. **Any diet** adds no filter. |
+| **Diet** | `diet_type` = `vegetarian` or `vegan` | Recipes of that diet only. **Any diet (flexitarian)** adds no filter. |
 | **Max prep time (min)** | `max_prep_time` | Preparation time at most this many minutes. |
 | **Max cook time (min)** | `max_cook_time` | Cooking time at most this many minutes. |
 | **In-season recipes only** | `in_season` = `true` | Only recipes whose ingredients are all in season this month. |
@@ -86,7 +86,7 @@ The keys that the recipe list understands are:
 | Key | Values |
 |---|---|
 | `search` | Free text, searched in recipe titles and descriptions. |
-| `diet_type` | `omnivore`, `vegetarian`, `vegan` |
+| `diet_type` | `vegetarian`, `vegan` (`omnivore`, shown as Flexitarian, adds no filter) |
 | `max_prep_time` | Minutes, e.g. `"30"` |
 | `max_cook_time` | Minutes |
 | `ingredients` | Comma-separated ingredient names |

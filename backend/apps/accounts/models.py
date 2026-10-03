@@ -5,7 +5,8 @@ from django.utils import timezone
 
 
 class DietType(models.TextChoices):
-    OMNIVORE = "omnivore", "Omnivore"
+    # Valeur stockée historique "omnivore" conservée ; affichée « Flexitarien ».
+    OMNIVORE = "omnivore", "Flexitarien"
     VEGETARIAN = "vegetarian", "Végétarien"
     VEGAN = "vegan", "Végan"
 
