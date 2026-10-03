@@ -169,7 +169,6 @@
     "invalidCookTime": "Le temps de cuisson ne peut pas être négatif.",
     "invalidQuantity": "Indiquez une quantité valide (0 ou plus) pour chaque ingrédient.",
     "cooklangTextRequired": "Collez du texte Cooklang.",
-    "importedImageCreditNote": "Image importée depuis {domain}",
     "media": "Média & source",
     "imageUrl": "URL de l'image",
     "imageFile": "Ou téléverser un fichier",
@@ -178,8 +177,8 @@
     "viewStepImage": "Voir la photo de l'étape",
     "sourceUrl": "Source (lien de la recette d'origine)",
     "videoUrl": "Vidéo (lien YouTube)",
-    "publicLicenseOptIn": "Rendre le contenu de cette recette public",
-    "publicLicenseHint": "Par défaut, une recette importée ne montre publiquement que son titre, sa source, ses allergènes et son impact carbone : description, ingrédients et étapes restent réservés à vous et aux administrateurs. Cochez cette case si vous détenez les droits sur ce contenu (ou l'autorisation explicite de le partager) et souhaitez le rendre pleinement public.",
+    "publicLicenseOptIn": "J'ai réécrit les étapes avec mes propres mots et les images utilisées respectent le droit d'auteur : rendre toute la recette publique",
+    "publicLicenseHint": "Par défaut, une recette importée montre publiquement son titre, sa source, ses ingrédients, ses temps, ses allergènes et son impact carbone, mais sa description et ses étapes restent réservées à vous et aux administrateurs : la façon dont une recette est rédigée est protégée par le droit d'auteur de son auteur. Cochez cette case une fois que vous les avez réécrites avec vos propres mots (ou si vous en détenez les droits, ou l'autorisation explicite de les partager).",
     "source": "Source",
     "downloadPdf": "Télécharger en PDF",
     "createVariant": "Créer une variante",
@@ -190,7 +189,7 @@
     "restrictedForkError": "Cette recette est protégée : seul l'auteur peut la dupliquer.",
     "restrictedNotice": "Cette recette provient d'une source tierce et {copyright} : par respect pour ces droits, {visibility}, à moins que celui-ci ne choisisse de la rendre publique, en conformité avec la loi ou avec l'autorisation explicite de l'auteur original de la recette.",
     "restrictedNoticeCopyright": "peut être protégée par des droits d'auteur",
-    "restrictedNoticeVisibility": "sa description, ses ingrédients et ses étapes ne sont visibles que par l'utilisateur qui l'a importée et les administrateurs",
+    "restrictedNoticeVisibility": "sa description et ses étapes ne sont visibles que par l'utilisateur qui l'a importée et les administrateurs",
     "imageCredit": "image via {domain}",
     "carbonFootprint": "Empreinte carbone",
     "otherVersions": "Autres versions de cette recette",
@@ -212,7 +211,12 @@
     "cookModeFinish": "Terminer le mode cuisine",
     "cookModeGoToStep": "Aller à l'étape {n}",
     "cookModeWatchVideo": "Voir la vidéo",
-    "cookModeTimerDefaultLabel": "Minuteur"
+    "cookModeTimerDefaultLabel": "Minuteur",
+    "copyrightNoticeTitle": "Droit d'auteur : avant de rendre cette recette publique",
+    "copyrightNoticeFacts": "La liste des ingrédients, les quantités et les temps sont des faits : ils ne sont pas protégés par le droit d'auteur et sont toujours publics.",
+    "copyrightNoticeText": "Les étapes et la description telles que rédigées sur le site source sont protégées : réécrivez-les avec vos propres mots plutôt que de les copier ou d'en changer quelques mots.",
+    "copyrightNoticeImage": "Les photos du site source sont protégées elles aussi : utilisez votre propre photo, ou choisissez-en une avec « Suggérer une image libre ».",
+    "stepsNotRewritten": "Certaines étapes sont encore identiques à la recette importée. Réécrivez-les avec vos propres mots avant de rendre la recette publique, ou décochez la case."
   },
   "imageLicense": {
     "ccBy": "CC BY (Attribution)",
@@ -234,6 +238,17 @@
     "licenseRequired": "Choisissez une licence pour cette image.",
     "fieldRequired": "Ce champ est requis pour la licence choisie.",
     "formInvalid": "Corrigez les champs de crédit d'image ci-dessus avant d'enregistrer."
+  },
+  "freeImages": {
+    "open": "Suggérer une image libre",
+    "title": "Images libres de droits",
+    "hint": "Des images sous licence libre (CC BY, CC BY-SA, domaine public) que vous pouvez réutiliser. Leur crédit est rempli pour vous.",
+    "searchLabel": "Rechercher des images",
+    "search": "Rechercher",
+    "pick": "Utiliser l'image {title}",
+    "empty": "Aucune image libre trouvée. Essayez d'autres mots (l'anglais donne souvent plus de résultats).",
+    "error": "Impossible de charger les suggestions. Réessayez plus tard.",
+    "provider": "Images trouvées avec Openverse."
   },
   "comments": {
     "title": "Commentaires",

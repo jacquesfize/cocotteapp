@@ -1,10 +1,22 @@
 import difflib
-from urllib.parse import urlparse
 
 from apps.ingredients.models import Ingredient
 from apps.ingredients.serializers import IngredientSerializer
+from apps.recipes.models import ImageLicense
 
 from .ingredient_parsing import parse_ingredient_line
+
+OPENVERSE_IMAGES_URL = "https://api.openverse.org/v1/images/"
+
+# Licences Openverse retenues pour une suggestion d'image, et leur équivalent `ImageLicense` :
+# uniquement des licences qui autorisent la réutilisation (y compris commerciale) avec, au plus,
+# une attribution — jamais de NC/ND, pour qu'une image suggérée soit réellement libre d'usage.
+OPENVERSE_LICENSES = {
+    "by": ImageLicense.CC_BY,
+    "by-sa": ImageLicense.CC_BY_SA,
+    "cc0": ImageLicense.PUBLIC_DOMAIN,
+    "pdm": ImageLicense.PUBLIC_DOMAIN,
+}
 
 
 def scrape_url(url: str) -> dict:
@@ -17,7 +29,6 @@ def scrape_url(url: str) -> dict:
         "cook_time_minutes": _safe_int(_safe_call(getattr(scraper, "total_time", None))),
         "ingredients": scraper.ingredients(),
         "instructions": scraper.instructions().split("\n"),
-        "image_url": _safe_call(getattr(scraper, "image", None)) or "",
     }
 
 
@@ -46,29 +57,15 @@ def _parse_servings(scraper):
         return 4
 
 
-def fetch_og_image(url: str) -> str | None:
-    """Best-effort fetch of the source page's `og:image` `<meta>` tag, used as a fallback when
-    the recipe scraper itself couldn't find an image. Never raises: any network/parsing failure
-    (timeout, non-2xx, missing tag) just means no image, not a broken import."""
-    import requests
-    from bs4 import BeautifulSoup
-
-    try:
-        response = requests.get(url, timeout=8, headers={"User-Agent": "Mozilla/5.0"})
-        response.raise_for_status()
-    except Exception:
-        return None
-    soup = BeautifulSoup(response.text, "html.parser")
-    tag = soup.find("meta", property="og:image") or soup.find("meta", attrs={"name": "og:image"})
-    content = tag.get("content") if tag else None
-    return content.strip() if content else None
-
-
 def build_import_preview(url: str) -> dict:
     """Scrape et parse une recette sans rien écrire en base : chaque ligne d'ingrédient est
     rapprochée du catalogue existant (`find_matching_ingredient`) si possible, laissant à
     l'appelant le soin de confirmer/corriger avant l'import final (création réelle via
-    `POST /api/recipes/`)."""
+    `POST /api/recipes/`).
+
+    La photo de la page source n'est volontairement jamais reprise (droit d'auteur du
+    photographe) : l'utilisateur ajoute sa propre photo ou choisit une image libre de droits
+    (`search_free_images`)."""
     data = scrape_url(url)
 
     ingredients = []
@@ -85,13 +82,10 @@ def build_import_preview(url: str) -> dict:
             }
         )
 
-    image_url = data.get("image_url", "") or (fetch_og_image(url) or "")
-
-    preview = {
+    return {
         "title": data["title"],
         "servings": data["servings"],
         "cook_time_minutes": data["cook_time_minutes"],
-        "image_url": image_url,
         "source_url": url,
         "steps": [
             {"order": order, "instruction": instruction.strip()}
@@ -100,16 +94,48 @@ def build_import_preview(url: str) -> dict:
         "ingredients": ingredients,
     }
 
-    if image_url:
-        # Pre-fill a valid, honest "unknown license" credit so the draft is submittable as-is
-        # through RecipeSerializer (which now requires credit info for any non-blank image_url)
-        # without forcing the user to fill in fake credit data for a scraped image. The user can
-        # still edit/upgrade these fields in the form before saving.
-        domain = urlparse(url).hostname or url
-        preview["image_license"] = "unknown"
-        preview["image_credit_note"] = f"Image importée depuis {domain}"
 
-    return preview
+def search_free_images(query: str, limit: int = 12) -> list[dict]:
+    """Images libres de droits (CC BY, CC BY-SA, CC0, domaine public) correspondant à `query`,
+    via l'API publique d'Openverse (sans clé). Chaque résultat porte déjà les champs de crédit
+    attendus par `RecipeSerializer` (licence, auteur, page source, URL de licence), pour être
+    appliqué tel quel. Lève une exception si Openverse est injoignable : à la vue de la traduire."""
+    import requests
+
+    response = requests.get(
+        OPENVERSE_IMAGES_URL,
+        params={
+            "q": query,
+            "license": ",".join(OPENVERSE_LICENSES),
+            "page_size": limit,
+            "mature": "false",
+        },
+        timeout=8,
+        headers={"User-Agent": "Cocotte recipe app"},
+    )
+    response.raise_for_status()
+
+    suggestions = []
+    for item in response.json().get("results", []):
+        license_value = OPENVERSE_LICENSES.get(item.get("license"))
+        url = item.get("url") or ""
+        landing_url = item.get("foreign_landing_url") or ""
+        # Les URLField de Recipe sont limités à 200 caractères : une suggestion qui n'y tiendrait
+        # pas serait refusée à l'enregistrement, autant ne pas la proposer.
+        if not license_value or not url or len(url) > 200 or len(landing_url) > 200:
+            continue
+        suggestions.append(
+            {
+                "url": url,
+                "thumbnail": item.get("thumbnail") or url,
+                "title": item.get("title") or "",
+                "image_license": license_value,
+                "image_credit_author": (item.get("creator") or "")[:150],
+                "image_credit_source_url": landing_url,
+                "image_credit_license_url": item.get("license_url") or "",
+            }
+        )
+    return suggestions
 
 
 def build_ingredient_catalog() -> dict[str, Ingredient]:

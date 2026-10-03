@@ -417,9 +417,9 @@ def test_imported_recipe_hides_content_for_anonymous_and_other_users():
     assert anon_response.status_code == 200
     assert anon_response.data["content_restricted"] is True
     assert "description" not in anon_response.data
-    assert "ingredients" not in anon_response.data
     assert "steps" not in anon_response.data
-    # Métadonnées neutres toujours visibles.
+    # Ingrédients, temps et métadonnées neutres (non protégés par le droit d'auteur) restent visibles.
+    assert "ingredients" in anon_response.data
     assert anon_response.data["title"] == recipe.title
     assert anon_response.data["diet_type"] == recipe.diet_type
     assert anon_response.data["total_time_minutes"] == recipe.total_time_minutes
@@ -443,12 +443,12 @@ def test_imported_recipe_is_fully_visible_to_author_and_staff():
     client.force_authenticate(author)
     author_response = client.get(f"/api/recipes/{recipe.id}/")
     assert author_response.data["content_restricted"] is False
-    assert "ingredients" in author_response.data
+    assert "steps" in author_response.data
 
     client.force_authenticate(staff)
     staff_response = client.get(f"/api/recipes/{recipe.id}/")
     assert staff_response.data["content_restricted"] is False
-    assert "ingredients" in staff_response.data
+    assert "steps" in staff_response.data
 
 
 @pytest.mark.django_db
@@ -471,7 +471,7 @@ def test_imported_recipe_becomes_fully_visible_after_owner_opts_in():
     anon_after = client.get(f"/api/recipes/{recipe.id}/")
     assert anon_after.status_code == 200
     assert anon_after.data["content_restricted"] is False
-    assert "ingredients" in anon_after.data
+    assert "steps" in anon_after.data
 
 
 @pytest.mark.django_db
@@ -487,7 +487,7 @@ def test_recipe_list_mixes_manual_and_restricted_imported_recipes():
     assert by_id[manual.id]["content_restricted"] is False
     assert "ingredients" in by_id[manual.id]
     assert by_id[imported.id]["content_restricted"] is True
-    assert "ingredients" not in by_id[imported.id]
+    assert "steps" not in by_id[imported.id]
 
 
 @pytest.mark.django_db

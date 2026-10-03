@@ -101,9 +101,9 @@ If you open a page that needs an account, such as `/planning`, Cocotte sends you
 page. After you log in, you land back on the page you asked for.
 
 > [!NOTE]
-> Some imported recipes only show their title, picture, source link, allergens and carbon
-> footprint to other people. Only the person who imported them and admins see the full
-> description, ingredients and steps. See
+> Some imported recipes don't show their description and steps to other people: only the
+> person who imported them and admins see them. Their title, ingredients, times, picture,
+> source link, allergens and carbon footprint stay public. See
 > [Recipes with restricted content](browsing-recipes.md#recipes-with-restricted-content).
 
 ## Where to go next

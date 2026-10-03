@@ -162,6 +162,7 @@ most of the screen, with its instruction text in a band at the bottom.
 
 | Field | Notes |
 |---|---|
+| **Suggest a free image** | Opens a search for pictures you're free to reuse (see [Suggest a free image](#suggest-a-free-image) below). |
 | **Image URL** | Link to a picture on the web. |
 | **Or upload a file** | Upload a picture from your device. An uploaded file is shown instead of the image URL. |
 | **Source (link to the original recipe)** | Where the recipe comes from. Shown as a **Source** button on the recipe page. |
@@ -184,27 +185,45 @@ dropdown offers:
 
 Only the fields required by the chosen license are shown. For a CC license, the **License URL**
 field is pre-filled with the standard license text URL (you can still edit it, and Cocotte fills
-it in automatically if you leave it blank). **Not specified** is what recipes imported from a URL
-get automatically for their picture, with a note such as *Image imported from example.com* — it's
-a normal, valid choice, not just an internal placeholder.
+it in automatically if you leave it blank). **Not specified** is a normal, valid choice when you
+don't know the license, not just an internal placeholder.
 
 > [!NOTE]
 > Recipes (and their pictures) created before this feature existed have no credit information.
 > Their photo shows *Credit not specified* until you next change that picture — editing anything
 > else about the recipe never asks for a credit.
 
+#### Suggest a free image
+
+Click **Suggest a free image** to search for pictures under a free license (CC BY, CC BY-SA or
+public domain), found with [Openverse](https://openverse.org/). The search starts with the
+recipe's title; change the words and click **Search** to try again (English words often give
+more results). Click a picture to use it: the **Image URL**, **Image license** and credit fields
+are filled in for you, and the credit is shown next to the picture on the recipe page.
+
 #### Publicly licensed content
 
-As soon as a **Source** is filled in, a **Make this recipe's content public** checkbox
-appears.
+As soon as a **Source** is filled in, an **I rewrote the steps in my own words and the images
+used respect copyright: make the whole recipe public** checkbox appears.
 
-By default, a recipe with a source only shows its title, picture, source link, allergens and
-carbon footprint to other people. Its **description, ingredients and steps stay visible only to
-you and to admins**, out of respect for the original author's copyright. See
+By default, a recipe with a source shows its title, picture, source link, **ingredients**, times,
+allergens and carbon footprint to other people: an ingredient list and cooking times are facts,
+not protected by copyright. Its **description and steps stay visible only to you and to
+admins**: the way a recipe is written belongs to its original author. See
 [Recipes with restricted content](browsing-recipes.md#recipes-with-restricted-content).
 
-Tick the box only if you own the rights to this content, or have explicit permission to share
-it. Then everyone can see the full recipe.
+To make the whole recipe public, rewrite its steps (and description) in your own words, make
+sure the recipe's and steps' pictures are your own or freely licensed, then tick the box. A **Copyright: before making this recipe public** reminder appears below it:
+
+- the ingredient list, quantities and times are always public;
+- the steps and description must be rewritten, not copied or changed by a few words;
+- the source website's photos are protected too: use your own, or a
+  [free image](#suggest-a-free-image).
+
+Right after importing a recipe, Cocotte refuses to save with the box ticked while a step is still
+identical to the imported text: *Some steps are still identical to the imported recipe. Rewrite
+them in your own words before making the recipe public, or uncheck the box.* You can also tick
+the box if you own the rights to the original text, or have explicit permission to share it.
 
 ## Import a recipe from a URL
 
@@ -222,7 +241,6 @@ Cocotte can read recipes from many cooking websites (the ones supported by
 Cocotte reads the page and opens the **New recipe** form pre-filled with:
 
 - the title, servings and cook time,
-- the picture (from the recipe data, or the page's preview image),
 - the source link,
 - the steps,
 - the ingredients, each **matched with the ingredient library** when possible, in French or
@@ -235,15 +253,19 @@ Cocotte reads the page and opens the **New recipe** form pre-filled with:
    Pick the right one in the **Ingredient** field, or create it with **+ Create**. You can also
    remove the row.
 2. Check the quantities and units. Unusual formats may be misread.
-3. Fill in what import doesn't provide: description, **prep time**, **diet**.
+3. Fill in what import doesn't provide: description, **prep time**, **diet**, and a picture.
+   The website's own photo is never copied, since it belongs to its photographer: upload your
+   own, or click **Suggest a free image**.
 4. Click **Save**.
 
 If the page can't be read, you see *Couldn't fetch this recipe. Check the URL and try again.*
 
 > [!NOTE]
-> Imported recipes keep the source link, so their content is
-> [restricted](browsing-recipes.md#recipes-with-restricted-content) by default. Other people
-> see *imported by* followed by your name.
+> Imported recipes keep the source link, so their description and steps are
+> [restricted](browsing-recipes.md#recipes-with-restricted-content) by default; their
+> ingredients and times stay public. To share the whole recipe, rewrite the steps in your own
+> words (see [Publicly licensed content](#publicly-licensed-content)). Other people see
+> *imported by* followed by your name.
 
 ## Paste a Cooklang recipe
 

@@ -59,7 +59,7 @@ view/serializer lives in the app's `services.py`, or in a dedicated module for l
 | `nutrition` | `NutrientRequirement` thresholds; nutrition and carbon computations | `services.py` (`compute_recipe_nutrition`, `compute_recipe_carbon_footprint`, `find_deficiencies`) |
 | `planning` | `MealPlanEntry`, planner sharing, weekly nutrition summary, week PDF, calendar export | `ics.py` (iCalendar), `CalendarFeedToken` |
 | `shopping` | `ShoppingList` generated from planner entries | `services.py` (aggregation, owned items, text export) |
-| `importer` | Recipe import from a URL (preview only, nothing written) | `services.py` (scraping, `og:image`), `ingredient_parsing.py` |
+| `importer` | Recipe import from a URL (preview only, nothing written) | `services.py` (scraping, free image search via Openverse), `ingredient_parsing.py` |
 
 All app URLs are mounted under `/api/` in `config/urls.py`. JWT endpoints
 (`/api/auth/token/`, `/api/auth/token/refresh/`) are wired directly there with SimpleJWT views,
@@ -157,9 +157,15 @@ A few rules worth knowing:
 - Recipe allergens are **derived** from their ingredients (`Recipe.allergen_slugs()`). An
   ingredient with `allergens_reviewed = False` makes the recipe "unverified" rather than safe.
 - `Recipe.is_content_restricted(user)` is the single source of truth for copyright protection:
-  a recipe with a `source_url` and without `content_publicly_licensed` only exposes its title,
-  source, allergens and carbon footprint to anyone but its owner and staff. The serializer, the
-  `fork` action and the PDF export all go through it.
+  a recipe with a `source_url` and without `content_publicly_licensed` hides its `description`
+  and `steps` (`RecipeSerializer.RESTRICTED_HIDDEN_FIELDS`) from anyone but its owner and staff.
+  Ingredients and times stay public: they are facts, not covered by copyright. The serializer,
+  the `fork` action and the PDF export all go through it. The recipe form only lets the owner
+  tick `content_publicly_licensed` on an imported draft once no step is still the scraped text.
+- `GET /api/import/image-suggestions/?q=` (`importer.services.search_free_images`) proxies
+  [Openverse](https://openverse.org/)'s public API (no key) and returns only CC BY, CC BY-SA, CC0
+  and public-domain pictures, already mapped to the recipe's `image_license`/`image_credit_*`
+  fields.
 - Versions: a fork's `root_recipe` always points at the family's root (never at an intermediate
   fork), so `family_versions()` is a single query.
 
@@ -198,8 +204,8 @@ flowchart LR
 ```
 
 1. **URL import** (`apps.importer`): `POST /api/import/url/` scrapes the page synchronously with
-   [`recipe-scrapers`](https://github.com/hhursev/recipe-scrapers), falls back to the page's
-   `og:image` for the picture, parses each ingredient line (`ingredient_parsing.py`) and matches it
+   [`recipe-scrapers`](https://github.com/hhursev/recipe-scrapers), deliberately leaves out the
+   source's picture (its photographer's copyright), parses each ingredient line (`ingredient_parsing.py`) and matches it
    against the library, including `Ingredient.translations` so an English recipe maps onto French
    ingredients. It returns a **preview only**: the frontend stores it in memory
    (`utils/pendingImportDraft.ts`) and opens the recipe form, where the user fixes unmatched

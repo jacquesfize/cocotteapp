@@ -58,7 +58,8 @@ All variants need:
   a certificate once the name resolves to your server.
 - Ports **80** and **443** open in the firewall. Port 80 is needed for the Let's Encrypt HTTP
   challenge and for the HTTP → HTTPS redirect.
-- Outgoing HTTPS access from the server: recipe import from a URL, and the **Suggest values**
+- Outgoing HTTPS access from the server: recipe import from a URL, the **Suggest a free image**
+  button of the recipe form ([Openverse](https://openverse.org/)), and the **Suggest values**
   button of the ingredient form (Open Food Facts and Agribalyse), call external websites.
 - An SMTP account to send password-reset emails (see [Configuration](configuration.md#email-smtp)).
 

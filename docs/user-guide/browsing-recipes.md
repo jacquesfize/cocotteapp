@@ -292,13 +292,17 @@ their variant name (or **Original**) and author:
 
 ## Recipes with restricted content
 
-Recipes imported from a website, or with a **source link**, may be protected by copyright. By
-default, only the following is public for them: the title, picture or video, **Source** link,
-allergens and carbon footprint. The **description, ingredients and steps are only visible to the
-person who added the recipe and to admins**. Other people see a notice with a padlock instead.
+Recipes imported from a website, or with a **source link**, may be protected by copyright. The
+way a recipe is written (its steps and description) belongs to its author, but its list of
+ingredients and its times are facts that anyone can share. So by default, for these recipes:
 
-The author can make the full content public if they own the rights or have permission. See
-[Creating recipes](creating-recipes.md#publicly-licensed-content).
+- the title, picture or video, **Source** link, **ingredients**, times, allergens and carbon
+  footprint are public;
+- the **description and steps are only visible to the person who added the recipe and to
+  admins**. Other people see a notice with a padlock instead.
+
+The author can make the whole recipe public once they've rewritten the steps in their own words.
+See [Creating recipes](creating-recipes.md#publicly-licensed-content).
 
 For other people, a restricted recipe:
 

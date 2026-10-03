@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ChefHat, Plus, Trash2 } from '@lucide/vue'
+import { ChefHat, Image as ImageIcon, Info, Plus, Scale, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../../components/recipes/CooklangStepInput.vue'
+import FreeImageSuggestions from '../../components/recipes/FreeImageSuggestions.vue'
 import ImageUploadWithCredit from '../../components/shared/ImageUploadWithCredit.vue'
 import IngredientPicker from '../../components/recipes/IngredientPicker.vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
@@ -16,9 +17,8 @@ import {
   uploadStepImage,
 } from '../../api/recipes'
 import { formatUnit } from '../../utils/format'
-import { imageCreditDomain } from '../../utils/imageCredit'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import type { RecipeInput } from '../../types/models'
+import type { FreeImageSuggestion, RecipeInput } from '../../types/models'
 import type { DietType, Ingredient, Unit } from '../../types/models'
 import { takePendingImportDraft } from '../../utils/pendingImportDraft'
 
@@ -101,6 +101,25 @@ const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
 // réellement (voir CLAUDE.md "grandfathering" — modifier le reste d'une recette existante ne
 // doit jamais réclamer un crédit pour une image déjà en place avant cette fonctionnalité).
 const originalImageUrl = ref('')
+
+// Texte des étapes telles que scrapées lors d'un import d'URL (vide sinon) : le texte d'une
+// recette est protégé par le droit d'auteur de son auteur original, contrairement à la liste
+// d'ingrédients et aux temps. Rendre public le contenu d'une recette importée exige donc d'en
+// avoir réécrit les étapes : on bloque la soumission si l'une d'elles est restée telle quelle.
+const importedStepTexts = ref<Set<string>>(new Set())
+
+const showFreeImages = ref(false)
+
+function applyFreeImage(suggestion: FreeImageSuggestion) {
+  imageFile.value = null
+  form.value.image_url = suggestion.url
+  form.value.image_license = suggestion.image_license
+  form.value.image_credit_author = suggestion.image_credit_author
+  form.value.image_credit_source_url = suggestion.image_credit_source_url
+  form.value.image_credit_license_url = suggestion.image_credit_license_url
+  form.value.image_credit_note = ''
+  showFreeImages.value = false
+}
 
 interface IngredientRow {
   ingredient: Ingredient | null
@@ -244,16 +263,10 @@ onMounted(async () => {
     servings: draft.servings,
     cook_time_minutes: draft.cook_time_minutes,
     source_url: draft.source_url,
-    image_url: draft.image_url,
   }
-  // L'image d'un import d'URL (og:image le plus souvent) n'a pas de licence connue : on
-  // pré-remplit "Non précisée" + une note citant la source, éditable avant la sauvegarde
-  // effective (rien n'est encore enregistré à ce stade, voir commentaire ci-dessus).
-  if (draft.image_url) {
-    const domain = imageCreditDomain(draft.source_url) || imageCreditDomain(draft.image_url)
-    form.value.image_license = 'unknown'
-    form.value.image_credit_note = domain ? t('recipes.importedImageCreditNote', { domain }) : ''
-  }
+  // Pas de photo : celle du site source n'est jamais reprise (droit d'auteur du photographe),
+  // l'utilisateur ajoute la sienne ou en choisit une libre de droits (FreeImageSuggestions).
+  importedStepTexts.value = new Set(draft.steps.map((step) => step.instruction.trim()))
   ingredientRows.value = draft.ingredients.map((item, index) => ({
     ingredient: item.ingredient,
     unmatched: !item.ingredient,
@@ -323,6 +336,12 @@ function validateForm(): string {
     return !Number.isFinite(numeric) || numeric < 0
   })
   if (invalidQuantity) return t('recipes.invalidQuantity')
+  if (
+    form.value.content_publicly_licensed &&
+    stepRows.value.some((step) => step.instruction.trim() && importedStepTexts.value.has(step.instruction.trim()))
+  ) {
+    return t('recipes.stepsNotRewritten')
+  }
   return ''
 }
 
@@ -600,6 +619,15 @@ async function handleSubmit() {
 
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.media') }}</h2>
+        <button type="button" class="secondary free-images-button" @click="showFreeImages = true">
+          <ImageIcon :size="16" />{{ $t('freeImages.open') }}
+        </button>
+        <FreeImageSuggestions
+          v-if="showFreeImages"
+          :initial-query="form.title"
+          @select="applyFreeImage"
+          @close="showFreeImages = false"
+        />
         <ImageUploadWithCredit
           ref="mainImageRef"
           v-model:file="imageFile"
@@ -631,7 +659,18 @@ async function handleSubmit() {
           <input type="checkbox" v-model="form.content_publicly_licensed" />
           {{ $t('recipes.publicLicenseOptIn') }}
         </label>
-        <p v-if="form.source_url" class="muted">{{ $t('recipes.publicLicenseHint') }}</p>
+        <div v-if="form.source_url" class="public-license-hint" role="note">
+          <Info :size="18" />
+          <p>{{ $t('recipes.publicLicenseHint') }}</p>
+        </div>
+        <div v-if="form.source_url && form.content_publicly_licensed" class="copyright-notice" role="note">
+          <p class="copyright-notice-title"><Scale :size="18" />{{ $t('recipes.copyrightNoticeTitle') }}</p>
+          <ul>
+            <li>{{ $t('recipes.copyrightNoticeFacts') }}</li>
+            <li>{{ $t('recipes.copyrightNoticeText') }}</li>
+            <li>{{ $t('recipes.copyrightNoticeImage') }}</li>
+          </ul>
+        </div>
       </div>
 
       <p v-if="error" class="error">{{ error }}</p>
@@ -671,6 +710,55 @@ async function handleSubmit() {
 .ingredient-remove {
   margin-bottom: 0.85rem;
   flex-shrink: 0;
+}
+
+.free-images-button {
+  margin-bottom: 0.75rem;
+}
+
+.public-license-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  /* Gris neutre (les jetons --color-surface-muted/--color-border sont teintés chauds), dérivé de la
+     surface pour rester lisible en thème sombre. */
+  border: 1px solid color-mix(in srgb, #808080 22%, var(--color-surface));
+  border-radius: 14px;
+  background: color-mix(in srgb, #808080 9%, var(--color-surface));
+  color: var(--color-muted);
+}
+
+.public-license-hint svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.public-license-hint p {
+  margin: 0;
+}
+
+.copyright-notice {
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-primary-soft);
+  border-radius: 14px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.copyright-notice-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+}
+
+.copyright-notice ul {
+  margin: 0;
+  padding-left: 1.25rem;
 }
 
 .not-found-badge {

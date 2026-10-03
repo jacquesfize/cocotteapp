@@ -35,7 +35,6 @@ def test_import_preview_returns_scraped_draft():
             "title": "Falafels",
             "servings": 4,
             "cook_time_minutes": 20,
-            "image_url": "",
             "source_url": "https://example.com/falafels",
             "steps": [{"order": 1, "instruction": "Mixer."}],
             "ingredients": [
@@ -59,3 +58,53 @@ def test_import_preview_returns_400_when_scraping_fails():
         response = client.post("/api/import/url/", {"url": "https://example.com/unsupported"}, format="json")
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_image_suggestions_requires_authentication():
+    client = APIClient()
+    response = client.get("/api/import/image-suggestions/", {"q": "tarte"})
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_image_suggestions_requires_query():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+
+    response = client.get("/api/import/image-suggestions/")
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_image_suggestions_returns_results():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+    suggestion = {
+        "url": "https://example.com/tarte.jpg",
+        "thumbnail": "https://example.com/tarte-thumb.jpg",
+        "title": "Tarte",
+        "image_license": "cc_by",
+        "image_credit_author": "Alice",
+        "image_credit_source_url": "https://example.com/photo",
+        "image_credit_license_url": "https://creativecommons.org/licenses/by/4.0/",
+    }
+
+    with patch("apps.importer.views.search_free_images", return_value=[suggestion]) as search:
+        response = client.get("/api/import/image-suggestions/", {"q": " tarte "})
+
+    search.assert_called_once_with("tarte")
+    assert response.status_code == 200
+    assert response.data["results"] == [suggestion]
+
+
+@pytest.mark.django_db
+def test_image_suggestions_returns_502_when_provider_fails():
+    client = APIClient()
+    client.force_authenticate(UserFactory())
+
+    with patch("apps.importer.views.search_free_images", side_effect=Exception("timeout")):
+        response = client.get("/api/import/image-suggestions/", {"q": "tarte"})
+
+    assert response.status_code == 502

@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { Link2, Lock } from '@lucide/vue'
+import { computed } from 'vue'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import RecipeRating from './RecipeRating.vue'
+import { formatQuantity, formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
+import { groupIngredients } from '../../utils/recipeSteps'
 import type { RecipeRatingResult } from '../../api/recipes'
 import type { Recipe } from '../../types/models'
 
-defineProps<{
+const props = defineProps<{
   recipe: Recipe
 }>()
+
+// La liste d'ingrédients (et les temps) ne relève pas du droit d'auteur : l'API l'expose même
+// quand le contenu rédactionnel (description, étapes) est masqué.
+const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredients ?? []))
 
 const emit = defineEmits<{
   rated: [result: RecipeRatingResult]
@@ -65,6 +72,19 @@ const emit = defineEmits<{
         <template #visibility><strong>{{ $t('recipes.restrictedNoticeVisibility') }}</strong></template>
       </i18n-t>
     </div>
+
+    <section v-if="ingredientGroups.length" class="restricted-ingredients">
+      <h2>{{ $t('recipes.ingredients') }}</h2>
+      <template v-for="(group, index) in ingredientGroups" :key="index">
+        <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
+        <ul class="ingredient-list">
+          <li v-for="item in group.items" :key="item.id" class="ingredient-row">
+            <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
+            <span class="ingredient-name">{{ item.ingredient.name }}</span>
+          </li>
+        </ul>
+      </template>
+    </section>
 
     <AllergenBadges :allergens="recipe.allergens ?? []" :unverified="recipe.allergens_unverified" />
 
@@ -144,6 +164,49 @@ const emit = defineEmits<{
 .restricted-banner p {
   margin: 0;
   font-weight: 600;
+}
+
+.restricted-ingredients h2 {
+  margin: 0 0 0.25rem;
+}
+
+.ingredient-group-label {
+  margin: 1.1rem 0 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.ingredient-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ingredient-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ingredient-row:last-child {
+  border-bottom: none;
+}
+
+.ingredient-qty {
+  flex-shrink: 0;
+  min-width: 4.5rem;
+  color: var(--color-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ingredient-name {
+  font-weight: 500;
 }
 
 .carbon-footprint {

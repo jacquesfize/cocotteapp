@@ -20,7 +20,6 @@ export interface PendingImportDraft {
   title: string
   servings: number
   cook_time_minutes: number
-  image_url: string
   source_url: string
   steps: { instruction: string; order: number }[]
   ingredients: PendingImportIngredientRow[]
