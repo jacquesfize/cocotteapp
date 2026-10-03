@@ -5,6 +5,7 @@ from django.db.models import Case, DecimalField, ExpressionWrapper, F, OuterRef,
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient
 from apps.ingredients.search import fuzzy_exact_ingredients
 from apps.nutrition.services import UNIT_TO_GRAMS
@@ -45,6 +46,7 @@ def annotate_carbon_per_serving(queryset):
 
 
 class RecipeFilter(django_filters.FilterSet):
+    diet_type = django_filters.ChoiceFilter(method="filter_diet_type", choices=DietType.choices)
     max_prep_time = django_filters.NumberFilter(field_name="prep_time_minutes", lookup_expr="lte")
     max_cook_time = django_filters.NumberFilter(field_name="cook_time_minutes", lookup_expr="lte")
     ingredients = django_filters.CharFilter(method="filter_ingredients")
@@ -58,7 +60,13 @@ class RecipeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ["diet_type", "max_prep_time", "max_cook_time"]
+        fields = ["max_prep_time", "max_cook_time"]
+
+    def filter_diet_type(self, queryset, name, value):
+        # Un flexitarien mange de tout : ce régime équivaut à « Tous » et ne filtre rien.
+        if value == DietType.OMNIVORE:
+            return queryset
+        return queryset.filter(diet_type=value)
 
     def filter_ingredients(self, queryset, name, value):
         names = [n.strip() for n in value.split(",") if n.strip()]

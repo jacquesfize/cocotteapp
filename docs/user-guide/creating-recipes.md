@@ -29,7 +29,7 @@ before or after saving.
 | **Servings** | Required, at least 1 (default 4). Quantities in the planner and shopping lists are scaled from this number. |
 | **Prep time (min)** | Required (default 10). |
 | **Cook time (min)** | Required (default 20). |
-| **Diet** | **Omnivore**, **Vegetarian** or **Vegan**. Used by the diet filter. |
+| **Diet** | **Flexitarian**, **Vegetarian** or **Vegan**. Used by the diet filter. |
 
 > [!NOTE]
 > Cocotte doesn't guess the diet from the ingredients. Choose it yourself so that the diet
@@ -339,7 +339,7 @@ What happens on import:
 - Mentioning the same ingredient again without a quantity doesn't create a duplicate row. Two
   quantities of the same ingredient in the same section and unit are added up into one row.
 - Anything the metadata doesn't give keeps its default value (servings 4, prep and cook times
-  0 min, diet Omnivore). Adjust it in the edit form.
+  0 min, diet Flexitarian). Adjust it in the edit form.
 - If the metadata's `source` is a web address, it's saved as the recipe's source link, so its
   content is [restricted](browsing-recipes.md#recipes-with-restricted-content) like any import.
 - Without a title, either typed in or in the metadata, or with unreadable metadata, the import is

@@ -87,9 +87,9 @@ describe('RecipeFilters', () => {
   it('picks the diet from a radio list, including "all diets"', async () => {
     const { wrapper, state } = await mountFilters({ diet_type: 'vegan' })
     const radios = wrapper.findAll('input[type="radio"][name="diet_type"]')
-    expect(radios).toHaveLength(4)
-    expect((radios[3].element as HTMLInputElement).checked).toBe(true)
-    await radios[2].setValue(true)
+    expect(radios).toHaveLength(3)
+    expect((radios[2].element as HTMLInputElement).checked).toBe(true)
+    await radios[1].setValue(true)
     expect(state.filters.diet_type).toBe('vegetarian')
     await radios[0].setValue(true)
     expect(state.filters.diet_type).toBe('')

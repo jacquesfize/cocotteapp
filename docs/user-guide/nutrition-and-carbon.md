@@ -119,7 +119,7 @@ strip) warns you when your planned meals may not cover some nutrients.
 
 Six nutrients are checked. Calories, carbs, fat and fiber are shown on recipes but not checked.
 
-| Nutrient | Omnivore | Vegetarian | Vegan |
+| Nutrient | Flexitarian | Vegetarian | Vegan |
 |---|---|---|---|
 | Protein | 50 / 65 / 100 g | 50 / 65 / 100 g | 50 / 65 / 100 g |
 | Iron | 10 mg (12 mg athlete) | 14 mg (16.8 mg athlete) | 18 mg (21.6 mg athlete) |

@@ -82,7 +82,7 @@ ingredient or allergen) — click a pill's **×** to clear that filter without o
 |---|---|
 | **Search** | Looks for your text in the recipe title and description. |
 | **In season** | A leaf button, crossed out while the filter is off; click it to switch it on (hover it to read *In-season ingredients only*). Hides recipes that use any ingredient that is out of season this month. Ingredients without a season are considered available all year. |
-| **Diet** | A list of choices: **All**, **Omnivore**, **Vegetarian** or **Vegan**. |
+| **Diet** | A list of choices: **All (flexitarian)**, **Vegetarian** or **Vegan**. A flexitarian eats everything, so there is no separate **Flexitarian** choice: it is the same as **All (flexitarian)**. |
 | **Ingredients** | Type in **Search an ingredient…** and pick ingredients from the list; each one becomes a pill (click its **×** to remove it). Shows recipes that contain **all** the chosen ingredients. To use a name that isn't in the list, type it and press Enter: it must match an ingredient's full name, but case and accents don't matter (`creme fraiche` finds *Crème fraîche*), and the English names of library ingredients work too. |
 | **Max prep time** | A slider, in steps of 5 minutes up to 3 h. All the way to the right means **No limit**. |
 | **Max cook time** | Same as **Max prep time**, for the cook time. |

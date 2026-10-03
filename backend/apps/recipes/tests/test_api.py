@@ -100,6 +100,17 @@ def test_filter_recipes_by_diet_type():
 
 
 @pytest.mark.django_db
+def test_flexitarian_diet_filter_returns_every_recipe():
+    RecipeFactory(diet_type="vegan")
+    RecipeFactory(diet_type="vegetarian")
+    RecipeFactory(diet_type="omnivore")
+
+    client = APIClient()
+    response = client.get("/api/recipes/?diet_type=omnivore")
+    assert response.data["count"] == 3
+
+
+@pytest.mark.django_db
 def test_filter_recipes_by_max_time():
     RecipeFactory(prep_time_minutes=10, cook_time_minutes=10)
     RecipeFactory(prep_time_minutes=30, cook_time_minutes=30)

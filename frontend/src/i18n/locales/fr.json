@@ -35,7 +35,7 @@
     "pageOf": "Page {page} / {total}"
   },
   "diet": {
-    "omnivore": "Omnivore",
+    "omnivore": "Flexitarien",
     "vegetarian": "Végétarien",
     "vegan": "Végan"
   },
@@ -100,7 +100,7 @@
     "searchPlaceholder": "Titre, description...",
     "perPage": "Recettes par page",
     "dietFilter": "Régime",
-    "allDiets": "Tous",
+    "allDiets": "Tous (flexitarien)",
     "ingredientsFilter": "Ingrédients",
     "ingredientsPlaceholder": "Rechercher un ingrédient…",
     "ingredientsNoResult": "Aucun ingrédient correspondant.",
@@ -555,7 +555,7 @@
     "formIsActive": "Visible sur la page d'accueil",
     "filtersSectionTitle": "Filtres",
     "filterDietType": "Régime",
-    "filterAnyDiet": "Tous les régimes",
+    "filterAnyDiet": "Tous les régimes (flexitarien)",
     "filterInSeason": "Uniquement les recettes de saison",
     "filterIngredients": "Ingrédients (séparés par une virgule)",
     "filterIngredientsPlaceholder": "ex. Courgette, Tomate",

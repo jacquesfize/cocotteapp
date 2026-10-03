@@ -61,7 +61,8 @@ function splitList(value: string) {
 }
 
 // --- Régime -----------------------------------------------------------------------------
-const DIET_OPTIONS = ['', 'omnivore', 'vegetarian', 'vegan'] as const
+// Pas d'option « Flexitarien » : un flexitarien mange de tout, c'est « Tous ».
+const DIET_OPTIONS = ['', 'vegetarian', 'vegan'] as const
 
 // --- Ingrédients (multi-select) ----------------------------------------------------------
 // La valeur reste une liste de noms séparés par des virgules (contrat backend inchangé :

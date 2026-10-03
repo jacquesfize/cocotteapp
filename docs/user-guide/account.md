@@ -17,7 +17,7 @@ Logging in and signing up share the same page, with two tabs: **Log in** and **S
     | **Username** | The name other people see (for example on your recipes and comments). It must be unique. |
     | **Email** | Used to log in and to receive password-reset links. |
     | **Password** | At least 8 characters. Use the eye button to show or hide what you type. |
-    | **Diet** | **Omnivore**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
+    | **Diet** | **Flexitarian**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
     | **Activity level** | **Sedentary**, **Moderate** or **Athlete**. Used for nutrition alerts. |
     | **Consent** | A required checkbox: you explicitly consent to Cocotte processing your diet, activity level and allergies (data that may relate to your health). See [Health data consent](#health-data-consent). |
 

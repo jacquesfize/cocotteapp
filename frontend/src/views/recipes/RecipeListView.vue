@@ -33,7 +33,8 @@ const myAllergens = computed(() => [
 function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
   return {
     search: (query.search as string) || '',
-    diet_type: (query.diet_type as string) || '',
+    // « Flexitarien » (omnivore) équivaut à « Tous » : anciens liens ramenés à aucun filtre.
+    diet_type: query.diet_type === 'omnivore' ? '' : (query.diet_type as string) || '',
     max_prep_time: (query.max_prep_time as string) || '',
     max_cook_time: (query.max_cook_time as string) || '',
     ingredients: (query.ingredients as string) || '',

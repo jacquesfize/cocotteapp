@@ -9,6 +9,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🔄 Changed
 
+- The **Omnivore** diet is now called **Flexitarian**. Since a flexitarian eats everything, the
+  diet filter no longer offers it as a separate choice: **All (flexitarian)** covers it, and old
+  links filtering on it now show every recipe.
 - Imported recipes and copyright: importing a recipe from a URL no longer copies the website's
   photo. Their ingredients and times are now public for everyone (they're facts, not covered by
   copyright); only the description and steps stay restricted. The box to make the whole recipe
