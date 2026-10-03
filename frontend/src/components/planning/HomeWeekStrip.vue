@@ -3,6 +3,7 @@ import { Calendar, Link2, Pencil, Plus, ShoppingCart, TriangleAlert } from '@luc
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClickOutside } from '../../composables/useClickOutside'
+import AddMealModal from './AddMealModal.vue'
 import ProgressBar from '../shared/ProgressBar.vue'
 import { fetchLegalInfo } from '../../api/auth'
 import { getNutritionSummary, listMealPlanEntries } from '../../api/planning'
@@ -30,6 +31,14 @@ const deficiencyCount = ref(0)
 const snackEnabled = ref(false)
 const isLoading = ref(true)
 
+async function loadEntries() {
+  try {
+    entries.value = await listMealPlanEntries({ date_after: today, date_before: tomorrow })
+  } catch {
+    // Keep showing what we had; the next full load will catch up.
+  }
+}
+
 onMounted(async () => {
   const [entriesRes, listsRes, nutritionRes, legalRes] = await Promise.allSettled([
     listMealPlanEntries({ date_after: today, date_before: tomorrow }),
@@ -43,6 +52,17 @@ onMounted(async () => {
   if (legalRes.status === 'fulfilled') snackEnabled.value = legalRes.value.planning_snack_enabled
   isLoading.value = false
 })
+
+// Empty slots open the planner's recipe picker for that exact day + meal, in place, instead of
+// navigating to the planner.
+const addingSlot = ref<{ date: string; mealType: MealType } | null>(null)
+
+function handleSlotAdded() {
+  addingSlot.value = null
+  loadEntries()
+}
+
+defineExpose({ reload: loadEntries })
 
 const listProgress = computed(() => shoppingListProgress(latestList.value))
 
@@ -147,20 +167,29 @@ const days = computed(() =>
                 <span class="week-tile-meal">{{ $t(`mealType.${entry.meal_type}`) }}</span>
                 <span class="week-tile-title">{{ entry.recipe_title }}</span>
               </RouterLink>
-              <RouterLink
+              <button
                 v-if="!day.entriesByType[mealType]?.length"
-                :to="{ name: 'planning' }"
+                type="button"
                 class="week-tile week-slot-empty"
-                :aria-label="$t('planning.addEntry')"
+                :aria-label="`${$t('planning.addEntry')} — ${day.label}, ${$t(`mealType.${mealType}`)}`"
+                @click="addingSlot = { date: day.key, mealType }"
               >
                 <Plus :size="16" />
                 {{ $t(`mealType.${mealType}`) }}
-              </RouterLink>
+              </button>
             </template>
           </div>
         </div>
       </div>
     </section>
+
+    <AddMealModal
+      v-if="addingSlot"
+      :date="addingSlot.date"
+      :meal-type="addingSlot.mealType"
+      @close="addingSlot = null"
+      @added="handleSlotAdded"
+    />
   </div>
 </template>
 
@@ -466,6 +495,9 @@ const days = computed(() =>
 /* Same box as .week-tile (same height/radius so filled and empty slots line up), just the
    visual treatment flipped to a muted "add" affordance instead of a photo. */
 .week-slot-empty {
+  width: 100%;
+  min-height: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;

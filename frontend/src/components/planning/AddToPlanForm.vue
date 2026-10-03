@@ -3,15 +3,20 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AllergenWarning from '../nutrition/AllergenWarning.vue'
 import { createMealPlanEntry } from '../../api/planning'
+import { toISODate } from '../../utils/dates'
 import type { MealType, Recipe } from '../../types/models'
 
+// `inModal`: rendered inside a BaseModal (homepage "Plan for later") — no card/heading of its
+// own, the date defaults to today, and a successful add emits `added` so the parent can close.
 const props = defineProps<{
   recipe: Recipe
+  inModal?: boolean
 }>()
+const emit = defineEmits<{ added: [] }>()
 
 const { t } = useI18n()
 const form = ref<{ date: string; meal_type: MealType; servings: number }>({
-  date: '',
+  date: props.inModal ? toISODate(new Date()) : '',
   meal_type: 'dinner',
   servings: props.recipe.servings,
 })
@@ -27,6 +32,7 @@ async function handleSubmit() {
       servings: form.value.servings,
     })
     message.value = t('recipes.addedToPlanning')
+    emit('added')
   } catch {
     message.value = t('recipes.addToPlanningError')
   }
@@ -34,8 +40,8 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="card" style="margin-top: 1rem">
-    <h2>{{ $t('recipes.addToPlanning') }}</h2>
+  <div :class="{ card: !inModal }" :style="inModal ? undefined : 'margin-top: 1rem'">
+    <h2 v-if="!inModal">{{ $t('recipes.addToPlanning') }}</h2>
     <form class="row" style="align-items: flex-end" @submit.prevent="handleSubmit">
       <div class="field">
         <label :for="`plan-date-${recipe.id}`">{{ $t('recipes.date') }}</label>

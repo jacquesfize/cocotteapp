@@ -295,7 +295,8 @@
     "greetingEvening": "Bonsoir",
     "heroEyebrowAuth": "{greeting}, {name} — l'idée du jour",
     "heroEyebrowGuest": "{greeting} — l'idée du jour",
-    "planForLater": "Planifier plus tard"
+    "planForLater": "Planifier plus tard",
+    "planRecipeTitle": "Planifier « {title} »"
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",

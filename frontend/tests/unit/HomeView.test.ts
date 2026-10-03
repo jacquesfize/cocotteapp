@@ -18,6 +18,8 @@ import HomeView from '../../src/views/HomeView.vue'
 import { useAuthStore } from '../../src/stores/auth'
 import type { Recipe } from '../../src/types/models'
 
+const weekStripReload = vi.fn()
+
 async function mountHome() {
   const router = createRouter({
     history: createMemoryHistory(),
@@ -26,6 +28,7 @@ async function mountHome() {
       { path: '/recipes', name: 'recipes', component: { template: '<div />' } },
       { path: '/recipes/random', name: 'recipe-random', component: { template: '<div />' } },
       { path: '/recipes/new', name: 'recipe-new', component: { template: '<div />' } },
+      { path: '/login', name: 'login', component: { template: '<div />' } },
     ],
   })
   router.push('/')
@@ -36,7 +39,13 @@ async function mountHome() {
       plugins: [i18n, router],
       stubs: {
         RouterLink: { props: ['to'], template: '<a :data-to="JSON.stringify(to)"><slot /></a>' },
-        HomeWeekStrip: { template: '<div class="stub-week-strip" />' },
+        HomeWeekStrip: { template: '<div class="stub-week-strip" />', methods: { reload: weekStripReload } },
+        AddToPlanForm: {
+          name: 'AddToPlanForm',
+          props: { recipe: Object, inModal: Boolean },
+          emits: ['added'],
+          template: '<div class="stub-plan-form">{{ recipe.title }}</div>',
+        },
         RecipeCard: { props: ['recipe'], template: '<div class="stub-recipe-card">{{ recipe.title }}</div>' },
       },
     },
@@ -203,5 +212,43 @@ describe('HomeView', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.findComponent(BaseModal).exists()).toBe(true)
+  })
+
+  it('opens a planning modal for the hero recipe instead of going to the planner', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe(1), recipe(2)], count: 2, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+    useAuthStore().accessToken = 'test-token'
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    const planButton = wrapper.findAll('button').find((b) => b.text() === 'Planifier plus tard')
+    await planButton!.trigger('click')
+
+    const modal = wrapper.findComponent(BaseModal)
+    expect(modal.exists()).toBe(true)
+    expect(modal.props('title')).toBe('Planifier « Recette 1 »')
+    const form = wrapper.findComponent({ name: 'AddToPlanForm' })
+    expect(form.props('inModal')).toBe(true)
+
+    form.vm.$emit('added')
+    await flushPromises()
+    expect(wrapper.findComponent(BaseModal).exists()).toBe(false)
+    expect(weekStripReload).toHaveBeenCalled()
+  })
+
+  it('sends guests to the login page when they try to plan the hero recipe', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe(1)], count: 1, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    const planButton = wrapper.findAll('button').find((b) => b.text() === 'Planifier plus tard')
+    await planButton!.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(BaseModal).exists()).toBe(false)
+    expect(wrapper.vm.$router.currentRoute.value.name).toBe('login')
   })
 })
