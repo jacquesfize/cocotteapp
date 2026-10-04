@@ -44,3 +44,27 @@ def test_test_instance_banner_follows_setting(settings):
     settings.TEST_INSTANCE = True
     response = APIClient().get("/api/announcements/")
     assert response.json() == [{"id": "test-instance", "level": "warning", "dismissible": False}]
+
+
+@pytest.mark.parametrize(
+    ("url", "valid"),
+    [
+        ("/blog", True),
+        ("https://example.org/x", True),
+        ("", True),
+        ("javascript:alert(1)", False),
+        ("//evil.example", False),
+        ("data:text/html,x", False),
+    ],
+)
+@pytest.mark.django_db
+def test_link_url_only_accepts_site_paths_and_http_urls(url, valid):
+    from django.core.exceptions import ValidationError
+
+    announcement = AnnouncementFactory.build(link_url=url)
+    if valid:
+        announcement.full_clean()
+    else:
+        with pytest.raises(ValidationError) as exc:
+            announcement.full_clean()
+        assert "link_url" in exc.value.message_dict

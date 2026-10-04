@@ -73,3 +73,14 @@ describe('AnnouncementBanner', () => {
     expect(wrapper.find('.announcement').exists()).toBe(false)
   })
 })
+
+describe('AnnouncementBanner links', () => {
+  it('only renders site paths and http(s) links', async () => {
+    const link = (url: string) => ({ ...update, link_url: url, link_label_fr: 'Voir' })
+    expect((await mountBanner([link('/blog')])).find('a').attributes('href')).toBe('/blog')
+    expect((await mountBanner([link('https://example.org')])).find('a').exists()).toBe(true)
+    for (const bad of ['javascript:alert(1)', '//evil.example', 'data:text/html,x']) {
+      expect((await mountBanner([link(bad)])).find('a').exists()).toBe(false)
+    }
+  })
+})

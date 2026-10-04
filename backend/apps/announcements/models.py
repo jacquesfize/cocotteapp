@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -28,7 +29,13 @@ class Announcement(models.Model):
     message_fr = models.TextField("message (FR)", blank=True)
     message_en = models.TextField("message (EN)", blank=True)
     link_url = models.CharField(
-        "lien", max_length=500, blank=True, help_text="URL complète ou chemin du site (ex. /blog)."
+        "lien",
+        max_length=500,
+        blank=True,
+        validators=[
+            RegexValidator(r"^(/(?!/)|https?://)", "Un chemin du site (/blog) ou une URL http(s) uniquement.")
+        ],
+        help_text="URL complète ou chemin du site (ex. /blog).",
     )
     link_label_fr = models.CharField("libellé du lien (FR)", max_length=60, blank=True)
     link_label_en = models.CharField("libellé du lien (EN)", max_length=60, blank=True)
@@ -36,7 +43,9 @@ class Announcement(models.Model):
         "peut être fermée", default=True, help_text="Décochée : le bandeau reste affiché (ex. maintenance)."
     )
     is_active = models.BooleanField("activée", default=True)
-    starts_at = models.DateTimeField("début", null=True, blank=True, help_text="Vide : visible tout de suite.")
+    starts_at = models.DateTimeField(
+        "début", null=True, blank=True, help_text="Vide : visible tout de suite."
+    )
     ends_at = models.DateTimeField("fin", null=True, blank=True, help_text="Vide : visible sans limite.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

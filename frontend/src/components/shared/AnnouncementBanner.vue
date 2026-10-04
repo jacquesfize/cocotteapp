@@ -41,6 +41,12 @@ function content(a: Announcement) {
   return { title: pick(a, 'title'), message: pick(a, 'message'), label: pick(a, 'link_label') }
 }
 
+// Le lien vient du Django admin : on n'accepte qu'un chemin du site ou une URL http(s), jamais `javascript:` ou `data:`.
+function safeLink(a: Announcement) {
+  const url = (a.link_url ?? '').trim()
+  return /^(\/(?!\/)|https?:\/\/)/i.test(url) ? url : ''
+}
+
 const ICONS = { info: Sparkles, warning: FlaskConical, critical: Wrench }
 
 function dismiss(a: Announcement) {
@@ -74,7 +80,7 @@ onMounted(async () => {
       <p class="announcement__text">
         <strong v-if="content(a).title">{{ content(a).title }}</strong>
         {{ content(a).message }}
-        <a v-if="a.link_url && content(a).label" :href="a.link_url" class="announcement__link">{{
+        <a v-if="safeLink(a) && content(a).label" :href="safeLink(a)" class="announcement__link">{{
           content(a).label
         }}</a>
       </p>

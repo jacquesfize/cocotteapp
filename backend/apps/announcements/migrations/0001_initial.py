@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -36,15 +35,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "title_fr",
-                    models.CharField(
-                        blank=True, max_length=120, verbose_name="titre (FR)"
-                    ),
+                    models.CharField(blank=True, max_length=120, verbose_name="titre (FR)"),
                 ),
                 (
                     "title_en",
-                    models.CharField(
-                        blank=True, max_length=120, verbose_name="titre (EN)"
-                    ),
+                    models.CharField(blank=True, max_length=120, verbose_name="titre (EN)"),
                 ),
                 (
                     "message_fr",
@@ -65,15 +60,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "link_label_fr",
-                    models.CharField(
-                        blank=True, max_length=60, verbose_name="libellé du lien (FR)"
-                    ),
+                    models.CharField(blank=True, max_length=60, verbose_name="libellé du lien (FR)"),
                 ),
                 (
                     "link_label_en",
-                    models.CharField(
-                        blank=True, max_length=60, verbose_name="libellé du lien (EN)"
-                    ),
+                    models.CharField(blank=True, max_length=60, verbose_name="libellé du lien (EN)"),
                 ),
                 (
                     "dismissible",
