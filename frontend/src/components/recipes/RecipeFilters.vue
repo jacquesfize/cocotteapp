@@ -4,10 +4,12 @@ import { computed, onBeforeUnmount, onMounted, ref, type WritableComputedRef } f
 import { useI18n } from 'vue-i18n'
 import VueMultiselect from 'vue-multiselect'
 import 'vue-multiselect/dist/vue-multiselect.css'
+import '../../assets/multiselect.css'
 import { listAllergens } from '../../api/allergens'
+import { listCookware } from '../../api/cookware'
 import { listIngredients } from '../../api/ingredients'
 import { formatDuration } from '../../utils/format'
-import type { Allergen } from '../../types/models'
+import type { Allergen, Cookware } from '../../types/models'
 
 const { t } = useI18n()
 
@@ -21,6 +23,8 @@ export interface RecipeFilterValues {
   carbon_level: string
   // Slugs d'allergènes à exclure, séparés par des virgules (cf. filtre backend).
   exclude_allergens: string
+  // Slugs de matériel séparés par des virgules : recettes qui en utilisent au moins un.
+  cookware: string
 }
 
 // Les filtres sont édités en place (v-model sur les propriétés de l'objet) : la vue parente
@@ -130,6 +134,22 @@ function addMyAllergens() {
   filters.value.exclude_allergens = slugs.join(',')
 }
 
+// --- Matériel (multi-select) -------------------------------------------------------------
+const cookwareList = ref<Cookware[]>([])
+onMounted(async () => {
+  cookwareList.value = await listCookware().catch(() => [])
+})
+
+const selectedCookware = computed<Pick<Cookware, 'slug' | 'name'>[]>({
+  get: () =>
+    splitList(filters.value.cookware).map(
+      (slug) => cookwareList.value.find((item) => item.slug === slug) ?? { slug, name: slug },
+    ),
+  set: (items) => {
+    filters.value.cookware = items.map((item) => item.slug).join(',')
+  },
+})
+
 // --- Temps max (sliders) -----------------------------------------------------------------
 // Le cran tout à droite (au-delà de TIME_MAX) signifie "sans limite" (filtre vide).
 const TIME_MIN = 5
@@ -217,6 +237,15 @@ const filterChips = computed<FilterChip[]>(() => {
       remove: () => { selectedIngredients.value = selectedIngredients.value.filter((n) => n !== name) },
     })
   }
+  for (const item of selectedCookware.value) {
+    chips.push({
+      id: `cookware-${item.slug}`,
+      label: item.name,
+      remove: () => {
+        selectedCookware.value = selectedCookware.value.filter((c) => c.slug !== item.slug)
+      },
+    })
+  }
   const prepLabel = timeLabel(filters.value.max_prep_time)
   if (prepLabel) {
     chips.push({
@@ -255,7 +284,7 @@ const filterChips = computed<FilterChip[]>(() => {
 </script>
 
 <template>
-  <div class="recipe-filters" :class="{ collapsible }">
+  <div class="recipe-filters themed-multiselect" :class="{ collapsible }">
     <button
       type="button"
       class="secondary toggle"
@@ -384,6 +413,28 @@ const filterChips = computed<FilterChip[]>(() => {
         >
           <template #noResult>{{ $t('recipes.ingredientsNoResult') }}</template>
           <template #noOptions>{{ $t('recipes.ingredientsNoResult') }}</template>
+        </VueMultiselect>
+      </div>
+
+      <div class="field">
+        <label for="cookware">{{ $t('cookware.filter') }}</label>
+        <VueMultiselect
+          id="cookware"
+          v-model="selectedCookware"
+          name="cookware"
+          :options="cookwareList"
+          :multiple="true"
+          track-by="slug"
+          label="name"
+          :close-on-select="false"
+          :show-labels="false"
+          :placeholder="$t('cookware.filterPlaceholder')"
+        >
+          <template #option="{ option }">
+                <span v-if="option.emoji" class="option-emoji" aria-hidden="true">{{ option.emoji }}</span>{{ option.name ?? option.label }}
+          </template>
+          <template #noResult>{{ $t('cookware.noOptions') }}</template>
+          <template #noOptions>{{ $t('cookware.noOptions') }}</template>
         </VueMultiselect>
       </div>
 
@@ -780,111 +831,5 @@ const filterChips = computed<FilterChip[]>(() => {
   .panel-footer .reset {
     flex: 0 1 auto;
   }
-}
-</style>
-
-<!-- vue-multiselect, aux couleurs du site : pilules couleur primaire pour les valeurs choisies. -->
-<style>
-.recipe-filters .multiselect {
-  min-height: 2.75rem;
-  color: var(--color-text);
-  font-size: 0.92rem;
-}
-.recipe-filters .multiselect__tags {
-  min-height: 2.75rem;
-  padding: 0.45rem 2.5rem 0 0.6rem;
-  border: 1.5px solid var(--color-primary-soft);
-  border-radius: 8px;
-  background: var(--color-surface);
-  font-size: 0.92rem;
-}
-.recipe-filters .multiselect--active .multiselect__tags {
-  border-color: var(--color-primary);
-}
-.recipe-filters .multiselect__input,
-.recipe-filters .multiselect__single,
-.recipe-filters .multiselect__placeholder {
-  min-height: auto;
-  border: 0;
-  padding: 0 0 0 0.2rem;
-  margin-bottom: 0.45rem;
-  background: transparent;
-  color: var(--color-text);
-  font-size: 0.92rem;
-}
-.recipe-filters .multiselect__placeholder {
-  color: var(--color-muted);
-  padding-top: 0.15rem;
-}
-.recipe-filters .multiselect__tag {
-  margin: 0 0.3rem 0.4rem 0;
-  padding: 0.25rem 1.7rem 0.25rem 0.65rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-weight: 600;
-  font-size: 0.82rem;
-}
-.recipe-filters .multiselect__tag-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-pill);
-  width: 1.4rem;
-}
-.recipe-filters .multiselect__tag-icon::after {
-  color: var(--color-on-primary);
-  opacity: 0.85;
-}
-.recipe-filters .multiselect__tag-icon:focus,
-.recipe-filters .multiselect__tag-icon:hover {
-  background: var(--color-primary-dark);
-}
-.recipe-filters .multiselect__tag-icon:focus::after,
-.recipe-filters .multiselect__tag-icon:hover::after {
-  color: var(--color-on-primary);
-  opacity: 1;
-}
-.recipe-filters .multiselect__select {
-  height: 2.6rem;
-}
-.recipe-filters .multiselect__select::before {
-  border-color: var(--color-muted) transparent transparent;
-}
-.recipe-filters .multiselect__spinner {
-  background: transparent;
-}
-.recipe-filters .multiselect__spinner::before,
-.recipe-filters .multiselect__spinner::after {
-  border-top-color: var(--color-primary);
-}
-.recipe-filters .multiselect__content-wrapper {
-  background: var(--color-surface);
-  border-color: var(--color-border);
-  border-radius: 0 0 12px 12px;
-  box-shadow: var(--shadow-card);
-}
-.recipe-filters .multiselect--above .multiselect__content-wrapper {
-  border-radius: 12px 12px 0 0;
-}
-.recipe-filters .multiselect__option {
-  min-height: 2.4rem;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.9rem;
-}
-.recipe-filters .multiselect__option--highlight,
-.recipe-filters .multiselect__option--highlight::after {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
-}
-.recipe-filters .multiselect__option--selected {
-  background: var(--color-surface-muted);
-  color: var(--color-text);
-  font-weight: 700;
-}
-.recipe-filters .multiselect__option--selected.multiselect__option--highlight,
-.recipe-filters .multiselect__option--selected.multiselect__option--highlight::after {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
 }
 </style>

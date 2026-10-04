@@ -68,6 +68,12 @@ def test_parse_real_world_recipe_steps_and_notes():
     assert result.steps[0].startswith("Bryg stærk kaffe af kaffe (malet) og vand.")
 
 
+def test_cookware_tags_are_kept_in_tagged_steps():
+    result = parse("Fry the @onion{1%piece} in a #pan. Strain with a #fine sieve{}.")
+    assert result.tagged_steps == ["Fry the @onion{1%piece} in a #pan{}. Strain with a #fine_sieve{}."]
+    assert result.cookware == ["pan", "fine sieve"]
+
+
 def test_paragraphs_span_several_lines():
     result = parse("Mix @flour{200%g}\nwith @water{100%ml}.\n\nBake.")
     assert result.steps == ["Mix flour with water.", "Bake."]

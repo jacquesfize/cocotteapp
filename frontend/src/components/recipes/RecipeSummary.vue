@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ChefHat, Clock, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
+import { ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
+import CookwareModal from './CookwareModal.vue'
 import BaseModal from '../shared/BaseModal.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import NutritionCard from '../nutrition/NutritionCard.vue'
@@ -14,7 +15,7 @@ import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
 import { downloadBlob } from '../../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import type { Recipe } from '../../types/models'
+import type { Cookware, Recipe } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
@@ -25,6 +26,12 @@ const emit = defineEmits<{
 }>()
 
 const showCookMode = ref(false)
+// Matériel affiché dans CookwareModal (photo + crédit), ouvert depuis la liste ou une étape.
+const openCookware = ref<Cookware | null>(null)
+
+function openCookwareById(id?: number) {
+  openCookware.value = props.recipe.cookware?.find((item) => item.id === id) ?? null
+}
 // Id de l'étape dont la photo est actuellement affichée en grand (bouton icône -> BaseModal),
 // pour éviter d'afficher l'image en flux dans la liste (casse la numérotation, voir capture
 // utilisateur) : au plus une modale ouverte à la fois.
@@ -34,7 +41,7 @@ const openStepImageId = ref<number | null>(null)
 const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredients))
 
 function stepSegments(instruction: string) {
-  return buildStepSegments(instruction, props.recipe.ingredients)
+  return buildStepSegments(instruction, props.recipe.ingredients, props.recipe.cookware ?? [])
 }
 
 async function handleDownloadPdf() {
@@ -137,6 +144,19 @@ async function handleDownloadPdf() {
             </li>
           </ul>
         </template>
+
+        <template v-if="recipe.cookware?.length">
+          <h2 class="cookware-title">{{ $t('cookware.title') }}</h2>
+          <ul class="cookware-list">
+            <li v-for="item in recipe.cookware" :id="`cookware-${item.id}`" :key="item.id">
+              <button type="button" class="cookware-chip" @click="openCookware = item">
+                <img v-if="item.image" :src="item.image" class="cookware-chip-image" alt="" />
+                <span v-else-if="item.emoji" aria-hidden="true">{{ item.emoji }}</span>
+                <CookingPot v-else :size="14" aria-hidden="true" />{{ item.name }}
+              </button>
+            </li>
+          </ul>
+        </template>
       </div>
 
       <div class="card" style="flex: 2; min-width: 260px">
@@ -147,6 +167,12 @@ async function handleDownloadPdf() {
               <a v-if="segment.ingredientId" :href="`#ingredient-${segment.ingredientId}`" class="ingredient-mention">{{
                 segment.text
               }}</a>
+              <button
+                v-else-if="segment.cookware?.id"
+                type="button"
+                class="cookware-mention"
+                @click="openCookwareById(segment.cookware.id)"
+              >{{ segment.text }}</button>
               <StepTimerButton
                 v-else-if="segment.timerSeconds !== undefined"
                 :seconds="segment.timerSeconds"
@@ -185,6 +211,8 @@ async function handleDownloadPdf() {
     </div>
 
     <NutritionCard :recipe-id="recipe.id" style="margin-top: 1rem" />
+
+    <CookwareModal v-if="openCookware" :cookware="openCookware" show-recipes-link @close="openCookware = null" />
 
     <RecipeCookMode v-if="showCookMode" :recipe="recipe" @close="showCookMode = false" />
   </div>
@@ -384,6 +412,64 @@ async function handleDownloadPdf() {
 
 .ingredient-mention:hover {
   text-decoration: underline;
+}
+
+.cookware-title {
+  margin-top: 1.5rem;
+}
+
+.cookware-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cookware-chip {
+  min-height: auto;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cookware-chip-image {
+  width: 1.6rem;
+  height: 1.6rem;
+  margin-left: -0.45rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cookware-chip svg {
+  color: var(--color-primary-dark);
+}
+
+.cookware-chip:hover {
+  background: var(--color-primary-soft);
+}
+
+.cookware-mention {
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: underline dotted var(--color-primary-dark);
+  text-underline-offset: 3px;
 }
 
 .step-image-btn {

@@ -7,6 +7,13 @@ import { i18n } from '../../src/i18n'
 vi.mock('../../src/api/importer', () => ({
   previewImportFromUrl: vi.fn(),
 }))
+vi.mock('../../src/api/cookware', () => ({
+  listCookware: vi.fn().mockResolvedValue([
+    { id: 1, name: 'Four', slug: 'four', translations: { en: 'oven' } },
+    { id: 2, name: 'Friteuse à air', slug: 'friteuse-a-air', translations: {} },
+  ]),
+  createCookware: vi.fn(),
+}))
 vi.mock('../../src/api/allergens', () => ({
   listAllergens: vi.fn().mockResolvedValue([
     { slug: 'peanut', name: 'Arachide' },
@@ -142,7 +149,7 @@ describe('RecipeListView filters', () => {
 
     expect(listRecipes).toHaveBeenLastCalledWith({ exclude_allergens: 'peanut,lactose' })
 
-    const allergenField = wrapper.findAll('.multiselect')[1]
+    const allergenField = wrapper.findAll('.multiselect')[2]
     expect(allergenField.findAll('.multiselect__tag').map((tag) => tag.text())).toEqual(['Arachide', 'Lactose'])
 
     vi.useFakeTimers()

@@ -37,6 +37,50 @@ class Tag(models.Model):
         return self.name
 
 
+class Cookware(models.Model):
+    """Ustensile ou appareil nécessaire à une recette (four, poêle, friteuse à air...).
+
+    Bibliothèque partagée, comme les ingrédients : nommée en français par convention, avec des
+    traductions pour la recherche et le rapprochement des imports (`#poêle` en Cooklang)."""
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=110, unique=True, blank=True)
+    translations = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Noms dans d\'autres langues, ex. {"en": "oven"} — utilisé par la recherche et '
+        "pour rapprocher le matériel d'une recette importée.",
+    )
+    emoji = models.CharField(max_length=8, blank=True, help_text="Un emoji représentant ce matériel, s'il en existe un, ex. 🍳")
+    image = models.ImageField(upload_to="cookware/", blank=True, null=True)
+    # Crédit de la photo, mêmes règles que pour les recettes (voir image_credit.py) : une photo
+    # sous CC BY / CC BY-SA doit nommer son auteur et sa source, affichés avec la photo.
+    image_license = models.CharField(max_length=20, choices=ImageLicense.choices, blank=True)
+    image_credit_author = models.CharField(max_length=150, blank=True)
+    # Les pages Commons aux noms non latins dépassent les 200 caractères une fois encodées.
+    image_credit_source_url = models.URLField(max_length=500, blank=True)
+    image_credit_license_url = models.URLField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "cookware"
+        verbose_name_plural = "cookware"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            suffix = 1
+            while Cookware.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                suffix += 1
+                slug = f"{base_slug}-{suffix}"
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+
 class Recipe(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=220, unique=True, blank=True)
@@ -67,6 +111,7 @@ class Recipe(models.Model):
         ),
     )
     tags = models.ManyToManyField(Tag, blank=True, related_name="recipes")
+    cookware = models.ManyToManyField(Cookware, blank=True, related_name="recipes")
     root_recipe = models.ForeignKey(
         "self",
         null=True,

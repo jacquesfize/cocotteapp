@@ -19,7 +19,10 @@ Mapping summary:
   (`apps.importer.services.find_matching_ingredient`: name, translations, then close match),
   and created when nothing matches;
 - the same ingredient quantified twice in the same section with the same unit is summed into
-  one line (e.g. sugar 70 g in one step + 30 g in another -> 100 g).
+  one line (e.g. sugar 70 g in one step + 30 g in another -> 100 g);
+- `#cookware` is matched against the cookware library (name or translation, ignoring case and
+  accents) and attached to the recipe; unknown cookware is created on import, and left for the
+  user to create (or ignore) in the form on preview.
 """
 import re
 import unicodedata
@@ -31,10 +34,12 @@ from django.db import transaction
 from apps.importer.ingredient_parsing import unit_from_word
 from apps.importer.services import build_ingredient_catalog, find_matching_ingredient
 from apps.ingredients.models import Ingredient, Unit
+from apps.ingredients.search import normalize
 from apps.ingredients.serializers import IngredientSerializer
 
 from .cooklang import CooklangParseError, ParsedRecipe, parse
-from .models import Recipe, RecipeIngredient, RecipeStep, SourceType
+from .models import Cookware, Recipe, RecipeIngredient, RecipeStep, SourceType
+from .serializers import CookwareSerializer
 
 __all__ = [
     "CooklangParseError",
@@ -271,6 +276,28 @@ def _ingredient_lines(parsed: ParsedRecipe, resolve) -> list[dict]:
     return list(lines.values())
 
 
+def _cookware_catalog() -> dict[str, Cookware]:
+    """Nom normalisé (casse, accents) -> Cookware, pour le nom et toutes ses traductions."""
+    catalog: dict[str, Cookware] = {}
+    for cookware in Cookware.objects.all():
+        for name in (cookware.name, *cookware.translations.values()):
+            if name:
+                catalog.setdefault(normalize(name), cookware)
+    return catalog
+
+
+def _cookware_lines(parsed: ParsedRecipe) -> list[tuple[str, Cookware | None]]:
+    """(nom tel qu'écrit, matériel de la bibliothèque ou None), sans doublon, dans l'ordre."""
+    catalog, seen, lines = _cookware_catalog(), set(), []
+    for name in parsed.cookware:
+        key = normalize(name)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        lines.append((name.strip()[:100], catalog.get(key)))
+    return lines
+
+
 @transaction.atomic
 def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=None, prep_time_minutes=None,
                                  cook_time_minutes=None, diet_type=None, source_url=None, video_url=None,
@@ -337,6 +364,11 @@ def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=No
         for order, step_text in enumerate(parsed.tagged_steps, start=1)
     )
 
+    recipe.cookware.set(
+        cookware or Cookware.objects.filter(name__iexact=name).first() or Cookware.objects.create(name=name)
+        for name, cookware in _cookware_lines(parsed)
+    )
+
     return recipe
 
 
@@ -385,5 +417,9 @@ def build_cooklang_preview(*, raw_cooklang, title=None, servings=None) -> dict:
                 "ingredient": IngredientSerializer(line["ingredient"]).data if line["ingredient"] else None,
             }
             for line in _ingredient_lines(parsed, resolve)
+        ],
+        "cookware": [
+            {"name": name, "cookware": CookwareSerializer(cookware).data if cookware else None}
+            for name, cookware in _cookware_lines(parsed)
         ],
     }

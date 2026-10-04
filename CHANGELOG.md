@@ -7,6 +7,22 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### ✨ Added
+
+- **Cookware**: a recipe can list the cookware it needs (oven, frying pan, air fryer...), shown on
+  the recipe page, in cook mode (where step mentions stand out with a 🍳) and in the PDF, so you know before starting whether you have it.
+  Pick it in the new **Cookware** card of the recipe form, or create a missing item on the go by
+  typing its name. In steps, type `#` (or use the **Cookware** button) to mention one, as in
+  Cooklang: the mention links to the cookware list. Pasted Cooklang `#cookware` is now matched
+  with the library instead of being dropped.
+- **Cookware** filter on the recipe list and the random recipe: shows recipes using at least one
+  of the chosen items (e.g. the oven or the air fryer).
+- Staff **Administration** > **Cookware** page to rename, translate, set an emoji and a photo, and
+  delete cookware (a photo needs its license and credit, as for recipes), and a `seed_cookware`
+  command loading about 60 common items, most with a photo downloaded from Wikimedia Commons
+  (public domain or CC BY / CC BY-SA, saved with its credit).
+- Click a cookware item on the recipe page or in cook mode to see its photo with its credit. Recipe exports now include cookware.
+
 ### 🔄 Changed
 
 - **Paste Cooklang** no longer creates the recipe straight away: **Import** now opens the

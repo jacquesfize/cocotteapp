@@ -143,6 +143,7 @@ docker compose exec backend uv run python manage.py migrate
 docker compose exec backend uv run python manage.py createsuperuser
 docker compose exec backend uv run python manage.py seed_allergens
 docker compose exec backend uv run python manage.py seed_common_ingredients
+docker compose exec backend uv run python manage.py seed_cookware
 docker compose exec backend uv run python manage.py seed_nutrient_requirements
 docker compose exec backend uv run python manage.py seed_thematic_pages
 ```
@@ -157,6 +158,7 @@ uv run python manage.py migrate
 uv run python manage.py createsuperuser
 uv run python manage.py seed_allergens
 uv run python manage.py seed_common_ingredients
+uv run python manage.py seed_cookware
 uv run python manage.py seed_nutrient_requirements
 uv run python manage.py seed_thematic_pages
 ```

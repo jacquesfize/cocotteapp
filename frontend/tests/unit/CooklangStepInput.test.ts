@@ -1,12 +1,17 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
+vi.mock('../../src/api/cookware', () => ({
+  listCookware: vi.fn(),
+  createCookware: vi.fn(),
+}))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn(),
   createIngredient: vi.fn(),
 }))
 
+import { createCookware, listCookware } from '../../src/api/cookware'
 import { listIngredients } from '../../src/api/ingredients'
 import CooklangStepInput from '../../src/components/recipes/CooklangStepInput.vue'
 import IngredientEditModal from '../../src/components/recipes/IngredientEditModal.vue'
@@ -36,9 +41,9 @@ function ingredient(overrides: Partial<Ingredient>): Ingredient {
   }
 }
 
-function mountInput(modelValue = '', ingredientNames = ['poireau', 'huile olive']) {
+function mountInput(modelValue = '', ingredientNames = ['poireau', 'huile olive'], cookwareNames: string[] = []) {
   return mount(CooklangStepInput, {
-    props: { modelValue, ingredientNames },
+    props: { modelValue, ingredientNames, cookwareNames },
     global: { plugins: [i18n] },
   })
 }
@@ -50,8 +55,10 @@ async function typeInto(wrapper: ReturnType<typeof mountInput>, value: string) {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks()
   vi.useFakeTimers()
   vi.mocked(listIngredients).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
+  vi.mocked(listCookware).mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -209,5 +216,57 @@ describe('CooklangStepInput template buttons', () => {
   it('template is parsed as a timer of 600 seconds', async () => {
     const { parseTimerMentions } = await import('../../src/utils/cooklangTimers')
     expect(parseTimerMentions('~{10%minutes}')[0].totalSeconds).toBe(600)
+  })
+
+  describe('#cookware mentions', () => {
+    it('searches the cookware library for what follows "#" and adds the picked one to the recipe', async () => {
+      const oven = { id: 5, name: 'Four', slug: 'four' }
+      vi.mocked(listCookware).mockResolvedValue([oven])
+
+      const wrapper = mountInput('', [], [])
+      await typeInto(wrapper, 'Préchauffer le #fo')
+      await vi.advanceTimersByTimeAsync(300)
+      await wrapper.vm.$nextTick()
+
+      expect(listCookware).toHaveBeenCalledWith({ search: 'fo' })
+      expect(listIngredients).not.toHaveBeenCalled()
+      await wrapper.get('.suggestions-dropdown li').trigger('mousedown')
+
+      expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Préchauffer le #Four ')
+      expect(wrapper.emitted('add-cookware')?.[0]).toEqual([oven])
+    })
+
+    it('does not treat "#2" as a cookware mention', async () => {
+      const wrapper = mountInput()
+      await typeInto(wrapper, "Reprendre l'étape #2")
+      await vi.advanceTimersByTimeAsync(300)
+
+      expect(listCookware).not.toHaveBeenCalled()
+      expect(wrapper.find('.suggestions-dropdown').exists()).toBe(false)
+    })
+
+    it('creates missing cookware directly, without a modal', async () => {
+      const wok = { id: 8, name: 'wok', slug: 'wok' }
+      vi.mocked(createCookware).mockResolvedValue(wok)
+
+      const wrapper = mountInput('', [], [])
+      await typeInto(wrapper, 'Sauter dans le #wok')
+      await vi.advanceTimersByTimeAsync(300)
+      await wrapper.vm.$nextTick()
+
+      await wrapper.get('.suggestions-dropdown li.create').trigger('mousedown')
+      await flushPromises()
+
+      expect(createCookware).toHaveBeenCalledWith({ name: 'wok' })
+      expect(wrapper.findComponent(IngredientEditModal).exists()).toBe(false)
+      expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Sauter dans le #wok ')
+      expect(wrapper.emitted('add-cookware')?.[0]).toEqual([wok])
+    })
+
+    it('warns about a #mention that is not in the recipe cookware', () => {
+      const wrapper = mountInput('Cuire au #four{} et au #wok{}.', [], ['Four'])
+      const warnings = wrapper.findAll('.mention-warning').map((w) => w.text())
+      expect(warnings).toEqual([expect.stringContaining('#wok')])
+    })
   })
 })

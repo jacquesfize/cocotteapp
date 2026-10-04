@@ -3,7 +3,14 @@ import factory
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating
+from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeRating
+
+
+class CookwareFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Cookware
+
+    name = factory.Sequence(lambda n: f"ustensile-{n}")
 
 
 class RecipeFactory(factory.django.DjangoModelFactory):

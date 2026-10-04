@@ -39,6 +39,7 @@ const filters = ref<RecipeFilterValues>({
   carbon_level: '',
   // Pré-rempli avec les allergies/intolérances du profil, si elles sont définies (décochable).
   exclude_allergens: myAllergens.value.join(','),
+  cookware: '',
 })
 
 const prefersReducedMotion = () =>

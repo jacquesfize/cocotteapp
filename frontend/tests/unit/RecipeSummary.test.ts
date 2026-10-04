@@ -126,3 +126,56 @@ describe('RecipeSummary steps', () => {
     expect(wrapper.findComponent(StepTimerButton).exists()).toBe(false)
   })
 })
+
+describe('RecipeSummary cookware', () => {
+  const cookware = [
+    { id: 3, name: 'Four', slug: 'four' },
+    {
+      id: 4,
+      name: 'Plat à gratin',
+      slug: 'plat-a-gratin',
+      image: '/media/cookware/plat.jpg',
+      image_license: 'cc_by_sa',
+      image_credit_author: 'Pengo',
+      image_credit_source_url: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+      image_credit_license_url: 'https://creativecommons.org/licenses/by-sa/3.0/',
+    },
+  ]
+
+  it('lists the cookware, and a click on an item or a #mention opens its photo with credit', async () => {
+    const wrapper = mountSummary(
+      baseRecipe({
+        cookware,
+        steps: [step({ id: 1, order: 0, instruction: 'Verser dans le #plat_à_gratin{} et enfourner (#four).' })],
+      }),
+    )
+
+    expect(wrapper.findAll('.cookware-chip').map((chip) => chip.text())).toEqual(['Four', 'Plat à gratin'])
+    const mentions = wrapper.findAll('button.cookware-mention')
+    expect(mentions.map((button) => button.text())).toEqual(['plat à gratin', 'four'])
+    expect(wrapper.text()).not.toContain('#plat')
+
+    await mentions[0].trigger('click')
+    const modal = wrapper.find('[role="dialog"]')
+    expect(modal.find('h2').text()).toBe('Plat à gratin')
+    expect(modal.find('img').attributes('src')).toBe('/media/cookware/plat.jpg')
+    expect(modal.text()).toContain('Photo : Pengo')
+    expect(modal.find('a[href="https://creativecommons.org/licenses/by-sa/3.0/"]').exists()).toBe(true)
+    expect(modal.text()).toContain('Voir les recettes avec : Plat à gratin')
+
+    await modal.find('.base-modal-close').trigger('click')
+    await wrapper.findAll('.cookware-chip')[0].trigger('click')
+    expect(wrapper.find('[role="dialog"] h2').text()).toBe('Four')
+    expect(wrapper.find('[role="dialog"] img').exists()).toBe(false)
+  })
+
+  it('shows no cookware section when the recipe has none, and renders an unknown #mention as text', () => {
+    const wrapper = mountSummary(
+      baseRecipe({ steps: [step({ id: 1, order: 0, instruction: 'Cuire au #wok, étape #2.' })] }),
+    )
+
+    expect(wrapper.find('.cookware-list').exists()).toBe(false)
+    expect(wrapper.find('.cookware-mention').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Cuire au wok, étape #2.')
+  })
+})

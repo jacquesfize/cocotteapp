@@ -53,6 +53,7 @@ class RecipeFilter(django_filters.FilterSet):
     in_season = django_filters.BooleanFilter(method="filter_in_season")
     max_carbon = django_filters.NumberFilter(method="filter_max_carbon")
     exclude_allergens = django_filters.CharFilter(method="filter_exclude_allergens")
+    cookware = django_filters.CharFilter(method="filter_cookware")
     carbon_level = django_filters.ChoiceFilter(
         method="filter_carbon_level",
         choices=[("low", "low"), ("medium", "medium"), ("high", "high")],
@@ -75,6 +76,14 @@ class RecipeFilter(django_filters.FilterSet):
                 recipe_ingredients__ingredient__in=fuzzy_exact_ingredients(ingredient_name)
             )
         return queryset.distinct()
+
+    def filter_cookware(self, queryset, name, value):
+        # Slugs séparés par des virgules ; une recette qui utilise *au moins un* des matériels
+        # demandés est gardée (« au four ou à la friteuse à air »).
+        slugs = [s.strip() for s in value.split(",") if s.strip()]
+        if not slugs:
+            return queryset
+        return queryset.filter(cookware__slug__in=slugs).distinct()
 
     def filter_exclude_allergens(self, queryset, name, value):
         # Seuls les allergènes *renseignés* excluent une recette : un ingrédient non

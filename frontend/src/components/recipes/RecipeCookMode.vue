@@ -3,12 +3,13 @@ import { Check, ChevronLeft, ChevronRight, CirclePlay, ListChecks, Pause, Play, 
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
+import CookwareModal from './CookwareModal.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../../utils/format'
 import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import type { Recipe, RecipeIngredient } from '../../types/models'
+import type { Cookware, Recipe, RecipeIngredient } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
@@ -36,7 +37,7 @@ const hasStepImage = computed(() => Boolean(currentStep.value && recipeImageUrl(
 // navigation entre étapes (voir timerHandles ci-dessous), donc on ne peut pas se permettre de
 // les recréer si cette liste était réévaluée en réaction à un changement réactif quelconque.
 const allStepsSegments = props.recipe.steps.map((step) =>
-  buildStepSegments(step.instruction, props.recipe.ingredients),
+  buildStepSegments(step.instruction, props.recipe.ingredients, props.recipe.cookware ?? []),
 )
 
 interface TimerRegistryEntry {
@@ -69,6 +70,23 @@ const activeTimers = computed(() =>
 )
 
 const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredients))
+
+// Emoji propre au matériel s'il en a un, sinon une poêle générique.
+const DEFAULT_COOKWARE_EMOJI = '🍳'
+// Matériel affiché dans CookwareModal (photo + crédit), ouvert depuis une étape ou le panneau.
+const openCookware = ref<Cookware | null>(null)
+
+function openCookwareById(id?: number) {
+  openCookware.value = props.recipe.cookware?.find((item) => item.id === id) ?? null
+}
+
+function findCookware(id?: number) {
+  return props.recipe.cookware?.find((item) => item.id === id)
+}
+
+function cookwareEmoji(id?: number) {
+  return findCookware(id)?.emoji || DEFAULT_COOKWARE_EMOJI
+}
 
 const isFirstStep = computed(() => currentIndex.value === 0)
 const isLastStep = computed(() => currentIndex.value === steps.value.length - 1)
@@ -157,6 +175,8 @@ function onTouchEnd(event: TouchEvent) {
 }
 
 function handleKeydown(event: KeyboardEvent) {
+  // La fenêtre du matériel gère elle-même Échap (BaseModal) : ne pas fermer le mode cuisine avec.
+  if (openCookware.value) return
   if (event.key === 'Escape') {
     if (pinnedIngredientId.value !== null || hoveredIngredientId.value !== null) closeIngredientPopover()
     else if (showIngredients.value) showIngredients.value = false
@@ -268,6 +288,22 @@ onBeforeUnmount(() => {
                   </p>
                 </div>
               </span>
+              <!-- Le matériel ressort dans le texte (pastille + emoji) : c'est au moment de l'étape qu'on
+                   doit l'avoir sous la main. -->
+              <button
+                v-else-if="segment.cookware?.id"
+                type="button"
+                class="cookware-mention"
+                @click.stop="openCookwareById(segment.cookware.id)"
+              ><img
+                  v-if="findCookware(segment.cookware.id)?.image"
+                  :src="findCookware(segment.cookware.id)?.image ?? undefined"
+                  class="cookware-pill-image"
+                  alt=""
+                /><span v-else class="cookware-emoji" aria-hidden="true">{{ cookwareEmoji(segment.cookware.id) }}</span>{{ segment.text }}</button>
+              <span v-else-if="segment.cookware" class="cookware-mention"
+                ><span class="cookware-emoji" aria-hidden="true">{{ cookwareEmoji() }}</span>{{ segment.text }}</span
+              >
               <StepTimerButton
                 v-else-if="segment.timerSeconds !== undefined"
                 :handle="timerHandles.get(`${currentIndex}-${index}`)?.handle"
@@ -357,7 +393,20 @@ onBeforeUnmount(() => {
           </li>
         </ul>
       </template>
+      <template v-if="recipe.cookware?.length">
+        <h2 class="cookware-title">{{ t('cookware.title') }}</h2>
+        <ul class="ingredient-list">
+          <li v-for="item in recipe.cookware" :key="item.id" class="ingredient-row">
+            <button type="button" class="ingredient-name cookware-open" @click="openCookware = item">
+              <img v-if="item.image" :src="item.image" class="cookware-image" alt="" />
+              <span v-else class="cookware-emoji" aria-hidden="true">{{ item.emoji || DEFAULT_COOKWARE_EMOJI }}</span>{{ item.name }}
+            </button>
+          </li>
+        </ul>
+      </template>
     </aside>
+
+    <CookwareModal v-if="openCookware" :cookware="openCookware" @close="openCookware = null" />
   </div>
 </template>
 
@@ -488,6 +537,24 @@ onBeforeUnmount(() => {
    its own content size (flex-shrink: 0) and never grows to steal space the photo could use
    (flex-grow: 0) — so a long instruction simply grows past 20%, eating into the photo's share
    instead of ever being clipped. */
+/* Minuteurs du texte de l'étape à la même taille que les pastilles de matériel (un peu plus
+   petits que le texte de l'étape) plutôt qu'à leur petite taille par défaut (StepTimerButton). */
+.cook-mode-step-text :deep(.timer-chip) {
+  font-size: 0.85em;
+  font-weight: 700;
+  padding: 0.1rem 0.6rem;
+}
+
+.cook-mode-step-text :deep(.timer-chip svg) {
+  width: 0.85em;
+  height: 0.85em;
+}
+
+.cook-mode-step-text :deep(.timer-control) {
+  width: 1.3em;
+  min-height: 1.3em;
+}
+
 .cook-mode-step-content.has-image .cook-mode-step-text {
   flex: 0 0 auto;
   min-height: 20%;
@@ -729,6 +796,68 @@ onBeforeUnmount(() => {
 
 .ingredient-group-label:first-of-type {
   margin-top: 0.5rem;
+}
+
+.cookware-mention {
+  min-height: auto;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0.6rem 0.1rem 0.5rem;
+  font-size: 0.85em;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 700;
+  white-space: nowrap;
+  /* Avec une photo, l'alignement sur la ligne de base ferait remonter la pastille. */
+  vertical-align: middle;
+}
+
+.cookware-emoji {
+  margin-right: 0.3rem;
+}
+
+.cookware-image {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+/* Photo du matériel dans la pastille d'une étape : ronde, à la hauteur du texte. */
+.cookware-pill-image {
+  width: 1.4em;
+  height: 1.4em;
+  margin-left: -0.3rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.cookware-mention .cookware-emoji {
+  margin-right: 0;
+  font-size: 0.85em;
+}
+
+.cookware-open {
+  min-height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cookware-title {
+  margin-top: 1.5rem;
 }
 
 .ingredient-list {

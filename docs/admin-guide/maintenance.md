@@ -303,6 +303,7 @@ manages with the seeded values:
 |---|---|
 | `seed_nutrient_requirements` | Resets every daily minimum to its seeded value, undoing edits made in the Django admin. |
 | `seed_common_ingredients` | For each seeded ingredient (matched by name, case-insensitively), overwrites category, default unit, season, translations, nutrition, carbon footprint and allergens, and marks allergens as reviewed. Ingredients that are not part of the seed are left untouched. |
+| `seed_cookware` | Creates the seeded cookware items that are missing (matched by name, case-insensitively), sets their English name, and fills in the emoji and photo only when they are empty (only missing photos are downloaded from Wikimedia Commons). It never deletes or renames anything. |
 | `seed_allergens` | Resets the name of each of the 15 reference allergens. Allergens you added yourself are left untouched. |
 | `seed_thematic_pages` | For the three seeded pages (matched by title), resets icon, description, filters and display order. It never replaces an image you uploaded, and does not change the **Visible on the homepage** setting. |
 

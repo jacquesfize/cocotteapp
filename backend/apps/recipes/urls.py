@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    CookwareViewSet,
     RecipeCommentHideView,
     RecipeCommentListCreateView,
     RecipeRatingView,
@@ -13,6 +14,7 @@ from .views import (
 router = DefaultRouter()
 router.register("recipes", RecipeViewSet, basename="recipe")
 router.register("tags", TagViewSet, basename="tag")
+router.register("cookware", CookwareViewSet, basename="cookware")
 router.register("thematic-pages", ThematicPageViewSet, basename="thematic-page")
 
 urlpatterns = [

@@ -59,11 +59,11 @@ def test_creates_recipe_with_ingredients_and_steps():
 
     steps = list(recipe.steps.order_by("order"))
     assert len(steps) == 3
-    # Les balises @ingrédient et ~{durée} sont conservées (le matériel #pan{} est aplati).
+    # Les balises @ingrédient, #matériel et ~{durée} sont conservées.
     assert steps[0].instruction == "Peel and dice @onion{1%piece} and @garlic clove."
     assert "~{5 minutes}" in steps[1].instruction
-    assert "#" not in steps[1].instruction
-    assert "in a pan" in steps[1].instruction
+    assert "in a #pan{}" in steps[1].instruction
+    assert [cookware.name for cookware in recipe.cookware.all()] == ["pan"]
 
 
 @pytest.mark.django_db

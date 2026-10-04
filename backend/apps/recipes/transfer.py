@@ -19,7 +19,7 @@ from django.db.models import Q
 from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient, IngredientCategory, Unit
 
-from .models import Recipe, RecipeIngredient, RecipeStep, SourceType, Tag, TagKind
+from .models import Cookware, Recipe, RecipeIngredient, RecipeStep, SourceType, Tag, TagKind
 
 FORMAT_NAME = "cocotte-recipes"
 FORMAT_VERSION = 1
@@ -69,7 +69,7 @@ def _serialize_ingredient(ingredient):
 def build_export_archive(recipes):
     """Renvoie les octets d'une archive ZIP contenant `recipes` (un queryset de Recipe)."""
     recipes = list(
-        recipes.select_related("author").prefetch_related("recipe_ingredients__ingredient", "steps", "tags").order_by("id")
+        recipes.select_related("author").prefetch_related("recipe_ingredients__ingredient", "steps", "tags", "cookware").order_by("id")
     )
     refs = {recipe.pk: f"r{index}" for index, recipe in enumerate(recipes, start=1)}
 
@@ -108,6 +108,10 @@ def build_export_archive(recipes):
                 "root_ref": refs.get(recipe.root_recipe_id, ""),
                 "version_label": recipe.version_label,
                 "tags": [{"name": tag.name, "kind": tag.kind} for tag in recipe.tags.all()],
+                "cookware": [
+                    {"name": item.name, "slug": item.slug, "translations": item.translations}
+                    for item in recipe.cookware.all()
+                ],
                 "ingredients": [
                     {
                         "ingredient": _serialize_ingredient(line.ingredient),
@@ -161,6 +165,21 @@ def _get_or_create_ingredient(data):
         translations=translations if isinstance(translations, dict) else {},
         **fields,
     )
+
+
+def _get_or_create_cookware(data):
+    name = str(data["name"]).strip()[:100]
+    if not name:
+        raise ValueError("matériel sans nom")
+    slug = str(data.get("slug") or "")
+    lookup = Q(name__iexact=name)
+    if slug:
+        lookup |= Q(slug=slug)
+    existing = Cookware.objects.filter(lookup).first()
+    if existing:
+        return existing
+    translations = data.get("translations")
+    return Cookware.objects.create(name=name, translations=translations if isinstance(translations, dict) else {})
 
 
 def _read_manifest(archive):
@@ -235,6 +254,10 @@ def _import_recipe(data, author, archive):
                 name=name, defaults={"kind": _choice(tag_data.get("kind"), TagKind, TagKind.OTHER)}
             )
             recipe.tags.add(tag)
+
+    # Absent des archives produites avant l'ajout du matériel : simplement ignoré.
+    for cookware_data in data.get("cookware", []):
+        recipe.cookware.add(_get_or_create_cookware(cookware_data))
 
     for index, line in enumerate(data.get("ingredients", [])):
         RecipeIngredient.objects.create(

@@ -41,6 +41,7 @@ function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
     in_season: query.in_season === 'true',
     carbon_level: (query.carbon_level as string) || '',
     exclude_allergens: (query.exclude_allergens as string) || '',
+    cookware: (query.cookware as string) || '',
   }
 }
 

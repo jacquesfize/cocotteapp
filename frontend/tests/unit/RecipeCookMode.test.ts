@@ -281,4 +281,70 @@ describe('RecipeCookMode timer dock', () => {
 
     expect(wrapper.findAll('.cook-mode-timer-dock-row')).toHaveLength(2)
   })
+
+  it('highlights a #cookware mention with an emoji and lists the cookware in the side panel', () => {
+    const wrapper = mountCookMode(
+      baseRecipe({
+        cookware: [{ id: 3, name: 'Poêle', slug: 'poele' }],
+        steps: [step({ id: 1, order: 0, instruction: 'Faire fondre le @sel dans la #poêle{}.' })],
+      }),
+    )
+
+    const mention = wrapper.find('.cook-mode-step-text .cookware-mention')
+    expect(mention.text()).toBe('🍳poêle')
+    expect(wrapper.find('.cook-mode-step-text').text()).not.toContain('#')
+    expect(wrapper.find('.cook-mode-ingredients').text()).toContain('🍳Poêle')
+  })
+
+  it("uses the cookware's own emoji, or its photo in the side panel", () => {
+    const wrapper = mountCookMode(
+      baseRecipe({
+        cookware: [
+          { id: 3, name: 'Wok', slug: 'wok', emoji: '🥘' },
+          { id: 4, name: 'Four', slug: 'four', emoji: '', image: '/media/cookware/four.jpg' },
+        ],
+        steps: [step({ id: 1, order: 0, instruction: 'Sauter au #wok{}.' })],
+      }),
+    )
+
+    expect(wrapper.find('.cook-mode-step-text .cookware-mention').text()).toBe('🥘wok')
+    // Sans photo, l'emoji ; avec une photo, la photo remplace l'emoji dans la pastille.
+    expect(wrapper.find('.cook-mode-step-text .cookware-mention img').exists()).toBe(false)
+    expect(wrapper.find('.cook-mode-ingredients img.cookware-image').attributes('src')).toBe('/media/cookware/four.jpg')
+  })
+
+  it('opens the cookware photo with its credit from a step mention, and Escape only closes it', async () => {
+    const wrapper = mountCookMode(
+      baseRecipe({
+        cookware: [
+          {
+            id: 3,
+            name: 'Wok',
+            slug: 'wok',
+            emoji: '🥘',
+            image: '/media/cookware/wok.jpg',
+            image_license: 'cc_by',
+            image_credit_author: 'Marie',
+            image_credit_source_url: 'https://commons.wikimedia.org/wiki/File:Wok.jpg',
+          },
+        ],
+        steps: [step({ id: 1, order: 0, instruction: 'Sauter au #wok{}.' })],
+      }),
+    )
+
+    const pill = wrapper.find('.cook-mode-step-text button.cookware-mention')
+    expect(pill.find('img.cookware-pill-image').attributes('src')).toBe('/media/cookware/wok.jpg')
+    expect(pill.find('.cookware-emoji').exists()).toBe(false)
+    expect(pill.text()).toBe('wok')
+    await pill.trigger('click')
+    expect(wrapper.find('.base-modal h2').text()).toBe('Wok')
+    expect(wrapper.find('.base-modal').text()).toContain('Photo : Marie')
+    // Pas de lien vers la liste des recettes : il ferait quitter le mode cuisine.
+    expect(wrapper.find('.base-modal').text()).not.toContain('Voir les recettes')
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.base-modal').exists()).toBe(false)
+    expect(wrapper.emitted('close')).toBeUndefined()
+  })
 })
