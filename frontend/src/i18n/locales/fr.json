@@ -667,6 +667,13 @@
     "saveError": "Impossible d'enregistrer cette page thématique.",
     "cancelEdit": "Annuler"
   },
+  "announcement": {
+    "dismiss": "Fermer l’annonce",
+    "testInstance": {
+      "title": "Instance de test.",
+      "message": "Vos données peuvent être supprimées à tout moment."
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne — vous consultez la dernière version enregistrée.",
     "pendingSync": "En attente de connexion pour synchroniser"

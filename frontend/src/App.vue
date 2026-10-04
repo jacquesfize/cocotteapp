@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterView, useRoute } from 'vue-router'
+import AnnouncementBanner from './components/shared/AnnouncementBanner.vue'
 import NavBar from './components/shared/NavBar.vue'
 import OfflineIndicator from './components/shared/OfflineIndicator.vue'
 
@@ -10,6 +11,7 @@ const route = useRoute()
   <RouterView v-if="route.meta.embed" />
   <template v-else>
     <NavBar />
+    <AnnouncementBanner />
     <OfflineIndicator />
     <main class="container">
       <RouterView />

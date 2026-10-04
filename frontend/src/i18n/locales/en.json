@@ -667,6 +667,13 @@
     "saveError": "Could not save this thematic page.",
     "cancelEdit": "Cancel"
   },
+  "announcement": {
+    "dismiss": "Dismiss announcement",
+    "testInstance": {
+      "title": "Test instance.",
+      "message": "Your data may be deleted at any time."
+    }
+  },
   "offline": {
     "banner": "You're offline — showing the last saved version.",
     "pendingSync": "Waiting for a connection to sync"

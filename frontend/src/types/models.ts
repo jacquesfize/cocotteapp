@@ -464,3 +464,19 @@ export interface ShoppingList {
   items: ShoppingListItem[]
   created_at: string
 }
+
+export type AnnouncementLevel = 'info' | 'warning' | 'critical'
+
+export interface Announcement {
+  id: number | 'test-instance'
+  level: AnnouncementLevel
+  dismissible: boolean
+  title_fr?: string
+  title_en?: string
+  message_fr?: string
+  message_en?: string
+  link_url?: string
+  link_label_fr?: string
+  link_label_en?: string
+  updated_at?: string
+}
