@@ -32,7 +32,8 @@ or go to `/admin/ingredients`.
 ![The staff Ingredients page](../assets/screenshots/admin-ingredients.png)
 
 The table shows each ingredient's **Name**, **Category** and **Season** (the abbreviated
-peak-season months, or **All year**), with an **Edit** button and a delete button (bin icon). The
+peak-season months, or **All year**), with an **Edit** button, a merge button (branch icon) and a
+delete button (bin icon). The
 list is paginated, 20 ingredients per page.
 
 The **Search** field (placeholder "French or English name...") matches the ingredient name and
@@ -189,7 +190,8 @@ Staff can always edit, verify or delete any ingredient.
 
 ### Merge a duplicate
 
-**Merge into…** replaces a duplicate ingredient (the one on whose row you click) by the correct
+The merge button (branch icon, tooltip **Merge into…**, next to the bin) replaces a duplicate
+ingredient (the one on whose row you click) by the correct
 one you pick, then deletes the duplicate:
 
 - every recipe line using the duplicate now uses the chosen ingredient, with the same quantity

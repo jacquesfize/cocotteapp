@@ -63,7 +63,8 @@ To get rid of a duplicate, merge it instead.
 
 ## Merge a duplicate
 
-**Merge into…** replaces a duplicate (the item on whose row you click) by the correct item you
+The merge button (branch icon, tooltip **Merge into…**, next to the bin) replaces a duplicate
+(the item on whose row you click) by the correct item you
 pick, then deletes the duplicate and its photo: every recipe that used the duplicate now uses the
 chosen item, and translations missing from the chosen item are copied from the duplicate (its own
 ones are kept when both have one). Recipe steps that mention the duplicate by name (`#poele`) are

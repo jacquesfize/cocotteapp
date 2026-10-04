@@ -229,6 +229,7 @@ async function handleDelete(item: Cookware) {
         {{ $t('libraryReview.filterUnverified') }}
         <span
           class="admin-filter-count"
+          :class="{ 'has-items': unverifiedCount }"
           :aria-label="$t('libraryReview.unverifiedCount', { count: unverifiedCount })"
         >{{ unverifiedCount }}</span>
       </button>
@@ -269,26 +270,35 @@ async function handleDelete(item: Cookware) {
             </td>
             <td :data-label="$t('adminCookware.colNameEn')">{{ item.translations?.en ?? '' }}</td>
             <td class="actions">
-              <button class="secondary" @click="openForm(item)">{{ $t('common.edit') }}</button>
-              <button
-                v-if="item.is_verified === false"
-                class="secondary"
-                data-testid="verify"
-                @click="handleVerify(item)"
-              >
-                <BadgeCheck :size="16" />{{ $t('libraryReview.verify') }}
-              </button>
-              <button class="secondary" data-testid="merge" @click="openMerge(item)">
-                <GitMerge :size="16" />{{ $t('libraryReview.merge') }}
-              </button>
-              <button
-                class="danger icon-btn"
-                :aria-label="$t('adminCookware.deleteButton')"
-                @click="handleDelete(item)"
-              >
-                <Trash2 :size="16" />
-              </button>
-            </td>
+                <div class="row-actions">
+                  <button class="secondary btn-sm" @click="openForm(item)">{{ $t('common.edit') }}</button>
+                  <button
+                    v-if="item.is_verified === false"
+                    class="secondary btn-sm"
+                    data-testid="verify"
+                    @click="handleVerify(item)"
+                  >
+                    <BadgeCheck :size="14" />{{ $t('libraryReview.verify') }}
+                  </button>
+                  <button
+                    class="secondary icon-btn btn-sm"
+                    data-testid="merge"
+                    :aria-label="$t('libraryReview.merge')"
+                    :title="$t('libraryReview.merge')"
+                    @click="openMerge(item)"
+                  >
+                    <GitMerge :size="16" />
+                  </button>
+                  <button
+                    class="danger icon-btn btn-sm"
+                    :aria-label="$t('adminCookware.deleteButton')"
+                    :title="$t('adminCookware.deleteButton')"
+                    @click="handleDelete(item)"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                </div>
+              </td>
           </tr>
         </tbody>
       </table>
@@ -416,11 +426,18 @@ async function handleDelete(item: Cookware) {
   font-weight: 400;
 }
 
+/* Cellule restée une vraie cellule de tableau (un `display: flex` sur le <td> casse
+   l'alignement des bordures) : les boutons vivent dans un conteneur flex, sur une seule ligne. */
 .admin-table .actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .name :deep(.unverified-badge) {
@@ -467,8 +484,13 @@ async function handleDelete(item: Cookware) {
   }
 
   .admin-table .actions {
-    justify-content: flex-start;
+    width: 100%;
     padding-top: 0.5rem;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>

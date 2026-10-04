@@ -16,7 +16,7 @@ import { getErrorStatus } from '../../utils/apiError'
 import type { IngredientListParams } from '../../types/api'
 import type { Ingredient } from '../../types/models'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -148,7 +148,10 @@ async function handleSaved() {
 
 function seasonSummary(ingredient: Ingredient) {
   if (!ingredient.available_months?.length) return t('adminIngredients.allYear')
-  return ingredient.available_months.map((m) => t(`ingredientModal.months.${m}`).slice(0, 3)).join(', ')
+  // Abréviations de la locale (« juin », « juil. ») : couper les noms à 3 lettres donnait
+  // « jui, jui » pour juin et juillet.
+  const format = new Intl.DateTimeFormat(locale.value, { month: 'short' })
+  return ingredient.available_months.map((m) => format.format(new Date(2000, m - 1, 1))).join(', ')
 }
 
 async function handleDelete(ingredient: Ingredient) {
@@ -206,6 +209,7 @@ async function handleDelete(ingredient: Ingredient) {
           <span
             v-if="unverifiedCount !== null"
             class="admin-filter-count"
+            :class="{ 'has-items': unverifiedCount }"
             :aria-label="$t('libraryReview.unverifiedCount', { count: unverifiedCount })"
           >{{ unverifiedCount }}</span>
         </button>
@@ -242,25 +246,34 @@ async function handleDelete(ingredient: Ingredient) {
               <td :data-label="$t('adminIngredients.colCategory')">{{ $t(`ingredientCategory.${ingredient.category}`) }}</td>
               <td :data-label="$t('adminIngredients.colSeason')">{{ seasonSummary(ingredient) }}</td>
               <td class="actions">
-                <button class="secondary" @click="openEdit(ingredient)">{{ $t('common.edit') }}</button>
-                <button
-                  v-if="ingredient.is_verified === false"
-                  class="secondary"
-                  data-testid="verify"
-                  @click="handleVerify(ingredient)"
-                >
-                  <BadgeCheck :size="16" />{{ $t('libraryReview.verify') }}
-                </button>
-                <button class="secondary" data-testid="merge" @click="openMerge(ingredient)">
-                  <GitMerge :size="16" />{{ $t('libraryReview.merge') }}
-                </button>
-                <button
-                  class="danger icon-btn"
-                  :aria-label="$t('adminIngredients.deleteIngredient')"
-                  @click="handleDelete(ingredient)"
-                >
-                  <Trash2 :size="16" />
-                </button>
+                <div class="row-actions">
+                  <button class="secondary btn-sm" @click="openEdit(ingredient)">{{ $t('common.edit') }}</button>
+                  <button
+                    v-if="ingredient.is_verified === false"
+                    class="secondary btn-sm"
+                    data-testid="verify"
+                    @click="handleVerify(ingredient)"
+                  >
+                    <BadgeCheck :size="14" />{{ $t('libraryReview.verify') }}
+                  </button>
+                  <button
+                    class="secondary icon-btn btn-sm"
+                    data-testid="merge"
+                    :aria-label="$t('libraryReview.merge')"
+                    :title="$t('libraryReview.merge')"
+                    @click="openMerge(ingredient)"
+                  >
+                    <GitMerge :size="16" />
+                  </button>
+                  <button
+                    class="danger icon-btn btn-sm"
+                    :aria-label="$t('adminIngredients.deleteIngredient')"
+                    :title="$t('adminIngredients.deleteIngredient')"
+                    @click="handleDelete(ingredient)"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -311,11 +324,18 @@ async function handleDelete(ingredient: Ingredient) {
   margin-bottom: 1rem;
 }
 
+/* Cellule restée une vraie cellule de tableau (un `display: flex` sur le <td> casse
+   l'alignement des bordures) : les boutons vivent dans un conteneur flex, sur une seule ligne. */
 .admin-table .actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .admin-table .name :deep(.unverified-badge) {
@@ -362,8 +382,13 @@ async function handleDelete(ingredient: Ingredient) {
   }
 
   .admin-table .actions {
-    justify-content: flex-start;
+    width: 100%;
     padding-top: 0.5rem;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>
