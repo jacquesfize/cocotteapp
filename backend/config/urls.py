@@ -18,6 +18,7 @@ urlpatterns = [
     path("api/", include("apps.shopping.urls")),
     path("api/", include("apps.importer.urls")),
     path("api/", include("apps.blog.urls")),
+    path("api/", include("apps.announcements.urls")),
 ]
 
 if settings.DEBUG:
