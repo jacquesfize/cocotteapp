@@ -199,6 +199,12 @@ setting on this page.
 | `PLANNING_SNACK_ENABLED` | `False` | Shows the **Snack** row in the weekly planner grid when `True`. Meals already planned as a snack (from before the setting was changed, or via the API) keep working either way; this only controls whether the planner *offers* the slot. |
 | `NUTRITION_ALERTS_ENABLED` | `False` | Shows the **Nutritional intake** button in the weekly planner, and the "Possibly insufficient intake this week" deficiency alerts inside its dialog, when `True`. When `False` (the default), the button itself is hidden and the nutrition summary endpoint always returns an empty list of deficiencies; the carbon-footprint total is unaffected. Even when `True`, no alert is computed for a period where fewer than half of the days have a planned meal (4 days for a week, `MIN_PLANNED_DAYS_RATIO_FOR_ALERTS` in `apps/nutrition/services.py`); the dialog then explains how many days to plan. |
 
+## Test instance banner
+
+| Variable | Default | Description |
+|---|---|---|
+| `TEST_INSTANCE` | `False` | Shows a banner on every page, in the reader's language, warning that this is a test instance and that data may be deleted at any time. It cannot be dismissed. For temporary messages (maintenance, updates), use [Announcements](announcements.md) instead. |
+
 ## HTTPS and security
 
 These settings live in `config/settings/prod.py` and only apply in production.

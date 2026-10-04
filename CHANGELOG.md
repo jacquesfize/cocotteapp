@@ -9,6 +9,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **Announcements**: a banner at the top of every page, for a maintenance, an update or any
+  message to your users. Admins create it in the Django admin (**Announcements**) with a level
+  (information, warning, critical), a French and English text, an optional link and an optional
+  display period. Readers can close it unless the admin made it permanent; an edited
+  announcement is shown again. Setting `TEST_INSTANCE=True` also shows a permanent "test instance,
+  your data may be deleted at any time" banner.
 - **My tags**: personal tags to sort recipes your own way (*🎂 Birthdays*, *To try*...), each
   with a name, an optional emoji and a color. Put them on any recipe from its new **My tags**
   card, or create one on the go by typing its name; before creating it, Cocotte shows your
