@@ -8,6 +8,10 @@ from apps.ingredients.models import Allergen
 
 from .models import AllergySeverity, UserAllergen
 
+# Champs du profil soumis au consentement « données de santé » : ce sont ceux qu'efface
+# User.withdraw_health_data_consent().
+HEALTH_DATA_FIELDS = ("diet_type", "activity_level", "allergies", "intolerances")
+
 User = get_user_model()
 
 
@@ -79,6 +83,14 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
     def validate(self, attrs):
+        # Données pouvant relever de la santé (RGPD art. 9) : sans consentement, on refuse de
+        # les enregistrer plutôt que de les effacer au prochain retrait (cf. User.withdraw_health_data_consent).
+        if self.instance is not None and not self.instance.health_data_consent_at:
+            sent = sorted(field for field in HEALTH_DATA_FIELDS if field in attrs)
+            if sent:
+                raise serializers.ValidationError(
+                    {"health_data_consent": f"Consentement requis pour modifier : {', '.join(sent)}."}
+                )
         allergies = {a.slug for a in attrs.get("allergies", [])}
         intolerances = {a.slug for a in attrs.get("intolerances", [])}
         overlap = allergies & intolerances

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Download, Save, Trash2, Upload, User } from '@lucide/vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { listAllergens } from '../../api/allergens'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import PageHeader from '../../components/shared/PageHeader.vue'
 import AsyncState from '../../components/shared/AsyncState.vue'
+import BaseModal from '../../components/shared/BaseModal.vue'
 import { changePassword, exportMyData } from '../../api/auth'
 import { getErrorData, getErrorDetail } from '../../utils/apiError'
 import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../../api/recipes'
@@ -14,7 +15,7 @@ import { useAuthStore } from '../../stores/auth'
 import { allergenEmoji } from '../../utils/allergens'
 import { ACCENT_PRESETS, accentColor, DEFAULT_ACCENT, resetAccentColor, setAccentColor } from '../../utils/theme'
 import { downloadBlob } from '../../utils/download'
-import type { ActivityLevel, Allergen, DietType, PlanningPermission, PlanningShare } from '../../types/models'
+import type { ActivityLevel, Allergen, DietType, PlanningPermission, PlanningShare, User as UserModel } from '../../types/models'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -29,13 +30,39 @@ const profile = ref<{
   allergies: string[]
   intolerances: string[]
 }>({
-  username: authStore.user?.username || '',
-  email: authStore.user?.email || '',
-  diet_type: authStore.user?.diet_type || 'omnivore',
-  activity_level: authStore.user?.activity_level || 'moderate',
-  allergies: [...(authStore.user?.allergies || [])],
-  intolerances: [...(authStore.user?.intolerances || [])],
+  username: '',
+  email: '',
+  diet_type: 'omnivore',
+  activity_level: 'moderate',
+  allergies: [],
+  intolerances: [],
 })
+
+function fillHealthFields(user: UserModel | null) {
+  profile.value.diet_type = user?.diet_type || 'omnivore'
+  profile.value.activity_level = user?.activity_level || 'moderate'
+  profile.value.allergies = [...(user?.allergies || [])]
+  profile.value.intolerances = [...(user?.intolerances || [])]
+}
+
+// Après un rechargement de page, authStore.user arrive de façon asynchrone (fetchMe()) : on
+// remplit le formulaire à son arrivée, mais pas si l'utilisateur a déjà commencé à le modifier.
+const profileTouched = ref(false)
+watch(
+  () => authStore.user?.id,
+  () => {
+    const user = authStore.user
+    if (!user || profileTouched.value) return
+    profile.value.username = user.username || ''
+    profile.value.email = user.email || ''
+    fillHealthFields(user)
+  },
+  { immediate: true },
+)
+
+// Régime, activité et allergies relèvent des données de santé : sans consentement, le serveur
+// refuse de les enregistrer, on les verrouille donc dans le formulaire.
+const hasHealthConsent = computed(() => !!authStore.user?.health_data_consent_at)
 
 const allergenList = ref<Allergen[]>([])
 onMounted(async () => {
@@ -62,7 +89,10 @@ async function handleProfileSubmit() {
   profileError.value = ''
   isSavingProfile.value = true
   try {
-    await authStore.updateProfile(profile.value)
+    const { diet_type, activity_level, allergies, intolerances, ...identity } = profile.value
+    await authStore.updateProfile(
+      hasHealthConsent.value ? { ...identity, diet_type, activity_level, allergies, intolerances } : identity,
+    )
     profileMessage.value = t('account.profileSuccess')
   } catch (err) {
     const data = getErrorData<{ username?: string[] }>(err)
@@ -113,10 +143,7 @@ async function handleConsent(consent: boolean) {
   try {
     await authStore.setHealthConsent(consent)
     // Retirer le consentement efface régime, activité et allergies côté serveur.
-    profile.value.diet_type = authStore.user?.diet_type || 'omnivore'
-    profile.value.activity_level = authStore.user?.activity_level || 'moderate'
-    profile.value.allergies = [...(authStore.user?.allergies || [])]
-    profile.value.intolerances = [...(authStore.user?.intolerances || [])]
+    fillHealthFields(authStore.user)
   } catch {
     consentError.value = t('account.consentError')
   } finally {
@@ -207,15 +234,20 @@ async function handleRevokeShare(share: PlanningShare) {
 
 const deleteError = ref('')
 const keepRecipes = ref(false)
+const showDeleteConfirm = ref(false)
+const isDeletingAccount = ref(false)
 
 async function handleDeleteAccount() {
-  if (!confirm(t('account.deleteAccountConfirm'))) return
   deleteError.value = ''
+  isDeletingAccount.value = true
   try {
     await authStore.deleteAccount(keepRecipes.value)
+    showDeleteConfirm.value = false
     router.push({ name: 'home' })
   } catch {
     deleteError.value = t('account.deleteAccountError')
+  } finally {
+    isDeletingAccount.value = false
   }
 }
 </script>
@@ -263,7 +295,7 @@ async function handleDeleteAccount() {
 
     <div class="card" style="margin-bottom: 1rem">
       <h2>{{ $t('account.profileTitle') }}</h2>
-      <form @submit.prevent="handleProfileSubmit">
+      <form @submit.prevent="handleProfileSubmit" @input="profileTouched = true">
         <div class="row">
           <div class="field" style="flex: 1; min-width: 200px">
             <label for="account-username">{{ $t('auth.username') }}</label>
@@ -274,42 +306,51 @@ async function handleDeleteAccount() {
             <input id="account-email" v-model="profile.email" type="email" required autocomplete="email" />
           </div>
         </div>
-        <div class="row">
-          <div class="field">
-            <label for="account-diet">{{ $t('auth.dietType') }}</label>
-            <select id="account-diet" v-model="profile.diet_type">
-              <option value="omnivore">{{ $t('diet.omnivore') }}</option>
-              <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
-              <option value="vegan">{{ $t('diet.vegan') }}</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="account-activity">{{ $t('auth.activityLevel') }}</label>
-            <select id="account-activity" v-model="profile.activity_level">
-              <option value="sedentary">{{ $t('activityLevel.sedentary') }}</option>
-              <option value="moderate">{{ $t('activityLevel.moderate') }}</option>
-              <option value="athlete">{{ $t('activityLevel.athlete') }}</option>
-            </select>
-          </div>
+        <div v-if="!hasHealthConsent" class="health-locked" data-testid="health-locked">
+          <p>{{ $t('account.healthFieldsLocked') }}</p>
+          <button type="button" :disabled="isUpdatingConsent" @click="handleConsent(true)">
+            {{ $t('account.consentGrant') }}
+          </button>
+          <p v-if="consentError" class="error">{{ consentError }}</p>
         </div>
-        <fieldset class="allergen-fieldset">
-          <legend>{{ $t('allergens.title') }}</legend>
-          <p class="muted">{{ $t('allergens.hint') }}</p>
-          <div v-for="kind in (['allergies', 'intolerances'] as const)" :key="kind" class="allergen-group">
-            <strong>{{ $t(`allergens.${kind}`) }}</strong>
-            <div class="allergen-options">
-              <label v-for="allergen in allergenList" :key="allergen.slug" class="allergen-option">
-                <input
-                  type="checkbox"
-                  :data-testid="`${kind}-${allergen.slug}`"
-                  :checked="profile[kind].includes(allergen.slug)"
-                  @change="toggleAllergen(kind, allergen.slug, ($event.target as HTMLInputElement).checked)"
-                />
-                <span aria-hidden="true">{{ allergenEmoji(allergen.slug) }}</span>
-                {{ $t(`allergen.${allergen.slug}`) }}
-              </label>
+        <fieldset class="health-fieldset" :disabled="!hasHealthConsent" data-testid="health-fields">
+          <div class="row">
+            <div class="field">
+              <label for="account-diet">{{ $t('auth.dietType') }}</label>
+              <select id="account-diet" v-model="profile.diet_type">
+                <option value="omnivore">{{ $t('diet.omnivore') }}</option>
+                <option value="vegetarian">{{ $t('diet.vegetarian') }}</option>
+                <option value="vegan">{{ $t('diet.vegan') }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="account-activity">{{ $t('auth.activityLevel') }}</label>
+              <select id="account-activity" v-model="profile.activity_level">
+                <option value="sedentary">{{ $t('activityLevel.sedentary') }}</option>
+                <option value="moderate">{{ $t('activityLevel.moderate') }}</option>
+                <option value="athlete">{{ $t('activityLevel.athlete') }}</option>
+              </select>
             </div>
           </div>
+          <fieldset class="allergen-fieldset">
+            <legend>{{ $t('allergens.title') }}</legend>
+            <p class="muted">{{ $t('allergens.hint') }}</p>
+            <div v-for="kind in (['allergies', 'intolerances'] as const)" :key="kind" class="allergen-group">
+              <strong>{{ $t(`allergens.${kind}`) }}</strong>
+              <div class="allergen-options">
+                <label v-for="allergen in allergenList" :key="allergen.slug" class="allergen-option">
+                  <input
+                    type="checkbox"
+                    :data-testid="`${kind}-${allergen.slug}`"
+                    :checked="profile[kind].includes(allergen.slug)"
+                    @change="toggleAllergen(kind, allergen.slug, ($event.target as HTMLInputElement).checked)"
+                  />
+                  <span aria-hidden="true">{{ allergenEmoji(allergen.slug) }}</span>
+                  {{ $t(`allergen.${allergen.slug}`) }}
+                </label>
+              </div>
+            </div>
+          </fieldset>
         </fieldset>
         <p v-if="profileMessage" class="muted">{{ profileMessage }}</p>
         <p v-if="profileError" class="error">{{ profileError }}</p>
@@ -488,16 +529,70 @@ async function handleDeleteAccount() {
         <span>{{ $t('account.keepRecipesLabel') }}</span>
       </label>
       <p v-if="deleteError" class="error">{{ deleteError }}</p>
-      <button class="danger" @click="handleDeleteAccount">
+      <button class="danger" data-testid="delete-account" @click="showDeleteConfirm = true">
         <Trash2 :size="16" />{{ $t('account.deleteAccountButton') }}
       </button>
     </div>
+
+    <BaseModal
+      v-if="showDeleteConfirm"
+      :title="$t('account.deleteAccountConfirmTitle')"
+      @close="showDeleteConfirm = false"
+    >
+      <p>{{ $t('account.deleteAccountConfirm') }}</p>
+      <p v-if="keepRecipes" class="muted">{{ $t('account.keepRecipesLabel') }}</p>
+      <p v-if="deleteError" class="error">{{ deleteError }}</p>
+      <div class="row" style="margin-top: 1rem; justify-content: flex-end">
+        <button type="button" class="secondary" @click="showDeleteConfirm = false">
+          {{ $t('common.cancel') }}
+        </button>
+        <button
+          type="button"
+          class="danger"
+          :disabled="isDeletingAccount"
+          data-testid="delete-account-confirm"
+          @click="handleDeleteAccount"
+        >
+          <Trash2 :size="16" />{{ $t('account.deleteAccountConfirmButton') }}
+        </button>
+      </div>
+    </BaseModal>
 
     <p class="app-version">{{ $t('account.version', { version: appVersion }) }}</p>
   </div>
 </template>
 
 <style scoped>
+/* Champs santé (régime, activité, allergies) : un fieldset désactivé tant que le consentement
+   n'est pas donné, avec l'explication et l'action de consentement juste au-dessus. */
+.health-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.health-fieldset:disabled .row,
+.health-fieldset:disabled .allergen-fieldset {
+  opacity: 0.55;
+}
+
+.health-locked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--color-primary-soft);
+}
+
+.health-locked p {
+  margin: 0;
+  flex: 1 1 18rem;
+}
+
 .allergen-fieldset {
   border: 1px solid var(--color-border);
   border-radius: 10px;

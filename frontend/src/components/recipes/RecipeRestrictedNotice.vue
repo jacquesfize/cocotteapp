@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import RecipeRating from './RecipeRating.vue'
-import { formatQuantity, formatUnit } from '../../utils/format'
+import { formatNumber, formatQuantity, formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import { groupIngredients } from '../../utils/recipeSteps'
 import type { RecipeRatingResult } from '../../api/recipes'
@@ -66,7 +66,7 @@ const emit = defineEmits<{
     </a>
 
     <div class="restricted-banner" role="note">
-      <Lock :size="18" />
+      <Lock :size="18" class="restricted-banner-icon" aria-hidden="true" />
       <i18n-t keypath="recipes.restrictedNotice" tag="p" scope="global">
         <template #copyright><strong>{{ $t('recipes.restrictedNoticeCopyright') }}</strong></template>
         <template #visibility><strong>{{ $t('recipes.restrictedNoticeVisibility') }}</strong></template>
@@ -97,9 +97,10 @@ const emit = defineEmits<{
       @rated="emit('rated', $event)"
     />
 
-    <p v-if="recipe.carbon_footprint_kg_co2e !== undefined" class="carbon-footprint">
-      <span class="value">{{ recipe.carbon_footprint_kg_co2e.toFixed(2) }} kg CO2e</span>
-      <span class="label">{{ $t('recipes.carbonFootprint') }}</span>
+    <!-- Par portion, comme NutritionCard ; masqué quand aucune donnée carbone (0). -->
+    <p v-if="recipe.carbon_footprint_per_serving_kg_co2e" class="carbon-footprint">
+      <span class="value">{{ formatNumber(recipe.carbon_footprint_per_serving_kg_co2e, 2) }} kg CO₂e</span>
+      <span class="label">{{ $t('nutrition.carbonPerServing') }}</span>
     </p>
   </div>
 </template>
@@ -149,20 +150,35 @@ const emit = defineEmits<{
   border: none;
 }
 
+/* Note informative (et non un message d'erreur) : surface neutre, graisse normale, couleurs
+   reprises des jetons du thème pour fonctionner aussi en mode sombre. */
 .restricted-banner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
   margin: 0;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--color-primary-soft);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+/* Sans flex-shrink: 0, le texte long écrasait l'icône jusqu'à n'en laisser qu'un point. */
+.restricted-banner-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--color-muted);
 }
 
 .restricted-banner p {
   margin: 0;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.restricted-banner p strong {
   font-weight: 600;
 }
 

@@ -195,7 +195,7 @@ async function handleSubmit() {
               />
               <span>{{ $t('auth.healthConsent') }}</span>
             </label>
-            <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice">
+            <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice" scope="global">
               <template #privacy>
                 <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
               </template>

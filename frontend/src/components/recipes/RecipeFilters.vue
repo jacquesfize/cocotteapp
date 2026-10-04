@@ -62,6 +62,9 @@ function reset() {
   filters.value = empty as unknown as RecipeFilterValues
 }
 
+// Réutilisé par la vue parente (bouton "Réinitialiser les filtres" de l'état vide).
+defineExpose({ reset })
+
 function splitList(value: string) {
   return value
     .split(',')
@@ -643,6 +646,22 @@ const filterChips = computed<FilterChip[]>(() => {
 }
 .panel-footer .reset {
   flex: 1;
+}
+/* Actif : vrai bouton secondaire, bordé ; désactivé (aucun filtre) : gris neutre, clairement
+   inerte, plutôt que le même rose pâle à demi transparent dans les deux cas. */
+.reset:not(:disabled) {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary-dark);
+}
+.reset:not(:disabled):hover {
+  background: var(--color-primary-soft);
+}
+.reset:disabled {
+  background: var(--color-surface-muted);
+  border: 1.5px solid transparent;
+  color: var(--color-muted);
+  opacity: 0.7;
 }
 
 .radio-group legend {

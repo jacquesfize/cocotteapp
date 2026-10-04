@@ -7,7 +7,9 @@ import { toISODate } from '../../utils/dates'
 import type { MealType, Recipe } from '../../types/models'
 
 // `inModal`: rendered inside a BaseModal (homepage "Plan for later") — no card/heading of its
-// own, the date defaults to today, and a successful add emits `added` so the parent can close.
+// own, and a successful add emits `added` so the parent can close.
+// La date est préremplie avec aujourd'hui (date locale via toISODate, pas toISOString qui
+// passerait en UTC et pourrait décaler d'un jour) dans les deux modes.
 const props = defineProps<{
   recipe: Recipe
   inModal?: boolean
@@ -16,7 +18,7 @@ const emit = defineEmits<{ added: [] }>()
 
 const { t } = useI18n()
 const form = ref<{ date: string; meal_type: MealType; servings: number }>({
-  date: props.inModal ? toISODate(new Date()) : '',
+  date: toISODate(new Date()),
   meal_type: 'dinner',
   servings: props.recipe.servings,
 })

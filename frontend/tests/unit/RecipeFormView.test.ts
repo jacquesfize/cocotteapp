@@ -350,3 +350,57 @@ describe('RecipeFormView - imported recipe copyright', () => {
     expect((wrapper.find('select[id^="iuwc-license"]').element as HTMLSelectElement).value).toBe('cc_by')
   })
 })
+
+describe('RecipeFormView - field errors and save bar', () => {
+  it('shows the missing title next to the field, marks it invalid and focuses it', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/recipes/new', name: 'recipe-new', component: RecipeFormView },
+        { path: '/recipes/:id', name: 'recipe-detail', component: { template: '<div />' } },
+      ],
+    })
+    router.push('/recipes/new')
+    await router.isReady()
+    Element.prototype.scrollIntoView = vi.fn()
+    const wrapper = mount(RecipeFormView, { global: { plugins: [i18n, router] }, attachTo: document.body })
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    const title = wrapper.get('#title')
+    expect(title.attributes('aria-invalid')).toBe('true')
+    expect(title.attributes('aria-describedby')).toBe('title-error')
+    expect(wrapper.get('#title-error').text()).toBe('Indiquez un titre.')
+    expect(document.activeElement).toBe(title.element)
+    expect(createRecipe).not.toHaveBeenCalled()
+
+    // L'erreur disparaît dès que le champ est corrigé.
+    await title.setValue('Dal de lentilles')
+    expect(wrapper.find('#title-error').exists()).toBe(false)
+    expect(title.attributes('aria-invalid')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('has a single Save button, in the sticky action bar next to Cancel', async () => {
+    const wrapper = await mountRecipeForm()
+    const buttons = wrapper.findAll('.form-actions button')
+    expect(buttons.map((button) => button.text())).toEqual(['Annuler', 'Enregistrer'])
+    expect(wrapper.findAll('button[type="submit"]')).toHaveLength(1)
+  })
+
+  it('sends a step with an unknown @mention as typed', async () => {
+    importDraft()
+    vi.mocked(createRecipe).mockResolvedValue(recipe({ steps: [] }))
+    const wrapper = await mountRecipeForm()
+    await flushPromises()
+
+    await wrapper.findComponent({ name: 'CooklangStepInput' }).vm.$emit('update:modelValue', 'Cuire les @len 20 minutes')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(createRecipe).toHaveBeenCalledWith(
+      expect.objectContaining({ steps: [expect.objectContaining({ instruction: 'Cuire les @len 20 minutes' })] }),
+    )
+  })
+})

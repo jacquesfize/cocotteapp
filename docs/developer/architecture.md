@@ -373,6 +373,14 @@ sequenceDiagram
 - `meta.requiresStaff`: staff-only pages (`/admin/users`, `/admin/thematic-pages`,
   `/admin/ingredients`). This is a client-side hint only, to avoid flashing a page before
   redirecting: the API itself enforces staff-only access.
+- `meta.title`: i18n key (`pageTitle.*` in the locale files) of the browser tab title, applied as
+  "<page> · Cocotte" by an `afterEach` hook (`src/composables/usePageTitle.ts`, re-evaluated when
+  the language changes). A view can override it once its data is loaded with
+  `usePageTitle(() => recipe.value?.title)` (recipe page, blog post). Add a `meta.title` (and the
+  key to both `fr.json` and `en.json`) to every new route.
+
+Unknown URLs match the public catch-all route `/:pathMatch(.*)*` (`not-found`), which renders
+`NotFoundView.vue` with links back to the home page and the recipe list instead of redirecting.
 
 ### Offline and PWA
 

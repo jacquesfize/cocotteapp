@@ -20,6 +20,7 @@ import {
 import { createShoppingList } from '../../api/shopping'
 import { addDays, startOfWeek, toISODate } from '../../utils/dates'
 import { downloadBlob } from '../../utils/download'
+import { formatNumber } from '../../utils/format'
 import { NUTRIENT_LABEL_KEYS } from '../../utils/nutrition'
 import type { MealPlanEntryListParams } from '../../types/api'
 import type { MealPlanEntry, MealType, NutrientDeficiency, PlanningShareReceived } from '../../types/models'
@@ -45,6 +46,9 @@ const weekOffset = ref(0)
 const monthOffset = ref(0)
 const entries = ref<MealPlanEntry[]>([])
 const deficiencies = ref<NutrientDeficiency[]>([])
+// Agenda trop peu rempli sur la période : le serveur n'émet pas d'alertes (moyenne non
+// significative), on affiche à la place un message expliquant combien de jours planifier.
+const alertsSkipped = ref<{ planned: number; required: number } | null>(null)
 const carbonFootprint = ref<number | null>(null)
 const isLoading = ref(false)
 const sharedAgendas = ref<PlanningShareReceived[]>([])
@@ -168,6 +172,9 @@ async function load() {
     ])
     entries.value = entriesData
     deficiencies.value = summary.deficiencies
+    alertsSkipped.value = summary.alerts_skipped_insufficient_data
+      ? { planned: summary.planned_days, required: summary.min_planned_days_for_alerts }
+      : null
     carbonFootprint.value = summary.carbon_footprint_kg_co2e
   } finally {
     isLoading.value = false
@@ -464,17 +471,20 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
     </template>
 
     <BaseModal v-if="showNutrition" :title="$t('planning.nutritionIntake')" @close="showNutrition = false">
-      <div v-if="deficiencies.length" class="deficiency-banner">
+      <p v-if="alertsSkipped" class="muted alerts-skipped" data-testid="alerts-skipped">
+        {{ $t('nutrition.alertsSkippedInsufficientData', alertsSkipped) }}
+      </p>
+      <div v-else-if="deficiencies.length" class="deficiency-banner">
         <strong>{{ $t('nutrition.weeklyAlertTitle') }}</strong>
         <ul>
           <li v-for="d in deficiencies" :key="d.nutrient">
-            {{ $t(NUTRIENT_LABEL_KEYS[d.nutrient] || d.nutrient) }} : {{ d.amount.toFixed(1) }} /
-            {{ d.minimum.toFixed(1) }} {{ d.unit }}
+            {{ $t(NUTRIENT_LABEL_KEYS[d.nutrient] || d.nutrient) }} : {{ formatNumber(d.amount, 1, { fixed: true }) }} /
+            {{ formatNumber(d.minimum, 1, { fixed: true }) }} {{ d.unit }}
           </li>
         </ul>
       </div>
-      <p v-if="carbonFootprint !== null" class="muted carbon-summary">
-        {{ $t('nutrition.carbonWeekly') }} : <strong>{{ carbonFootprint.toFixed(1) }} kg CO2e</strong>
+      <p v-if="carbonFootprint" class="muted carbon-summary">
+        {{ $t('nutrition.carbonWeekly') }} : <strong>{{ formatNumber(carbonFootprint, 1) }} kg CO₂e</strong>
       </p>
     </BaseModal>
 
@@ -901,6 +911,10 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 
 .carbon-summary {
   margin: 1rem 0 0;
+}
+
+.alerts-skipped {
+  margin: 0;
 }
 
 /* Toast d'annulation */

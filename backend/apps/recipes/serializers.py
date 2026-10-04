@@ -214,6 +214,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     allergens_unverified = serializers.SerializerMethodField()
     content_restricted = serializers.SerializerMethodField()
     carbon_footprint_kg_co2e = serializers.SerializerMethodField()
+    carbon_footprint_per_serving_kg_co2e = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     ratings_count = serializers.SerializerMethodField()
     my_rating = serializers.SerializerMethodField()
@@ -253,6 +254,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "content_publicly_licensed",
             "content_restricted",
             "carbon_footprint_kg_co2e",
+            "carbon_footprint_per_serving_kg_co2e",
             "average_rating",
             "ratings_count",
             "my_rating",
@@ -287,8 +289,21 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None) if request else None
         return obj.is_content_restricted(user)
 
+    def _carbon_footprint(self, obj):
+        # Mis en cache sur l'instance : les deux champs carbone (total et par portion) ne
+        # déclenchent qu'un seul calcul (une requête) par recette sérialisée.
+        if not hasattr(obj, "_carbon_footprint_cache"):
+            obj._carbon_footprint_cache = compute_recipe_carbon_footprint(obj)
+        return obj._carbon_footprint_cache
+
     def get_carbon_footprint_kg_co2e(self, obj):
-        return float(compute_recipe_carbon_footprint(obj))
+        return float(self._carbon_footprint(obj))
+
+    def get_carbon_footprint_per_serving_kg_co2e(self, obj):
+        """Empreinte par portion (même formule que le filtre `carbon_level`) ; 0 sans portions."""
+        if not obj.servings:
+            return 0.0
+        return float(self._carbon_footprint(obj) / obj.servings)
 
     def get_average_rating(self, obj):
         average, _count = obj.rating_summary()

@@ -167,6 +167,98 @@ describe('CooklangStepInput', () => {
   })
 })
 
+describe('CooklangStepInput keyboard and pending mention', () => {
+  const lentils = ingredient({ id: 10, name: 'lentilles' })
+  const leeks = ingredient({ id: 11, name: 'lentilles corail' })
+
+  async function openSuggestions(text: string) {
+    vi.mocked(listIngredients).mockResolvedValue({ results: [lentils, leeks], count: 2, next: null, previous: null })
+    const wrapper = mountInput('', [])
+    await typeInto(wrapper, text)
+    await vi.advanceTimersByTimeAsync(300)
+    await wrapper.vm.$nextTick()
+    return wrapper
+  }
+
+  it('selects the highlighted suggestion with Enter instead of inserting a newline', async () => {
+    const wrapper = await openSuggestions('Cuire les @len')
+    const textarea = wrapper.get('textarea')
+    expect(textarea.attributes('aria-expanded')).toBe('true')
+
+    await textarea.trigger('keydown', { key: 'Enter' })
+
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Cuire les @lentilles ')
+    expect(wrapper.emitted('add-ingredient')?.[0]).toEqual([lentils])
+    expect(wrapper.find('.suggestions-dropdown').exists()).toBe(false)
+  })
+
+  it('moves the highlight with the arrow keys before selecting', async () => {
+    const wrapper = await openSuggestions('Cuire les @len')
+    const textarea = wrapper.get('textarea')
+
+    await textarea.trigger('keydown', { key: 'ArrowDown' })
+    const items = wrapper.findAll('.suggestions-dropdown li')
+    expect(items[1].attributes('aria-selected')).toBe('true')
+    expect(textarea.attributes('aria-activedescendant')).toBe(items[1].attributes('id'))
+
+    await textarea.trigger('keydown', { key: 'Enter' })
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Cuire les @lentilles_corail ')
+  })
+
+  it('closes the list with Escape and leaves the typed text untouched', async () => {
+    const wrapper = await openSuggestions('Cuire les @len')
+    const emittedBefore = wrapper.emitted('update:modelValue')?.length
+
+    await wrapper.get('textarea').trigger('keydown', { key: 'Escape' })
+
+    expect(wrapper.find('.suggestions-dropdown').exists()).toBe(false)
+    expect(wrapper.emitted('update:modelValue')?.length).toBe(emittedBefore)
+  })
+
+  it('lets Enter insert a newline when no suggestion list is open', async () => {
+    const wrapper = mountInput('', [])
+    await typeInto(wrapper, 'Cuire 20 minutes')
+    const event = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true })
+    wrapper.get('textarea').element.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('does not warn about a mention still being typed, only once it is finished', async () => {
+    const wrapper = mountInput('', [])
+    await typeInto(wrapper, 'Cuire les @len')
+    await vi.advanceTimersByTimeAsync(300)
+    expect(wrapper.find('.mention-warning').exists()).toBe(false)
+
+    await typeInto(wrapper, 'Cuire les @len 20 minutes')
+    expect(wrapper.get('.mention-warning').text()).toContain('len')
+  })
+
+  it('warns about an unfinished unknown mention once the field loses focus', async () => {
+    const wrapper = mountInput('', [])
+    await typeInto(wrapper, 'Cuire les @len')
+    expect(wrapper.find('.mention-warning').exists()).toBe(false)
+
+    await wrapper.get('textarea').trigger('blur')
+    await vi.advanceTimersByTimeAsync(200)
+
+    expect(wrapper.get('.mention-warning').text()).toContain('len')
+  })
+
+  it('keeps an unknown mention intact (no suggestion forced in) when the user carries on typing', async () => {
+    vi.mocked(listIngredients).mockResolvedValue({ results: [lentils], count: 1, next: null, previous: null })
+    const wrapper = mountInput('', [])
+    await typeInto(wrapper, 'Cuire les @len')
+    // La recherche lancée pour "@len" se résout après l'espace : elle ne doit pas rouvrir la liste.
+    await typeInto(wrapper, 'Cuire les @len ')
+    await vi.advanceTimersByTimeAsync(300)
+    await wrapper.get('textarea').trigger('keydown', { key: 'Enter' })
+
+    expect(wrapper.find('.suggestions-dropdown').exists()).toBe(false)
+    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toBe('Cuire les @len ')
+  })
+})
+
 describe('CooklangStepInput template buttons', () => {
   function mountAttached(modelValue: string) {
     const wrapper: ReturnType<typeof mount> = mount(CooklangStepInput, {

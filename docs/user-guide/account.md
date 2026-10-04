@@ -8,7 +8,7 @@ allergies, appearance, password, data exports, agenda sharing and account deleti
 
 Logging in and signing up share the same page, with two tabs: **Log in** and **Sign up**.
 
-1. Click the person icon at the top right of any page, or **Sign up** on the home page.
+1. Click the person icon at the top right of any page, or **Create an account** under the home page's featured recipe.
 2. Select the **Sign up** tab.
 3. Fill in the form:
 
@@ -147,6 +147,11 @@ consented at sign-up.
 - **Give my consent** appears instead once you have withdrawn it (or if you signed up before
   consent was recorded), and lets you consent again.
 
+Without consent, the **Diet**, **Activity level** and **Allergies and intolerances** fields of the
+**Profile** card are greyed out and locked, under the message *Diet, activity level and allergies
+are health data: they stay locked until you give your consent.* A **Give my consent** button right
+next to it unlocks them immediately. **Save** then only updates your username and email.
+
 The **Privacy policy** link, also in the footer of every page next to **Legal notice**, explains what
 is stored, for how long, and how to exercise your rights.
 
@@ -208,7 +213,8 @@ See [Meal planning](planning.md#shared-agendas).
 
 ### Danger zone: delete my account
 
-Click **Delete my account** and confirm. This **permanently** deletes your account, your
+Click **Delete my account**, then **Delete permanently** in the **Delete your account?** dialog
+(or **Cancel** to back out). This **permanently** deletes your account, your
 planner, your shopping lists and your blog posts, and by default your recipes. It cannot be undone.
 
 Tick **Keep my public recipes, published under the name "Utilisateur supprimé"** first if you want

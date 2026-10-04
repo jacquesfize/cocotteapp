@@ -69,8 +69,8 @@ async function handleDownloadPdf() {
       <div class="meta-chips">
         <span class="meta-chip"><Utensils :size="14" />{{ $t(`diet.${recipe.diet_type}`) }}</span>
         <span class="meta-chip"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</span>
-        <span class="meta-chip"><Clock :size="14" />{{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }}</span>
-        <span class="meta-chip"><Flame :size="14" />{{ $t('recipes.cook') }} {{ formatDuration(recipe.cook_time_minutes) }}</span>
+        <span v-if="recipe.prep_time_minutes" class="meta-chip"><Clock :size="14" />{{ $t('recipes.prep') }} {{ formatDuration(recipe.prep_time_minutes) }}</span>
+        <span v-if="recipe.cook_time_minutes" class="meta-chip"><Flame :size="14" />{{ $t('recipes.cook') }} {{ formatDuration(recipe.cook_time_minutes) }}</span>
       </div>
     </div>
 
@@ -290,20 +290,8 @@ async function handleDownloadPdf() {
   justify-content: center;
 }
 
-@media (max-width: 480px) {
-  .cook-mode-button {
-    width: 2.75rem;
-    height: 2.75rem;
-    min-height: auto;
-    padding: 0;
-    border-radius: 999px;
-    justify-content: center;
-  }
-
-  .cook-mode-label {
-    display: none;
-  }
-}
+/* Le libellé « Mode cuisine » reste visible sur mobile : une pastille orange sans texte
+   n'était pas identifiable (audit UX). */
 
 .media-row {
   display: flex;

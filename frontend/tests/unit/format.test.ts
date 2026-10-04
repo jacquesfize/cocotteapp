@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { formatDuration, formatQuantity } from '../../src/utils/format'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { i18n } from '../../src/i18n'
+import { formatDuration, formatNumber, formatQuantity } from '../../src/utils/format'
 
 describe('formatDuration', () => {
-  it('returns 0 min for falsy input', () => {
-    expect(formatDuration(0)).toBe('0 min')
+  it('returns a dash for missing (null/0) durations instead of "0 min"', () => {
+    expect(formatDuration(0)).toBe('—')
+    expect(formatDuration(null)).toBe('—')
+    expect(formatDuration(undefined)).toBe('—')
   })
 
   it('formats minutes under an hour', () => {
@@ -38,5 +41,35 @@ describe('formatQuantity', () => {
 
   it('returns an empty string for missing quantities', () => {
     expect(formatQuantity(null, 'g')).toBe('')
+  })
+})
+
+describe('formatNumber', () => {
+  let previous: string
+
+  beforeEach(() => {
+    previous = i18n.global.locale.value
+  })
+
+  afterEach(() => {
+    i18n.global.locale.value = previous as typeof i18n.global.locale.value
+  })
+
+  it('uses a decimal comma in French', () => {
+    i18n.global.locale.value = 'fr'
+    expect(formatNumber(1.25, 1)).toBe('1,3')
+    expect(formatNumber(9.2, 1, { fixed: true })).toBe('9,2')
+    expect(formatNumber(65, 1, { fixed: true })).toBe('65,0')
+  })
+
+  it('uses a decimal point in English', () => {
+    i18n.global.locale.value = 'en'
+    expect(formatNumber(1.25, 2)).toBe('1.25')
+    expect(formatNumber(2, 1)).toBe('2')
+  })
+
+  it('returns a dash for missing values', () => {
+    expect(formatNumber(null)).toBe('—')
+    expect(formatNumber(undefined)).toBe('—')
   })
 })

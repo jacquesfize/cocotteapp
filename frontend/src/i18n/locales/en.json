@@ -118,6 +118,7 @@
     "activeFiltersList": "Active filters",
     "removeFilterChip": "Remove filter: {label}",
     "resetFilters": "Reset",
+    "resetAllFilters": "Reset filters",
     "showResults": "Show results",
     "inSeasonOnly": "In-season ingredients only",
     "inSeason": "In season",
@@ -193,6 +194,7 @@
     "restrictedNotice": "This recipe comes from a third-party source and {copyright}: out of respect for those rights, {visibility}, unless they choose to make it public in compliance with the law or with the original recipe author's explicit permission.",
     "restrictedNoticeCopyright": "may be protected by copyright",
     "restrictedNoticeVisibility": "its description and steps are only visible to the user who imported it and admins",
+    "restrictedIconHint": "Description and steps are only visible to the person who imported this recipe (copyright)",
     "imageCredit": "image via {domain}",
     "carbonFootprint": "Carbon footprint",
     "otherVersions": "Other versions of this recipe",
@@ -240,6 +242,7 @@
     "note": "Note",
     "photoBy": "Photo: {author}",
     "notSpecified": "Credit not specified",
+    "infoLabel": "Photo credit: {credit}",
     "licenseRequired": "Choose a license for this image.",
     "fieldRequired": "This field is required for the chosen license.",
     "formInvalid": "Fix the image credit fields above before saving."
@@ -262,6 +265,7 @@
     "addTitle": "Leave a comment",
     "name": "Name",
     "namePlaceholder": "Your name",
+    "postingAs": "Posting as {name}",
     "comment": "Comment",
     "commentPlaceholder": "What did you think of this recipe...",
     "submit": "Post",
@@ -359,6 +363,8 @@
     "thematicPages": "Explore",
     "seeAll": "See all recipes",
     "quickActions": "Quick actions",
+    "signupPitch": "New to Cocotte? Plan your meals and generate your shopping lists.",
+    "signupCta": "Create an account",
     "thisWeek": "This week",
     "today": "Today",
     "tomorrow": "Tomorrow",
@@ -514,8 +520,9 @@
     "omega3": "Omega-3",
     "zinc": "Zinc",
     "weeklyAlertTitle": "Possibly insufficient intake this week",
+    "alertsSkippedInsufficientData": "No alerts yet: only {planned} day(s) in this period have a planned meal. Plan at least {required} days to get meaningful nutrition alerts.",
     "carbonPerServing": "Carbon footprint (per serving)",
-    "carbonPerKg": "Carbon footprint (kg CO2e / kg)",
+    "carbonPerKg": "Carbon footprint (kg CO₂e / kg)",
     "carbonWeekly": "This week's carbon footprint"
   },
   "random": {
@@ -535,7 +542,8 @@
     "copyToClipboard": "Copy",
     "copied": "Copied!",
     "checkOwned": "Check off the ingredients you already have.",
-    "progressCount": "{owned}/{total} bought"
+    "progressCount": "{owned}/{total} bought",
+    "goToPlanning": "Open the planner"
   },
   "account": {
     "title": "My account",
@@ -565,6 +573,9 @@
     "deleteAccountButton": "Delete my account",
     "deleteAccountConfirm": "Do you really want to permanently delete your account and all your data? This cannot be undone.",
     "deleteAccountError": "Could not delete the account.",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmButton": "Delete permanently",
+    "healthFieldsLocked": "Diet, activity level and allergies are health data: they stay locked until you give your consent.",
     "shareTitle": "Share my agenda",
     "shareDescription": "Give another person read-only or read/write access to your meal-planning agenda.",
     "shareEmailLabel": "Person's email",
@@ -604,6 +615,8 @@
     "notStaff": "Standard",
     "deleteUser": "Delete this user",
     "deleteUserConfirm": "Permanently delete the account \"{username}\" and all its data?",
+    "toggleActiveHint": "Click to activate or deactivate this account",
+    "toggleStaffHint": "Click to grant or revoke admin rights",
     "thisIsYou": "This is you — manage your own account from \"My account\"."
   },
   "adminThematicPages": {
@@ -844,5 +857,38 @@
     "emoji": "Emoji",
     "image": "Photo",
     "imageRemove": "Remove the photo"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "This page doesn't exist or has moved. Check the address, or start again from the home page.",
+    "home": "Back to home",
+    "recipes": "Browse recipes"
+  },
+  "pageTitle": {
+    "login": "Log in",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password",
+    "resetPassword": "New password",
+    "recipes": "Recipes",
+    "recipeNew": "New recipe",
+    "recipeRandom": "Random recipe",
+    "recipeDetail": "Recipe",
+    "recipeEdit": "Edit recipe",
+    "blog": "Blog",
+    "blogNew": "New post",
+    "blogDetail": "Post",
+    "blogEdit": "Edit post",
+    "planning": "Planner",
+    "shoppingLists": "Shopping lists",
+    "shoppingListDetail": "Shopping list",
+    "account": "My account",
+    "personalTags": "My tags",
+    "adminUsers": "Users",
+    "adminThematicPages": "Thematic pages",
+    "adminIngredients": "Ingredients",
+    "adminCookware": "Cookware",
+    "legal": "Legal notice",
+    "privacy": "Privacy",
+    "notFound": "Page not found"
   }
 }

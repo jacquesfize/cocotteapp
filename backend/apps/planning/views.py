@@ -20,6 +20,8 @@ from apps.nutrition.services import (
     compute_recipe_carbon_footprint,
     compute_recipe_nutrition,
     find_deficiencies,
+    has_enough_data_for_alerts,
+    min_planned_days_for_alerts,
 )
 
 from .filters import MealPlanEntryFilter
@@ -104,7 +106,9 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
 
         totals = {field: Decimal("0") for field in NUTRIENT_FIELDS}
         carbon_total = Decimal("0")
+        planned_dates = set()
         for entry in queryset.select_related("recipe"):
+            planned_dates.add(entry.date)
             recipe_totals = compute_recipe_nutrition(entry.recipe)
             ratio = Decimal(entry.servings) / Decimal(entry.recipe.servings or 1)
             for field in NUTRIENT_FIELDS:
@@ -116,7 +120,12 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
         carbon_daily_average = carbon_total / days
 
         deficiencies = []
-        if settings.NUTRITION_ALERTS_ENABLED:
+        # Agenda trop peu rempli : la moyenne journalière n'est pas significative, on n'émet
+        # aucune alerte et on l'indique au client pour qu'il explique pourquoi.
+        alerts_skipped_insufficient_data = settings.NUTRITION_ALERTS_ENABLED and not has_enough_data_for_alerts(
+            len(planned_dates), days
+        )
+        if settings.NUTRITION_ALERTS_ENABLED and not alerts_skipped_insufficient_data:
             agenda_owner, _permission = self._resolve_agenda()
             deficiencies = find_deficiencies(daily_average, agenda_owner.diet_type, agenda_owner.activity_level)
             for deficiency in deficiencies:
@@ -128,6 +137,9 @@ class MealPlanEntryViewSet(viewsets.ModelViewSet):
                 "totals": {k: float(v) for k, v in totals.items()},
                 "daily_average": {k: float(v) for k, v in daily_average.items()},
                 "deficiencies": deficiencies,
+                "alerts_skipped_insufficient_data": alerts_skipped_insufficient_data,
+                "planned_days": len(planned_dates),
+                "min_planned_days_for_alerts": min_planned_days_for_alerts(days),
                 "carbon_footprint_kg_co2e": float(carbon_total),
                 "carbon_footprint_daily_average_kg_co2e": float(carbon_daily_average),
             }

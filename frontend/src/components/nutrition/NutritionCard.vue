@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { getRecipeNutrition } from '../../api/recipes'
 import type { NutrientTotals } from '../../types/models'
+import { formatNumber } from '../../utils/format'
 
 const props = defineProps<{
   recipeId: string | number
@@ -28,44 +29,45 @@ onMounted(load)
     <p class="muted" style="margin: -0.5rem 0 0">{{ $t('nutrition.perServing') }}</p>
     <div class="nutrition-grid">
       <div>
-        <span class="value">{{ Math.round(nutrition.calories_kcal) }}</span>
+        <span class="value">{{ formatNumber(nutrition.calories_kcal, 0) }}</span>
         <span class="label">{{ $t('nutrition.calories') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.protein_g.toFixed(1) }} g</span>
+        <span class="value">{{ formatNumber(nutrition.protein_g, 1, { fixed: true }) }} g</span>
         <span class="label">{{ $t('nutrition.protein') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.carbs_g.toFixed(1) }} g</span>
+        <span class="value">{{ formatNumber(nutrition.carbs_g, 1, { fixed: true }) }} g</span>
         <span class="label">{{ $t('nutrition.carbs') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.fat_g.toFixed(1) }} g</span>
+        <span class="value">{{ formatNumber(nutrition.fat_g, 1, { fixed: true }) }} g</span>
         <span class="label">{{ $t('nutrition.fat') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.iron_mg.toFixed(1) }} mg</span>
+        <span class="value">{{ formatNumber(nutrition.iron_mg, 1, { fixed: true }) }} mg</span>
         <span class="label">{{ $t('nutrition.iron') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.vitamin_b12_ug.toFixed(1) }} µg</span>
+        <span class="value">{{ formatNumber(nutrition.vitamin_b12_ug, 1, { fixed: true }) }} µg</span>
         <span class="label">{{ $t('nutrition.b12') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.calcium_mg.toFixed(0) }} mg</span>
+        <span class="value">{{ formatNumber(nutrition.calcium_mg, 0, { fixed: true }) }} mg</span>
         <span class="label">{{ $t('nutrition.calcium') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.omega3_g.toFixed(1) }} g</span>
+        <span class="value">{{ formatNumber(nutrition.omega3_g, 1, { fixed: true }) }} g</span>
         <span class="label">{{ $t('nutrition.omega3') }}</span>
       </div>
       <div>
-        <span class="value">{{ nutrition.zinc_mg.toFixed(1) }} mg</span>
+        <span class="value">{{ formatNumber(nutrition.zinc_mg, 1, { fixed: true }) }} mg</span>
         <span class="label">{{ $t('nutrition.zinc') }}</span>
       </div>
     </div>
-    <p v-if="carbonPerServing !== null" class="carbon-footprint">
-      <span class="value">{{ carbonPerServing.toFixed(2) }} kg CO2e</span>
+    <!-- 0 = aucun ingrédient avec une donnée carbone : on masque plutôt qu'afficher "0 kg CO₂e". -->
+    <p v-if="carbonPerServing" class="carbon-footprint">
+      <span class="value">{{ formatNumber(carbonPerServing, 2) }} kg CO₂e</span>
       <span class="label">{{ $t('nutrition.carbonPerServing') }}</span>
     </p>
   </div>

@@ -18,6 +18,14 @@ before or after saving.
 3. Fill in the cards described below.
 4. Click **Save**. The recipe page opens.
 
+**Save** and **Cancel** sit in a bar that stays at the bottom of the screen while you scroll, so
+you don't need to reach the end of the form to save. **Cancel** leaves without saving (back to
+the recipe when editing, to the recipe list otherwise).
+
+If a field is missing or invalid, saving stops, the message appears in red under that field (for
+example *Enter a title.* under **Title**) and the page scrolls to the first field to fix. The
+message disappears as soon as the field is corrected.
+
 ![The New recipe form](../assets/screenshots/recipe-form.png)
 
 ### General information
@@ -121,6 +129,10 @@ matching ingredients from the whole library appears:
 - If nothing fits, **+ Create "…"** opens the [New ingredient](#create-a-missing-ingredient)
   form.
 
+You can pick from the keyboard: the arrow keys move the highlight, **Enter** (or **Tab**) inserts
+the highlighted ingredient, and **Escape** closes the list and keeps what you typed. When the list
+is closed, Enter adds a new line as usual.
+
 ![Typing @ in a step opens the ingredient suggestions](../assets/screenshots/recipe-form-mention.png)
 
 Rules of the syntax:
@@ -128,9 +140,11 @@ Rules of the syntax:
 - A mention ends at the first space. **Multi-word names use underscores** instead of spaces:
   `@huile_olive` refers to *huile olive*, and `@creme_fraiche` to *creme fraiche*. Cocotte
   inserts the underscores for you when you pick a suggestion.
-- The name must match the ingredient's name in the list (case doesn't matter). Otherwise a
+- The name must match the ingredient's name in the list (case doesn't matter). Otherwise, once
+  you've finished typing the mention (a space or punctuation after it, or you click elsewhere), a
   warning appears under the step: *"name" isn't in the ingredient list above.* The step still
-  saves, but the mention won't be a link.
+  saves with the mention exactly as typed (for example `@len`), and the recipe page shows it as
+  plain text, `@` included, instead of a link.
 - You can add a quantity in braces, as in Cooklang: `@huile_olive{2%tbsp}`. In manual entry the
   braces are accepted and hidden on the recipe page, but **quantities come from the Ingredients
   card**, not from the step.

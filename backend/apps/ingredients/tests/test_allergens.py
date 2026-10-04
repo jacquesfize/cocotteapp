@@ -1,5 +1,6 @@
 import pytest
 from django.core.management import call_command
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.accounts.factories import UserFactory
@@ -85,7 +86,7 @@ def test_exclude_allergens_filter_keeps_unverified_recipes():
 @pytest.mark.django_db
 def test_user_allergies_and_intolerances_roundtrip():
     call_command("seed_allergens")
-    user = UserFactory()
+    user = UserFactory(health_data_consent_at=timezone.now())
     client = APIClient()
     client.force_authenticate(user)
 
@@ -107,10 +108,11 @@ def test_user_allergies_and_intolerances_roundtrip():
 def test_allergen_cannot_be_both_allergy_and_intolerance():
     call_command("seed_allergens")
     client = APIClient()
-    client.force_authenticate(UserFactory())
+    client.force_authenticate(UserFactory(health_data_consent_at=timezone.now()))
 
     response = client.patch(
         "/api/auth/me/", {"allergies": ["gluten"], "intolerances": ["gluten"]}, format="json"
     )
 
     assert response.status_code == 400
+    assert "intolerances" in response.data

@@ -13,8 +13,9 @@ Click **Home** (or the Cocotte logo) to open the home page.
 From top to bottom:
 
 **Quick actions**
-:   Visitors get a **Sign up** button at the top of the hero card. Logged-in users instead get a
-    **New recipe** button, positioned just above the **Latest shopping list** card (to the left of
+:   Visitors see *New to Cocotte? Plan your meals and generate your shopping lists.* with a
+    **Create an account** link right under the hero's **View recipe** / **Plan for later** buttons.
+    Logged-in users instead get a **New recipe** button, positioned just above the **Latest shopping list** card (to the left of
     **This week**, see below) rather than in the hero. It opens a small menu with two choices:
     **Create manually** (the blank recipe form) or **Import from a URL** (see
     [Creating recipes](creating-recipes.md#import-a-recipe-from-a-url)). The recipe list itself is
@@ -26,7 +27,8 @@ From top to bottom:
     auto-advances every few seconds; the dots below it jump straight to one and pause the
     auto-advance while you're looking. **View recipe** opens it; **Plan for later** opens a dialog
     right on the home page where you pick the date (today by default), the meal and the number of
-    servings, then **Add** puts that recipe in your planner without leaving the page.
+    servings, then **Add** puts that recipe in your planner without leaving the page. The
+    picture's credit sits in its top-right corner.
 
 **This week** *(logged-in users only)*
 :   A separate **Latest shopping list** card opens your most recent shopping list and shows its
@@ -41,19 +43,20 @@ From top to bottom:
     minimums (opens the planner).
 
 **Explore** and **In season now**
-:   Two matching cards side by side (stacked on narrow screens). **Explore** holds thematic
+:   Two cards side by side (stacked on narrow screens), each as tall as its content. **Explore** holds thematic
     shortcuts chosen by the administrators, for example *Produits de saison*, *Spécial végan* or
     *Prêt en 30 minutes* — each one opens the recipe list with filters already applied (see
     [Thematic pages](../admin-guide/thematic-pages.md)). **In season now** shows up to four
     recipes made only of ingredients that are in season this month. The **+** button opens the
-    full list with the in-season filter on.
+    full list with the in-season filter on. A small camera button in the top-right corner of
+    each picture shows its credit (hover, focus or tap it).
 
 **Latest blog posts**
 :   The three most recent [blog posts](blog.md), with their cover image, title, author, date and first
     lines. Click one to read it; the **+** button opens the blog. The card is hidden while the
     blog has no post.
 
-![The home page for a visitor, with the Sign up button](../assets/screenshots/home-public.png)
+![The home page for a visitor, with the Create an account link](../assets/screenshots/home-public.png)
 
 ## The recipe list
 
@@ -63,13 +66,18 @@ shown two per row, with the filters in a column on the left.
 ![The recipe list](../assets/screenshots/recipe-list.png)
 
 Each row shows the recipe's picture, title, diet, total time (hover it to see prep and cook
-time separately), servings, a leaf badge with its carbon footprint, and up to three tags. It can
+time separately), servings, a leaf badge with its carbon footprint per serving, and up to three tags. The time
+and the leaf badge are left out when the recipe has no time or no carbon data (common for
+imported recipes) rather than showing *0 min* or *0 kg CO₂e*. It can
 also show:
 
 - the variant name (for example *Gluten-free*), if the recipe is a [variant](#versions-and-variants),
 - your own [tags](personal-tags.md), as colored pills (only you see them),
 - *imported by …* for recipes imported from a website, or *by …* for other people's recipes,
-- a padlock next to the title when the recipe's [content is restricted](#recipes-with-restricted-content),
+- a padlock next to the title when the recipe's [content is restricted](#recipes-with-restricted-content)
+  (hover it for a reminder of why),
+- a small camera button in the corner of the picture: hover, focus or tap it to see the picture's
+  full credit (see [The recipe page](#summary)),
 - badges for **your** allergens, if the recipe contains any.
 
 On your own recipes, a pencil button (**Edit**) and a bin button (**Delete**) appear on the
@@ -100,7 +108,9 @@ ingredient or allergen) — click a pill's **×** to clear that filter without o
 | **Carbon impact per serving** | A slider with four positions: **Any**, then **Low (≤ 0.5 kg CO₂e)** (green), **Medium (0.5 to 1.5 kg CO₂e)** (orange) and **High (> 1.5 kg CO₂e)** (red) — the same colours as the leaf badge on each recipe. See [Nutrition & carbon](nutrition-and-carbon.md#carbon-levels). |
 | **Exclude allergens** | Hides recipes containing any of the chosen allergens. Pick them in **Pick allergens…**; each one becomes a pill you can remove. When your profile has allergies or intolerances, they're **selected by default**, and **Add my allergies and intolerances** puts back any you removed. See [Allergies and intolerances](account.md#allergies-and-intolerances). |
 
-The list updates as you change the filters. **Reset** clears every filter.
+The list updates as you change the filters. **Reset** clears every filter (it's greyed out while
+no filter is set). When no recipe matches, the list shows *No recipe matches these criteria.*
+with a **Reset filters** button below it that does the same.
 
 > [!TIP]
 > In a recipe page, clicking an ingredient name opens the recipe list filtered on that
@@ -273,7 +283,7 @@ see them). See [My tags](personal-tags.md).
 
 Logged-in users see an **Add to planner** card below the recipe:
 
-1. Pick a **Date**.
+1. Pick a **Date**. It starts at today.
 2. Choose the **Meal**: **Breakfast**, **Lunch**, **Dinner** (default) or **Snack**.
 3. Set the number of **Servings**. It starts at the recipe's servings.
 4. Click **Add**.
@@ -335,7 +345,8 @@ See [Creating recipes](creating-recipes.md#publicly-licensed-content).
 
 For other people, a restricted recipe:
 
-- shows a padlock in the recipe list,
+- shows a padlock in the recipe list (its tooltip reads *Description and steps are only visible
+  to the person who imported this recipe (copyright)*),
 - can't be downloaded as PDF or used for a variant,
 - can still be added to the planner and to shopping lists.
 
@@ -355,8 +366,8 @@ At the bottom of every recipe, the **Comments** card shows the comments, newest 
 
 To post a comment, under **Leave a comment**:
 
-1. Enter your **Name**. Visitors must enter one. If you're logged in and leave it empty, your
-   username is used.
+1. If you're a visitor, enter your **Name**. If you're logged in there is no name field: the
+   form shows *Posting as* followed by your username, which is used for the comment.
 2. Type your **Comment** (up to 2,000 characters).
 3. Click **Post**.
 

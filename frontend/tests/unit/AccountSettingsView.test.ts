@@ -134,6 +134,7 @@ describe('AccountSettingsView allergens', () => {
       email: 'me@example.com',
       allergies: ['gluten'],
       intolerances: [],
+      health_data_consent_at: '2026-01-02T10:00:00Z',
     } as unknown as User
     vi.mocked(listPlanningShares).mockResolvedValue([])
 
@@ -214,7 +215,106 @@ describe('AccountSettingsView health data consent', () => {
   })
 })
 
+describe('AccountSettingsView profile loading', () => {
+  it('fills the form once the user arrives after a page reload', async () => {
+    const authStore = useAuthStore()
+    authStore.user = null
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    expect((wrapper.find('#account-username').element as HTMLInputElement).value).toBe('')
+
+    authStore.user = {
+      id: 1,
+      username: 'me',
+      email: 'me@example.com',
+      diet_type: 'vegan',
+      health_data_consent_at: '2026-01-02T10:00:00Z',
+    } as unknown as User
+    await flushPromises()
+
+    expect((wrapper.find('#account-username').element as HTMLInputElement).value).toBe('me')
+    expect((wrapper.find('#account-email').element as HTMLInputElement).value).toBe('me@example.com')
+    expect((wrapper.find('#account-diet').element as HTMLSelectElement).value).toBe('vegan')
+  })
+
+  it('does not overwrite what the user already typed', async () => {
+    const authStore = useAuthStore()
+    authStore.user = null
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    await wrapper.find('#account-username').setValue('typed')
+
+    authStore.user = { id: 1, username: 'me', email: 'me@example.com' } as unknown as User
+    await flushPromises()
+
+    expect((wrapper.find('#account-username').element as HTMLInputElement).value).toBe('typed')
+  })
+})
+
+describe('AccountSettingsView health fields without consent', () => {
+  it('locks diet, activity and allergens and does not send them', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 1, username: 'me', email: 'me@example.com', health_data_consent_at: null } as unknown as User
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+    const updateProfile = vi.spyOn(authStore, 'updateProfile').mockResolvedValue()
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+
+    expect(wrapper.find('[data-testid="health-locked"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="health-fields"]').attributes('disabled')).toBeDefined()
+
+    const form = wrapper.findAll('form').find((f) => f.find('#account-username').exists())
+    await form?.trigger('submit.prevent')
+    await flushPromises()
+
+    expect(updateProfile).toHaveBeenCalledWith({ username: 'me', email: 'me@example.com' })
+  })
+
+  it('gives consent from the profile card', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 1, username: 'me', email: 'me@example.com', health_data_consent_at: null } as unknown as User
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+    vi.mocked(setHealthDataConsent).mockResolvedValue({
+      id: 1,
+      username: 'me',
+      email: 'me@example.com',
+      health_data_consent_at: '2026-02-01T00:00:00Z',
+    } as unknown as User)
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    await wrapper.find('[data-testid="health-locked"] button').trigger('click')
+    await flushPromises()
+
+    expect(setHealthDataConsent).toHaveBeenCalledWith(true)
+    expect(wrapper.find('[data-testid="health-locked"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="health-fields"]').attributes('disabled')).toBeUndefined()
+  })
+})
+
 describe('AccountSettingsView account deletion', () => {
+  it('asks for confirmation in a dialog and can be cancelled', async () => {
+    const authStore = useAuthStore()
+    authStore.user = { id: 1, username: 'me', email: 'me@example.com' } as unknown as User
+    vi.mocked(listPlanningShares).mockResolvedValue([])
+
+    const wrapper = await mountAccountSettings()
+    await flushPromises()
+    await wrapper.find('[data-testid="delete-account"]').trigger('click')
+
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(window.confirm).not.toHaveBeenCalled()
+    await wrapper.find('[role="dialog"] button.secondary:not(.base-modal-close)').trigger('click')
+
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(deleteMe).not.toHaveBeenCalled()
+  })
+
   it.each([
     [false, false],
     [true, true],
@@ -227,7 +327,8 @@ describe('AccountSettingsView account deletion', () => {
     const wrapper = await mountAccountSettings()
     await flushPromises()
     if (checked) await wrapper.find('[data-testid="keep-recipes"]').setValue(true)
-    await wrapper.find('button.danger').trigger('click')
+    await wrapper.find('[data-testid="delete-account"]').trigger('click')
+    await wrapper.find('[data-testid="delete-account-confirm"]').trigger('click')
     await flushPromises()
 
     expect(deleteMe).toHaveBeenCalledWith(expected)

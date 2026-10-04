@@ -63,6 +63,17 @@ beforeEach(() => {
 })
 
 describe('ShoppingListsView', () => {
+  it('links the empty state to the planner, where lists are generated', async () => {
+    vi.mocked(listShoppingLists).mockResolvedValue({ results: [], count: 0, next: null, previous: null })
+
+    const wrapper = await mountView()
+
+    const empty = wrapper.find('[data-testid="shopping-empty"]')
+    expect(empty.exists()).toBe(true)
+    expect(empty.text()).toContain("Ouvrir l'agenda")
+    expect(empty.find('a').attributes('data-to')).toContain('"planning"')
+  })
+
   it('shows a progress summary per list based on its items', async () => {
     vi.mocked(listShoppingLists).mockResolvedValue({
       count: 1,

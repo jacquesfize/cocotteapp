@@ -57,8 +57,35 @@ const exactMatch = computed(() =>
   dbSuggestions.value.some((i) => i.name.toLowerCase() === mentionQueryDisplay.value.toLowerCase()),
 )
 
-const orphanMentions = computed(() => findOrphanMentions(props.modelValue, props.ingredientNames))
-const orphanCookware = computed(() => findOrphanCookwareMentions(props.modelValue, props.cookwareNames ?? []))
+// Position (du "@" ou du "#") de la mention en cours de saisie, curseur encore dessus : on ne
+// l'avertit pas comme inconnue tant que l'utilisateur n'a pas fini de la taper (ex. "@len" en
+// route vers "@lentilles"). Remise à null dès que le curseur quitte le mot (espace, ponctuation,
+// clic ailleurs), à la sélection d'une suggestion ou à la perte du focus.
+const pendingMentionStart = ref<number | null>(null)
+
+const orphanMentions = computed(() =>
+  findOrphanMentions(props.modelValue, props.ingredientNames).filter(
+    (mention) => mention.start !== pendingMentionStart.value,
+  ),
+)
+const orphanCookware = computed(() =>
+  findOrphanCookwareMentions(props.modelValue, props.cookwareNames ?? []).filter(
+    (mention) => mention.start !== pendingMentionStart.value,
+  ),
+)
+
+// Navigation clavier dans la liste : les suggestions puis, le cas échéant, l'option "Créer…".
+const listboxId = computed(() => `${props.id ?? 'cooklang-step'}-suggestions`)
+const activeIndex = ref(0)
+const showCreateOption = computed(() => !exactMatch.value && Boolean(mentionQueryDisplay.value.trim()))
+const optionCount = computed(() => dbSuggestions.value.length + (showCreateOption.value ? 1 : 0))
+const activeOptionId = computed(() =>
+  isOpen.value && optionCount.value ? `${listboxId.value}-${activeIndex.value}` : undefined,
+)
+
+watch([isOpen, dbSuggestions], () => {
+  activeIndex.value = 0
+})
 
 watch([mentionQuery, mentionKind], ([value]) => {
   if (!value) {
@@ -82,6 +109,18 @@ function detectMention(text: string, cursor: number) {
   return { start: at, query: between, kind }
 }
 
+// Ferme la liste et oublie la mention en cours : annule aussi une recherche encore en attente,
+// qui sinon pourrait se résoudre après coup et rouvrir la liste (via `onResults`) alors que
+// l'utilisateur a déjà tapé un espace et continue sa phrase.
+function closeSuggestions() {
+  cancel()
+  isOpen.value = false
+  pendingMentionStart.value = null
+  // Sans cette remise à zéro, retaper la même mention plus loin ne relancerait pas la recherche
+  // (le `watch` sur `mentionQuery` ne se déclencherait pas, la valeur n'ayant pas changé).
+  mentionQuery.value = ''
+}
+
 function handleInput(event: Event) {
   const target = event.target as HTMLTextAreaElement
   emit('update:modelValue', target.value)
@@ -91,8 +130,65 @@ function handleInput(event: Event) {
     mentionStart.value = mention.start
     mentionKind.value = mention.kind
     mentionQuery.value = mention.query
+    pendingMentionStart.value = mention.start
   } else {
-    isOpen.value = false
+    closeSuggestions()
+  }
+}
+
+// Le curseur a bougé sans frappe (clic, flèches gauche/droite...) : s'il a quitté la mention en
+// cours, elle est considérée comme terminée (et avertie si inconnue).
+function syncCaret() {
+  const el = textareaEl.value
+  if (!el || pendingMentionStart.value === null) return
+  const mention = detectMention(el.value, el.selectionStart)
+  if (!mention || mention.start !== pendingMentionStart.value) closeSuggestions()
+}
+
+function selectActiveOption() {
+  const index = activeIndex.value
+  if (index < dbSuggestions.value.length) selectSuggestion(dbSuggestions.value[index])
+  else openCreateModal()
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.isComposing) return
+  if (!isOpen.value || !optionCount.value) {
+    if (event.key === 'Escape' && isOpen.value) closeSuggestions()
+    return
+  }
+  switch (event.key) {
+    case 'ArrowDown':
+      event.preventDefault()
+      activeIndex.value = (activeIndex.value + 1) % optionCount.value
+      break
+    case 'ArrowUp':
+      event.preventDefault()
+      activeIndex.value = (activeIndex.value - 1 + optionCount.value) % optionCount.value
+      break
+    case 'Enter':
+      // Shift+Entrée garde un retour à la ligne.
+      if (event.shiftKey) return
+      event.preventDefault()
+      selectActiveOption()
+      break
+    case 'Tab':
+      // Tab complète avec une suggestion, mais n'ouvre jamais la création d'ingrédient (ni ne
+      // retient le focus) : sinon, la liste ferme et la navigation clavier reprend normalement.
+      if (!event.shiftKey && activeIndex.value < dbSuggestions.value.length) {
+        event.preventDefault()
+        selectActiveOption()
+      } else {
+        closeSuggestions()
+      }
+      break
+    case 'Escape':
+      // Ne ferme que la liste (pas une éventuelle modale parente) ; la mention tapée reste telle
+      // quelle et sera avertie si elle ne correspond à aucun ingrédient de la recette.
+      event.preventDefault()
+      event.stopPropagation()
+      closeSuggestions()
+      break
   }
 }
 
@@ -110,8 +206,7 @@ function insertToken(name: string) {
   // Annule une recherche en cours (lancée par la frappe précédente, pas encore résolue) : sinon
   // elle peut se résoudre après la sélection et rouvrir le menu via `onResults`, reproduisant le
   // même bug que la réouverture pilotée par un `watch` sur une resélection programmatique.
-  cancel()
-  isOpen.value = false
+  closeSuggestions()
 
   const caret = start + token.length
   nextTick(() => {
@@ -174,6 +269,7 @@ async function insertMentionTemplate(kind: MentionKind = 'ingredient') {
   mentionStart.value = at
   mentionKind.value = kind
   mentionQuery.value = ''
+  pendingMentionStart.value = at
   await nextTick()
   cancel()
   dbSuggestions.value =
@@ -192,9 +288,16 @@ function insertTimerTemplate() {
 
 function closeSoon() {
   setTimeout(() => {
-    cancel()
-    isOpen.value = false
+    // La modale de création d'ingrédient prend le focus : la mention reste « en cours » jusqu'à
+    // l'insertion du nom créé (ou la fermeture de la modale).
+    if (showCreateModal.value) return
+    closeSuggestions()
   }, 150)
+}
+
+function closeCreateModal() {
+  showCreateModal.value = false
+  pendingMentionStart.value = null
 }
 </script>
 
@@ -207,7 +310,14 @@ function closeSoon() {
         :value="modelValue"
         rows="2"
         :placeholder="t('recipes.stepPlaceholder')"
+        aria-autocomplete="list"
+        :aria-expanded="isOpen"
+        :aria-controls="isOpen ? listboxId : undefined"
+        :aria-activedescendant="activeOptionId"
         @input="handleInput"
+        @keydown="handleKeydown"
+        @keyup="syncCaret"
+        @click="syncCaret"
         @blur="closeSoon"
       />
       <div class="templates">
@@ -240,15 +350,29 @@ function closeSoon() {
         </button>
       </div>
     </div>
-    <ul v-if="isOpen" class="suggestions-dropdown">
+    <ul v-if="isOpen" :id="listboxId" class="suggestions-dropdown" role="listbox">
       <li
-        v-for="item in dbSuggestions"
+        v-for="(item, index) in dbSuggestions"
+        :id="`${listboxId}-${index}`"
         :key="item.id"
+        role="option"
+        :aria-selected="index === activeIndex"
+        :class="{ active: index === activeIndex }"
         @mousedown.prevent="selectSuggestion(item)"
+        @mouseenter="activeIndex = index"
       >
         {{ item.name }}
       </li>
-      <li v-if="!exactMatch && mentionQueryDisplay.trim()" class="create" @mousedown.prevent="openCreateModal">
+      <li
+        v-if="showCreateOption"
+        :id="`${listboxId}-${dbSuggestions.length}`"
+        role="option"
+        :aria-selected="activeIndex === dbSuggestions.length"
+        class="create"
+        :class="{ active: activeIndex === dbSuggestions.length }"
+        @mousedown.prevent="openCreateModal"
+        @mouseenter="activeIndex = dbSuggestions.length"
+      >
         {{ t('ingredientPicker.create', { name: mentionQueryDisplay }) }}
       </li>
     </ul>
@@ -266,7 +390,7 @@ function closeSoon() {
       v-if="showCreateModal"
       :initial-name="mentionQueryDisplay"
       @created="handleIngredientCreated"
-      @close="showCreateModal = false"
+      @close="closeCreateModal"
     />
   </div>
 </template>

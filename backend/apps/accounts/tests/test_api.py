@@ -71,6 +71,35 @@ def test_can_update_username_and_email():
 
 
 @pytest.mark.django_db
+def test_health_fields_require_consent():
+    user = UserFactory(diet_type="omnivore", health_data_consent_at=None)
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch("/api/auth/me/", {"diet_type": "vegan"}, format="json")
+
+    assert response.status_code == 400
+    assert "health_data_consent" in response.data
+    user.refresh_from_db()
+    assert user.diet_type == "omnivore"
+
+
+@pytest.mark.django_db
+def test_health_fields_can_be_updated_with_consent():
+    from django.utils import timezone
+
+    user = UserFactory(diet_type="omnivore", health_data_consent_at=timezone.now())
+    client = APIClient()
+    client.force_authenticate(user)
+
+    response = client.patch("/api/auth/me/", {"diet_type": "vegan"}, format="json")
+
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.diet_type == "vegan"
+
+
+@pytest.mark.django_db
 def test_cannot_update_username_to_an_existing_one():
     UserFactory(username="taken")
     user = UserFactory(username="mine")

@@ -53,3 +53,30 @@ def test_carbon_filter_combines(recipes):
 
 def test_invalid_carbon_level_rejected(recipes):
     assert APIClient().get("/api/recipes/", {"carbon_level": "x"}).status_code == 400
+
+
+def test_list_exposes_carbon_per_serving_matching_filter_levels(recipes):
+    """La carte recette affiche l'empreinte par portion : elle doit coïncider avec les paliers du filtre."""
+    response = APIClient().get("/api/recipes/")
+    by_title = {r["title"]: r for r in response.json()["results"]}
+
+    assert by_title["Faible"]["carbon_footprint_kg_co2e"] == pytest.approx(0.4)
+    assert by_title["Faible"]["carbon_footprint_per_serving_kg_co2e"] == pytest.approx(0.2)
+    assert by_title["Moyen"]["carbon_footprint_per_serving_kg_co2e"] == pytest.approx(1.0)
+    assert by_title["Eleve"]["carbon_footprint_per_serving_kg_co2e"] == pytest.approx(3.0)
+    assert by_title["Vide"]["carbon_footprint_per_serving_kg_co2e"] == 0
+
+
+def test_detail_carbon_per_serving_uses_unit_conversion(db):
+    recipe = make_recipe("Kg", 2, 1, servings=4, unit="kg")
+    data = APIClient().get(f"/api/recipes/{recipe.id}/").json()
+    assert data["carbon_footprint_kg_co2e"] == pytest.approx(2.0)
+    assert data["carbon_footprint_per_serving_kg_co2e"] == pytest.approx(0.5)
+
+
+def test_carbon_per_serving_is_zero_without_servings(db):
+    from apps.recipes.serializers import RecipeSerializer
+
+    recipe = make_recipe("Sans portions", 10, 100)
+    recipe.servings = 0
+    assert RecipeSerializer(recipe).data["carbon_footprint_per_serving_kg_co2e"] == 0

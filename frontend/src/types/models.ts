@@ -254,7 +254,9 @@ export interface Recipe {
   is_public: boolean
   content_publicly_licensed: boolean
   content_restricted: boolean
+  // Empreinte carbone totale de la recette et par portion (kg CO₂e) ; 0 = aucune donnée carbone.
   carbon_footprint_kg_co2e: number
+  carbon_footprint_per_serving_kg_co2e: number
   average_rating: number | null
   ratings_count: number
   my_rating: number | null
@@ -397,6 +399,11 @@ export interface NutritionSummary {
   totals: NutrientTotals
   daily_average: NutrientTotals
   deficiencies: NutrientDeficiency[]
+  // Vrai quand trop peu de jours sont planifiés sur la période pour que les alertes aient un
+  // sens (deficiencies est alors vide) : planned_days < min_planned_days_for_alerts.
+  alerts_skipped_insufficient_data: boolean
+  planned_days: number
+  min_planned_days_for_alerts: number
   carbon_footprint_kg_co2e: number
   carbon_footprint_daily_average_kg_co2e: number
 }

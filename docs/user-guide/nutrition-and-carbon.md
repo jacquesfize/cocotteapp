@@ -73,10 +73,16 @@ equivalent, which includes other greenhouse gases).
 
 Where you see it:
 
-- the recipe page: **Carbon footprint (per serving)** in the **Nutrition facts** card,
-- the recipe list: a leaf badge on each recipe,
+- the recipe page: **Carbon footprint (per serving)** in the **Nutrition facts** card (or below
+  the ingredients of an imported recipe whose steps you can't see),
+- the recipe list: a leaf badge on each recipe showing its footprint **per serving** (for example
+  *0.42 kg CO₂e / serving*),
 - the planner: **This week's carbon footprint** in **Nutritional intake**. It's the total of the
   displayed period, with each meal scaled to its planned servings.
+
+When none of a recipe's ingredients has a carbon value (often the case for a freshly imported
+recipe), the footprint is hidden rather than shown as *0 kg CO₂e*. Values follow the interface
+language's number format (*0,42* in French, *0.42* in English).
 
 ### Carbon levels
 
@@ -107,13 +113,19 @@ strip) warns you when your planned meals may not cover some nutrients.
 
 ### How it works
 
-1. Cocotte adds up the nutrients of every meal in the displayed period, each scaled by
+1. Cocotte first checks that the period is planned enough to be meaningful: at least **half of
+   its days** must have at least one meal (**4 days** for a week, 1 for a single day, 16 for a
+   31-day month; several meals on the same day count once). Otherwise no alert is computed and
+   the dialog says so instead, for example: *No alerts yet: only 1 day(s) in this period have a
+   planned meal. Plan at least 4 days to get meaningful nutrition alerts.* The home page badge
+   doesn't appear either.
+2. Cocotte adds up the nutrients of every meal in the displayed period, each scaled by
    *planned servings ÷ recipe servings*.
-2. It divides the total by the **number of days in the period**: 7 for a week, or the number of
+3. It divides the total by the **number of days in the period**: 7 for a week, or the number of
    days of the month in month view. Days with nothing planned still count.
-3. It compares this **daily average** with the daily minimums for your **diet** and **activity
+4. It compares this **daily average** with the daily minimums for your **diet** and **activity
    level** (set in [Your account](account.md#profile)).
-4. Each nutrient below its minimum is listed as *average / minimum*.
+5. Each nutrient below its minimum is listed as *average / minimum*.
 
 ### The daily minimums
 
@@ -143,7 +155,9 @@ command. If you see no alerts at all, ask your administrator to check that it wa
 ### Reading the alerts sensibly
 
 - The summary only knows what is **in the planner**. Unplanned breakfasts, snacks and drinks
-  aren't counted, so a partly planned week will almost always show alerts.
+  aren't counted, so a partly planned week will almost always show alerts. That's why nothing
+  is flagged until at least half of the days have a meal (see step 1 above): an almost empty
+  week would otherwise flag nearly every nutrient.
 - Iron, B12, calcium, omega-3 and zinc are only as good as the ingredient data. Ingredients
   created with **Suggest values** have **no** micronutrients unless someone typed them in.
 - For a shared agenda, the thresholds of the agenda's **owner** are used.

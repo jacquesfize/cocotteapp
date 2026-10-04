@@ -89,6 +89,9 @@ list, click **Back to my lists** to return to this page.
 
 When you have more than 20 lists, use the arrows at the bottom to move between pages.
 
+While you have no list yet, the page says *No list yet. Generate one from the planner.* with an
+**Open the planner** button that takes you straight there.
+
 ## Delete a list
 
 On the **Shopping lists** page, click the bin button (**Delete**) next to a list.

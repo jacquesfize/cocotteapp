@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { setRouteTitle } from '../composables/usePageTitle'
 import { useAuthStore } from '../stores/auth'
 
 declare module 'vue-router' {
@@ -7,6 +8,8 @@ declare module 'vue-router' {
     requiresStaff?: boolean
     // Rendered alone (no navbar/footer), to be displayed inside an <iframe>.
     embed?: boolean
+    // Clé i18n du titre de l'onglet (« <page> · Cocotte ») ; absente = « Cocotte » seul.
+    title?: string
   }
 }
 
@@ -22,154 +25,169 @@ const routes: RouteRecordRaw[] = [
     name: 'login',
     component: () => import('../views/auth/AuthView.vue'),
     props: { mode: 'login' },
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.login' },
   },
   {
     path: '/register',
     name: 'register',
     component: () => import('../views/auth/AuthView.vue'),
     props: { mode: 'register' },
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.register' },
   },
   {
     path: '/forgot-password',
     name: 'forgot-password',
     component: () => import('../views/auth/ForgotPasswordView.vue'),
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.forgotPassword' },
   },
   {
     path: '/reset-password/:uid/:token',
     name: 'reset-password',
     component: () => import('../views/auth/ResetPasswordView.vue'),
     props: true,
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.resetPassword' },
   },
   {
     path: '/recipes',
     name: 'recipes',
     component: () => import('../views/recipes/RecipeListView.vue'),
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.recipes' },
   },
   {
     path: '/recipes/new',
     name: 'recipe-new',
     component: () => import('../views/recipes/RecipeFormView.vue'),
+    meta: { title: 'pageTitle.recipeNew' },
   },
   {
     path: '/recipes/random',
     name: 'recipe-random',
     component: () => import('../views/recipes/RandomRecipeView.vue'),
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.recipeRandom' },
   },
   {
     path: '/recipes/:id',
     name: 'recipe-detail',
     component: () => import('../views/recipes/RecipeDetailView.vue'),
     props: true,
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.recipeDetail' },
   },
   {
     path: '/recipes/:id/edit',
     name: 'recipe-edit',
     component: () => import('../views/recipes/RecipeFormView.vue'),
     props: true,
+    meta: { title: 'pageTitle.recipeEdit' },
   },
   {
     path: '/blog',
     name: 'blog',
     component: () => import('../views/blog/BlogListView.vue'),
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.blog' },
   },
   {
     path: '/blog/new',
     name: 'blog-new',
     component: () => import('../views/blog/BlogPostFormView.vue'),
+    meta: { title: 'pageTitle.blogNew' },
   },
   {
     path: '/blog/:id',
     name: 'blog-detail',
     component: () => import('../views/blog/BlogPostDetailView.vue'),
     props: true,
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.blogDetail' },
   },
   {
     path: '/blog/:id/edit',
     name: 'blog-edit',
     component: () => import('../views/blog/BlogPostFormView.vue'),
     props: true,
+    meta: { title: 'pageTitle.blogEdit' },
   },
   {
     path: '/embed/recipes/:id',
     name: 'recipe-embed',
     component: () => import('../views/embed/RecipeEmbedView.vue'),
     props: true,
-    meta: { public: true, embed: true },
+    meta: { public: true, embed: true, title: 'pageTitle.recipeDetail' },
   },
   {
     path: '/planning',
     name: 'planning',
     component: () => import('../views/planning/PlanningView.vue'),
+    meta: { title: 'pageTitle.planning' },
   },
   {
     path: '/shopping-lists',
     name: 'shopping-lists',
     component: () => import('../views/shopping/ShoppingListsView.vue'),
+    meta: { title: 'pageTitle.shoppingLists' },
   },
   {
     path: '/shopping-lists/:id',
     name: 'shopping-list-detail',
     component: () => import('../views/shopping/ShoppingListDetailView.vue'),
     props: true,
+    meta: { title: 'pageTitle.shoppingListDetail' },
   },
   {
     path: '/account',
     name: 'account',
     component: () => import('../views/account/AccountSettingsView.vue'),
+    meta: { title: 'pageTitle.account' },
   },
   {
     path: '/tags',
     name: 'personal-tags',
     component: () => import('../views/account/PersonalTagsView.vue'),
+    meta: { title: 'pageTitle.personalTags' },
   },
   {
     path: '/admin/users',
     name: 'admin-users',
     component: () => import('../views/admin/AdminUsersView.vue'),
-    meta: { requiresStaff: true },
+    meta: { requiresStaff: true, title: 'pageTitle.adminUsers' },
   },
   {
     path: '/admin/thematic-pages',
     name: 'admin-thematic-pages',
     component: () => import('../views/admin/AdminThematicPagesView.vue'),
-    meta: { requiresStaff: true },
+    meta: { requiresStaff: true, title: 'pageTitle.adminThematicPages' },
   },
   {
     path: '/admin/ingredients',
     name: 'admin-ingredients',
     component: () => import('../views/admin/AdminIngredientsView.vue'),
-    meta: { requiresStaff: true },
+    meta: { requiresStaff: true, title: 'pageTitle.adminIngredients' },
   },
   {
     path: '/admin/cookware',
     name: 'admin-cookware',
     component: () => import('../views/admin/AdminCookwareView.vue'),
-    meta: { requiresStaff: true },
+    meta: { requiresStaff: true, title: 'pageTitle.adminCookware' },
   },
   {
     path: '/legal',
     name: 'legal',
     component: () => import('../views/LegalView.vue'),
     props: { page: 'legal' },
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.legal' },
   },
   {
     path: '/privacy',
     name: 'privacy',
     component: () => import('../views/LegalView.vue'),
     props: { page: 'privacy' },
-    meta: { public: true },
+    meta: { public: true, title: 'pageTitle.privacy' },
   },
-  { path: '/:pathMatch(.*)*', redirect: '/recipes' },
+  {
+    // URL inconnue : vraie page 404 (publique) plutôt qu'une redirection silencieuse.
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('../views/NotFoundView.vue'),
+    meta: { public: true, title: 'pageTitle.notFound' },
+  },
 ]
 
 const router = createRouter({
@@ -189,6 +207,10 @@ router.beforeEach((to) => {
     return { name: 'home' }
   }
   return true
+})
+
+router.afterEach((to) => {
+  setRouteTitle(to.meta.title)
 })
 
 export default router

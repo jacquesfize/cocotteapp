@@ -104,9 +104,12 @@ describe('RecipeRestrictedNotice', () => {
   it('always shows allergens and the carbon footprint', () => {
     const wrapper = mountNotice({
       allergens: ['gluten'],
-      carbon_footprint_kg_co2e: 1.2345,
+      carbon_footprint_kg_co2e: 2.469,
+      carbon_footprint_per_serving_kg_co2e: 1.2345,
     })
 
-    expect(wrapper.text()).toContain('1.23')
+    // Par portion, au format de la langue (fr : virgule décimale).
+    expect(wrapper.text()).toContain('1,23 kg CO₂e')
+    expect(wrapper.text()).toContain('Empreinte carbone (par portion)')
   })
 })
