@@ -80,6 +80,9 @@ beforeEach(() => {
     totals: {} as never,
     daily_average: {} as never,
     deficiencies: [],
+    alerts_skipped_insufficient_data: false,
+    planned_days: 0,
+    min_planned_days_for_alerts: 4,
     carbon_footprint_kg_co2e: 0,
     carbon_footprint_daily_average_kg_co2e: 0,
   })
@@ -253,7 +256,7 @@ describe('PlanningView nutrition modal', () => {
     }
     await open()
     expect(wrapper.find('.deficiency-banner').exists()).toBe(true)
-    expect(wrapper.find('[role="dialog"]').text()).toContain('3.0 kg CO2e')
+    expect(wrapper.find('[role="dialog"]').text()).toContain('3 kg CO₂e')
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
     await flushPromises()
@@ -281,6 +284,30 @@ describe('PlanningView nutrition modal', () => {
     await wrapper.find('.nutrition-btn').trigger('click')
 
     expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('.deficiency-banner').exists()).toBe(false)
+  })
+
+  it('explains why there are no alerts when too few days are planned', async () => {
+    vi.mocked(fetchLegalInfo).mockResolvedValue(legalInfo({ nutrition_alerts_enabled: true }))
+    vi.mocked(getNutritionSummary).mockResolvedValue({
+      totals: {} as never,
+      daily_average: {} as never,
+      deficiencies: [],
+      alerts_skipped_insufficient_data: true,
+      planned_days: 1,
+      min_planned_days_for_alerts: 4,
+      carbon_footprint_kg_co2e: 0,
+      carbon_footprint_daily_average_kg_co2e: 0,
+    })
+    const wrapper = await mountPlanningView()
+    await flushPromises()
+
+    await wrapper.find('.nutrition-btn').trigger('click')
+
+    const message = wrapper.find('[data-testid="alerts-skipped"]')
+    expect(message.exists()).toBe(true)
+    expect(message.text()).toContain('1')
+    expect(message.text()).toContain('4')
     expect(wrapper.find('.deficiency-banner').exists()).toBe(false)
   })
 })

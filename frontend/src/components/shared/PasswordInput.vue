@@ -2,7 +2,7 @@
 import { Eye, EyeOff, Lock } from '@lucide/vue'
 import { ref } from 'vue'
 
-defineProps<{ id: string; placeholder: string; autocomplete: string }>()
+defineProps<{ id: string; placeholder: string; autocomplete: string; invalid?: boolean; describedby?: string }>()
 const model = defineModel<string>({ required: true })
 
 const isVisible = ref(false)
@@ -18,6 +18,8 @@ const isVisible = ref(false)
       :placeholder="placeholder"
       :autocomplete="autocomplete"
       class="has-toggle"
+      :aria-invalid="invalid || undefined"
+      :aria-describedby="describedby"
       required
     />
     <!-- Libellé volontairement sans "mot de passe" : getByLabel('Mot de passe') doit rester univoque. -->

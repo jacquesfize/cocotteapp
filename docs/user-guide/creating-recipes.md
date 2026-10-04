@@ -18,6 +18,14 @@ before or after saving.
 3. Fill in the cards described below.
 4. Click **Save**. The recipe page opens.
 
+**Save** and **Cancel** sit in a bar that stays at the bottom of the screen while you scroll, so
+you don't need to reach the end of the form to save. **Cancel** leaves without saving (back to
+the recipe when editing, to the recipe list otherwise).
+
+If a field is missing or invalid, saving stops, the message appears in red under that field (for
+example *Enter a title.* under **Title**) and the page scrolls to the first field to fix. The
+message disappears as soon as the field is corrected.
+
 ![The New recipe form](../assets/screenshots/recipe-form.png)
 
 ### General information
@@ -83,9 +91,9 @@ If the ingredient you need doesn't exist yet, the suggestion list ends with
 8. Click **Create ingredient**. It's added to the shared library and selected in your row.
 
 > [!IMPORTANT]
-> Ingredients are shared by everyone on the instance. Once created, only admins can edit or
-> delete them (see [Ingredient library](../admin-guide/ingredients.md)). Take a moment to get
-> the name and values right.
+> Ingredients are shared by everyone on the instance. Yours stays **Unverified** until an admin
+> reviews it (see [Unverified ingredients and cookware](#unverified-ingredients-and-cookware));
+> after that, only admins can edit or delete it. Take a moment to get the name and values right.
 
 ### Cookware
 
@@ -94,8 +102,33 @@ know before they start whether they have it. Type in **Oven, frying pan...** and
 the shared cookware library; each one becomes a pill (click its **×** to remove it).
 
 If what you need isn't in the list, type its name and press Enter (*Press Enter to create this
-cookware*): it's added to the library and to the recipe at once. Only admins can rename or delete
-cookware afterwards (see [Cookware library](../admin-guide/cookware.md)).
+cookware*): it's added to the library and to the recipe at once, marked **Unverified** until an
+admin reviews it (see [Unverified ingredients and cookware](#unverified-ingredients-and-cookware)).
+
+### Unverified ingredients and cookware
+
+Ingredients and cookware you create from the recipe form are added to the shared library
+straight away, so you can use them at once, but they carry an **Unverified** badge (in the
+suggestion lists, under the ingredient you picked and on cookware pills) until an admin reviews
+them. Hover the badge to read *Added by a user: an administrator will review it. Until then, its
+creator can edit or delete it.* The admin then verifies it, or merges it into an existing item
+if it was a duplicate (your recipe then simply points to that item).
+
+Until then, you can fix your own items without leaving the recipe:
+
+- **Ingredient**: click **Edit** under the ingredient you picked to open the **Edit ingredient**
+  form (name, English name, category, seasonality, nutrition, carbon footprint, allergens), then
+  **Save**. **Delete ingredient** removes it from the library and clears the row. If one of your
+  saved recipes or shopping lists still uses it, Cocotte refuses (*Cannot delete "…": it is used
+  by recipes or shopping lists. Remove it from them first.*).
+- **Cookware**: click the pencil on its pill (*Edit cookware "…"*) to change its **Name**,
+  **English name** or **Emoji**, then **Save**. **Delete cookware** removes it from the library
+  and from the recipe.
+
+The **Edit** button (or the pencil) disappears once the item is verified, or as soon as someone
+else uses it in their own recipes: from then on, only admins can change it (see
+[Ingredient library](../admin-guide/ingredients.md) and
+[Cookware library](../admin-guide/cookware.md)).
 
 ### Steps
 
@@ -121,6 +154,10 @@ matching ingredients from the whole library appears:
 - If nothing fits, **+ Create "…"** opens the [New ingredient](#create-a-missing-ingredient)
   form.
 
+You can pick from the keyboard: the arrow keys move the highlight, **Enter** (or **Tab**) inserts
+the highlighted ingredient, and **Escape** closes the list and keeps what you typed. When the list
+is closed, Enter adds a new line as usual.
+
 ![Typing @ in a step opens the ingredient suggestions](../assets/screenshots/recipe-form-mention.png)
 
 Rules of the syntax:
@@ -128,9 +165,11 @@ Rules of the syntax:
 - A mention ends at the first space. **Multi-word names use underscores** instead of spaces:
   `@huile_olive` refers to *huile olive*, and `@creme_fraiche` to *creme fraiche*. Cocotte
   inserts the underscores for you when you pick a suggestion.
-- The name must match the ingredient's name in the list (case doesn't matter). Otherwise a
+- The name must match the ingredient's name in the list (case doesn't matter). Otherwise, once
+  you've finished typing the mention (a space or punctuation after it, or you click elsewhere), a
   warning appears under the step: *"name" isn't in the ingredient list above.* The step still
-  saves, but the mention won't be a link.
+  saves with the mention exactly as typed (for example `@len`), and the recipe page shows it as
+  plain text, `@` included, instead of a link.
 - You can add a quantity in braces, as in Cooklang: `@huile_olive{2%tbsp}`. In manual entry the
   braces are accepted and hidden on the recipe page, but **quantities come from the Ingredients
   card**, not from the step.

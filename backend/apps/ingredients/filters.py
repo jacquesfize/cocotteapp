@@ -10,7 +10,7 @@ class IngredientFilter(django_filters.FilterSet):
 
     class Meta:
         model = Ingredient
-        fields = ["category"]
+        fields = ["category", "is_verified"]
 
     def filter_in_season(self, queryset, name, value):
         month = timezone.now().month

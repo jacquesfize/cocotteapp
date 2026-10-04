@@ -216,9 +216,12 @@ def recipe_fields_from_metadata(parsed: ParsedRecipe) -> dict:
     return fields
 
 
-def _resolve_ingredient(name: str, catalog: dict[str, Ingredient], created: dict[str, Ingredient]) -> Ingredient:
+def _resolve_ingredient(
+    name: str, catalog: dict[str, Ingredient], created: dict[str, Ingredient], author
+) -> Ingredient:
     """Même rapprochement que l'import par URL (nom, traductions, puis nom proche) ; à défaut,
-    crée l'ingrédient (sans valeurs nutritionnelles : à compléter dans la bibliothèque).
+    crée l'ingrédient (sans valeurs nutritionnelles : à compléter dans la bibliothèque), non
+    vérifié si l'auteur n'est pas staff, comme une création à la volée depuis le formulaire.
 
     Les ingrédients créés pendant cet import ne sont retrouvés qu'à l'identique (`created`), jamais
     par proximité : sinon "pasteuriseret æggehvide" serait fondu dans "pasteuriseret æggeblomme"
@@ -228,7 +231,9 @@ def _resolve_ingredient(name: str, catalog: dict[str, Ingredient], created: dict
         return created[key]
     ingredient = find_matching_ingredient(name, catalog)
     if ingredient is None:
-        ingredient = Ingredient.objects.filter(name__iexact=name).first() or Ingredient.objects.create(name=name)
+        ingredient = Ingredient.objects.filter(name__iexact=name).first() or Ingredient.objects.create(
+            name=name, created_by=author, is_verified=author.is_staff
+        )
         created[key] = ingredient
     return ingredient
 
@@ -344,7 +349,7 @@ def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=No
     catalog, created = build_ingredient_catalog(), {}
 
     def resolve(name):
-        ingredient = _resolve_ingredient(name, catalog, created)
+        ingredient = _resolve_ingredient(name, catalog, created, author)
         return ingredient.pk, ingredient
 
     RecipeIngredient.objects.bulk_create(
@@ -365,7 +370,9 @@ def create_recipe_from_cooklang(*, author, raw_cooklang, title=None, servings=No
     )
 
     recipe.cookware.set(
-        cookware or Cookware.objects.filter(name__iexact=name).first() or Cookware.objects.create(name=name)
+        cookware
+        or Cookware.objects.filter(name__iexact=name).first()
+        or Cookware.objects.create(name=name, created_by=author, is_verified=author.is_staff)
         for name, cookware in _cookware_lines(parsed)
     )
 

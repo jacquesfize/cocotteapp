@@ -8,7 +8,7 @@ allergies, appearance, password, data exports, agenda sharing and account deleti
 
 Logging in and signing up share the same page, with two tabs: **Log in** and **Sign up**.
 
-1. Click the person icon at the top right of any page, or **Sign up** on the home page.
+1. Click the person icon at the top right of any page, or **Create an account** under the home page's featured recipe.
 2. Select the **Sign up** tab.
 3. Fill in the form:
 
@@ -17,16 +17,16 @@ Logging in and signing up share the same page, with two tabs: **Log in** and **S
     | **Username** | The name other people see (for example on your recipes and comments). It must be unique. |
     | **Email** | Used to log in and to receive password-reset links. |
     | **Password** | At least 8 characters. Use the eye button to show or hide what you type. |
-    | **Diet** | **Flexitarian**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
-    | **Activity level** | **Sedentary**, **Moderate** or **Athlete**. Used for nutrition alerts. |
-    | **Consent** | A required checkbox: you explicitly consent to Cocotte processing your diet, activity level and allergies (data that may relate to your health). See [Health data consent](#health-data-consent). |
+    | **Personalise my recipes using my diet, activity level and allergies** | Optional checkbox: ticking it is your explicit consent to Cocotte processing this data, which may relate to your health. **Why?** under it explains what it is used for. Leave it unticked to create your account without this data; you can consent later from **My account**. See [Health data consent](#health-data-consent). |
+    | **Diet** | Shown once the consent box is ticked. **Flexitarian**, **Vegetarian** or **Vegan**. Used for nutrition alerts. |
+    | **Activity level** | Shown once the consent box is ticked. **Sedentary**, **Moderate** or **Athlete**. Used for nutrition alerts. |
 
 4. Click **Create my account**.
 
 You are logged in straight away and taken to the recipe list. You can change all of these
 fields later in **My account**.
 
-![The sign-up form with username, email, password, diet, activity level and the health data consent checkbox](../assets/screenshots/register.png)
+![The sign-up form with username, email, password and the optional health data consent checkbox](../assets/screenshots/register.png)
 
 > [!TIP]
 > Diet and activity level set the daily minimums used by the planner's nutrition alerts. See
@@ -137,15 +137,20 @@ Once saved, Cocotte uses them in several places:
 ### Health data consent
 
 Your diet, activity level and allergies may reveal information about your health, so Cocotte only
-processes them with your explicit consent. The **Health data consent** card shows the date you
-consented at sign-up.
+processes them with your explicit consent. Consent is optional: you can give it at sign-up or later.
+The **Health data consent** card shows the date you consented.
 
 ![The Health data consent card, with the consent date and the option to withdraw or give consent](../assets/screenshots/account-consent.png)
 
 - **Withdraw my consent** erases your diet, activity level, allergies and intolerances (they go back
   to the defaults) after a confirmation. Your recipes, planner and shopping lists are kept.
-- **Give my consent** appears instead once you have withdrawn it (or if you signed up before
-  consent was recorded), and lets you consent again.
+- **Give my consent** appears instead if you haven't consented (you skipped it at sign-up, withdrew
+  it, or signed up before consent was recorded), and lets you consent.
+
+Without consent, the **Diet**, **Activity level** and **Allergies and intolerances** fields of the
+**Profile** card are greyed out and locked, under the message *Diet, activity level and allergies
+are health data: they stay locked until you give your consent.* A **Give my consent** button right
+next to it unlocks them immediately. **Save** then only updates your username and email.
 
 The **Privacy policy** link, also in the footer of every page next to **Legal notice**, explains what
 is stored, for how long, and how to exercise your rights.
@@ -208,7 +213,8 @@ See [Meal planning](planning.md#shared-agendas).
 
 ### Danger zone: delete my account
 
-Click **Delete my account** and confirm. This **permanently** deletes your account, your
+Click **Delete my account**, then **Delete permanently** in the **Delete your account?** dialog
+(or **Cancel** to back out). This **permanently** deletes your account, your
 planner, your shopping lists and your blog posts, and by default your recipes. It cannot be undone.
 
 Tick **Keep my public recipes, published under the name "Utilisateur supprimé"** first if you want

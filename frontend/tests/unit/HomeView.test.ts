@@ -286,4 +286,19 @@ describe('HomeView', () => {
     expect(wrapper.findComponent(BaseModal).exists()).toBe(false)
     expect(wrapper.vm.$router.currentRoute.value.name).toBe('login')
   })
+  it('invites guests to sign up from the hero call-to-action area only', async () => {
+    vi.mocked(listRecipes).mockResolvedValue({ results: [recipe(1)], count: 1, next: null, previous: null })
+    vi.mocked(listThematicPages).mockResolvedValue([])
+
+    const wrapper = await mountHome()
+    await flushPromises()
+
+    const cta = wrapper.find('.hero-copy [data-testid="home-signup-cta"]')
+    expect(cta.exists()).toBe(true)
+    expect(cta.find('a').attributes('data-to')).toContain('register')
+
+    useAuthStore().accessToken = 'token'
+    await flushPromises()
+    expect(wrapper.find('[data-testid="home-signup-cta"]').exists()).toBe(false)
+  })
 })

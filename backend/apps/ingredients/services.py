@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from django.db import transaction
 
 OFF_SEARCH_URL = "https://world.openfoodfacts.org/api/v2/search"
 AGRIBALYSE_LINES_URL = "https://data.ademe.fr/data-fair/api/v1/datasets/agribalyse-31-synthese/lines"
@@ -86,3 +87,51 @@ def _as_float(value) -> float | None:
         except ValueError:
             return None
     return None
+
+
+@transaction.atomic
+def merge_ingredients(source, target):
+    """Fusionne le doublon `source` dans `target`, puis supprime `source`.
+
+    - les lignes de recettes pointent désormais vers `target` ;
+    - les articles de listes de courses aussi, sauf si `target` figure déjà sur la même liste
+      avec la même unité (contrainte d'unicité) : les quantités sont alors additionnées dans
+      l'article existant, qui ne reste « déjà en stock » / « coché » que si les deux l'étaient
+      (sinon il manquerait de quoi acheter la part de `source`) ;
+    - les traductions sont fusionnées (celles de `target` priment) et les allergènes de
+      `source` ajoutés à `target`.
+
+    Le texte des étapes (`@nom`) n'est pas réécrit."""
+    from apps.recipes.models import RecipeIngredient
+    from apps.shopping.models import ShoppingListItem
+
+    RecipeIngredient.objects.filter(ingredient=source).update(ingredient=target)
+
+    for item in ShoppingListItem.objects.select_for_update().filter(ingredient=source):
+        existing = (
+            ShoppingListItem.objects.select_for_update()
+            .filter(shopping_list_id=item.shopping_list_id, ingredient=target, unit=item.unit)
+            .first()
+        )
+        if existing is None:
+            item.ingredient = target
+            item.save(update_fields=["ingredient"])
+            continue
+        existing.quantity += item.quantity
+        existing.is_owned = existing.is_owned and item.is_owned
+        existing.is_checked = existing.is_checked and item.is_checked
+        existing.save(update_fields=["quantity", "is_owned", "is_checked"])
+        item.delete()
+
+    target.translations = merge_translations(source.translations, target.translations)
+    target.save(update_fields=["translations"])
+    target.allergens.add(*source.allergens.all())
+    source.delete()
+    return target
+
+
+def merge_translations(source, target):
+    """Union de deux dictionnaires de traductions ; en cas de conflit, `target` l'emporte."""
+    source = source if isinstance(source, dict) else {}
+    target = target if isinstance(target, dict) else {}
+    return {**source, **target}

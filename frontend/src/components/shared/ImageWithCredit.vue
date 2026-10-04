@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { Camera } from '@lucide/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useClickOutside } from '../../composables/useClickOutside'
 import { imageCreditDomain, imageLicenseLabelKey } from '../../utils/imageCredit'
 
 // Composant d'affichage partagé pour une image de recette ou d'étape + sa ligne de crédit.
@@ -26,9 +28,16 @@ const props = withDefaults(
     // Légende affichée en pastille superposée au coin de l'image plutôt qu'en dessous
     // (tuiles, carrousel, bannière recette restreinte).
     overlay?: boolean
+    // Crédit réduit à une petite icône appareil photo dans un coin de l'image : le texte
+    // complet (jamais tronqué) s'affiche dans une bulle au survol, au focus ou au toucher, et
+    // sert de libellé accessible. Pour les vignettes trop petites pour une légende lisible
+    // (cartes recette en liste et en tuile) ; ne pas utiliser dans un lien (<button> imbriqué).
+    infoButton?: boolean
+    // Coin utilisé par la pastille `overlay` et par l'icône `infoButton`.
     overlayAlign?: 'left' | 'right'
+    overlayPosition?: 'top' | 'bottom'
   }>(),
-  { overlayAlign: 'left' },
+  { overlayAlign: 'left', overlayPosition: 'bottom' },
 )
 
 const { t } = useI18n()
@@ -57,6 +66,15 @@ const creditText = computed(() => {
 const showLinks = computed(
   () => !props.compact && !props.overlay && isLicensed.value && (props.creditSourceUrl || props.creditLicenseUrl),
 )
+
+// Bulle du mode `infoButton` : ouverte au clic/toucher (le survol et le focus clavier sont
+// gérés en CSS), refermée au clic ailleurs ou sur Échap.
+const popoverId = useId()
+const infoOpen = ref(false)
+const infoEl = ref<HTMLElement | null>(null)
+useClickOutside(infoEl, () => {
+  infoOpen.value = false
+})
 </script>
 
 <template>
@@ -64,9 +82,32 @@ const showLinks = computed(
     <div class="image-with-credit-frame">
       <img :src="imageUrl" :class="imgClass" :alt="alt || ''" loading="lazy" />
       <slot />
-      <span v-if="overlay && creditText" class="credit-badge" :class="overlayAlign">{{ creditText }}</span>
+      <span
+        v-if="infoButton && creditText"
+        ref="infoEl"
+        class="credit-info"
+        :class="[overlayAlign, overlayPosition, { open: infoOpen }]"
+      >
+        <button
+          type="button"
+          class="credit-info-btn"
+          :aria-label="t('imageCredit.infoLabel', { credit: creditText })"
+          :aria-expanded="infoOpen"
+          :aria-describedby="popoverId"
+          @click="infoOpen = !infoOpen"
+        >
+          <Camera :size="12" aria-hidden="true" />
+        </button>
+        <span :id="popoverId" role="tooltip" class="credit-popover">{{ creditText }}</span>
+      </span>
+      <span
+        v-else-if="overlay && creditText"
+        class="credit-badge"
+        :class="[overlayAlign, overlayPosition]"
+        :title="creditText"
+      >{{ creditText }}</span>
     </div>
-    <p v-if="!overlay && creditText" class="image-credit-line muted" :class="{ compact }">
+    <p v-if="!overlay && !infoButton && creditText" class="image-credit-line muted" :class="{ compact }" :title="compact ? creditText : undefined">
       <template v-if="showLinks">
         {{ creditText }}
         <template v-if="creditSourceUrl">
@@ -96,7 +137,6 @@ const showLinks = computed(
 
 .credit-badge {
   position: absolute;
-  bottom: 0.75rem;
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.55);
@@ -114,6 +154,109 @@ const showLinks = computed(
 
 .credit-badge.right {
   right: 0.75rem;
+}
+
+.credit-badge.bottom {
+  bottom: 0.75rem;
+}
+
+.credit-badge.top {
+  top: 0.75rem;
+}
+
+/* Mode `infoButton` : pastille ronde dans un coin, bulle ancrée dessus qui s'ouvre vers
+   l'intérieur de l'image (vers le bas depuis un coin haut, vers le haut depuis un coin bas). */
+.credit-info {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+}
+
+.credit-info.left {
+  left: 0.35rem;
+}
+
+.credit-info.right {
+  right: 0.35rem;
+}
+
+.credit-info.top {
+  top: 0.35rem;
+}
+
+.credit-info.bottom {
+  bottom: 0.35rem;
+}
+
+.credit-info-btn {
+  width: 1.4rem;
+  min-height: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  opacity: 0.85;
+}
+
+/* Cible tactile élargie sans agrandir la pastille visible. */
+.credit-info-btn::before {
+  content: '';
+  position: absolute;
+  inset: -0.5rem;
+}
+
+.credit-info-btn:hover,
+.credit-info.open .credit-info-btn {
+  background: rgba(0, 0, 0, 0.75);
+  opacity: 1;
+}
+
+.credit-info-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.credit-popover {
+  position: absolute;
+  width: max-content;
+  max-width: var(--credit-popover-max-width, 15rem);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.credit-info.left .credit-popover {
+  left: 0;
+}
+
+.credit-info.right .credit-popover {
+  right: 0;
+}
+
+.credit-info.top .credit-popover {
+  top: calc(100% + 0.3rem);
+}
+
+.credit-info.bottom .credit-popover {
+  bottom: calc(100% + 0.3rem);
+}
+
+.credit-info:hover .credit-popover,
+.credit-info:focus-within .credit-popover,
+.credit-info.open .credit-popover {
+  visibility: visible;
+  opacity: 1;
 }
 
 .image-credit-line {

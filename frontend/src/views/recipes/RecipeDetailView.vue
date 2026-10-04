@@ -12,6 +12,7 @@ import RecipeRestrictedNotice from '../../components/recipes/RecipeRestrictedNot
 import RecipeSummary from '../../components/recipes/RecipeSummary.vue'
 import { deleteRecipe, forkRecipe, getRecipe } from '../../api/recipes'
 import type { RecipeRatingResult } from '../../api/recipes'
+import { usePageTitle } from '../../composables/usePageTitle'
 import { useAuthStore } from '../../stores/auth'
 import { getErrorStatus } from '../../utils/apiError'
 import { isImportedRecipe } from '../../utils/recipeOrigin'
@@ -26,6 +27,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const recipe = ref<Recipe | null>(null)
+// Titre de l'onglet : celui de la recette une fois chargée.
+usePageTitle(() => recipe.value?.title)
 const deleteError = ref('')
 
 const showForkForm = ref(false)

@@ -1,3 +1,4 @@
+import math
 from decimal import Decimal
 
 # Conversion approximative vers grammes, utilisée uniquement pour l'estimation
@@ -46,6 +47,22 @@ def compute_recipe_carbon_footprint(recipe):
         grams = recipe_ingredient.quantity * UNIT_TO_GRAMS.get(recipe_ingredient.unit, Decimal("1"))
         total += getattr(recipe_ingredient.ingredient, CARBON_FIELD) * grams / Decimal("1000")
     return total
+
+
+# Les alertes comparent une moyenne *journalière* sur toute la période affichée : avec un agenda
+# presque vide, cette moyenne est mécaniquement très basse et déclencherait des alertes sur à peu
+# près tous les nutriments. On ne calcule donc les alertes que si au moins la moitié des jours de
+# la période ont au moins un repas planifié (4 jours sur une semaine, 1 sur une journée).
+MIN_PLANNED_DAYS_RATIO_FOR_ALERTS = Decimal("0.5")
+
+
+def min_planned_days_for_alerts(window_days):
+    """Nombre minimal de jours planifiés (distincts) pour évaluer les alertes sur la période."""
+    return max(1, math.ceil(Decimal(window_days) * MIN_PLANNED_DAYS_RATIO_FOR_ALERTS))
+
+
+def has_enough_data_for_alerts(planned_days, window_days):
+    return planned_days >= min_planned_days_for_alerts(window_days)
 
 
 def find_deficiencies(totals, diet_type, activity_level):

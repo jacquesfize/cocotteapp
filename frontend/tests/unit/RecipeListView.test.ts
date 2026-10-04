@@ -160,6 +160,30 @@ describe('RecipeListView filters', () => {
 
     expect(listRecipes).toHaveBeenLastCalledWith({ exclude_allergens: 'lactose' })
   })
+  it('offers to reset every filter from the empty state when no recipe matches', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/recipes', name: 'recipes', component: RecipeListView }],
+    })
+    router.push('/recipes?in_season=true&ingredients=Tomate')
+    await router.isReady()
+    const wrapper = mount(RecipeListView, { global: { plugins: [i18n, router] } })
+    await flushPromises()
+
+    const reset = wrapper.find('[data-testid="empty-reset-filters"]')
+    expect(reset.text()).toBe('Réinitialiser les filtres')
+
+    vi.useFakeTimers()
+    await reset.trigger('click')
+    await vi.advanceTimersByTimeAsync(400)
+    vi.useRealTimers()
+    await flushPromises()
+
+    expect(listRecipes).toHaveBeenLastCalledWith({})
+    expect(router.currentRoute.value.query).toEqual({})
+    expect(wrapper.find('[data-testid="filters-badge"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="empty-reset-filters"]').exists()).toBe(false)
+  })
 })
 
 describe('RecipeListView delete', () => {

@@ -53,7 +53,7 @@ def test_any_logged_in_user_can_create_but_not_duplicate():
 
 
 @pytest.mark.django_db
-def test_only_staff_can_edit_or_delete_and_delete_detaches_from_recipes():
+def test_only_staff_can_edit_or_delete_verified_cookware_and_delete_detaches_from_recipes():
     cookware = CookwareFactory(name="Four")
     recipe = RecipeFactory()
     recipe.cookware.add(cookware)
@@ -184,6 +184,10 @@ def test_cooklang_preview_lists_cookware_without_creating_any():
                 "image_credit_source_url": "",
                 "image_credit_license_url": "",
                 "translations": {"en": "oven"},
+                "is_verified": True,
+                "created_by": None,
+                "created_by_username": None,
+                "can_edit": False,
             },
         },
         {"name": "whisk", "cookware": None},

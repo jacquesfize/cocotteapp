@@ -99,6 +99,21 @@ describe('RecipeCard', () => {
     expect(wrapper.find('.thumb-wrapper img').attributes('src')).toBe('https://example.com/tarte.jpg')
   })
 
+  it('explains the lock icon of a restricted recipe with a tooltip and an accessible label', () => {
+    const wrapper = mountCard({
+      id: 10,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 40,
+      content_restricted: true,
+    })
+
+    const icon = wrapper.find('.restricted-icon')
+    expect(icon.attributes('role')).toBe('img')
+    expect(icon.attributes('title')).toContain("droits d'auteur")
+    expect(icon.attributes('aria-label')).toBe(icon.attributes('title'))
+  })
+
   it('shows no thumbnail when the recipe has no image', () => {
     const wrapper = mountCard({
       id: 4,
@@ -111,7 +126,7 @@ describe('RecipeCard', () => {
     expect(wrapper.find('.thumb-wrapper').exists()).toBe(false)
   })
 
-  it('shows a compact image credit under the thumbnail in row variant', () => {
+  it('shows the image credit as an icon button with the full credit in row variant', () => {
     const wrapper = mountCard({
       id: 5,
       title: 'Tarte',
@@ -121,11 +136,34 @@ describe('RecipeCard', () => {
       source_url: 'https://cuisine.example/tarte',
     })
 
-    expect(wrapper.find('.thumb-wrapper .image-credit-line').exists()).toBe(true)
-    expect(wrapper.find('.thumb-wrapper .image-credit-line').text()).toContain('cuisine.example')
+    const button = wrapper.find('.thumb-wrapper .credit-info-btn')
+    expect(button.exists()).toBe(true)
+    expect(button.attributes('aria-label')).toContain('cuisine.example')
+    // Texte complet (non tronqué) dans la bulle, reliée au bouton.
+    const popover = wrapper.find('.thumb-wrapper .credit-popover')
+    expect(popover.text()).toBe('image via cuisine.example')
+    expect(button.attributes('aria-describedby')).toBe(popover.attributes('id'))
+    expect(wrapper.find('.thumb-wrapper .image-credit-line').exists()).toBe(false)
   })
 
-  it('shows an on-image credit badge in tile variant', () => {
+  it('toggles the credit popover open on click', async () => {
+    const wrapper = mountCard({
+      id: 9,
+      title: 'Tarte',
+      diet_type: 'omnivore',
+      total_time_minutes: 40,
+      image_url: 'https://x/tarte.jpg',
+      source_url: 'https://cuisine.example/tarte',
+    })
+
+    const button = wrapper.find('.credit-info-btn')
+    expect(button.attributes('aria-expanded')).toBe('false')
+    await button.trigger('click')
+    expect(button.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.find('.credit-info').classes()).toContain('open')
+  })
+
+  it('shows an on-image credit icon in the top corner in tile variant', () => {
     const wrapper = mount(RecipeCard, {
       props: {
         recipe: {
@@ -141,8 +179,10 @@ describe('RecipeCard', () => {
       global: { plugins: [i18n, createPinia()], stubs: { RouterLink: { template: '<a><slot /></a>' } } },
     })
 
-    expect(wrapper.find('.thumb-wrapper .credit-badge').exists()).toBe(true)
-    expect(wrapper.find('.thumb-wrapper .credit-badge').text()).toContain('cuisine.example')
+    const info = wrapper.find('.thumb-wrapper .credit-info')
+    expect(info.exists()).toBe(true)
+    expect(info.classes()).toEqual(expect.arrayContaining(['top', 'right']))
+    expect(info.find('.credit-popover').text()).toContain('cuisine.example')
     expect(wrapper.find('.thumb-wrapper .image-credit-line').exists()).toBe(false)
   })
 
@@ -156,7 +196,7 @@ describe('RecipeCard', () => {
       source_url: 'https://cuisine.example/tarte',
     })
 
-    const credit = wrapper.find('.thumb-wrapper .image-credit-line')
+    const credit = wrapper.find('.thumb-wrapper .credit-popover')
     expect(credit.exists()).toBe(true)
     expect(credit.text()).not.toContain('cuisine.example')
     expect(credit.text()).toBe('Crédit non précisé')
@@ -169,7 +209,9 @@ describe('RecipeCard', () => {
       diet_type: 'vegan',
       total_time_minutes: 30,
       servings: 4,
-      carbon_footprint_kg_co2e: 0.42,
+      // Total de la recette (4 portions) : la carte doit afficher la valeur par portion.
+      carbon_footprint_kg_co2e: 1.68,
+      carbon_footprint_per_serving_kg_co2e: 0.42,
       author: 'bob',
       author_id: 99,
       tags: [
@@ -181,10 +223,29 @@ describe('RecipeCard', () => {
     })
 
     expect(wrapper.text()).toContain('4 portions')
-    expect(wrapper.text()).toContain('0,4 kg CO₂e / portion')
+    expect(wrapper.text()).toContain('0,42 kg CO₂e / portion')
+    expect(wrapper.text()).not.toContain('1,68')
     expect(wrapper.find('.carbon').classes()).toContain('carbon-low')
     expect(wrapper.text()).toContain('par bob')
     expect(wrapper.findAll('.tag').map((t) => t.text())).toEqual(['Rapide', 'Indien', 'Épicé', '+1'])
+  })
+})
+
+describe('RecipeCard missing data', () => {
+  it('hides the time and carbon items instead of showing "0 min" / "0 kg CO₂e"', () => {
+    const wrapper = mountCard({
+      id: 9,
+      title: 'Importée',
+      diet_type: 'vegan',
+      total_time_minutes: 0,
+      servings: 2,
+      carbon_footprint_kg_co2e: 0,
+      carbon_footprint_per_serving_kg_co2e: 0,
+    })
+
+    expect(wrapper.text()).not.toContain('0 min')
+    expect(wrapper.text()).not.toContain('CO₂e')
+    expect(wrapper.find('.carbon').exists()).toBe(false)
   })
 })
 

@@ -6,19 +6,23 @@ allergens. Keeping the library accurate is therefore the most useful curation ta
 member.
 
 This page explains the staff **Ingredients** page, every field of the ingredient form, the
-**Suggest values** pre-fill, deletion rules and the seeded data.
+**Suggest values** pre-fill, reviewing and merging user-created ingredients, deletion rules and
+the seeded data.
 
 ## Who can do what
 
 | Action | Who |
 |---|---|
 | Create an ingredient | Any logged-in user, from the recipe form when an ingredient is missing (see [Creating recipes](../user-guide/creating-recipes.md)), and staff from the **Ingredients** page. Recipe imports can also create ingredients automatically. |
-| Edit an ingredient | Staff only |
-| Delete an ingredient | Staff only, and only when no recipe or shopping list uses it |
+| Edit an ingredient | Staff, at any time. Its creator too, while it is **unverified** and no other user's recipe or shopping list uses it (see [Unverified ingredients](#unverified-ingredients)). |
+| Delete an ingredient | Same people as editing, and only when no recipe or shopping list uses it |
+| Verify or merge ingredients | Staff only |
 
 Because anyone can create ingredients, and imports create them with minimal data, it is worth
 reviewing recently added ingredients from time to time: they often have zero nutrition values,
-no carbon footprint and unreviewed allergens.
+no carbon footprint and unreviewed allergens. The **Unverified** filter lists the ones created by
+users that no staff member has checked yet (see [Review user-created
+ingredients](#review-user-created-ingredients)).
 
 ## Open the Ingredients page
 
@@ -28,7 +32,8 @@ or go to `/admin/ingredients`.
 ![The staff Ingredients page](../assets/screenshots/admin-ingredients.png)
 
 The table shows each ingredient's **Name**, **Category** and **Season** (the abbreviated
-peak-season months, or **All year**), with an **Edit** button and a delete button (bin icon). The
+peak-season months, or **All year**), with an **Edit** button, a merge button (branch icon) and a
+delete button (bin icon). The
 list is paginated, 20 ingredients per page.
 
 The **Search** field (placeholder "French or English name...") matches the ingredient name and
@@ -157,6 +162,53 @@ The lookups are made by the backend, with a 5-second timeout each, so the server
 HTTPS access to `world.openfoodfacts.org` and `data.ademe.fr`. If either service is unreachable,
 the button simply finds nothing.
 
+## Unverified ingredients
+
+An ingredient created by a user who is not staff starts **unverified**, and records who created
+it. This includes ingredients created while importing a Cooklang recipe or a recipe archive: the
+importing user is recorded as their creator. Ingredients created by staff, loaded by the seed commands, or that existed before this
+feature are **verified**.
+
+While an ingredient is unverified, its creator can fix or delete it themselves (a typo in the
+name, a wrong category...), as long as it is only used by their own recipes and shopping lists.
+It becomes **locked** for them, and only staff can change it, as soon as either:
+
+- a staff member verifies it, or
+- another user's recipe or shopping list uses it.
+
+Staff can always edit, verify or delete any ingredient.
+
+## Review user-created ingredients
+
+1. On the **Ingredients** page, turn on the **Unverified** filter to list only the ingredients
+   still waiting for a review, with the name of the user who created each one.
+2. For each one, check its name and data (nutrition, carbon, season, allergens), fix them with
+   **Edit** if needed, then click **Verify**. It leaves the review list and is locked for its
+   creator.
+3. If it is a duplicate or a misspelling of an existing ingredient, use **Merge into…** instead
+   (see below).
+
+### Merge a duplicate
+
+The merge button (branch icon, tooltip **Merge into…**, next to the bin) replaces a duplicate
+ingredient (the one on whose row you click) by the correct
+one you pick, then deletes the duplicate:
+
+- every recipe line using the duplicate now uses the chosen ingredient, with the same quantity
+  and unit;
+- every shopping-list item does too. When the chosen ingredient is already on the same list with
+  the same unit, the two quantities are added up in a single item, which stays marked as owned or
+  checked only if both were;
+- translations missing from the chosen ingredient are copied from the duplicate (its own ones are
+  kept when both have one), and the duplicate's allergens are added to it.
+
+Nothing else of the duplicate (nutrition, carbon, season) is copied: check the chosen
+ingredient's values. Recipe steps that mention the duplicate by name (`@poirreau`) are not
+rewritten.
+
+> [!WARNING]
+> Merging cannot be undone.
+
 ## Delete an ingredient
 
 Click the bin icon on the ingredient's row and confirm ("Permanently delete ingredient "…"?").
@@ -165,15 +217,9 @@ An ingredient that is still used cannot be deleted: the database protects ingred
 by a recipe or by a shopping-list item. The page then shows "Cannot delete "…": it is used by
 recipes or shopping lists. Remove it from them first."
 
-To get rid of a duplicate or misspelled ingredient that is in use:
-
-1. Make sure the correct ingredient exists.
-2. Edit each recipe that uses the wrong one and replace it with the correct one. You can find
-   those recipes in the Django admin (**Recipes** > **Recipes**, open a recipe to see its
-   ingredient lines), or by filtering the recipe list by that ingredient.
-3. Shopping lists are snapshots: delete old lists that still contain it, or wait until their
-   owners do.
-4. Delete the unused ingredient.
+To get rid of a duplicate or misspelled ingredient that is in use, don't delete it: use
+[**Merge into…**](#merge-a-duplicate), which moves its recipes and shopping-list items to the
+correct ingredient first.
 
 ## Seeded data
 
@@ -190,5 +236,6 @@ case, which also enriches an ingredient that a user had already created under th
 > [Re-run the seed commands](maintenance.md#re-run-the-seed-commands).
 
 You can also browse and filter the library in the [Django admin](django-admin.md#ingredients),
-which offers filters on category, allergens and review status. The review-status filter is a
-quick way to list every ingredient whose allergens still need checking.
+which offers filters on category, allergens, allergen review status, verification status and
+creator. The allergen review-status filter is a quick way to list every ingredient whose
+allergens still need checking.

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
@@ -27,6 +28,19 @@ class Unit(models.TextChoices):
     TABLESPOON = "tbsp", "cuillère à soupe"
     TEASPOON = "tsp", "cuillère à café"
     PINCH = "pinch", "pincée"
+
+
+def can_edit_library_item(item, user):
+    """Règle unique de modification d'un élément des bibliothèques partagées (ingrédient,
+    matériel) : le staff peut toujours ; un autre utilisateur seulement s'il l'a créé, qu'il
+    n'est pas encore vérifié et qu'aucune donnée d'un autre utilisateur ne l'utilise."""
+    if user is None or not user.is_authenticated:
+        return False
+    if user.is_staff:
+        return True
+    return (
+        item.created_by_id == user.pk and not item.is_verified and not item.is_used_by_others(user)
+    )
 
 
 class Allergen(models.Model):
@@ -91,6 +105,22 @@ class Ingredient(models.Model):
         help_text="Empreinte carbone en kg CO2e par kg de produit (ordre de grandeur ACV).",
     )
 
+    # Bibliothèque partagée : un ingrédient créé à la volée par un utilisateur non staff reste
+    # « non vérifié » tant qu'un administrateur ne l'a pas validé. Son créateur peut le corriger
+    # ou le supprimer tant qu'il n'est ni vérifié ni utilisé par les données d'un autre
+    # utilisateur (voir `can_be_edited_by`).
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_ingredients",
+    )
+    is_verified = models.BooleanField(
+        default=True,
+        help_text="Validé par un administrateur. Faux = créé par un utilisateur, à relire.",
+    )
+
     class Meta:
         ordering = ["name"]
 
@@ -107,6 +137,21 @@ class Ingredient(models.Model):
                 slug = f"{base_slug}-{suffix}"
             self.slug = slug
         super().save(*args, **kwargs)
+
+    def is_used_by_others(self, user):
+        """Vrai si une recette ou une liste de courses d'un autre utilisateur utilise cet
+        ingrédient. Les vues de liste précalculent cette valeur (`used_by_others`, voir
+        `IngredientViewSet.get_queryset`) pour éviter une requête par ligne."""
+        precomputed = getattr(self, "used_by_others", None)
+        if precomputed is not None:
+            return precomputed
+        return (
+            self.recipe_ingredients.exclude(recipe__author=user).exists()
+            or self.shopping_list_items.exclude(shopping_list__user=user).exists()
+        )
+
+    def can_be_edited_by(self, user):
+        return can_edit_library_item(self, user)
 
     def is_in_season(self, month=None):
         if not self.available_months:

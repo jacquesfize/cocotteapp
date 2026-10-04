@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClickOutside } from '../../composables/useClickOutside'
 import { useAuthStore } from '../../stores/auth'
-import { formatDuration } from '../../utils/format'
+import { formatDuration, formatNumber } from '../../utils/format'
 import { isImportedRecipe } from '../../utils/recipeOrigin'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
@@ -23,7 +23,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ delete: [recipe: Recipe] }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const showActionsMenu = ref(false)
@@ -56,13 +56,15 @@ const timeDetail = computed(() => {
   return `${formatDuration(prep)} ${t('recipes.prep')} · ${formatDuration(cook)} ${t('recipes.cook')}`
 })
 
-// Mêmes seuils que le filtre "Impact carbone par portion" (RecipeFilters.vue).
+// Mêmes seuils (par portion) que le filtre "Impact carbone par portion" (RecipeFilters.vue,
+// `annotate_carbon_per_serving` côté API). Une empreinte nulle signifie qu'aucun ingrédient n'a de
+// donnée carbone (recette importée, ingrédients non renseignés) : on masque le badge plutôt que
+// d'afficher "0 kg CO₂e".
 const carbon = computed(() => {
-  const kg = props.recipe.carbon_footprint_kg_co2e
-  if (kg === undefined || kg === null) return null
+  const kg = props.recipe.carbon_footprint_per_serving_kg_co2e
+  if (!kg) return null
   const level = kg <= 0.5 ? 'low' : kg <= 1.5 ? 'medium' : 'high'
-  const formatted = new Intl.NumberFormat(locale.value, { maximumFractionDigits: 1 }).format(kg)
-  return { level, label: t('recipes.carbonPerServing', { kg: formatted }) }
+  return { level, label: t('recipes.carbonPerServing', { kg: formatNumber(kg, 2) }) }
 })
 
 // Étiquettes personnelles du visiteur : toutes affichées, elles ne comptent pas dans MAX_TAGS.
@@ -83,9 +85,10 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
       :credit-source-url="recipe.image_credit_source_url"
       :credit-license-url="recipe.image_credit_license_url"
       :credit-note="recipe.image_credit_note"
-      :compact="isRow"
-      :overlay="!isRow"
-      overlay-align="right"
+      :info-button="isRow || isTile"
+      :overlay="variant === 'feature'"
+      :overlay-align="isRow ? 'left' : 'right'"
+      :overlay-position="isTile ? 'top' : 'bottom'"
     />
     <div v-else-if="!isRow" class="thumb thumb-placeholder" aria-hidden="true">🍲</div>
     <div v-if="isTile" class="scrim" />
@@ -122,11 +125,17 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
         <RouterLink :to="{ name: 'recipe-detail', params: { id: recipe.id } }" class="card-link" :title="recipe.title">
           {{ recipe.title }}
         </RouterLink>
-        <Lock v-if="recipe.content_restricted" :size="14" class="restricted-icon" :aria-label="$t('recipes.restrictedNotice')" />
+        <span
+          v-if="recipe.content_restricted"
+          class="restricted-icon"
+          role="img"
+          :title="$t('recipes.restrictedIconHint')"
+          :aria-label="$t('recipes.restrictedIconHint')"
+        ><Lock :size="14" aria-hidden="true" /></span>
       </h3>
 
       <p v-if="isTile" class="muted">
-        {{ $t(`diet.${recipe.diet_type}`) }} · {{ formatDuration(recipe.total_time_minutes) }}
+        {{ $t(`diet.${recipe.diet_type}`) }}<template v-if="recipe.total_time_minutes"> · {{ formatDuration(recipe.total_time_minutes) }}</template>
       </p>
       <ul v-else class="meta">
         <li class="diet-badge" :class="`diet-${recipe.diet_type}`">{{ $t(`diet.${recipe.diet_type}`) }}</li>
@@ -137,7 +146,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
         >
           ★ {{ recipe.average_rating.toFixed(1) }}
         </li>
-        <li :title="timeDetail"><Clock :size="14" />{{ formatDuration(recipe.total_time_minutes) }}</li>
+        <li v-if="recipe.total_time_minutes" :title="timeDetail"><Clock :size="14" />{{ formatDuration(recipe.total_time_minutes) }}</li>
         <li v-if="recipe.servings"><Users :size="14" />{{ recipe.servings }} {{ $t('recipes.servings') }}</li>
         <li v-if="carbon" class="carbon" :class="`carbon-${carbon.level}`" :title="$t('recipes.carbonFootprint')">
           <Leaf :size="14" />{{ carbon.label }}
@@ -194,10 +203,8 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   flex-shrink: 0;
 }
 
-.thumb-wrapper :deep(.image-credit-line) {
-  max-width: 88px;
-  font-size: 0.6rem;
-}
+/* Crédit en icône (ImageWithCredit `info-button`) : la bulle déborde de la vignette vers le
+   corps de la carte plutôt que d'être tronquée à sa largeur. */
 
 /* Utilisé uniquement par le placeholder (pas de photo) : la vraie photo est stylée via
    `.thumb-wrapper :deep(img)` ci-dessus, car l'<img> vit dans ImageWithCredit. */
@@ -229,9 +236,14 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 }
 
 .restricted-icon {
+  /* Au-dessus du lien étiré (::after) pour que l'infobulle (title) apparaisse au survol. */
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
   vertical-align: middle;
   margin-left: 0.3rem;
   color: var(--color-muted);
+  cursor: help;
 }
 
 .meta,
@@ -428,10 +440,6 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
     height: 64px;
   }
 
-  .thumb-wrapper :deep(.image-credit-line) {
-    max-width: 64px;
-  }
-
   .thumb {
     width: 64px;
     height: 64px;
@@ -522,6 +530,8 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
 .tile .thumb-wrapper :deep(.image-with-credit-frame) {
   height: 100%;
+  /* Bulle de crédit contenue dans la tuile (overflow: hidden), ancrée en haut à droite. */
+  --credit-popover-max-width: 8.5rem;
 }
 
 .tile .thumb-wrapper :deep(img) {

@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { Carrot, Plus, Trash2 } from '@lucide/vue'
-import { ref } from 'vue'
+import { BadgeCheck, Carrot, GitMerge, Plus, Trash2 } from '@lucide/vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import IngredientEditModal from '../../components/recipes/IngredientEditModal.vue'
+import IngredientPicker from '../../components/recipes/IngredientPicker.vue'
+import BaseModal from '../../components/shared/BaseModal.vue'
+import UnverifiedBadge from '../../components/shared/UnverifiedBadge.vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
 import Pagination from '../../components/shared/Pagination.vue'
 import AsyncState from '../../components/shared/AsyncState.vue'
 import { usePaginatedQuery } from '../../composables/usePaginatedQuery'
-import { deleteIngredient, listIngredients } from '../../api/ingredients'
+import { deleteIngredient, listIngredients, mergeIngredient, updateIngredient } from '../../api/ingredients'
 import { getErrorStatus } from '../../utils/apiError'
 import type { IngredientListParams } from '../../types/api'
 import type { Ingredient } from '../../types/models'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -23,6 +26,12 @@ const search = ref((route.query.search as string) || '')
 const isLoading = ref(false)
 const accessDenied = ref(false)
 const message = ref('')
+// Message de réussite (fusion), distinct des erreurs.
+const notice = ref('')
+// File de revue : seulement les ingrédients créés par des utilisateurs, pas encore vérifiés.
+const unverifiedOnly = ref(route.query.is_verified === 'false')
+// Nombre d'ingrédients à vérifier, affiché sur le filtre (`count` d'une requête filtrée).
+const unverifiedCount = ref<number | null>(null)
 
 const showModal = ref(false)
 const editing = ref<Ingredient | null>(null)
@@ -33,11 +42,15 @@ async function load() {
     const params: IngredientListParams = {}
     if (search.value) params.search = search.value
     if (page.value > 1) params.page = page.value
+    if (unverifiedOnly.value) params.is_verified = false
     const data = await listIngredients(params)
     ingredients.value = data.results
     count.value = data.count
+    if (unverifiedOnly.value && !search.value) unverifiedCount.value = data.count
     accessDenied.value = false
-    router.replace({ query: params as Record<string, string> })
+    const query: Record<string, string> = {}
+    for (const [key, value] of Object.entries(params)) query[key] = String(value)
+    router.replace({ query })
   } catch (err) {
     if (getErrorStatus(err) === 403) accessDenied.value = true
   } finally {
@@ -46,6 +59,76 @@ async function load() {
 }
 
 const { page, goToPage } = usePaginatedQuery(load, { search })
+
+async function loadUnverifiedCount() {
+  try {
+    unverifiedCount.value = (await listIngredients({ is_verified: false })).count
+  } catch {
+    unverifiedCount.value = null
+  }
+}
+
+onMounted(loadUnverifiedCount)
+
+function toggleUnverified() {
+  unverifiedOnly.value = !unverifiedOnly.value
+  page.value = 1
+  load()
+}
+
+async function refresh() {
+  await Promise.all([load(), loadUnverifiedCount()])
+}
+
+async function handleVerify(ingredient: Ingredient) {
+  message.value = ''
+  notice.value = ''
+  try {
+    const updated = await updateIngredient(ingredient.id, { is_verified: true })
+    ingredients.value = ingredients.value.map((item) => (item.id === updated.id ? updated : item))
+    if (unverifiedCount.value) unverifiedCount.value -= 1
+  } catch {
+    message.value = t('libraryReview.verifyError')
+  }
+}
+
+// Fusion d'un doublon dans l'ingrédient à conserver : recettes et listes de courses basculent
+// sur la cible, puis le doublon est supprimé (côté API).
+const merging = ref<Ingredient | null>(null)
+const mergeTarget = ref<Ingredient | null>(null)
+const mergeError = ref('')
+const isMerging = ref(false)
+const mergeTargetIsSource = computed(() => !!mergeTarget.value && mergeTarget.value.id === merging.value?.id)
+
+function openMerge(ingredient: Ingredient) {
+  merging.value = ingredient
+  mergeTarget.value = null
+  mergeError.value = ''
+}
+
+async function handleMerge() {
+  const source = merging.value
+  const target = mergeTarget.value
+  if (!source || !target) return
+  mergeError.value = ''
+  if (mergeTargetIsSource.value) {
+    mergeError.value = t('libraryReview.mergeSameItem')
+    return
+  }
+  isMerging.value = true
+  try {
+    const kept = await mergeIngredient(source.id, target.id)
+    merging.value = null
+    message.value = ''
+    notice.value = t('libraryReview.mergeDone', { name: source.name, target: kept.name })
+    if (ingredients.value.length === 1 && page.value > 1) page.value -= 1
+    await refresh()
+  } catch {
+    mergeError.value = t('libraryReview.mergeError')
+  } finally {
+    isMerging.value = false
+  }
+}
 
 function openCreate() {
   editing.value = null
@@ -60,12 +143,15 @@ function openEdit(ingredient: Ingredient) {
 async function handleSaved() {
   showModal.value = false
   message.value = ''
-  await load()
+  await refresh()
 }
 
 function seasonSummary(ingredient: Ingredient) {
   if (!ingredient.available_months?.length) return t('adminIngredients.allYear')
-  return ingredient.available_months.map((m) => t(`ingredientModal.months.${m}`).slice(0, 3)).join(', ')
+  // Abréviations de la locale (« juin », « juil. ») : couper les noms à 3 lettres donnait
+  // « jui, jui » pour juin et juillet.
+  const format = new Intl.DateTimeFormat(locale.value, { month: 'short' })
+  return ingredient.available_months.map((m) => format.format(new Date(2000, m - 1, 1))).join(', ')
 }
 
 async function handleDelete(ingredient: Ingredient) {
@@ -83,7 +169,7 @@ async function handleDelete(ingredient: Ingredient) {
   }
   // Évite de rester sur une page devenue vide après suppression du dernier élément.
   if (ingredients.value.length === 1 && page.value > 1) page.value -= 1
-  await load()
+  await refresh()
 }
 </script>
 
@@ -102,21 +188,40 @@ async function handleDelete(ingredient: Ingredient) {
     <p v-if="accessDenied" class="error">{{ $t('adminIngredients.accessDenied') }}</p>
 
     <template v-else>
-      <div class="field" style="max-width: 320px">
-        <label for="admin-ingredient-search">{{ $t('adminIngredients.search') }}</label>
-        <input
-          id="admin-ingredient-search"
-          v-model="search"
-          :placeholder="$t('adminIngredients.searchPlaceholder')"
-        />
+      <div class="row admin-filters">
+        <div class="field" style="max-width: 320px; flex: 1; min-width: 200px">
+          <label for="admin-ingredient-search">{{ $t('adminIngredients.search') }}</label>
+          <input
+            id="admin-ingredient-search"
+            v-model="search"
+            :placeholder="$t('adminIngredients.searchPlaceholder')"
+          />
+        </div>
+        <button
+          type="button"
+          class="admin-filter-toggle"
+          :class="{ 'is-on': unverifiedOnly }"
+          :aria-pressed="unverifiedOnly"
+          data-testid="filter-unverified"
+          @click="toggleUnverified"
+        >
+          {{ $t('libraryReview.filterUnverified') }}
+          <span
+            v-if="unverifiedCount !== null"
+            class="admin-filter-count"
+            :class="{ 'has-items': unverifiedCount }"
+            :aria-label="$t('libraryReview.unverifiedCount', { count: unverifiedCount })"
+          >{{ unverifiedCount }}</span>
+        </button>
       </div>
 
       <p v-if="message" class="error" role="alert">{{ message }}</p>
+      <p v-if="notice" class="muted" role="status">{{ notice }}</p>
       <AsyncState
         v-if="isLoading || !ingredients.length"
         :loading="isLoading"
         :loading-text="$t('common.loading')"
-        :empty-text="$t('adminIngredients.noIngredients')"
+        :empty-text="$t(unverifiedOnly && !search ? 'libraryReview.nothingToReview' : 'adminIngredients.noIngredients')"
       />
 
       <div v-else class="card admin-table-wrapper">
@@ -131,18 +236,44 @@ async function handleDelete(ingredient: Ingredient) {
           </thead>
           <tbody>
             <tr v-for="ingredient in ingredients" :key="ingredient.id">
-              <td class="name">{{ ingredient.name }}</td>
+              <td class="name">
+                {{ ingredient.name }}
+                <UnverifiedBadge
+                  v-if="ingredient.is_verified === false"
+                  :created-by="ingredient.created_by_username"
+                />
+              </td>
               <td :data-label="$t('adminIngredients.colCategory')">{{ $t(`ingredientCategory.${ingredient.category}`) }}</td>
               <td :data-label="$t('adminIngredients.colSeason')">{{ seasonSummary(ingredient) }}</td>
               <td class="actions">
-                <button class="secondary" @click="openEdit(ingredient)">{{ $t('common.edit') }}</button>
-                <button
-                  class="danger icon-btn"
-                  :aria-label="$t('adminIngredients.deleteIngredient')"
-                  @click="handleDelete(ingredient)"
-                >
-                  <Trash2 :size="16" />
-                </button>
+                <div class="row-actions">
+                  <button class="secondary btn-sm" @click="openEdit(ingredient)">{{ $t('common.edit') }}</button>
+                  <button
+                    v-if="ingredient.is_verified === false"
+                    class="secondary btn-sm"
+                    data-testid="verify"
+                    @click="handleVerify(ingredient)"
+                  >
+                    <BadgeCheck :size="14" />{{ $t('libraryReview.verify') }}
+                  </button>
+                  <button
+                    class="secondary icon-btn btn-sm"
+                    data-testid="merge"
+                    :aria-label="$t('libraryReview.merge')"
+                    :title="$t('libraryReview.merge')"
+                    @click="openMerge(ingredient)"
+                  >
+                    <GitMerge :size="16" />
+                  </button>
+                  <button
+                    class="danger icon-btn btn-sm"
+                    :aria-label="$t('adminIngredients.deleteIngredient')"
+                    :title="$t('adminIngredients.deleteIngredient')"
+                    @click="handleDelete(ingredient)"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -159,6 +290,30 @@ async function handleDelete(ingredient: Ingredient) {
       @updated="handleSaved"
       @close="showModal = false"
     />
+
+    <BaseModal
+      v-if="merging"
+      :title="$t('libraryReview.mergeTitle', { name: merging.name })"
+      @close="merging = null"
+    >
+      <form novalidate @submit.prevent="handleMerge">
+        <div class="field">
+          <label for="merge-target">{{ $t('libraryReview.mergeIngredientTarget') }}</label>
+          <IngredientPicker id="merge-target" v-model="mergeTarget" select-only />
+        </div>
+        <p v-if="mergeTargetIsSource" class="error">{{ $t('libraryReview.mergeSameItem') }}</p>
+        <p v-else-if="mergeTarget" class="merge-warning" data-testid="merge-confirm">
+          {{ $t('libraryReview.mergeIngredientConfirm', { name: merging.name, target: mergeTarget.name }) }}
+        </p>
+        <p v-if="mergeError" class="error" role="alert">{{ mergeError }}</p>
+        <div class="row" style="margin-top: 1rem; justify-content: flex-end">
+          <button type="button" class="secondary" @click="merging = null">{{ $t('common.cancel') }}</button>
+          <button type="submit" class="danger" :disabled="!mergeTarget || mergeTargetIsSource || isMerging">
+            <GitMerge :size="16" />{{ $t('libraryReview.mergeSubmit') }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
@@ -169,10 +324,22 @@ async function handleDelete(ingredient: Ingredient) {
   margin-bottom: 1rem;
 }
 
+/* Cellule restée une vraie cellule de tableau (un `display: flex` sur le <td> casse
+   l'alignement des bordures) : les boutons vivent dans un conteneur flex, sur une seule ligne. */
 .admin-table .actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.admin-table .name :deep(.unverified-badge) {
+  margin-left: 0.35rem;
 }
 
 @media (max-width: 600px) {
@@ -215,8 +382,13 @@ async function handleDelete(ingredient: Ingredient) {
   }
 
   .admin-table .actions {
-    justify-content: flex-start;
+    width: 100%;
     padding-top: 0.5rem;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>

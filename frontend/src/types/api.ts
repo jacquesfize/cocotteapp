@@ -36,6 +36,8 @@ export interface IngredientListParams {
   in_season?: boolean
   search?: string
   page?: number
+  // `false` : file de revue des administrateurs (ingrédients créés par des utilisateurs).
+  is_verified?: boolean
 }
 
 export interface MealPlanEntryListParams {
@@ -70,7 +72,7 @@ export interface RegisterPayload {
   password: string
   diet_type?: DietType
   activity_level?: ActivityLevel
-  health_data_consent: boolean
+  health_data_consent?: boolean
 }
 
 export interface ChangePasswordPayload {

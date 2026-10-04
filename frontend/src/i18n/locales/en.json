@@ -69,6 +69,8 @@
     "dietType": "Diet",
     "activityLevel": "Activity level",
     "registerButton": "Create my account",
+    "passwordHint": "At least {n} characters, not too common and not only digits.",
+    "passwordTooShort": "The password must be at least {n} characters long.",
     "registerError": "Could not create the account.",
     "forgotPassword": "Forgot your password?",
     "forgotPasswordTitle": "Forgot password",
@@ -87,8 +89,10 @@
     "loginTab": "Log in",
     "registerTab": "Sign up",
     "tabsLabel": "Log in or sign up",
-    "healthConsent": "I explicitly consent to Cocotte processing my diet, activity level and allergies (data that may relate to my health) to personalise recipes and nutrition alerts. I can withdraw this consent at any time from My account.",
-    "healthConsentRequired": "Consent is required to create an account.",
+    "healthConsent": "Personalise my recipes using my diet, activity level and allergies",
+    "healthConsentOptional": "Optional. You can change this anytime in My account.",
+    "healthConsentWhy": "Why?",
+    "healthConsentDetails": "This information may relate to your health, so Cocotte only uses it with your explicit consent: to hide recipes that don't suit you, flag allergens in your planner and compute your nutrition alerts. Withdrawing your consent from My account erases it.",
     "privacyNotice": "See the {privacy} and the {legal}."
   },
   "recipes": {
@@ -118,6 +122,7 @@
     "activeFiltersList": "Active filters",
     "removeFilterChip": "Remove filter: {label}",
     "resetFilters": "Reset",
+    "resetAllFilters": "Reset filters",
     "showResults": "Show results",
     "inSeasonOnly": "In-season ingredients only",
     "inSeason": "In season",
@@ -193,6 +198,7 @@
     "restrictedNotice": "This recipe comes from a third-party source and {copyright}: out of respect for those rights, {visibility}, unless they choose to make it public in compliance with the law or with the original recipe author's explicit permission.",
     "restrictedNoticeCopyright": "may be protected by copyright",
     "restrictedNoticeVisibility": "its description and steps are only visible to the user who imported it and admins",
+    "restrictedIconHint": "Description and steps are only visible to the person who imported this recipe (copyright)",
     "imageCredit": "image via {domain}",
     "carbonFootprint": "Carbon footprint",
     "otherVersions": "Other versions of this recipe",
@@ -240,6 +246,7 @@
     "note": "Note",
     "photoBy": "Photo: {author}",
     "notSpecified": "Credit not specified",
+    "infoLabel": "Photo credit: {credit}",
     "licenseRequired": "Choose a license for this image.",
     "fieldRequired": "This field is required for the chosen license.",
     "formInvalid": "Fix the image credit fields above before saving."
@@ -262,6 +269,7 @@
     "addTitle": "Leave a comment",
     "name": "Name",
     "namePlaceholder": "Your name",
+    "postingAs": "Posting as {name}",
     "comment": "Comment",
     "commentPlaceholder": "What did you think of this recipe...",
     "submit": "Post",
@@ -359,6 +367,8 @@
     "thematicPages": "Explore",
     "seeAll": "See all recipes",
     "quickActions": "Quick actions",
+    "signupPitch": "New to Cocotte? Plan your meals and generate your shopping lists.",
+    "signupCta": "Create an account",
     "thisWeek": "This week",
     "today": "Today",
     "tomorrow": "Tomorrow",
@@ -380,7 +390,8 @@
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",
-    "create": "+ Create \"{name}\""
+    "create": "+ Create \"{name}\"",
+    "editLabel": "Edit ingredient \"{name}\""
   },
   "ingredientCategory": {
     "vegetable": "Vegetable",
@@ -431,7 +442,8 @@
     },
     "allergensTitle": "Allergens",
     "allergensHint": "Tick the allergens this ingredient contains.",
-    "allergensReviewed": "I checked: this ingredient contains none of the listed allergens"
+    "allergensReviewed": "I checked: this ingredient contains none of the listed allergens",
+    "delete": "Delete ingredient"
   },
   "recipePicker": {
     "placeholder": "Search a recipe..."
@@ -514,8 +526,9 @@
     "omega3": "Omega-3",
     "zinc": "Zinc",
     "weeklyAlertTitle": "Possibly insufficient intake this week",
+    "alertsSkippedInsufficientData": "No alerts yet: only {planned} day(s) in this period have a planned meal. Plan at least {required} days to get meaningful nutrition alerts.",
     "carbonPerServing": "Carbon footprint (per serving)",
-    "carbonPerKg": "Carbon footprint (kg CO2e / kg)",
+    "carbonPerKg": "Carbon footprint (kg CO₂e / kg)",
     "carbonWeekly": "This week's carbon footprint"
   },
   "random": {
@@ -535,7 +548,8 @@
     "copyToClipboard": "Copy",
     "copied": "Copied!",
     "checkOwned": "Check off the ingredients you already have.",
-    "progressCount": "{owned}/{total} bought"
+    "progressCount": "{owned}/{total} bought",
+    "goToPlanning": "Open the planner"
   },
   "account": {
     "title": "My account",
@@ -565,6 +579,9 @@
     "deleteAccountButton": "Delete my account",
     "deleteAccountConfirm": "Do you really want to permanently delete your account and all your data? This cannot be undone.",
     "deleteAccountError": "Could not delete the account.",
+    "deleteAccountConfirmTitle": "Delete your account?",
+    "deleteAccountConfirmButton": "Delete permanently",
+    "healthFieldsLocked": "Diet, activity level and allergies are health data: they stay locked until you give your consent.",
     "shareTitle": "Share my agenda",
     "shareDescription": "Give another person read-only or read/write access to your meal-planning agenda.",
     "shareEmailLabel": "Person's email",
@@ -604,6 +621,8 @@
     "notStaff": "Standard",
     "deleteUser": "Delete this user",
     "deleteUserConfirm": "Permanently delete the account \"{username}\" and all its data?",
+    "toggleActiveHint": "Click to activate or deactivate this account",
+    "toggleStaffHint": "Click to grant or revoke admin rights",
     "thisIsYou": "This is you — manage your own account from \"My account\"."
   },
   "adminThematicPages": {
@@ -757,7 +776,7 @@
     "purposesTitle": "Purposes and legal bases",
     "purposesText": "Your data is used only to run the service: authentication and account management (contract), recipes, planning, shopping lists and nutrition features (contract), and personalisation based on diet, activity and allergies (your explicit consent). It is neither sold nor used for advertising or profiling.",
     "healthTitle": "Health data",
-    "healthText": "Allergies, intolerances, diet and activity level may reveal information about your health or beliefs. They are processed only with your explicit consent, given at sign-up and recorded with its date, and are used only to personalise your use of Cocotte: excluding recipes that don't suit you from search results, warning you if a recipe added to your planner contains an allergen, and computing your nutrition alerts. You can withdraw this consent at any time in My account; doing so erases this data.",
+    "healthText": "Allergies, intolerances, diet and activity level may reveal information about your health or beliefs. They are processed only with your explicit consent, given at sign-up or later in My account, and recorded with its date, and are used only to personalise your use of Cocotte: excluding recipes that don't suit you from search results, warning you if a recipe added to your planner contains an allergen, and computing your nutrition alerts. You can withdraw this consent at any time in My account; doing so erases this data.",
     "retentionTitle": "Retention",
     "retentionText": "Your data is kept as long as your account exists. Deleting your account erases it permanently.",
     "retentionInactive": "Accounts with no login for {days} days are deleted, after an email warning sent beforehand.",
@@ -780,7 +799,10 @@
     "importNotFound": "Cookware not found in the library:",
     "seeRecipes": "See recipes using: {name}",
     "filter": "Cookware",
-    "filterPlaceholder": "Oven, air fryer..."
+    "filterPlaceholder": "Oven, air fryer...",
+    "editLabel": "Edit cookware \"{name}\"",
+    "delete": "Delete cookware",
+    "deleteConfirm": "Permanently delete cookware \"{name}\"?"
   },
   "personalTags": {
     "title": "My tags",
@@ -844,5 +866,59 @@
     "emoji": "Emoji",
     "image": "Photo",
     "imageRemove": "Remove the photo"
+  },
+  "libraryReview": {
+    "unverified": "Unverified",
+    "unverifiedTooltip": "Added by a user: an administrator will review it. Until then, its creator can edit or delete it.",
+    "addedBy": "added by {username}",
+    "filterUnverified": "Unverified",
+    "unverifiedCount": "{count} unverified",
+    "nothingToReview": "Nothing to review.",
+    "verify": "Verify",
+    "verifyError": "Could not verify this item.",
+    "merge": "Merge into…",
+    "mergeTitle": "Merge \"{name}\" into…",
+    "mergeSubmit": "Merge",
+    "mergeSameItem": "Choose a different item to merge into.",
+    "mergeError": "Could not merge: check the chosen target.",
+    "mergeDone": "\"{name}\" was merged into \"{target}\".",
+    "mergeIngredientTarget": "Ingredient to keep",
+    "mergeIngredientConfirm": "Recipes and shopping lists using \"{name}\" will be moved to \"{target}\", then \"{name}\" will be deleted. This can't be undone.",
+    "mergeCookwareTarget": "Cookware to keep",
+    "mergeCookwareConfirm": "Recipes using \"{name}\" will be moved to \"{target}\", then \"{name}\" will be deleted. This can't be undone.",
+    "mergeCookwarePlaceholder": "Choose cookware…"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "This page doesn't exist or has moved. Check the address, or start again from the home page.",
+    "home": "Back to home",
+    "recipes": "Browse recipes"
+  },
+  "pageTitle": {
+    "login": "Log in",
+    "register": "Sign up",
+    "forgotPassword": "Forgot password",
+    "resetPassword": "New password",
+    "recipes": "Recipes",
+    "recipeNew": "New recipe",
+    "recipeRandom": "Random recipe",
+    "recipeDetail": "Recipe",
+    "recipeEdit": "Edit recipe",
+    "blog": "Blog",
+    "blogNew": "New post",
+    "blogDetail": "Post",
+    "blogEdit": "Edit post",
+    "planning": "Planner",
+    "shoppingLists": "Shopping lists",
+    "shoppingListDetail": "Shopping list",
+    "account": "My account",
+    "personalTags": "My tags",
+    "adminUsers": "Users",
+    "adminThematicPages": "Thematic pages",
+    "adminIngredients": "Ingredients",
+    "adminCookware": "Cookware",
+    "legal": "Legal notice",
+    "privacy": "Privacy",
+    "notFound": "Page not found"
   }
 }

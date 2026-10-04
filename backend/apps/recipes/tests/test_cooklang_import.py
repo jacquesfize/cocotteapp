@@ -8,7 +8,7 @@ from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 from apps.ingredients.models import Ingredient, Unit
 from apps.recipes.cooklang_import import create_recipe_from_cooklang, map_unit, parse_quantity
-from apps.recipes.models import Recipe, RecipeIngredient, RecipeStep, SourceType
+from apps.recipes.models import Cookware, Recipe, RecipeIngredient, RecipeStep, SourceType
 
 # Fichier réel fourni par le PO : https://recipes.cooklang.org/api/recipes/9441/download
 TIRAMISU = (Path(__file__).parent / "fixtures" / "tiramisu.cook").read_text(encoding="utf-8")
@@ -379,3 +379,25 @@ def test_preview_cooklang_allows_missing_title_but_rejects_invalid_text():
 
     client.force_authenticate(None)
     assert client.post("/api/recipes/preview-cooklang/", {"raw_cooklang": "x"}, format="json").status_code == 401
+
+
+@pytest.mark.django_db
+def test_items_created_by_import_are_unverified_and_owned_by_the_author():
+    user = UserFactory()
+
+    create_recipe_from_cooklang(author=user, title="Poêlée", raw_cooklang=COOKLANG_TEXT)
+
+    tomato = Ingredient.objects.get(name="tomato")
+    assert tomato.created_by == user
+    assert tomato.is_verified is False
+    pan = Cookware.objects.get(name__iexact="pan")
+    assert pan.created_by == user
+    assert pan.is_verified is False
+
+
+@pytest.mark.django_db
+def test_items_created_by_staff_import_are_verified():
+    create_recipe_from_cooklang(author=UserFactory(is_staff=True), title="Poêlée", raw_cooklang=COOKLANG_TEXT)
+
+    assert Ingredient.objects.get(name="tomato").is_verified is True
+    assert Cookware.objects.get(name__iexact="pan").is_verified is True

@@ -9,10 +9,26 @@ what makes the **Cookware** filter of the recipe list work.
 | Action | Who |
 |---|---|
 | Create cookware | Any logged-in user, from the recipe form (see [Creating recipes](../user-guide/creating-recipes.md#cookware)), and staff from the **Cookware** page. Importing a Cooklang recipe through the API (`POST /api/recipes/import-cooklang/`) also creates the `#cookware` it doesn't find. |
-| Rename or delete cookware | Staff only |
+| Rename or delete cookware | Staff, at any time. Its creator too, while it is **unverified** and no other user's recipe uses it (see [Unverified cookware](#unverified-cookware)). |
+| Change the photo, verify or merge cookware | Staff only |
 
 Since anyone can create cookware, check the list from time to time for duplicates or typos
 (*Poele* next to *Poêle*, *four* next to *Four*). A name must be unique, ignoring case.
+
+## Unverified cookware
+
+Cookware created by a user who is not staff starts **unverified**, and records who created it.
+This includes cookware created while importing a Cooklang recipe or a recipe archive: the
+importing user is recorded as its creator. Items created by staff, loaded by `seed_cookware`, or that existed before this feature are
+**verified**.
+
+While an item is unverified, its creator can rename or delete it themselves, as long as only
+their own recipes use it. It becomes **locked** for them, and only staff can change it, as soon
+as a staff member verifies it or another user's recipe uses it.
+
+To review new items, turn on the **Unverified** filter of the **Cookware** page: it lists the
+items still waiting for a review, with the name of the user who created each one. Fix the name if
+needed, then click **Verify**; for a duplicate, use **Merge into…** (see below).
 
 ## Open the Cookware page
 
@@ -43,8 +59,16 @@ list as you type.
 
 Click the bin icon and confirm. **The item is removed from every recipe that uses it**; the
 recipes themselves are not affected otherwise (a `#mention` of it in a step becomes plain text).
-To merge two duplicates, edit the recipes that use the one you're deleting first (the Django
-admin's recipe form lets you change a recipe's cookware), then delete it.
+To get rid of a duplicate, merge it instead.
+
+## Merge a duplicate
+
+The merge button (branch icon, tooltip **Merge into…**, next to the bin) replaces a duplicate
+(the item on whose row you click) by the correct item you
+pick, then deletes the duplicate and its photo: every recipe that used the duplicate now uses the
+chosen item, and translations missing from the chosen item are copied from the duplicate (its own
+ones are kept when both have one). Recipe steps that mention the duplicate by name (`#poele`) are
+not rewritten. Merging cannot be undone.
 
 ## Seeded cookware
 

@@ -158,6 +158,9 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await step1.fill('Halve the @Courgette and scoop out the flesh. Bake for ~{10%minutes}.')
     await page.getByRole('button', { name: 'Add a step' }).click()
     await page.locator('body').click({ position: { x: 5, y: 5 } })
+    // La barre Enregistrer/Annuler est collée en bas de la fenêtre : en capture pleine page, elle
+    // apparaîtrait au milieu du formulaire. On défile jusqu'en bas pour qu'elle soit à sa place.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
     await shotPage(page, 'recipe-form', { fullPage: true })
 
     const step2 = page.locator('#step-1')

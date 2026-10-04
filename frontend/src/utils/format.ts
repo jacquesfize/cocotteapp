@@ -1,7 +1,11 @@
 import { i18n } from '../i18n'
 
+/** Affiché à la place d'une valeur absente (durée non renseignée d'une recette importée...). */
+export const MISSING_VALUE = '—'
+
+/** Durée lisible ; une durée nulle ou absente (non renseignée) s'affiche "—" plutôt que "0 min". */
 export function formatDuration(minutes: number | null | undefined): string {
-  if (!minutes) return i18n.global.t('duration.minutes', { n: 0 })
+  if (!minutes) return MISSING_VALUE
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
   if (hours === 0) return i18n.global.t('duration.minutes', { n: rest })
@@ -44,4 +48,23 @@ export function formatQuantity(quantity: number | string | null | undefined, uni
   if (!Number.isFinite(numeric)) return String(quantity)
   if (unit && INTEGER_UNITS.has(unit)) return String(Math.ceil(numeric))
   return String(Math.round(numeric * 100) / 100)
+}
+
+/**
+ * Nombre formaté selon la langue de l'interface (virgule décimale en français : "1,5"), avec au
+ * plus `maxFractionDigits` décimales — ou exactement ce nombre si `fixed` (équivalent localisé
+ * de `toFixed`, ex. "9,2 / 65,0 g").
+ */
+export function formatNumber(
+  value: number | string | null | undefined,
+  maxFractionDigits = 1,
+  { fixed = false }: { fixed?: boolean } = {},
+): string {
+  if (value === null || value === undefined || value === '') return MISSING_VALUE
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return String(value)
+  return new Intl.NumberFormat(i18n.global.locale.value, {
+    maximumFractionDigits: maxFractionDigits,
+    minimumFractionDigits: fixed ? maxFractionDigits : 0,
+  }).format(numeric)
 }

@@ -166,3 +166,24 @@ def test_non_staff_cannot_export_whole_database():
     response = _client(UserFactory()).get("/api/recipes/export/?scope=all")
 
     assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_items_created_by_archive_import_are_unverified_and_owned_by_the_importer():
+    author = UserFactory()
+    recipe = RecipeFactory(author=author, title="Aïoli")
+    RecipeIngredientFactory(recipe=recipe, ingredient=IngredientFactory(name="Ail"))
+    recipe.cookware.add(CookwareFactory(name="Mortier"))
+    archive = _client(author).get("/api/recipes/export/").content
+    Recipe.objects.all().delete()
+    Ingredient.objects.all().delete()
+    Cookware.objects.all().delete()
+
+    importer = UserFactory()
+    response = _client(importer).post("/api/recipes/import-archive/", _upload(archive), format="multipart")
+
+    assert response.status_code == 201
+    ail = Ingredient.objects.get(name="Ail")
+    assert (ail.created_by, ail.is_verified) == (importer, False)
+    mortier = Cookware.objects.get(name="Mortier")
+    assert (mortier.created_by, mortier.is_verified) == (importer, False)

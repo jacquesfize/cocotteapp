@@ -29,6 +29,23 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   command loading about 60 common items, most with a photo downloaded from Wikimedia Commons
   (public domain or CC BY / CC BY-SA, saved with its credit).
 - Click a cookware item on the recipe page or in cook mode to see its photo with its credit. Recipe exports now include cookware.
+- A **Page not found** page for unknown addresses, with links back to the home page and the
+  recipes, instead of silently showing the recipe list.
+- Each page now has its own browser tab title (for example *Recipes · Cocotte*, or the recipe's
+  title on its page).
+- **Unverified** ingredients and cookware: an item you create from the recipe form (or that a
+  Cooklang or archive import creates for you) is marked **Unverified** until an administrator
+  reviews it. Until then, and as long as no other user's recipe or shopping list uses it, you can
+  fix it (**Edit**) or delete it yourself from the recipe form. Administrators get an
+  **Unverified** filter on the **Ingredients** and **Cookware** pages, a **Verify** button, and
+  **Merge into…** to fold a duplicate into the item to keep (its recipes and shopping lists move
+  to that item).
+
+### 🐛 Fixed
+
+- **Sign-up** now shows why a field is refused (email already used or invalid, username taken, password rejected) under that field. For the password, the rules (8 characters minimum, not
+  too common, not only digits) show under the field, and the reason appears there when the
+  password is rejected, instead of a generic error.
 
 ### 🔄 Changed
 
@@ -64,6 +81,40 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   page no longer shows the full ingredients and steps, nor the **Add to planner** form: click the
   recipe to open its page. Its filters are now the same as the recipe list's (search,
   ingredients, maximum times and carbon impact are new there).
+- Nutrition alerts only appear once at least half the days of the displayed period have a planned
+  meal (4 days for a week); before that, the planner explains how many more days to plan instead
+  of listing alerts for an almost empty week.
+- Recipe form: errors are shown under the field concerned (for example the title), which is
+  highlighted and scrolled into view. **Save** and **Cancel** stay visible in a bar at the bottom
+  of the screen on long forms.
+- Step `@ingredient` suggestions can be picked with the arrow keys and **Enter** (**Shift+Enter**
+  still adds a new line), and the "not in the ingredient list" warning waits until you've finished
+  typing the mention.
+- Account page: without health-data consent, the diet, activity level and allergy fields are
+  locked, with the consent button right next to them; the API also refuses those fields without
+  consent. Deleting the account asks for confirmation in a dialog (**Delete permanently**).
+- Sign-up: the health-data consent is now optional and reads as one short line, **Personalise my
+  recipes using my diet, activity level and allergies**, with the details under **Why?**. Without
+  it, the account is created without diet, activity level or allergies (the **Diet** and
+  **Activity level** fields only appear once the box is ticked), and you can consent later from
+  **My account**.
+- Logged-in users no longer have to type a name to comment: the form shows **Posting as** and
+  their username.
+- Numbers (nutrition values, carbon footprint) follow the interface language's format
+  (`0,6 kg CO₂e` in French), and missing times or carbon data are no longer shown as zero.
+- Photo credits on recipe cards and home tiles sit behind a small camera button showing the full
+  credit, instead of a truncated line or a label covering the card text.
+- Anonymous home page: the sign-up invitation (**Create an account**) now sits under the hero's
+  buttons, and the side cards are sized to their content.
+- The **Add to planner** form on a recipe page starts at today's date, and the **Cook mode**
+  button keeps its label on phones.
+- Imported recipes: the copyright notice shown to visitors is now a calm information block, and
+  the padlock on recipe cards explains itself in a tooltip.
+- Recipe list: when no recipe matches, a **Reset filters** button clears every filter; the
+  filters' reset button no longer looks disabled when there is something to reset.
+- Shopping lists: the empty state offers **Open the planner**, where lists are generated from.
+- Admin users table: the **Active** / **Staff** toggles look like buttons, and the "This is you" note
+  no longer overflows its column.
 
 ### ✨ Added
 
@@ -92,6 +143,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   highlighted, as on the recipe page.
 - In production (Docker, standalone or behind a shared proxy), `/django-admin` without a trailing
   slash now opens the Django admin instead of falling back to the app's recipe list.
+- Recipe cards showed the whole recipe's carbon footprint labelled "/ serving"; they now show the
+  footprint per serving, matching the recipe page and the carbon impact filter.
+- The account page no longer shows an empty username and email after reloading the page.
+- A step mention that doesn't match a recipe ingredient (such as `@len`) is now shown as typed
+  on the recipe page and in cook mode, instead of losing its `@`.
 
 ## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 

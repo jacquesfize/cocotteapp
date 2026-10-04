@@ -193,12 +193,6 @@ async function handleImport() {
     <h1 class="sr-only">{{ $t('home.title') }}</h1>
 
     <div class="hero-card">
-      <div v-if="!authStore.isAuthenticated" class="row hero-top" :aria-label="$t('home.quickActions')">
-        <RouterLink :to="{ name: 'register' }">
-          <button class="secondary">{{ $t('nav.register') }}</button>
-        </RouterLink>
-      </div>
-
       <div v-if="isLoading" class="hero-skeleton" aria-hidden="true">
         <div class="hero-skeleton-copy" />
         <div class="hero-skeleton-visual" />
@@ -234,6 +228,12 @@ async function handleImport() {
                 {{ $t('home.planForLater') }}
               </button>
             </div>
+            <!-- Visiteur anonyme : l'invitation à s'inscrire fait partie des appels à l'action du
+                 hero plutôt que d'un bouton isolé au-dessus. -->
+            <p v-if="!authStore.isAuthenticated" class="hero-signup" data-testid="home-signup-cta">
+              {{ $t('home.signupPitch') }}
+              <RouterLink :to="{ name: 'register' }" class="hero-signup-link">{{ $t('home.signupCta') }}</RouterLink>
+            </p>
           </div>
 
           <div class="hero-visual">
@@ -255,6 +255,7 @@ async function handleImport() {
                         :credit-note="heroRecipe.image_credit_note"
                         overlay
                         overlay-align="right"
+                        overlay-position="top"
                       />
                       <div class="hero-deck-scrim" />
                       <span class="hero-deck-title hero-deck-title-light">{{ heroRecipe.title }}</span>
@@ -285,6 +286,14 @@ async function handleImport() {
         </div>
       </template>
       <AsyncState v-else :empty-text="$t('home.noRecipes')" />
+      <p
+        v-if="!isLoading && !heroRecipe && !authStore.isAuthenticated"
+        class="hero-signup"
+        data-testid="home-signup-cta"
+      >
+        {{ $t('home.signupPitch') }}
+        <RouterLink :to="{ name: 'register' }" class="hero-signup-link">{{ $t('home.signupCta') }}</RouterLink>
+      </p>
     </div>
 
     <BaseModal v-if="showImportForm" :title="$t('recipes.importFromUrl')" @close="showImportForm = false">
@@ -374,8 +383,16 @@ async function handleImport() {
   }
 }
 
-.hero-top {
-  margin-bottom: 1.25rem;
+.hero-signup {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.hero-signup-link {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  white-space: nowrap;
 }
 
 .hero-spotlight {
@@ -689,6 +706,8 @@ async function handleImport() {
     z-index: 1;
     justify-content: flex-end;
     padding: 1.5rem;
+    /* Réserve le haut de la photo à la pastille de crédit (ImageWithCredit, en haut à droite). */
+    padding-top: 3rem;
     gap: 0.75rem;
   }
 
@@ -698,6 +717,16 @@ async function handleImport() {
 
   .hero-title {
     font-size: 2rem;
+    color: var(--color-on-primary);
+  }
+
+  /* Superposé à la photo : même contraste que le titre. */
+  .hero-copy .hero-signup,
+  .hero-copy .hero-signup-link {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .hero-copy .hero-signup-link {
     color: var(--color-on-primary);
   }
 }
@@ -713,9 +742,11 @@ async function handleImport() {
 
 /* Explore and In season sit side by side as matching cards, echoing HomeWeekStrip's
    ".week-strip" card above them rather than the plain headed sections this replaced. */
+/* Chaque carte garde la hauteur de son contenu : étirée à la hauteur de "De saison", "À
+   explorer" (une ou deux rangées d'avatars) laissait un grand vide sous ses avatars. */
 .home-panel-row {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -728,6 +759,7 @@ async function handleImport() {
 @media (max-width: 760px) {
   .home-panel-row {
     flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -793,9 +825,10 @@ async function handleImport() {
    fill the panel now that Explore and In season sit in matching half-width cards, rather than
    the smaller scroll-strip size that fit the old full-width row. */
 .thematic-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  justify-items: center;
+  gap: 1.5rem 1rem;
 }
 
 .thematic-avatar {

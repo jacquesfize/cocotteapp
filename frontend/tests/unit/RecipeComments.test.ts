@@ -1,7 +1,9 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import RecipeComments from '../../src/components/recipes/RecipeComments.vue'
 import { i18n } from '../../src/i18n'
+import { useAuthStore } from '../../src/stores/auth'
 import type { RecipeComment } from '../../src/types/models'
 
 const { listRecipeComments, createRecipeComment, hideRecipeComment } = vi.hoisted(() => ({
@@ -37,6 +39,8 @@ function mountComments(canModerate = false) {
 }
 
 beforeEach(() => {
+  localStorage.clear()
+  setActivePinia(createPinia())
   i18n.global.locale.value = 'fr'
   listRecipeComments.mockReset()
   createRecipeComment.mockReset()
@@ -80,6 +84,24 @@ describe('RecipeComments', () => {
 
     expect(createRecipeComment).toHaveBeenCalledWith(1, { author_name: 'Léo', body: 'Top recette' })
     expect(wrapper.text()).toContain('Léo')
+  })
+
+  it('hides the name field for a logged-in user and lets the API use their username', async () => {
+    const authStore = useAuthStore()
+    authStore.accessToken = 'token'
+    authStore.user = { username: 'chef42' } as typeof authStore.user
+    createRecipeComment.mockResolvedValue(comment({ id: 2, author_name: 'chef42', body: 'Top recette' }))
+
+    const wrapper = mountComments()
+    await flushPromises()
+
+    expect(wrapper.find('#comment-author-name').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Publié en tant que chef42')
+    await wrapper.find('#comment-body').setValue('Top recette')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    expect(createRecipeComment).toHaveBeenCalledWith(1, { author_name: undefined, body: 'Top recette' })
   })
 
   it('does not show a hide button unless canModerate is true', async () => {

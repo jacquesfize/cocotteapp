@@ -142,7 +142,7 @@ def _choice(value, choices, default):
     return value if value in choices.values else default
 
 
-def _get_or_create_ingredient(data):
+def _get_or_create_ingredient(data, author):
     name = str(data["name"]).strip()
     if not name:
         raise ValueError("ingredient sans nom")
@@ -163,11 +163,13 @@ def _get_or_create_ingredient(data):
         default_unit=_choice(data.get("default_unit"), Unit, Unit.GRAM),
         available_months=months,
         translations=translations if isinstance(translations, dict) else {},
+        created_by=author,
+        is_verified=author.is_staff,
         **fields,
     )
 
 
-def _get_or_create_cookware(data):
+def _get_or_create_cookware(data, author):
     name = str(data["name"]).strip()[:100]
     if not name:
         raise ValueError("matériel sans nom")
@@ -179,7 +181,12 @@ def _get_or_create_cookware(data):
     if existing:
         return existing
     translations = data.get("translations")
-    return Cookware.objects.create(name=name, translations=translations if isinstance(translations, dict) else {})
+    return Cookware.objects.create(
+        name=name,
+        translations=translations if isinstance(translations, dict) else {},
+        created_by=author,
+        is_verified=author.is_staff,
+    )
 
 
 def _read_manifest(archive):
@@ -257,12 +264,12 @@ def _import_recipe(data, author, archive):
 
     # Absent des archives produites avant l'ajout du matériel : simplement ignoré.
     for cookware_data in data.get("cookware", []):
-        recipe.cookware.add(_get_or_create_cookware(cookware_data))
+        recipe.cookware.add(_get_or_create_cookware(cookware_data, author))
 
     for index, line in enumerate(data.get("ingredients", [])):
         RecipeIngredient.objects.create(
             recipe=recipe,
-            ingredient=_get_or_create_ingredient(line["ingredient"]),
+            ingredient=_get_or_create_ingredient(line["ingredient"], author),
             quantity=line["quantity"],
             unit=_choice(line.get("unit"), Unit, Unit.GRAM),
             group_name=str(line.get("group_name", ""))[:60],

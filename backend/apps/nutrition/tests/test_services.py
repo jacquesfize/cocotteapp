@@ -42,3 +42,21 @@ def test_find_deficiencies_flags_low_nutrients():
 
     assert len(deficiencies) == 1
     assert deficiencies[0]["nutrient"] == "protein_g"
+
+
+@pytest.mark.parametrize(
+    ("window_days", "expected"),
+    [(1, 1), (7, 4), (14, 7), (31, 16)],
+)
+def test_min_planned_days_for_alerts_is_half_the_window(window_days, expected):
+    from apps.nutrition.services import min_planned_days_for_alerts
+
+    assert min_planned_days_for_alerts(window_days) == expected
+
+
+def test_has_enough_data_for_alerts():
+    from apps.nutrition.services import has_enough_data_for_alerts
+
+    assert not has_enough_data_for_alerts(0, 7)
+    assert not has_enough_data_for_alerts(3, 7)
+    assert has_enough_data_for_alerts(4, 7)

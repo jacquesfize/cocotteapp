@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, ChevronDown, Link2, Pencil, Plus, X } from '@lucide/vue'
+import { BookOpen, ChevronDown, Link2, Pencil, Plus, RotateCcw, X } from '@lucide/vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
@@ -94,6 +94,11 @@ if (!('exclude_allergens' in route.query) && myAllergens.value.length) {
   filters.value.exclude_allergens = myAllergens.value.join(',')
 }
 const page = ref(pageFromQuery(route.query))
+// Même logique de remise à zéro que le bouton "Réinitialiser" du panneau (RecipeFilters.vue).
+const filtersPanel = ref<InstanceType<typeof RecipeFilters> | null>(null)
+const hasActiveFilters = computed(() =>
+  Object.values(filters.value).some((value) => value !== '' && value !== false && value != null),
+)
 const pageSize = ref(pageSizeFromQuery(route.query))
 
 async function load() {
@@ -291,16 +296,26 @@ async function handleImport() {
 
     <!-- Desktop : filtres en colonne latérale à gauche ; mobile : au-dessus de la liste. -->
     <div class="recipes-layout">
-      <RecipeFilters v-model="filters" class="recipes-sidebar" :my-allergens="myAllergens" />
+      <RecipeFilters ref="filtersPanel" v-model="filters" class="recipes-sidebar" :my-allergens="myAllergens" />
 
       <div class="recipes-main">
         <p v-if="deleteError" class="error">{{ deleteError }}</p>
-        <AsyncState
-          v-if="isLoading || !recipes.length"
-          :loading="isLoading"
-          :loading-text="$t('common.loading')"
-          :empty-text="$t('recipes.noResults')"
-        />
+        <template v-if="isLoading || !recipes.length">
+          <AsyncState
+            :loading="isLoading"
+            :loading-text="$t('common.loading')"
+            :empty-text="$t('recipes.noResults')"
+          />
+          <button
+            v-if="!isLoading && hasActiveFilters"
+            type="button"
+            class="secondary empty-reset"
+            data-testid="empty-reset-filters"
+            @click="filtersPanel?.reset()"
+          >
+            <RotateCcw :size="16" />{{ $t('recipes.resetAllFilters') }}
+          </button>
+        </template>
         <div v-else class="recipe-grid">
           <div v-for="recipe in recipes" :key="recipe.id" class="recipe-tile">
             <RecipeCard :recipe="recipe" manageable @delete="handleDelete" />
@@ -384,6 +399,9 @@ async function handleImport() {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
+}
+.empty-reset {
+  margin-top: 0.25rem;
 }
 .page-size-form {
   display: flex;

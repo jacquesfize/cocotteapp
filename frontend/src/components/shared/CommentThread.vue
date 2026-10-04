@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../../stores/auth'
 import type { Paginated } from '../../types/api'
 import type { Comment, CommentInput } from '../../types/models'
 
@@ -16,6 +17,8 @@ const props = defineProps<{
 }>()
 
 const { t, locale } = useI18n()
+// Un utilisateur connecté n'a pas à saisir de nom : l'API reprend son pseudo (username).
+const authStore = useAuthStore()
 
 const comments = ref<Comment[]>([])
 const isLoading = ref(false)
@@ -46,7 +49,7 @@ async function handleSubmit() {
   isSubmitting.value = true
   try {
     const comment = await props.create({
-      author_name: authorName.value.trim() || undefined,
+      author_name: authStore.isAuthenticated ? undefined : authorName.value.trim() || undefined,
       body: body.value,
     })
     comments.value = [comment, ...comments.value]
@@ -103,7 +106,10 @@ function formatDate(value: string): string {
     <p v-if="closed" class="muted comment-form">{{ $t('comments.closed') }}</p>
     <form v-else class="comment-form" @submit.prevent="handleSubmit">
       <h3>{{ $t('comments.addTitle') }}</h3>
-      <div class="field">
+      <p v-if="authStore.isAuthenticated && authStore.user" class="muted">
+        {{ $t('comments.postingAs', { name: authStore.user.username }) }}
+      </p>
+      <div v-if="!authStore.isAuthenticated" class="field">
         <label for="comment-author-name">{{ $t('comments.name') }}</label>
         <input
           id="comment-author-name"

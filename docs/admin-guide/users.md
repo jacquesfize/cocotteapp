@@ -108,8 +108,8 @@ page lists every account, most recent first, 20 per page.
 | **User** | Username (display name). |
 | **Email** | Login email address. |
 | **Recipes** | Number of recipes the user authored. |
-| **Active** | Button showing **Active** or **Inactive**; click to switch. |
-| **Staff** | Button showing **Staff** or **Standard**; click to switch. |
+| **Active** | Toggle button showing **Active** (highlighted, with a coloured dot) or **Inactive** (outlined, grey dot); click to switch. |
+| **Staff** | Toggle button showing **Staff** (highlighted) or **Standard** (outlined, grey dot); click to switch. |
 | *(last column)* | Delete button (bin icon). |
 
 Your own row shows "This is you — manage your own account from "My account"." instead of the

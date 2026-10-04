@@ -1,25 +1,31 @@
 <script setup lang="ts">
-import { Sparkles } from '@lucide/vue'
+import { Sparkles, Trash2 } from '@lucide/vue'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '../shared/BaseModal.vue'
+import UnverifiedBadge from '../shared/UnverifiedBadge.vue'
 import { listAllergens } from '../../api/allergens'
-import { createIngredient, suggestIngredientNutrition, updateIngredient } from '../../api/ingredients'
+import { createIngredient, deleteIngredient, suggestIngredientNutrition, updateIngredient } from '../../api/ingredients'
 import { allergenEmoji } from '../../utils/allergens'
 import { NUTRIENT_LABEL_KEYS } from '../../utils/nutrition'
 import { formatUnit } from '../../utils/format'
+import { getErrorStatus } from '../../utils/apiError'
 import type { Allergen, Ingredient, IngredientCategory, Unit } from '../../types/models'
 
 const { t } = useI18n()
 
 const props = defineProps<{
   initialName?: string
-  // Mode édition (admin) : ingrédient existant à modifier. Sans lui, le modal crée.
+  // Mode édition : ingrédient existant à modifier (admin, ou son auteur tant qu'il n'est pas
+  // vérifié — voir `can_edit`). Sans lui, le modal crée.
   ingredient?: Ingredient | null
+  // Propose aussi de supprimer l'ingrédient (formulaire de recette) si l'API l'autorise.
+  deletable?: boolean
 }>()
 const emit = defineEmits<{
   created: [ingredient: Ingredient]
   updated: [ingredient: Ingredient]
+  deleted: [id: number]
   close: []
 }>()
 
@@ -80,6 +86,27 @@ const error = ref('')
 const isSubmitting = ref(false)
 const isSuggesting = ref(false)
 const suggestMessage = ref('')
+const isDeleting = ref(false)
+
+// 409 : l'ingrédient est encore utilisé (par une recette ou une liste de courses de l'auteur).
+async function handleDelete() {
+  const ingredient = props.ingredient
+  if (!ingredient) return
+  error.value = ''
+  if (!confirm(t('adminIngredients.deleteConfirm', { name: ingredient.name }))) return
+  isDeleting.value = true
+  try {
+    await deleteIngredient(ingredient.id)
+    emit('deleted', ingredient.id)
+  } catch (err) {
+    error.value =
+      getErrorStatus(err) === 409
+        ? t('adminIngredients.deleteInUse', { name: ingredient.name })
+        : t('adminIngredients.deleteError')
+  } finally {
+    isDeleting.value = false
+  }
+}
 
 async function handleSuggest() {
   suggestMessage.value = ''
@@ -146,6 +173,10 @@ async function handleSubmit() {
 <template>
   <BaseModal :title="t(isEdit ? 'ingredientModal.editTitle' : 'ingredientModal.title')" @close="emit('close')">
       <form novalidate @submit.prevent="handleSubmit">
+        <p v-if="ingredient && ingredient.is_verified === false" class="review-status">
+          <UnverifiedBadge />
+          <span class="muted">{{ t('libraryReview.unverifiedTooltip') }}</span>
+        </p>
         <div class="field">
           <label for="ingredient-modal-name">{{ t('ingredientModal.name') }}</label>
           <div class="row" style="align-items: center">
@@ -230,8 +261,18 @@ async function handleSubmit() {
           {{ t('ingredientModal.allergensReviewed') }}
         </label>
 
-        <p v-if="error" class="error">{{ error }}</p>
+        <p v-if="error" class="error" role="alert">{{ error }}</p>
         <div class="row" style="margin-top: 1rem; justify-content: flex-end">
+          <button
+            v-if="deletable && ingredient?.can_edit"
+            type="button"
+            class="danger modal-delete"
+            data-testid="ingredient-modal-delete"
+            :disabled="isDeleting"
+            @click="handleDelete"
+          >
+            <Trash2 :size="16" />{{ t('ingredientModal.delete') }}
+          </button>
           <button type="button" class="secondary" @click="emit('close')">{{ t('common.cancel') }}</button>
           <button type="submit" :disabled="isSubmitting">{{ t(isEdit ? 'common.save' : 'ingredientModal.submit') }}</button>
         </div>
@@ -240,6 +281,24 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.review-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+}
+
+.review-status .muted {
+  margin: 0;
+}
+
+/* Supprimer reste à gauche, à l'écart d'Annuler / Enregistrer. */
+.modal-delete {
+  margin-right: auto;
+}
+
 .months {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));

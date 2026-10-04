@@ -40,7 +40,14 @@ export function buildStepSegments(
       const match = ingredients.find(
         (item) => item.ingredient.name.toLowerCase() === range.displayName.toLowerCase(),
       )
-      segments.push({ text: range.displayName, ingredientId: match?.ingredient.id })
+      // Mention qui ne correspond à aucun ingrédient de la recette (ex. "@len" laissé tel quel) :
+      // on garde le texte tapé, "@" compris, plutôt que de le réduire silencieusement à "len" —
+      // l'éditeur l'avertit déjà, l'affichage ne doit pas masquer la mention.
+      segments.push(
+        match
+          ? { text: range.displayName, ingredientId: match.ingredient.id }
+          : { text: instruction.slice(range.start, range.end) },
+      )
     } else if (range.kind === 'cookware') {
       const match = cookware.find((item) => item.name.toLowerCase() === range.displayName.toLowerCase())
       segments.push({ text: range.displayName, cookware: { id: match?.id } })

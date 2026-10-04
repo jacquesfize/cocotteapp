@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { CookingPot, Plus, Trash2 } from '@lucide/vue'
+import { BadgeCheck, CookingPot, GitMerge, Plus, Trash2 } from '@lucide/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import BaseModal from '../../components/shared/BaseModal.vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
+import UnverifiedBadge from '../../components/shared/UnverifiedBadge.vue'
 import AsyncState from '../../components/shared/AsyncState.vue'
 import {
   createCookware,
   deleteCookware,
   listCookware,
+  mergeCookware,
   removeCookwareImage,
   updateCookware,
   uploadCookwareImage,
@@ -25,11 +27,18 @@ const cookware = ref<Cookware[]>([])
 const search = ref('')
 const isLoading = ref(false)
 const message = ref('')
+// Message de réussite (fusion), distinct des erreurs.
+const notice = ref('')
+// File de revue : seulement le matériel créé par des utilisateurs, pas encore vérifié (filtré
+// côté client comme la recherche, la liste étant déjà chargée en entier).
+const unverifiedOnly = ref(false)
+const unverifiedCount = computed(() => cookware.value.filter((item) => item.is_verified === false).length)
 
 const filtered = computed(() => {
   const term = search.value.trim().toLowerCase()
-  if (!term) return cookware.value
-  return cookware.value.filter((item) =>
+  const pool = unverifiedOnly.value ? cookware.value.filter((item) => item.is_verified === false) : cookware.value
+  if (!term) return pool
+  return pool.filter((item) =>
     [item.name, item.translations?.en ?? ''].some((name) => name.toLowerCase().includes(term)),
   )
 })
@@ -134,6 +143,51 @@ async function handleSubmit() {
   }
 }
 
+async function handleVerify(item: Cookware) {
+  message.value = ''
+  notice.value = ''
+  try {
+    const updated = await updateCookware(item.id, { is_verified: true })
+    cookware.value = cookware.value.map((entry) => (entry.id === updated.id ? updated : entry))
+  } catch {
+    message.value = t('libraryReview.verifyError')
+  }
+}
+
+// Fusion d'un doublon dans le matériel à conserver : les recettes basculent sur la cible, puis
+// le doublon est supprimé (côté API).
+const merging = ref<Cookware | null>(null)
+const mergeTargetId = ref<number | ''>('')
+const mergeError = ref('')
+const isMerging = ref(false)
+const mergeCandidates = computed(() => cookware.value.filter((item) => item.id !== merging.value?.id))
+const mergeTarget = computed(() => cookware.value.find((item) => item.id === mergeTargetId.value) ?? null)
+
+function openMerge(item: Cookware) {
+  merging.value = item
+  mergeTargetId.value = ''
+  mergeError.value = ''
+}
+
+async function handleMerge() {
+  const source = merging.value
+  const target = mergeTarget.value
+  if (!source || !target) return
+  mergeError.value = ''
+  isMerging.value = true
+  try {
+    const kept = await mergeCookware(source.id, target.id)
+    merging.value = null
+    message.value = ''
+    notice.value = t('libraryReview.mergeDone', { name: source.name, target: kept.name })
+    await load()
+  } catch {
+    mergeError.value = t('libraryReview.mergeError')
+  } finally {
+    isMerging.value = false
+  }
+}
+
 async function handleDelete(item: Cookware) {
   message.value = ''
   if (!confirm(t('adminCookware.deleteConfirm', { name: item.name }))) return
@@ -159,17 +213,35 @@ async function handleDelete(item: Cookware) {
       </button>
     </div>
 
-    <div class="field" style="max-width: 320px">
-      <label for="admin-cookware-search">{{ $t('adminCookware.search') }}</label>
-      <input id="admin-cookware-search" v-model="search" :placeholder="$t('adminCookware.searchPlaceholder')" />
+    <div class="row admin-filters">
+      <div class="field" style="max-width: 320px; flex: 1; min-width: 200px">
+        <label for="admin-cookware-search">{{ $t('adminCookware.search') }}</label>
+        <input id="admin-cookware-search" v-model="search" :placeholder="$t('adminCookware.searchPlaceholder')" />
+      </div>
+      <button
+        type="button"
+        class="admin-filter-toggle"
+        :class="{ 'is-on': unverifiedOnly }"
+        :aria-pressed="unverifiedOnly"
+        data-testid="filter-unverified"
+        @click="unverifiedOnly = !unverifiedOnly"
+      >
+        {{ $t('libraryReview.filterUnverified') }}
+        <span
+          class="admin-filter-count"
+          :class="{ 'has-items': unverifiedCount }"
+          :aria-label="$t('libraryReview.unverifiedCount', { count: unverifiedCount })"
+        >{{ unverifiedCount }}</span>
+      </button>
     </div>
 
     <p v-if="message" class="error" role="alert">{{ message }}</p>
+    <p v-if="notice" class="muted" role="status">{{ notice }}</p>
     <AsyncState
       v-if="isLoading || !filtered.length"
       :loading="isLoading"
       :loading-text="$t('common.loading')"
-      :empty-text="$t('adminCookware.empty')"
+      :empty-text="$t(unverifiedOnly && !search ? 'libraryReview.nothingToReview' : 'adminCookware.empty')"
     />
 
     <div v-else class="card admin-table-wrapper">
@@ -190,6 +262,7 @@ async function handleDelete(item: Cookware) {
             </td>
             <td class="name">
               {{ item.name }}
+              <UnverifiedBadge v-if="item.is_verified === false" :created-by="item.created_by_username" />
               <small v-if="item.image && item.image_credit_author" class="muted credit">
                 {{ $t('imageCredit.photoBy', { author: item.image_credit_author }) }} ·
                 {{ $t(imageLicenseLabelKey(item.image_license)) }}
@@ -197,15 +270,35 @@ async function handleDelete(item: Cookware) {
             </td>
             <td :data-label="$t('adminCookware.colNameEn')">{{ item.translations?.en ?? '' }}</td>
             <td class="actions">
-              <button class="secondary" @click="openForm(item)">{{ $t('common.edit') }}</button>
-              <button
-                class="danger icon-btn"
-                :aria-label="$t('adminCookware.deleteButton')"
-                @click="handleDelete(item)"
-              >
-                <Trash2 :size="16" />
-              </button>
-            </td>
+                <div class="row-actions">
+                  <button class="secondary btn-sm" @click="openForm(item)">{{ $t('common.edit') }}</button>
+                  <button
+                    v-if="item.is_verified === false"
+                    class="secondary btn-sm"
+                    data-testid="verify"
+                    @click="handleVerify(item)"
+                  >
+                    <BadgeCheck :size="14" />{{ $t('libraryReview.verify') }}
+                  </button>
+                  <button
+                    class="secondary icon-btn btn-sm"
+                    data-testid="merge"
+                    :aria-label="$t('libraryReview.merge')"
+                    :title="$t('libraryReview.merge')"
+                    @click="openMerge(item)"
+                  >
+                    <GitMerge :size="16" />
+                  </button>
+                  <button
+                    class="danger icon-btn btn-sm"
+                    :aria-label="$t('adminCookware.deleteButton')"
+                    :title="$t('adminCookware.deleteButton')"
+                    @click="handleDelete(item)"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                </div>
+              </td>
           </tr>
         </tbody>
       </table>
@@ -267,6 +360,34 @@ async function handleDelete(item: Cookware) {
         </div>
       </form>
     </BaseModal>
+
+    <BaseModal
+      v-if="merging"
+      :title="$t('libraryReview.mergeTitle', { name: merging.name })"
+      @close="merging = null"
+    >
+      <form novalidate @submit.prevent="handleMerge">
+        <div class="field">
+          <label for="cookware-merge-target">{{ $t('libraryReview.mergeCookwareTarget') }}</label>
+          <select id="cookware-merge-target" v-model="mergeTargetId">
+            <option value="" disabled>{{ $t('libraryReview.mergeCookwarePlaceholder') }}</option>
+            <option v-for="item in mergeCandidates" :key="item.id" :value="item.id">
+              {{ item.emoji ? `${item.emoji} ` : '' }}{{ item.name }}{{ item.is_verified === false ? ` (${$t('libraryReview.unverified')})` : '' }}
+            </option>
+          </select>
+        </div>
+        <p v-if="mergeTarget" class="merge-warning" data-testid="merge-confirm">
+          {{ $t('libraryReview.mergeCookwareConfirm', { name: merging.name, target: mergeTarget.name }) }}
+        </p>
+        <p v-if="mergeError" class="error" role="alert">{{ mergeError }}</p>
+        <div class="row" style="margin-top: 1rem; justify-content: flex-end">
+          <button type="button" class="secondary" @click="merging = null">{{ $t('common.cancel') }}</button>
+          <button type="submit" class="danger" :disabled="!mergeTarget || isMerging">
+            <GitMerge :size="16" />{{ $t('libraryReview.mergeSubmit') }}
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   </div>
 </template>
 
@@ -305,10 +426,22 @@ async function handleDelete(item: Cookware) {
   font-weight: 400;
 }
 
+/* Cellule restée une vraie cellule de tableau (un `display: flex` sur le <td> casse
+   l'alignement des bordures) : les boutons vivent dans un conteneur flex, sur une seule ligne. */
 .admin-table .actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.name :deep(.unverified-badge) {
+  margin-left: 0.35rem;
 }
 
 @media (max-width: 600px) {
@@ -351,8 +484,13 @@ async function handleDelete(item: Cookware) {
   }
 
   .admin-table .actions {
-    justify-content: flex-start;
+    width: 100%;
     padding-top: 0.5rem;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
 </style>

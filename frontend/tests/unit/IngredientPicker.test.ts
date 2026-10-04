@@ -131,4 +131,81 @@ describe('IngredientPicker', () => {
       expect(wrapper.find('ul.suggestions-dropdown').exists()).toBe(false)
     })
   })
+
+  describe('unverified ingredients', () => {
+    const own = () => ingredient({ id: 8, name: 'Ail noir', is_verified: false, can_edit: true })
+
+    it('flags unverified suggestions', async () => {
+      vi.useFakeTimers()
+      vi.mocked(listIngredients).mockResolvedValue({
+        results: [ingredient(), own()],
+        count: 2,
+        next: null,
+        previous: null,
+      })
+      const wrapper = mount(IngredientPicker, { global: { plugins: [i18n] } })
+      await wrapper.find('input').setValue('A')
+      await vi.advanceTimersByTimeAsync(300)
+      await flushPromises()
+      vi.useRealTimers()
+
+      const items = wrapper.findAll('ul.suggestions-dropdown li')
+      expect(items[0].find('[data-testid="unverified-badge"]').exists()).toBe(false)
+      expect(items[1].find('[data-testid="unverified-badge"]').exists()).toBe(true)
+    })
+
+    it('lets the creator edit the selected ingredient', async () => {
+      const wrapper = mount(IngredientPicker, { props: { modelValue: own() }, global: { plugins: [i18n] } })
+      expect(wrapper.find('[data-testid="unverified-badge"]').exists()).toBe(true)
+
+      await wrapper.get('[data-testid="ingredient-picker-edit"]').trigger('click')
+      const modal = wrapper.findComponent(IngredientEditModal)
+      expect(modal.props('ingredient')).toEqual(own())
+      expect(modal.props('deletable')).toBe(true)
+
+      const fixed = { ...own(), name: 'Ail noirci' }
+      modal.vm.$emit('updated', fixed)
+      await flushPromises()
+      expect(wrapper.findComponent(IngredientEditModal).exists()).toBe(false)
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([fixed])
+      expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Ail noirci')
+    })
+
+    it('clears the selection once the ingredient is deleted', async () => {
+      const wrapper = mount(IngredientPicker, { props: { modelValue: own() }, global: { plugins: [i18n] } })
+      await wrapper.get('[data-testid="ingredient-picker-edit"]').trigger('click')
+      wrapper.findComponent(IngredientEditModal).vm.$emit('deleted', 8)
+      await flushPromises()
+      expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([null])
+      expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
+    })
+
+    it('shows the badge but no edit button when the API does not allow editing', () => {
+      const wrapper = mount(IngredientPicker, {
+        props: { modelValue: { ...own(), can_edit: false } },
+        global: { plugins: [i18n] },
+      })
+      expect(wrapper.find('[data-testid="unverified-badge"]').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="ingredient-picker-edit"]').exists()).toBe(false)
+    })
+
+    it('shows nothing extra for a verified ingredient the user cannot edit', () => {
+      const wrapper = mount(IngredientPicker, {
+        props: { modelValue: ingredient({ is_verified: true, can_edit: false }) },
+        global: { plugins: [i18n] },
+      })
+      expect(wrapper.find('.picker-meta').exists()).toBe(false)
+    })
+
+    it('neither creates nor edits in select-only mode', async () => {
+      const wrapper = mount(IngredientPicker, {
+        props: { modelValue: own(), selectOnly: true },
+        global: { plugins: [i18n] },
+      })
+      expect(wrapper.find('[data-testid="ingredient-picker-edit"]').exists()).toBe(false)
+      await wrapper.find('input').setValue('Nouveau')
+      await wrapper.find('input').trigger('input')
+      expect(wrapper.find('li.create').exists()).toBe(false)
+    })
+  })
 })

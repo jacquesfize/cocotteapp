@@ -27,6 +27,10 @@ const registerForm = ref<RegisterPayload>({
   health_data_consent: false,
 })
 const error = ref('')
+const passwordErrors = ref<string[]>([])
+const emailErrors = ref<string[]>([])
+const usernameErrors = ref<string[]>([])
+const PASSWORD_MIN_LENGTH = 8
 const isSubmitting = ref(false)
 
 // Les deux formulaires n'ont pas la même hauteur : on suit celle du contenu pour l'animer en CSS
@@ -51,20 +55,46 @@ function redirectAfterAuth() {
 
 async function handleSubmit() {
   error.value = ''
+  passwordErrors.value = []
+  emailErrors.value = []
+  usernameErrors.value = []
+  if (props.mode === 'register' && registerForm.value.password.length < PASSWORD_MIN_LENGTH) {
+    passwordErrors.value = [t('auth.passwordTooShort', { n: PASSWORD_MIN_LENGTH })]
+    document.getElementById('password')?.focus()
+    return
+  }
   isSubmitting.value = true
   try {
     if (props.mode === 'login') {
       await authStore.login(loginForm.value.email, loginForm.value.password)
     } else {
-      await authStore.register(registerForm.value)
+      // Sans consentement, le régime et l'activité ne sont pas envoyés (l'API les refuserait) :
+      // ils se renseignent plus tard depuis Mon compte.
+      const { diet_type, activity_level, ...account } = registerForm.value
+      await authStore.register(
+        registerForm.value.health_data_consent ? { ...account, diet_type, activity_level } : account,
+      )
     }
     redirectAfterAuth()
   } catch (err) {
     if (props.mode === 'login') {
       error.value = t('auth.invalidCredentials')
     } else {
-      const data = getErrorData<{ username?: string[]; health_data_consent?: string[] }>(err)
-      error.value = data?.username?.[0] || (data?.health_data_consent ? t('auth.healthConsentRequired') : '') || t('auth.registerError')
+      const data = getErrorData<{ username?: string[]; email?: string[]; password?: string[] }>(err)
+      usernameErrors.value = data?.username ?? []
+      emailErrors.value = data?.email ?? []
+      passwordErrors.value = data?.password ?? []
+      // Le focus va au premier champ en erreur, dans l'ordre d'affichage.
+      const firstInvalid = [
+        ['username', usernameErrors.value],
+        ['email', emailErrors.value],
+        ['password', passwordErrors.value],
+      ].find(([, msgs]) => msgs.length)
+      if (firstInvalid) {
+        document.getElementById(firstInvalid[0] as string)?.focus()
+      } else {
+        error.value = t('auth.registerError')
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -142,8 +172,13 @@ async function handleSubmit() {
                   :placeholder="$t('auth.username')"
                   required
                   autocomplete="username"
+                  :aria-invalid="usernameErrors.length > 0 || undefined"
+                  aria-describedby="username-errors"
                 />
               </div>
+              <ul id="username-errors" class="field-errors" aria-live="polite">
+                <li v-for="msg in usernameErrors" :key="msg">{{ msg }}</li>
+              </ul>
             </div>
             <div class="field">
               <label for="email" class="sr-only">{{ $t('auth.email') }}</label>
@@ -156,8 +191,13 @@ async function handleSubmit() {
                   :placeholder="$t('auth.email')"
                   required
                   autocomplete="email"
+                  :aria-invalid="emailErrors.length > 0 || undefined"
+                  aria-describedby="email-errors"
                 />
               </div>
+              <ul id="email-errors" class="field-errors" aria-live="polite">
+                <li v-for="msg in emailErrors" :key="msg">{{ msg }}</li>
+              </ul>
             </div>
             <div class="field">
               <label for="password" class="sr-only">{{ $t('auth.password') }}</label>
@@ -166,9 +206,36 @@ async function handleSubmit() {
                 v-model="registerForm.password"
                 :placeholder="$t('auth.password')"
                 autocomplete="new-password"
+                :invalid="passwordErrors.length > 0"
+                describedby="password-help"
               />
+              <div id="password-help" aria-live="polite">
+                <ul v-if="passwordErrors.length" class="field-errors">
+                  <li v-for="msg in passwordErrors" :key="msg">{{ msg }}</li>
+                </ul>
+                <p v-else class="muted field-hint">{{ $t('auth.passwordHint', { n: PASSWORD_MIN_LENGTH }) }}</p>
+              </div>
             </div>
-            <div class="profile-row">
+            <!-- Consentement RGPD (art. 9) : la case dit en une phrase à quoi on consent ; le détail
+                 (nature des données, usages, retrait) reste lisible avant de cocher, sous « Pourquoi ? »,
+                 hors du <label> pour qu'ouvrir le détail ne coche pas la case. -->
+            <div class="consent">
+              <label class="consent-choice">
+                <input
+                  id="health_data_consent"
+                  v-model="registerForm.health_data_consent"
+                  type="checkbox"
+                  aria-describedby="health-consent-hint"
+                />
+                <span>{{ $t('auth.healthConsent') }}</span>
+              </label>
+              <p id="health-consent-hint" class="muted consent-hint">{{ $t('auth.healthConsentOptional') }}</p>
+              <details class="consent-details">
+                <summary>{{ $t('auth.healthConsentWhy') }}</summary>
+                <p>{{ $t('auth.healthConsentDetails') }}</p>
+              </details>
+            </div>
+            <div v-if="registerForm.health_data_consent" class="profile-row">
               <div class="field">
                 <label for="diet_type">{{ $t('auth.dietType') }}</label>
                 <select id="diet_type" v-model="registerForm.diet_type">
@@ -186,16 +253,7 @@ async function handleSubmit() {
                 </select>
               </div>
             </div>
-            <label class="consent">
-              <input
-                id="health_data_consent"
-                v-model="registerForm.health_data_consent"
-                type="checkbox"
-                required
-              />
-              <span>{{ $t('auth.healthConsent') }}</span>
-            </label>
-            <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice">
+            <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice" scope="global">
               <template #privacy>
                 <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
               </template>
@@ -216,6 +274,19 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.field-hint,
+.field-errors {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+
+.field-errors {
+  padding: 0;
+  list-style: none;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -275,17 +346,44 @@ async function handleSubmit() {
 }
 
 .consent {
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-start;
-  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
   line-height: 1.4;
 }
 
-.consent input {
+.consent-choice {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  cursor: pointer;
+  /* Annule le style des libellés de champ (petits, gris) : c'est ici une vraie phrase. */
+  font-size: inherit;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.consent-choice input {
   width: auto;
   margin-top: 0.2rem;
   flex-shrink: 0;
+}
+
+/* Aligné sur le texte de la case, pas sur la case elle-même. */
+.consent-hint,
+.consent-details {
+  margin: 0.2rem 0 0 1.6rem;
+  font-size: 0.8rem;
+}
+
+.consent-details summary {
+  width: fit-content;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+}
+
+.consent-details p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
 }
 
 .privacy-notice {

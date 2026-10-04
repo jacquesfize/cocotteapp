@@ -13,6 +13,7 @@ import {
   hideBlogPostComment,
   listBlogPostComments,
 } from '../../api/blog'
+import { usePageTitle } from '../../composables/usePageTitle'
 import { useAuthStore } from '../../stores/auth'
 import { formatLongDate } from '../../utils/dates'
 import type { BlogPost } from '../../types/models'
@@ -25,6 +26,8 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const post = ref<BlogPost | null>(null)
+// Titre de l'onglet : celui de l'article une fois chargé.
+usePageTitle(() => post.value?.title)
 const loadError = ref('')
 const deleteError = ref('')
 

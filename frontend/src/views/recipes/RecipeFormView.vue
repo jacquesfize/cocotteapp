@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChefHat, Image as ImageIcon, Info, Plus, Scale, Trash2 } from '@lucide/vue'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../../components/recipes/CooklangStepInput.vue'
@@ -364,22 +364,68 @@ function removeStepRow(index: number) {
 // (required/min/step) : sur mobile, la bulle de validation native du navigateur peut s'afficher
 // hors écran ou derrière le clavier virtuel — voir docs/developer (mobile-validation). Le
 // formulaire porte `novalidate` : ces vérifications sont donc la seule protection.
-function validateForm(): string {
-  if (!form.value.title.trim()) return t('recipes.missingTitle')
-  if (!Number.isFinite(form.value.servings) || form.value.servings < 1) return t('recipes.invalidServings')
+//
+// Erreurs par champ, indexées par l'id de l'input concerné (dans l'ordre d'affichage) : affichées
+// sous le champ (aria-invalid + aria-describedby), et le premier champ invalide reçoit le focus à
+// la soumission — le message près du bouton Enregistrer ne suffit pas sur un long formulaire.
+const fieldErrors = ref<Record<string, string>>({})
+// Les erreurs par champ ne s'affichent (et ne se recalculent à chaque modification) qu'après une
+// première tentative d'enregistrement, pour ne pas accueillir l'utilisateur avec du rouge.
+const showFieldErrors = ref(false)
+
+function collectFieldErrors(): Record<string, string> {
+  const errors: Record<string, string> = {}
+  if (!form.value.title.trim()) errors.title = t('recipes.missingTitle')
+  if (!Number.isFinite(form.value.servings) || form.value.servings < 1) {
+    errors.servings = t('recipes.invalidServings')
+  }
   if (!Number.isFinite(form.value.prep_time_minutes) || form.value.prep_time_minutes < 0) {
-    return t('recipes.invalidPrepTime')
+    errors.prep = t('recipes.invalidPrepTime')
   }
   if (!Number.isFinite(form.value.cook_time_minutes) || form.value.cook_time_minutes < 0) {
-    return t('recipes.invalidCookTime')
+    errors.cook = t('recipes.invalidCookTime')
   }
-  if (ingredientRows.value.some((row) => !row.ingredient)) return t('recipes.missingIngredient')
-  const invalidQuantity = ingredientRows.value.some((row) => {
-    if (row.quantity === '' || row.quantity === null) return true
+  ingredientRows.value.forEach((row, index) => {
+    if (!row.ingredient) errors[`ingredient-${index}`] = t('recipes.missingIngredient')
     const numeric = Number(row.quantity)
-    return !Number.isFinite(numeric) || numeric < 0
+    if (row.quantity === '' || row.quantity === null || !Number.isFinite(numeric) || numeric < 0) {
+      errors[`quantity-${index}`] = t('recipes.invalidQuantity')
+    }
   })
-  if (invalidQuantity) return t('recipes.invalidQuantity')
+  return errors
+}
+
+watch(
+  [form, ingredientRows],
+  () => {
+    if (showFieldErrors.value) fieldErrors.value = collectFieldErrors()
+  },
+  { deep: true },
+)
+
+// Message récapitulatif affiché près du bouton Enregistrer : la première erreur de champ, sinon
+// une erreur globale (étapes non réécrites, crédit d'image, échec de l'enregistrement...).
+const summaryError = computed(() => Object.values(fieldErrors.value)[0] || error.value)
+
+function fieldErrorId(field: string) {
+  return `${field}-error`
+}
+
+function focusField(field: string) {
+  const el = document.getElementById(field)
+  if (!el) return
+  el.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+  el.focus({ preventScroll: true })
+}
+
+function validateForm(): string {
+  showFieldErrors.value = true
+  fieldErrors.value = collectFieldErrors()
+  const [firstField, firstMessage] = Object.entries(fieldErrors.value)[0] ?? []
+  if (firstField) {
+    nextTick(() => focusField(firstField))
+    return firstMessage
+  }
   if (
     form.value.content_publicly_licensed &&
     stepRows.value.some((step) => step.instruction.trim() && importedStepTexts.value.has(step.instruction.trim()))
@@ -391,9 +437,11 @@ function validateForm(): string {
 
 async function handleSubmit() {
   error.value = ''
+  // Les erreurs de champ s'affichent sous chaque champ (et dans `summaryError`) : `error` ne
+  // porte que les erreurs globales.
   const validationError = validateForm()
   if (validationError) {
-    error.value = validationError
+    if (!Object.keys(fieldErrors.value).length) error.value = validationError
     return
   }
 
@@ -466,6 +514,11 @@ async function handleSubmit() {
     isSubmitting.value = false
   }
 }
+
+function handleCancel() {
+  if (isEditing && props.id) router.push({ name: 'recipe-detail', params: { id: props.id } })
+  else router.push({ name: 'recipes' })
+}
 </script>
 
 <template>
@@ -534,7 +587,14 @@ async function handleSubmit() {
       <div class="card">
         <div class="field">
           <label for="title">{{ $t('recipes.formTitle') }}</label>
-          <input id="title" v-model="form.title" required />
+          <input
+            id="title"
+            v-model="form.title"
+            required
+            :aria-invalid="fieldErrors.title ? 'true' : undefined"
+            :aria-describedby="fieldErrors.title ? fieldErrorId('title') : undefined"
+          />
+          <p v-if="fieldErrors.title" :id="fieldErrorId('title')" class="field-error">{{ fieldErrors.title }}</p>
         </div>
         <div class="field">
           <label for="description">{{ $t('recipes.description') }}</label>
@@ -543,15 +603,42 @@ async function handleSubmit() {
         <div class="row">
           <div class="field">
             <label for="servings">{{ $t('planning.servings') }}</label>
-            <input id="servings" v-model.number="form.servings" type="number" min="1" required />
+            <input
+              id="servings"
+              v-model.number="form.servings"
+              type="number"
+              min="1"
+              required
+              :aria-invalid="fieldErrors.servings ? 'true' : undefined"
+              :aria-describedby="fieldErrors.servings ? fieldErrorId('servings') : undefined"
+            />
+            <p v-if="fieldErrors.servings" :id="fieldErrorId('servings')" class="field-error">{{ fieldErrors.servings }}</p>
           </div>
           <div class="field">
             <label for="prep">{{ $t('recipes.prepTime') }}</label>
-            <input id="prep" v-model.number="form.prep_time_minutes" type="number" min="0" required />
+            <input
+              id="prep"
+              v-model.number="form.prep_time_minutes"
+              type="number"
+              min="0"
+              required
+              :aria-invalid="fieldErrors.prep ? 'true' : undefined"
+              :aria-describedby="fieldErrors.prep ? fieldErrorId('prep') : undefined"
+            />
+            <p v-if="fieldErrors.prep" :id="fieldErrorId('prep')" class="field-error">{{ fieldErrors.prep }}</p>
           </div>
           <div class="field">
             <label for="cook">{{ $t('recipes.cookTime') }}</label>
-            <input id="cook" v-model.number="form.cook_time_minutes" type="number" min="0" required />
+            <input
+              id="cook"
+              v-model.number="form.cook_time_minutes"
+              type="number"
+              min="0"
+              required
+              :aria-invalid="fieldErrors.cook ? 'true' : undefined"
+              :aria-describedby="fieldErrors.cook ? fieldErrorId('cook') : undefined"
+            />
+            <p v-if="fieldErrors.cook" :id="fieldErrorId('cook')" class="field-error">{{ fieldErrors.cook }}</p>
           </div>
           <div class="field">
             <label for="diet_type">{{ $t('recipes.diet') }}</label>
@@ -570,7 +657,11 @@ async function handleSubmit() {
         <div class="row ingredient-row">
           <div class="field" style="flex: 2; min-width: 220px">
             <label :for="`ingredient-${index}`">{{ $t('recipes.ingredient') }}</label>
-            <IngredientPicker :id="`ingredient-${index}`" v-model="row.ingredient" />
+            <IngredientPicker
+              :id="`ingredient-${index}`"
+              v-model="row.ingredient"
+              :class="{ invalid: fieldErrors[`ingredient-${index}`] }"
+            />
           </div>
           <div class="field" style="width: 100px">
             <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
@@ -581,6 +672,8 @@ async function handleSubmit() {
               step="any"
               min="0"
               required
+              :aria-invalid="fieldErrors[`quantity-${index}`] ? 'true' : undefined"
+              :aria-describedby="fieldErrors[`quantity-${index}`] ? fieldErrorId(`quantity-${index}`) : undefined"
             />
           </div>
           <div class="field" style="width: 110px">
@@ -598,6 +691,20 @@ async function handleSubmit() {
             <Trash2 :size="16" />
           </button>
         </div>
+        <p
+          v-if="fieldErrors[`ingredient-${index}`]"
+          :id="fieldErrorId(`ingredient-${index}`)"
+          class="field-error"
+        >
+          {{ fieldErrors[`ingredient-${index}`] }}
+        </p>
+        <p
+          v-if="fieldErrors[`quantity-${index}`]"
+          :id="fieldErrorId(`quantity-${index}`)"
+          class="field-error"
+        >
+          {{ fieldErrors[`quantity-${index}`] }}
+        </p>
         <span v-if="row.unmatched && !row.ingredient" class="not-found-badge">
           {{ $t('recipes.importNotFound') }}
           <template v-if="row.raw_line">— « {{ row.raw_line }} »</template>
@@ -740,9 +847,15 @@ async function handleSubmit() {
         </div>
       </div>
 
-      <p v-if="error" class="error">{{ error }}</p>
-      <div class="row" style="margin-top: 1rem">
-        <button type="submit" :disabled="isSubmitting">{{ $t('common.save') }}</button>
+      <!-- Barre d'enregistrement collée en bas de l'écran tant que le formulaire est visible : le
+           formulaire est long, on ne doit pas avoir à le redescendre en entier pour enregistrer.
+           Bouton Enregistrer unique (pas de doublon en haut de page). -->
+      <div class="form-actions">
+        <p v-if="summaryError" class="error" role="alert">{{ summaryError }}</p>
+        <div class="form-actions-buttons">
+          <button type="button" class="secondary" @click="handleCancel">{{ $t('common.cancel') }}</button>
+          <button type="submit" :disabled="isSubmitting">{{ $t('common.save') }}</button>
+        </div>
       </div>
     </form>
   </div>
@@ -837,6 +950,52 @@ async function handleSubmit() {
 
 .unmatched-cookware .not-found-badge {
   margin-top: 0;
+}
+
+.field-error {
+  margin: 0.3rem 0 0;
+  color: var(--color-danger);
+  font-size: 0.85rem;
+}
+
+.field input[aria-invalid='true'],
+.invalid :deep(input) {
+  border-color: var(--color-danger);
+}
+
+.form-actions {
+  position: sticky;
+  bottom: 0.75rem;
+  /* Sous les listes d'auto-complétion du formulaire (.suggestions-dropdown, z-index 10). */
+  z-index: 5;
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.form-actions .error {
+  margin: 0 0 0.5rem;
+}
+
+.form-actions-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Mobile : la barre d'onglets (NavBar.vue, .tabbar) est fixée en bas de l'écran ; la barre
+   d'enregistrement se colle juste au-dessus plutôt que dessous. */
+@media (max-width: 600px) {
+  .form-actions {
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .form-actions-buttons button {
+    flex: 1;
+  }
 }
 
 .not-found-badge {

@@ -69,6 +69,8 @@
     "dietType": "Régime alimentaire",
     "activityLevel": "Niveau d'activité",
     "registerButton": "Créer mon compte",
+    "passwordHint": "Au moins {n} caractères, pas trop courant et pas uniquement des chiffres.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins {n} caractères.",
     "registerError": "Impossible de créer le compte.",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordTitle": "Mot de passe oublié",
@@ -87,8 +89,10 @@
     "loginTab": "Connexion",
     "registerTab": "Inscription",
     "tabsLabel": "Connexion ou inscription",
-    "healthConsent": "Je consens explicitement à ce que Cocotte traite mon régime alimentaire, mon niveau d'activité et mes allergies (données pouvant relever de la santé) pour personnaliser les recettes et les alertes nutritionnelles. Je peux retirer ce consentement à tout moment depuis Mon compte.",
-    "healthConsentRequired": "Le consentement est requis pour créer un compte.",
+    "healthConsent": "Personnaliser mes recettes selon mon régime, mon activité et mes allergies",
+    "healthConsentOptional": "Facultatif. Modifiable à tout moment dans Mon compte.",
+    "healthConsentWhy": "Pourquoi ?",
+    "healthConsentDetails": "Ces informations peuvent concerner votre santé : Cocotte ne les utilise qu'avec votre consentement explicite, pour écarter les recettes qui ne vous conviennent pas, signaler les allergènes dans votre agenda et calculer vos alertes nutritionnelles. Retirer votre consentement depuis Mon compte les efface.",
     "privacyNotice": "Consultez la {privacy} et les {legal}."
   },
   "recipes": {
@@ -118,6 +122,7 @@
     "activeFiltersList": "Filtres actifs",
     "removeFilterChip": "Retirer le filtre : {label}",
     "resetFilters": "Réinitialiser",
+    "resetAllFilters": "Réinitialiser les filtres",
     "showResults": "Voir les résultats",
     "inSeasonOnly": "Ingrédients de saison uniquement",
     "inSeason": "De saison",
@@ -193,6 +198,7 @@
     "restrictedNotice": "Cette recette provient d'une source tierce et {copyright} : par respect pour ces droits, {visibility}, à moins que celui-ci ne choisisse de la rendre publique, en conformité avec la loi ou avec l'autorisation explicite de l'auteur original de la recette.",
     "restrictedNoticeCopyright": "peut être protégée par des droits d'auteur",
     "restrictedNoticeVisibility": "sa description et ses étapes ne sont visibles que par l'utilisateur qui l'a importée et les administrateurs",
+    "restrictedIconHint": "Description et étapes réservées à la personne qui a importé cette recette (droits d'auteur)",
     "imageCredit": "image via {domain}",
     "carbonFootprint": "Empreinte carbone",
     "otherVersions": "Autres versions de cette recette",
@@ -240,6 +246,7 @@
     "note": "Note",
     "photoBy": "Photo : {author}",
     "notSpecified": "Crédit non précisé",
+    "infoLabel": "Crédit photo : {credit}",
     "licenseRequired": "Choisissez une licence pour cette image.",
     "fieldRequired": "Ce champ est requis pour la licence choisie.",
     "formInvalid": "Corrigez les champs de crédit d'image ci-dessus avant d'enregistrer."
@@ -262,6 +269,7 @@
     "addTitle": "Laisser un commentaire",
     "name": "Nom",
     "namePlaceholder": "Votre nom",
+    "postingAs": "Publié en tant que {name}",
     "comment": "Commentaire",
     "commentPlaceholder": "Votre avis sur cette recette...",
     "submit": "Publier",
@@ -359,6 +367,8 @@
     "thematicPages": "À explorer",
     "seeAll": "Voir toutes les recettes",
     "quickActions": "Actions rapides",
+    "signupPitch": "Nouveau sur Cocotte ? Planifiez vos repas et générez vos listes de courses.",
+    "signupCta": "Créer un compte",
     "thisWeek": "Cette semaine",
     "today": "Aujourd'hui",
     "tomorrow": "Demain",
@@ -380,7 +390,8 @@
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",
-    "create": "+ Créer « {name} »"
+    "create": "+ Créer « {name} »",
+    "editLabel": "Modifier l'ingrédient « {name} »"
   },
   "ingredientCategory": {
     "vegetable": "Légume",
@@ -431,7 +442,8 @@
     },
     "allergensTitle": "Allergènes",
     "allergensHint": "Cochez les allergènes présents dans cet ingrédient.",
-    "allergensReviewed": "J'ai vérifié : cet ingrédient ne contient pas d'allergène de la liste"
+    "allergensReviewed": "J'ai vérifié : cet ingrédient ne contient pas d'allergène de la liste",
+    "delete": "Supprimer l'ingrédient"
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
@@ -514,8 +526,9 @@
     "omega3": "Oméga-3",
     "zinc": "Zinc",
     "weeklyAlertTitle": "Apports possiblement insuffisants cette semaine",
+    "alertsSkippedInsufficientData": "Pas encore d'alerte : seuls {planned} jour(s) de la période ont un repas planifié. Planifiez au moins {required} jours pour obtenir des alertes nutritionnelles significatives.",
     "carbonPerServing": "Empreinte carbone (par portion)",
-    "carbonPerKg": "Empreinte carbone (kg CO2e / kg)",
+    "carbonPerKg": "Empreinte carbone (kg CO₂e / kg)",
     "carbonWeekly": "Empreinte carbone de la semaine"
   },
   "random": {
@@ -535,7 +548,8 @@
     "copyToClipboard": "Copier",
     "copied": "Copié !",
     "checkOwned": "Cochez les ingrédients que vous avez déjà.",
-    "progressCount": "{owned}/{total} achetés"
+    "progressCount": "{owned}/{total} achetés",
+    "goToPlanning": "Ouvrir l'agenda"
   },
   "account": {
     "title": "Mon compte",
@@ -565,6 +579,9 @@
     "deleteAccountButton": "Supprimer mon compte",
     "deleteAccountConfirm": "Voulez-vous vraiment supprimer définitivement votre compte et toutes vos données ? Cette action est irréversible.",
     "deleteAccountError": "Impossible de supprimer le compte.",
+    "deleteAccountConfirmTitle": "Supprimer votre compte ?",
+    "deleteAccountConfirmButton": "Supprimer définitivement",
+    "healthFieldsLocked": "Le régime, le niveau d'activité et les allergies sont des données de santé : ils restent verrouillés tant que vous n'avez pas donné votre consentement.",
     "shareTitle": "Partager mon agenda",
     "shareDescription": "Donnez à une autre personne un accès en lecture seule ou en lecture/écriture à votre agenda de repas.",
     "shareEmailLabel": "Email de la personne",
@@ -604,6 +621,8 @@
     "notStaff": "Standard",
     "deleteUser": "Supprimer cet utilisateur",
     "deleteUserConfirm": "Supprimer définitivement le compte « {username} » et toutes ses données ?",
+    "toggleActiveHint": "Cliquer pour activer ou désactiver ce compte",
+    "toggleStaffHint": "Cliquer pour accorder ou retirer les droits d'administration",
     "thisIsYou": "C'est vous — gérez votre propre compte depuis « Mon compte »."
   },
   "adminThematicPages": {
@@ -757,7 +776,7 @@
     "purposesTitle": "Finalités et bases légales",
     "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage.",
     "healthTitle": "Données de santé",
-    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
+    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription ou plus tard dans Mon compte, et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
     "retentionTitle": "Durée de conservation",
     "retentionText": "Vos données sont conservées tant que votre compte existe. La suppression du compte les efface définitivement.",
     "retentionInactive": "Les comptes sans connexion depuis {days} jours sont supprimés, après un e-mail de préavis.",
@@ -780,7 +799,10 @@
     "importNotFound": "Matériel absent de la bibliothèque :",
     "seeRecipes": "Voir les recettes avec : {name}",
     "filter": "Matériel",
-    "filterPlaceholder": "Four, friteuse à air..."
+    "filterPlaceholder": "Four, friteuse à air...",
+    "editLabel": "Modifier le matériel « {name} »",
+    "delete": "Supprimer le matériel",
+    "deleteConfirm": "Supprimer définitivement le matériel « {name} » ?"
   },
   "personalTags": {
     "title": "Mes étiquettes",
@@ -844,5 +866,59 @@
     "emoji": "Emoji",
     "image": "Photo",
     "imageRemove": "Retirer la photo"
+  },
+  "libraryReview": {
+    "unverified": "Non vérifié",
+    "unverifiedTooltip": "Ajouté par un utilisateur : un administrateur va le vérifier. D'ici là, son auteur peut le modifier ou le supprimer.",
+    "addedBy": "ajouté par {username}",
+    "filterUnverified": "Non vérifiés",
+    "unverifiedCount": "{count} non vérifié(s)",
+    "nothingToReview": "Rien à vérifier.",
+    "verify": "Vérifier",
+    "verifyError": "Impossible de vérifier cet élément.",
+    "merge": "Fusionner dans…",
+    "mergeTitle": "Fusionner « {name} » dans…",
+    "mergeSubmit": "Fusionner",
+    "mergeSameItem": "Choisissez un autre élément dans lequel fusionner.",
+    "mergeError": "Fusion impossible : vérifiez la cible choisie.",
+    "mergeDone": "« {name} » a été fusionné dans « {target} ».",
+    "mergeIngredientTarget": "Ingrédient à conserver",
+    "mergeIngredientConfirm": "Les recettes et listes de courses qui utilisent « {name} » passeront sur « {target} », puis « {name} » sera supprimé. Cette action est irréversible.",
+    "mergeCookwareTarget": "Matériel à conserver",
+    "mergeCookwareConfirm": "Les recettes qui utilisent « {name} » passeront sur « {target} », puis « {name} » sera supprimé. Cette action est irréversible.",
+    "mergeCookwarePlaceholder": "Choisir un matériel…"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "message": "Cette page n'existe pas ou a été déplacée. Vérifiez l'adresse, ou repartez de l'accueil.",
+    "home": "Retour à l'accueil",
+    "recipes": "Parcourir les recettes"
+  },
+  "pageTitle": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "forgotPassword": "Mot de passe oublié",
+    "resetPassword": "Nouveau mot de passe",
+    "recipes": "Recettes",
+    "recipeNew": "Nouvelle recette",
+    "recipeRandom": "Recette au hasard",
+    "recipeDetail": "Recette",
+    "recipeEdit": "Modifier la recette",
+    "blog": "Blog",
+    "blogNew": "Nouvel article",
+    "blogDetail": "Article",
+    "blogEdit": "Modifier l'article",
+    "planning": "Agenda",
+    "shoppingLists": "Listes de courses",
+    "shoppingListDetail": "Liste de courses",
+    "account": "Mon compte",
+    "personalTags": "Mes étiquettes",
+    "adminUsers": "Utilisateurs",
+    "adminThematicPages": "Pages thématiques",
+    "adminIngredients": "Ingrédients",
+    "adminCookware": "Matériel",
+    "legal": "Mentions légales",
+    "privacy": "Confidentialité",
+    "notFound": "Page introuvable"
   }
 }
