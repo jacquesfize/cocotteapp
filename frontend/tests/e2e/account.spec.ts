@@ -53,9 +53,9 @@ test('a user can update their profile, export their data and delete their accoun
   const download = await downloadPromise
   expect(download.suggestedFilename()).toMatch(/\.zip$/)
 
-  // Delete the account: confirm dialog, then logged out and redirected home.
-  page.once('dialog', (dialog) => dialog.accept())
-  await page.getByRole('button', { name: 'Supprimer mon compte' }).click()
+  // Delete the account: confirm in the modal, then logged out and redirected home.
+  await page.getByTestId('delete-account').click()
+  await page.getByTestId('delete-account-confirm').click()
   await expect(page).toHaveURL('/')
   await expect(page.getByRole('link', { name: 'Connexion' })).toBeVisible()
 })
