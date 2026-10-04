@@ -17,6 +17,8 @@ export interface RecipeListParams {
   carbon_level?: 'low' | 'medium' | 'high' | ''
   max_carbon?: number | string
   exclude_allergens?: string
+  // Slugs de matériel séparés par des virgules : recettes qui en utilisent au moins un.
+  cookware?: string
   page?: number
   page_size?: number
 }

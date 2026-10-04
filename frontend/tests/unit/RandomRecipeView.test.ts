@@ -9,6 +9,13 @@ vi.mock('../../src/api/recipes', () => ({
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({ results: [] }),
 }))
+vi.mock('../../src/api/cookware', () => ({
+  listCookware: vi.fn().mockResolvedValue([
+    { id: 1, name: 'Four', slug: 'four', translations: { en: 'oven' } },
+    { id: 2, name: 'Friteuse à air', slug: 'friteuse-a-air', translations: {} },
+  ]),
+  createCookware: vi.fn(),
+}))
 vi.mock('../../src/api/allergens', () => ({
   listAllergens: vi.fn().mockResolvedValue([
     { slug: 'gluten', name: 'Gluten' },

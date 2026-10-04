@@ -19,7 +19,8 @@
     "administration": "Administration",
     "adminIngredients": "Ingrédients",
     "language": "Langue : {name}",
-    "blog": "Blog"
+    "blog": "Blog",
+    "adminCookware": "Matériel"
   },
   "common": {
     "loading": "Chargement...",
@@ -159,7 +160,7 @@
     "addIngredient": "Ajouter un ingrédient",
     "step": "Étape {n}",
     "addStep": "Ajouter une étape",
-    "stepPlaceholder": "Tapez \\@ pour lier un ingrédient de la recette",
+    "stepPlaceholder": "Tapez \\@ pour lier un ingrédient, # pour du matériel",
     "insertIngredient": "Ingrédient",
     "insertTimer": "Durée",
     "mentionOrphan": "« {name} » n'est pas dans la liste des ingrédients ci-dessus.",
@@ -217,7 +218,9 @@
     "copyrightNoticeFacts": "La liste des ingrédients, les quantités et les temps sont des faits : ils ne sont pas protégés par le droit d'auteur et sont toujours publics.",
     "copyrightNoticeText": "Les étapes et la description telles que rédigées sur le site source sont protégées : réécrivez-les avec vos propres mots plutôt que de les copier ou d'en changer quelques mots.",
     "copyrightNoticeImage": "Les photos du site source sont protégées elles aussi : utilisez votre propre photo, ou choisissez-en une avec « Suggérer une image libre ».",
-    "stepsNotRewritten": "Certaines étapes sont encore identiques à la recette importée. Réécrivez-les avec vos propres mots avant de rendre la recette publique, ou décochez la case."
+    "stepsNotRewritten": "Certaines étapes sont encore identiques à la recette importée. Réécrivez-les avec vos propres mots avant de rendre la recette publique, ou décochez la case.",
+    "insertCookware": "Matériel",
+    "cookwareMentionOrphan": "« #{name} » ne fait pas partie du matériel de cette recette."
   },
   "imageLicense": {
     "ccBy": "CC BY (Attribution)",
@@ -765,5 +768,38 @@
     "cookiesText": "Cocotte n'utilise aucun cookie de suivi ou publicitaire. Seul du stockage strictement nécessaire est utilisé dans votre navigateur (jetons de connexion, langue et apparence, cache hors ligne) : aucune bannière de cookies n'est donc requise.",
     "complaintTitle": "Réclamation",
     "complaintText": "Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de votre autorité de protection des données (en France, la CNIL : www.cnil.fr)."
+  },
+  "cookware": {
+    "title": "Matériel",
+    "label": "Matériel nécessaire",
+    "placeholder": "Four, poêle...",
+    "createHint": "Appuyez sur Entrée pour créer ce matériel",
+    "noOptions": "Aucun matériel trouvé.",
+    "createError": "Impossible de créer ce matériel.",
+    "importNotFound": "Matériel absent de la bibliothèque :",
+    "seeRecipes": "Voir les recettes avec : {name}",
+    "filter": "Matériel",
+    "filterPlaceholder": "Four, friteuse à air..."
+  },
+  "adminCookware": {
+    "title": "Matériel",
+    "subtitle": "Gérez la bibliothèque de matériel proposée dans le formulaire de recette et les filtres.",
+    "addButton": "Nouveau matériel",
+    "newTitle": "Nouveau matériel",
+    "editTitle": "Modifier le matériel",
+    "search": "Rechercher",
+    "searchPlaceholder": "Nom français ou anglais...",
+    "empty": "Aucun matériel ne correspond à cette recherche.",
+    "colName": "Nom",
+    "colNameEn": "Nom anglais",
+    "nameRequired": "Saisissez un nom.",
+    "duplicate": "Ce matériel existe déjà.",
+    "saveError": "Impossible d'enregistrer ce matériel.",
+    "deleteButton": "Supprimer ce matériel",
+    "deleteConfirm": "Supprimer définitivement le matériel « {name} » ? Il sera retiré de toutes les recettes qui l'utilisent.",
+    "deleteError": "Impossible de supprimer ce matériel.",
+    "emoji": "Emoji",
+    "image": "Photo",
+    "imageRemove": "Retirer la photo"
   }
 }

@@ -82,6 +82,21 @@ export interface Ingredient {
   carbon_kg_co2e_per_kg: number
 }
 
+export interface Cookware {
+  id: number
+  name: string
+  slug: string
+  // Un emoji représentant l'objet, s'il en existe un (vide sinon).
+  emoji?: string
+  // Photo relative (`/media/cookware/...`), ou null, et son crédit (mêmes règles que les recettes).
+  image?: string | null
+  image_license?: string
+  image_credit_author?: string
+  image_credit_source_url?: string
+  image_credit_license_url?: string
+  translations?: Record<string, string>
+}
+
 export interface Tag {
   id: number
   name: string
@@ -232,6 +247,7 @@ export interface Recipe {
   ratings_count: number
   my_rating: number | null
   tags: Tag[]
+  cookware: Cookware[]
   ingredients: RecipeIngredient[]
   allergens: string[]
   allergens_unverified: boolean
@@ -282,6 +298,7 @@ export interface RecipeInput {
   image_credit_note?: string
   // Seulement à la création d'une recette pré-remplie depuis du Cooklang collé.
   source_type?: RecipeSourceType
+  cookware_ids: number[]
   ingredients: RecipeIngredientInput[]
   steps: RecipeStepInput[]
 }
@@ -319,6 +336,8 @@ export interface CooklangPreview {
   source_url: string
   steps: ImportPreviewStep[]
   ingredients: (ImportPreviewIngredient & { group_name: string })[]
+  // `#matériel` du texte : rapproché de la bibliothèque, ou `null` (à créer dans le formulaire).
+  cookware: { name: string; cookware: Cookware | null }[]
 }
 
 // Image libre de droits proposée par `GET /api/import/image-suggestions/` (Openverse), avec ses

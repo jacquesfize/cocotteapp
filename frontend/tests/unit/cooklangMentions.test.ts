@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { findOrphanMentions, parseIngredientMentions, toMentionToken } from '../../src/utils/cooklangMentions'
+import {
+  findOrphanCookwareMentions,
+  findOrphanMentions,
+  parseCookwareMentions,
+  parseIngredientMentions,
+  toCookwareToken,
+  toMentionToken,
+} from '../../src/utils/cooklangMentions'
 
 describe('parseIngredientMentions', () => {
   it('parses a single-word mention without quantity', () => {
@@ -55,5 +62,33 @@ describe('toMentionToken', () => {
 
   it('leaves a single-word name untouched', () => {
     expect(toMentionToken('sel')).toBe('@sel')
+  })
+})
+
+describe('parseCookwareMentions', () => {
+  it('parses single and multi-word cookware, with or without {}', () => {
+    const text = 'Préchauffer le #four, puis verser dans le #plat_à_gratin{}.'
+    const mentions = parseCookwareMentions(text)
+    expect(mentions.map((m) => m.displayName)).toEqual(['four', 'plat à gratin'])
+    expect(text.slice(mentions[1].start, mentions[1].end)).toBe('#plat_à_gratin{}')
+  })
+
+  it('ignores a "#" followed by a number', () => {
+    expect(parseCookwareMentions('Reprendre à l\'étape #2.')).toEqual([])
+  })
+
+  it('does not mistake cookware for an ingredient and vice versa', () => {
+    const text = 'Faire fondre le @beurre dans la #poêle{}.'
+    expect(parseIngredientMentions(text).map((m) => m.displayName)).toEqual(['beurre'])
+    expect(parseCookwareMentions(text).map((m) => m.displayName)).toEqual(['poêle'])
+  })
+
+  it('flags cookware mentions that are not in the recipe (case-insensitive)', () => {
+    const orphans = findOrphanCookwareMentions('Le #Four{} puis le #wok{}.', ['four'])
+    expect(orphans.map((m) => m.displayName)).toEqual(['wok'])
+  })
+
+  it('builds an underscore-joined token', () => {
+    expect(toCookwareToken(' Friteuse à air ')).toBe('#Friteuse_à_air')
   })
 })

@@ -1,23 +1,33 @@
 // Logique partagée entre l'affichage classique d'une recette (RecipeSummary.vue) et le mode
 // cuisine plein écran (RecipeCookMode.vue) : découpage d'une étape en segments (@mentions
-// d'ingrédients, minuteurs "~{...}") et regroupement des ingrédients par group_name.
-import { parseIngredientMentions } from './cooklangMentions'
+// d'ingrédients, #matériel, minuteurs "~{...}") et regroupement des ingrédients par group_name.
+import { parseCookwareMentions, parseIngredientMentions } from './cooklangMentions'
 import { parseTimerMentions } from './cooklangTimers'
-import type { RecipeIngredient } from '../types/models'
+import type { Cookware, RecipeIngredient } from '../types/models'
 
 export interface StepSegment {
   text: string
   ingredientId?: number
+  // Présent (éventuellement `undefined` si le matériel n'est pas dans la recette) pour un #matériel.
+  cookware?: { id?: number }
   timerSeconds?: number
   timerLabel?: string
 }
 
-export function buildStepSegments(instruction: string, ingredients: RecipeIngredient[]): StepSegment[] {
+export function buildStepSegments(
+  instruction: string,
+  ingredients: RecipeIngredient[],
+  cookware: Cookware[] = [],
+): StepSegment[] {
   const mentions = parseIngredientMentions(instruction).map((mention) => ({ kind: 'mention' as const, ...mention }))
+  const cookwareMentions = parseCookwareMentions(instruction).map((mention) => ({
+    kind: 'cookware' as const,
+    ...mention,
+  }))
   const timers = parseTimerMentions(instruction)
     .filter((timer) => timer.totalSeconds !== null)
     .map((timer) => ({ kind: 'timer' as const, ...timer }))
-  const ranges = [...mentions, ...timers].sort((a, b) => a.start - b.start)
+  const ranges = [...mentions, ...cookwareMentions, ...timers].sort((a, b) => a.start - b.start)
   if (!ranges.length) return [{ text: instruction }]
 
   const segments: StepSegment[] = []
@@ -31,6 +41,9 @@ export function buildStepSegments(instruction: string, ingredients: RecipeIngred
         (item) => item.ingredient.name.toLowerCase() === range.displayName.toLowerCase(),
       )
       segments.push({ text: range.displayName, ingredientId: match?.ingredient.id })
+    } else if (range.kind === 'cookware') {
+      const match = cookware.find((item) => item.name.toLowerCase() === range.displayName.toLowerCase())
+      segments.push({ text: range.displayName, cookware: { id: match?.id } })
     } else {
       segments.push({
         text: instruction.slice(range.start, range.end),

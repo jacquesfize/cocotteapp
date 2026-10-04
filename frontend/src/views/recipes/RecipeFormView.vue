@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CooklangStepInput from '../../components/recipes/CooklangStepInput.vue'
+import CookwarePicker from '../../components/recipes/CookwarePicker.vue'
 import FreeImageSuggestions from '../../components/recipes/FreeImageSuggestions.vue'
 import ImageUploadWithCredit from '../../components/shared/ImageUploadWithCredit.vue'
 import IngredientPicker from '../../components/recipes/IngredientPicker.vue'
@@ -19,7 +20,7 @@ import {
 import { formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { FreeImageSuggestion, RecipeInput } from '../../types/models'
-import type { DietType, Ingredient, Unit } from '../../types/models'
+import type { Cookware, DietType, Ingredient, Unit } from '../../types/models'
 import { takePendingImportDraft, type PendingImportDraft } from '../../utils/pendingImportDraft'
 
 const props = defineProps<{
@@ -78,6 +79,7 @@ async function handleCooklangSubmit() {
       source_type: 'cooklang',
       steps: preview.steps,
       ingredients: preview.ingredients,
+      cookware: preview.cookware,
     })
     creationMode.value = 'manual'
   } catch (error) {
@@ -89,7 +91,7 @@ async function handleCooklangSubmit() {
   }
 }
 
-const form = ref<Omit<RecipeInput, 'ingredients' | 'steps'>>({
+const form = ref<Omit<RecipeInput, 'ingredients' | 'steps' | 'cookware_ids'>>({
   title: '',
   description: '',
   servings: 4,
@@ -186,6 +188,24 @@ function emptyStepRow(order: number): StepRow {
   }
 }
 
+// Matériel de la recette, et noms de `#matériel` d'un Cooklang collé qui ne correspondent à rien
+// dans la bibliothèque : proposés à la création (un clic) plutôt que créés d'office.
+const selectedCookware = ref<Cookware[]>([])
+const unmatchedCookwareNames = ref<string[]>([])
+const cookwarePickerRef = ref<InstanceType<typeof CookwarePicker> | null>(null)
+const knownCookwareNames = computed(() => selectedCookware.value.map((item) => item.name))
+
+async function createUnmatchedCookware(name: string) {
+  await cookwarePickerRef.value?.create(name)
+  unmatchedCookwareNames.value = unmatchedCookwareNames.value.filter((item) => item !== name)
+}
+
+function handleMentionCookware(cookware: Cookware) {
+  if (!selectedCookware.value.some((item) => item.id === cookware.id)) {
+    selectedCookware.value = [...selectedCookware.value, cookware]
+  }
+}
+
 const ingredientRows = ref<IngredientRow[]>([
   { ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 },
 ])
@@ -233,6 +253,7 @@ onMounted(async () => {
       image_credit_license_url: recipe.image_credit_license_url,
       image_credit_note: recipe.image_credit_note,
     }
+    selectedCookware.value = recipe.cookware ?? []
     currentImageUrl.value = recipe.image || ''
     originalImageUrl.value = recipe.image_url || ''
     ingredientRows.value = recipe.ingredients.map((item) => ({
@@ -296,6 +317,8 @@ function applyImportDraft(draft: PendingImportDraft) {
     order: index + 1,
   }))
   if (!ingredientRows.value.length) addIngredientRow()
+  selectedCookware.value = (draft.cookware ?? []).flatMap((item) => (item.cookware ? [item.cookware] : []))
+  unmatchedCookwareNames.value = (draft.cookware ?? []).filter((item) => !item.cookware).map((item) => item.name)
   stepRows.value = draft.steps.map((step) => ({ ...emptyStepRow(step.order), instruction: step.instruction }))
   if (!stepRows.value.length) stepRows.value = [emptyStepRow(1)]
 }
@@ -386,6 +409,7 @@ async function handleSubmit() {
 
   const payload: RecipeInput = {
     ...form.value,
+    cookware_ids: selectedCookware.value.map((item) => item.id),
     ingredients: ingredientRows.value.map((row, index) => ({
       ingredient_id: (row.ingredient as Ingredient).id,
       quantity: row.quantity,
@@ -585,6 +609,26 @@ async function handleSubmit() {
       </div>
 
       <div class="card" style="margin-top: 1rem">
+        <h2>{{ $t('cookware.title') }}</h2>
+        <div class="field">
+          <label for="cookware">{{ $t('cookware.label') }}</label>
+          <CookwarePicker id="cookware" ref="cookwarePickerRef" v-model="selectedCookware" />
+        </div>
+        <div v-if="unmatchedCookwareNames.length" class="unmatched-cookware">
+          <span class="not-found-badge">{{ $t('cookware.importNotFound') }}</span>
+          <button
+            v-for="name in unmatchedCookwareNames"
+            :key="name"
+            type="button"
+            class="secondary"
+            @click="createUnmatchedCookware(name)"
+          >
+            <Plus :size="14" />{{ $t('ingredientPicker.create', { name }) }}
+          </button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.steps') }}</h2>
         <div v-for="(step, index) in stepRows" :key="index" class="step-row">
           <div class="row" style="align-items: flex-end">
@@ -594,7 +638,9 @@ async function handleSubmit() {
                 :id="`step-${index}`"
                 v-model="step.instruction"
                 :ingredient-names="knownIngredientNames"
+                :cookware-names="knownCookwareNames"
                 @add-ingredient="handleMentionIngredient"
+                @add-cookware="handleMentionCookware"
               />
             </div>
             <button
@@ -780,6 +826,17 @@ async function handleSubmit() {
 .copyright-notice ul {
   margin: 0;
   padding-left: 1.25rem;
+}
+
+.unmatched-cookware {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.unmatched-cookware .not-found-badge {
+  margin-top: 0;
 }
 
 .not-found-badge {

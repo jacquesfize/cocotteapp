@@ -11,6 +11,13 @@ vi.mock('../../src/api/recipes', () => ({
   uploadRecipeImage: vi.fn(),
   previewRecipeFromCooklang: vi.fn(),
 }))
+vi.mock('../../src/api/cookware', () => ({
+  listCookware: vi.fn().mockResolvedValue([
+    { id: 1, name: 'Four', slug: 'four', translations: { en: 'oven' } },
+    { id: 2, name: 'Friteuse à air', slug: 'friteuse-a-air', translations: {} },
+  ]),
+  createCookware: vi.fn(),
+}))
 vi.mock('../../src/api/importer', () => ({ suggestFreeImages: vi.fn() }))
 vi.mock('../../src/api/allergens', () => ({ listAllergens: vi.fn().mockResolvedValue([]) }))
 vi.mock('../../src/api/ingredients', () => ({
@@ -18,6 +25,7 @@ vi.mock('../../src/api/ingredients', () => ({
   createIngredient: vi.fn(),
 }))
 
+import { createCookware } from '../../src/api/cookware'
 import { suggestFreeImages } from '../../src/api/importer'
 import { createRecipe, previewRecipeFromCooklang } from '../../src/api/recipes'
 import { setPendingImportDraft } from '../../src/utils/pendingImportDraft'
@@ -92,6 +100,7 @@ function cooklangPreview(overrides?: Partial<CooklangPreview>): CooklangPreview 
       },
       { raw_line: 'huile_olive', name: 'huile olive', quantity: '2.00', unit: 'tbsp', group_name: '', ingredient: null },
     ],
+    cookware: [],
     ...overrides,
   }
 }
@@ -169,6 +178,37 @@ describe('RecipeFormView - Cooklang import mode', () => {
       }),
     )
     expect(wrapper.vm.$route.fullPath).toBe('/recipes/42')
+  })
+
+  it('pre-selects matched cookware and offers to create the unmatched one, then sends cookware_ids', async () => {
+    vi.mocked(previewRecipeFromCooklang).mockResolvedValue(
+      cooklangPreview({
+        ingredients: cooklangPreview().ingredients.slice(0, 1),
+        cookware: [
+          { name: 'four', cookware: { id: 1, name: 'Four', slug: 'four' } },
+          { name: 'wok', cookware: null },
+        ],
+      }),
+    )
+    vi.mocked(createCookware).mockResolvedValue({ id: 9, name: 'wok', slug: 'wok' })
+    vi.mocked(createRecipe).mockResolvedValue(recipe())
+
+    const wrapper = await mountRecipeForm()
+    await wrapper.findAll('button[role="tab"]')[1].trigger('click')
+    await wrapper.find('#cooklang-text').setValue('Cuire au #four{} puis au #wok{}.')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Matériel absent de la bibliothèque')
+    const createButton = wrapper.findAll('.unmatched-cookware button').find((b) => b.text().includes('wok'))
+    await createButton!.trigger('click')
+    await flushPromises()
+    expect(createCookware).toHaveBeenCalledWith({ name: 'wok' })
+    expect(wrapper.find('.unmatched-cookware').exists()).toBe(false)
+
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+    expect(createRecipe).toHaveBeenCalledWith(expect.objectContaining({ cookware_ids: [1, 9] }))
   })
 
   it('shows an error message when the import fails', async () => {

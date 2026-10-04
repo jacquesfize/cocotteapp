@@ -1,4 +1,4 @@
-import type { Ingredient, Unit } from '../types/models'
+import type { Cookware, Ingredient, Unit } from '../types/models'
 
 // Passage de main en mémoire entre RecipeListView (lancement de l'import) et RecipeFormView
 // (vérification/correction des ingrédients rapprochés + édition + soumission, qui a déjà tout
@@ -27,6 +27,7 @@ export interface PendingImportDraft {
   description?: string
   prep_time_minutes?: number
   source_type?: 'cooklang'
+  cookware?: { name: string; cookware: Cookware | null }[]
   steps: { instruction: string; order: number }[]
   ingredients: PendingImportIngredientRow[]
 }

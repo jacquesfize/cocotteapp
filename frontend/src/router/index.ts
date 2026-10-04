@@ -145,6 +145,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresStaff: true },
   },
   {
+    path: '/admin/cookware',
+    name: 'admin-cookware',
+    component: () => import('../views/admin/AdminCookwareView.vue'),
+    meta: { requiresStaff: true },
+  },
+  {
     path: '/legal',
     name: 'legal',
     component: () => import('../views/LegalView.vue'),

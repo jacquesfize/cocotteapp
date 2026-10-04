@@ -1,0 +1,108 @@
+/* vue-multiselect aux couleurs du site (pilules couleur primaire pour les valeurs choisies),
+   partagé par les filtres de recettes et le choix du matériel dans le formulaire de recette :
+   ajouter la classe `themed-multiselect` à un ancêtre du composant. */
+.themed-multiselect .multiselect {
+  min-height: 2.75rem;
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+.themed-multiselect .multiselect__tags {
+  min-height: 2.75rem;
+  padding: 0.45rem 2.5rem 0 0.6rem;
+  border: 1.5px solid var(--color-primary-soft);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 0.92rem;
+}
+.themed-multiselect .multiselect--active .multiselect__tags {
+  border-color: var(--color-primary);
+}
+.themed-multiselect .multiselect__input,
+.themed-multiselect .multiselect__single,
+.themed-multiselect .multiselect__placeholder {
+  min-height: auto;
+  border: 0;
+  padding: 0 0 0 0.2rem;
+  margin-bottom: 0.45rem;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+.themed-multiselect .multiselect__placeholder {
+  color: var(--color-muted);
+  padding-top: 0.15rem;
+}
+.themed-multiselect .multiselect__tag {
+  margin: 0 0.3rem 0.4rem 0;
+  padding: 0.25rem 1.7rem 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+.themed-multiselect .multiselect__tag-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  width: 1.4rem;
+}
+.themed-multiselect .multiselect__tag-icon::after {
+  color: var(--color-on-primary);
+  opacity: 0.85;
+}
+.themed-multiselect .multiselect__tag-icon:focus,
+.themed-multiselect .multiselect__tag-icon:hover {
+  background: var(--color-primary-dark);
+}
+.themed-multiselect .multiselect__tag-icon:focus::after,
+.themed-multiselect .multiselect__tag-icon:hover::after {
+  color: var(--color-on-primary);
+  opacity: 1;
+}
+.themed-multiselect .multiselect__select {
+  height: 2.6rem;
+}
+.themed-multiselect .multiselect__select::before {
+  border-color: var(--color-muted) transparent transparent;
+}
+.themed-multiselect .multiselect__spinner {
+  background: transparent;
+}
+.themed-multiselect .multiselect__spinner::before,
+.themed-multiselect .multiselect__spinner::after {
+  border-top-color: var(--color-primary);
+}
+.themed-multiselect .multiselect__content-wrapper {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  border-radius: 0 0 12px 12px;
+  box-shadow: var(--shadow-card);
+}
+.themed-multiselect .multiselect--above .multiselect__content-wrapper {
+  border-radius: 12px 12px 0 0;
+}
+.themed-multiselect .multiselect__option {
+  min-height: 2.4rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+}
+.themed-multiselect .multiselect__option--highlight,
+.themed-multiselect .multiselect__option--highlight::after {
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+.themed-multiselect .multiselect__option--selected {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 700;
+}
+.themed-multiselect .multiselect__option--selected.multiselect__option--highlight,
+.themed-multiselect .multiselect__option--selected.multiselect__option--highlight::after {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+.themed-multiselect .option-emoji {
+  margin-right: 0.4rem;
+}

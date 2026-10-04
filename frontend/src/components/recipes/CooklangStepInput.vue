@@ -1,32 +1,51 @@
 <script setup lang="ts">
-import { AtSign, TriangleAlert, Timer } from '@lucide/vue'
+import { AtSign, CookingPot, TriangleAlert, Timer } from '@lucide/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
 import { useDebouncedSearch } from '../../composables/useDebouncedSearch'
+import { createCookware, listCookware } from '../../api/cookware'
 import { listIngredients } from '../../api/ingredients'
-import { findOrphanMentions, toMentionToken } from '../../utils/cooklangMentions'
-import type { Ingredient } from '../../types/models'
+import {
+  findOrphanCookwareMentions,
+  findOrphanMentions,
+  toCookwareToken,
+  toMentionToken,
+} from '../../utils/cooklangMentions'
+import type { Cookware, Ingredient } from '../../types/models'
 
 const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: string
   ingredientNames: string[]
+  // Matériel déjà sélectionné pour la recette (mentions "#matériel").
+  cookwareNames?: string[]
   id?: string
 }>()
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'add-ingredient': [ingredient: Ingredient]
+  'add-cookware': [cookware: Cookware]
 }>()
+
+// "@" mentionne un ingrédient, "#" un matériel : même mécanique d'auto-complétion, seules la
+// source des suggestions et la création à la volée changent.
+type MentionKind = 'ingredient' | 'cookware'
 
 const textareaEl = ref<HTMLTextAreaElement | null>(null)
 const isOpen = ref(false)
 const mentionStart = ref<number | null>(null)
 const mentionQuery = ref('')
+const mentionKind = ref<MentionKind>('ingredient')
 const showCreateModal = ref(false)
-const { results: dbSuggestions, search, cancel } = useDebouncedSearch<Ingredient>(
-  async (value) => (await listIngredients({ search: value.replace(/_/g, ' ') })).results,
+const createError = ref('')
+const { results: dbSuggestions, search, cancel } = useDebouncedSearch<Ingredient | Cookware>(
+  async (value) => {
+    const query = value.replace(/_/g, ' ')
+    if (mentionKind.value === 'cookware') return listCookware(query ? { search: query } : {})
+    return (await listIngredients({ search: query })).results
+  },
   { onResults: () => { isOpen.value = true } },
 )
 
@@ -39,8 +58,9 @@ const exactMatch = computed(() =>
 )
 
 const orphanMentions = computed(() => findOrphanMentions(props.modelValue, props.ingredientNames))
+const orphanCookware = computed(() => findOrphanCookwareMentions(props.modelValue, props.cookwareNames ?? []))
 
-watch(mentionQuery, (value) => {
+watch([mentionQuery, mentionKind], ([value]) => {
   if (!value) {
     cancel()
     dbSuggestions.value = []
@@ -52,11 +72,14 @@ watch(mentionQuery, (value) => {
 
 function detectMention(text: string, cursor: number) {
   const upToCursor = text.slice(0, cursor)
-  const at = upToCursor.lastIndexOf('@')
+  const at = Math.max(upToCursor.lastIndexOf('@'), upToCursor.lastIndexOf('#'))
   if (at === -1) return null
   const between = upToCursor.slice(at + 1)
   if (/\s/.test(between)) return null
-  return { start: at, query: between }
+  const kind: MentionKind = upToCursor[at] === '#' ? 'cookware' : 'ingredient'
+  // "étape #2" n'est pas une mention de matériel (cf. COOKWARE_RE dans cooklangMentions.ts).
+  if (kind === 'cookware' && /^\d/.test(between)) return null
+  return { start: at, query: between, kind }
 }
 
 function handleInput(event: Event) {
@@ -66,6 +89,7 @@ function handleInput(event: Event) {
   const mention = detectMention(target.value, target.selectionStart)
   if (mention) {
     mentionStart.value = mention.start
+    mentionKind.value = mention.kind
     mentionQuery.value = mention.query
   } else {
     isOpen.value = false
@@ -79,7 +103,8 @@ function insertToken(name: string) {
   if (mentionStart.value === null) return
   const start = mentionStart.value
   const end = start + 1 + mentionQuery.value.length
-  const token = `${toMentionToken(name)} `
+  const toToken = mentionKind.value === 'cookware' ? toCookwareToken : toMentionToken
+  const token = `${toToken(name)} `
   const next = props.modelValue.slice(0, start) + token + props.modelValue.slice(end)
   emit('update:modelValue', next)
   // Annule une recherche en cours (lancée par la frappe précédente, pas encore résolue) : sinon
@@ -95,20 +120,31 @@ function insertToken(name: string) {
   })
 }
 
-function selectSuggestion(ingredient: Ingredient) {
-  insertToken(ingredient.name)
-  const alreadyInRecipe = props.ingredientNames.some(
-    (name) => name.toLowerCase() === ingredient.name.toLowerCase(),
-  )
-  if (!alreadyInRecipe) {
-    emit('add-ingredient', ingredient)
-  }
+function selectSuggestion(item: Ingredient | Cookware) {
+  insertToken(item.name)
+  const known = mentionKind.value === 'cookware' ? (props.cookwareNames ?? []) : props.ingredientNames
+  const alreadyInRecipe = known.some((name) => name.toLowerCase() === item.name.toLowerCase())
+  if (alreadyInRecipe) return
+  if (mentionKind.value === 'cookware') emit('add-cookware', item as Cookware)
+  else emit('add-ingredient', item as Ingredient)
 }
 
-function openCreateModal() {
+async function openCreateModal() {
   cancel()
   isOpen.value = false
-  showCreateModal.value = true
+  createError.value = ''
+  if (mentionKind.value === 'ingredient') {
+    showCreateModal.value = true
+    return
+  }
+  // Un matériel n'a qu'un nom : créé directement, sans formulaire.
+  try {
+    const cookware = await createCookware({ name: mentionQueryDisplay.value.trim() })
+    insertToken(cookware.name)
+    emit('add-cookware', cookware)
+  } catch {
+    createError.value = t('cookware.createError')
+  }
 }
 
 function handleIngredientCreated(ingredient: Ingredient) {
@@ -133,13 +169,15 @@ function insertAtCursor(text: string, select?: [number, number]) {
   return from
 }
 
-async function insertMentionTemplate() {
-  const at = insertAtCursor('@')
+async function insertMentionTemplate(kind: MentionKind = 'ingredient') {
+  const at = insertAtCursor(kind === 'cookware' ? '#' : '@')
   mentionStart.value = at
+  mentionKind.value = kind
   mentionQuery.value = ''
   await nextTick()
   cancel()
-  dbSuggestions.value = (await listIngredients({ search: '' })).results
+  dbSuggestions.value =
+    kind === 'cookware' ? await listCookware() : (await listIngredients({ search: '' })).results
   isOpen.value = true
 }
 
@@ -178,9 +216,18 @@ function closeSoon() {
           class="secondary template-btn"
           data-testid="insert-ingredient"
           @mousedown.prevent
-          @click="insertMentionTemplate"
+          @click="insertMentionTemplate('ingredient')"
         >
           <AtSign :size="14" />{{ t('recipes.insertIngredient') }}
+        </button>
+        <button
+          type="button"
+          class="secondary template-btn"
+          data-testid="insert-cookware"
+          @mousedown.prevent
+          @click="insertMentionTemplate('cookware')"
+        >
+          <CookingPot :size="14" />{{ t('recipes.insertCookware') }}
         </button>
         <button
           type="button"
@@ -195,13 +242,13 @@ function closeSoon() {
     </div>
     <ul v-if="isOpen" class="suggestions-dropdown">
       <li
-        v-for="ingredient in dbSuggestions"
-        :key="ingredient.id"
-        @mousedown.prevent="selectSuggestion(ingredient)"
+        v-for="item in dbSuggestions"
+        :key="item.id"
+        @mousedown.prevent="selectSuggestion(item)"
       >
-        {{ ingredient.name }}
+        {{ item.name }}
       </li>
-      <li v-if="!exactMatch" class="create" @mousedown.prevent="openCreateModal">
+      <li v-if="!exactMatch && mentionQueryDisplay.trim()" class="create" @mousedown.prevent="openCreateModal">
         {{ t('ingredientPicker.create', { name: mentionQueryDisplay }) }}
       </li>
     </ul>
@@ -209,6 +256,11 @@ function closeSoon() {
       <TriangleAlert :size="14" />
       {{ t('recipes.mentionOrphan', { name: mention.displayName }) }}
     </p>
+    <p v-for="mention in orphanCookware" :key="`cookware-${mention.start}`" class="mention-warning">
+      <TriangleAlert :size="14" />
+      {{ t('recipes.cookwareMentionOrphan', { name: mention.displayName }) }}
+    </p>
+    <p v-if="createError" class="mention-warning" role="alert">{{ createError }}</p>
 
     <IngredientEditModal
       v-if="showCreateModal"

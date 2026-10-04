@@ -19,7 +19,8 @@
     "administration": "Administration",
     "adminIngredients": "Ingredients",
     "language": "Language: {name}",
-    "blog": "Blog"
+    "blog": "Blog",
+    "adminCookware": "Cookware"
   },
   "common": {
     "loading": "Loading...",
@@ -159,7 +160,7 @@
     "addIngredient": "Add an ingredient",
     "step": "Step {n}",
     "addStep": "Add a step",
-    "stepPlaceholder": "Type \\@ to link an ingredient from the recipe",
+    "stepPlaceholder": "Type \\@ to link an ingredient, # for cookware",
     "insertIngredient": "Ingredient",
     "insertTimer": "Duration",
     "mentionOrphan": "\"{name}\" isn't in the ingredient list above.",
@@ -217,7 +218,9 @@
     "copyrightNoticeFacts": "The ingredient list, quantities and times are facts: they aren't protected by copyright and are always public.",
     "copyrightNoticeText": "The steps and description as written on the source website are protected: rewrite them in your own words rather than copying them or changing a few words.",
     "copyrightNoticeImage": "The source website's photos are protected too: use your own photo, or pick one with \"Suggest a free image\".",
-    "stepsNotRewritten": "Some steps are still identical to the imported recipe. Rewrite them in your own words before making the recipe public, or uncheck the box."
+    "stepsNotRewritten": "Some steps are still identical to the imported recipe. Rewrite them in your own words before making the recipe public, or uncheck the box.",
+    "insertCookware": "Cookware",
+    "cookwareMentionOrphan": "\"#{name}\" is not in this recipe's cookware."
   },
   "imageLicense": {
     "ccBy": "CC BY (Attribution)",
@@ -765,5 +768,38 @@
     "cookiesText": "Cocotte uses no tracking or advertising cookies. Only strictly necessary storage is used in your browser (login tokens, language and appearance, offline cache), so no cookie banner is required.",
     "complaintTitle": "Complaint",
     "complaintText": "If you believe your rights are not respected, you can lodge a complaint with your data protection authority (in France, the CNIL: www.cnil.fr)."
+  },
+  "cookware": {
+    "title": "Cookware",
+    "label": "Cookware needed",
+    "placeholder": "Oven, frying pan...",
+    "createHint": "Press Enter to create this cookware",
+    "noOptions": "No cookware found.",
+    "createError": "Could not create this cookware.",
+    "importNotFound": "Cookware not found in the library:",
+    "seeRecipes": "See recipes using: {name}",
+    "filter": "Cookware",
+    "filterPlaceholder": "Oven, air fryer..."
+  },
+  "adminCookware": {
+    "title": "Cookware",
+    "subtitle": "Manage the cookware library offered in the recipe form and filters.",
+    "addButton": "New cookware",
+    "newTitle": "New cookware",
+    "editTitle": "Edit cookware",
+    "search": "Search",
+    "searchPlaceholder": "French or English name...",
+    "empty": "No cookware matches this search.",
+    "colName": "Name",
+    "colNameEn": "English name",
+    "nameRequired": "Enter a name.",
+    "duplicate": "This cookware already exists.",
+    "saveError": "Could not save this cookware.",
+    "deleteButton": "Delete this cookware",
+    "deleteConfirm": "Permanently delete cookware \"{name}\"? It will be removed from every recipe that uses it.",
+    "deleteError": "Could not delete this cookware.",
+    "emoji": "Emoji",
+    "image": "Photo",
+    "imageRemove": "Remove the photo"
   }
 }

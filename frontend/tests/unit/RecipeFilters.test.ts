@@ -10,6 +10,13 @@ vi.mock('../../src/api/allergens', () => ({
     { slug: 'gluten', name: 'Gluten' },
   ]),
 }))
+vi.mock('../../src/api/cookware', () => ({
+  listCookware: vi.fn().mockResolvedValue([
+    { id: 1, name: 'Four', slug: 'four', translations: { en: 'oven' } },
+    { id: 2, name: 'Friteuse à air', slug: 'friteuse-a-air', translations: {} },
+  ]),
+  createCookware: vi.fn(),
+}))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({
     results: [{ id: 1, name: 'Tomate' }, { id: 2, name: 'Oignon' }],
@@ -32,6 +39,7 @@ function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilter
     in_season: false,
     carbon_level: '',
     exclude_allergens: '',
+    cookware: '',
     ...overrides,
   }
 }
@@ -167,7 +175,7 @@ describe('RecipeFilters', () => {
 
   it('lists excluded allergens as pills, with a shortcut to add the profile ones', async () => {
     const { wrapper, state } = await mountFilters({ exclude_allergens: 'gluten' }, ['peanut', 'lactose'])
-    const allergenField = wrapper.findAll('.multiselect')[1]
+    const allergenField = wrapper.findAll('.multiselect')[2]
     expect(allergenField.findAll('.multiselect__tag').map((tag) => tag.text())).toEqual(['Gluten'])
 
     await wrapper.find('[data-testid="add-my-allergens"]').trigger('click')
@@ -215,5 +223,16 @@ describe('RecipeFilters', () => {
     expect(state.filters).toEqual(emptyFilters())
     expect(wrapper.find('[data-testid="filters-badge"]').exists()).toBe(false)
     expect(reset.attributes('disabled')).toBeDefined()
+  })
+
+  it('filters by cookware slugs, shown as removable chips with their names', async () => {
+    const { wrapper, state } = await mountFilters({ cookware: 'four' })
+
+    const field = wrapper.find('#cookware').element.closest('.multiselect') as HTMLElement
+    expect([...field.querySelectorAll('.multiselect__tag')].map((tag) => tag.textContent?.trim())).toEqual(['Four'])
+
+    const chip = wrapper.findAll('.active-filters--mobile .filter-chip').find((c) => c.text() === 'Four')
+    await chip!.trigger('click')
+    expect(state.filters.cookware).toBe('')
   })
 })
