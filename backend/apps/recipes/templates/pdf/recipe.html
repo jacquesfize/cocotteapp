@@ -1,5 +1,5 @@
 {% extends "pdf/base.html" %}
-{% load unit_labels %}
+{% load unit_labels cooklang_steps %}
 
 {% block title %}{{ recipe.title }}{% endblock %}
 
@@ -34,7 +34,7 @@
     <h2>Étapes</h2>
     <ol>
       {% for step in recipe.steps.all %}
-      <li>{{ step.instruction }}</li>
+      <li>{{ step.instruction|cooklang_step }}</li>
       {% endfor %}
     </ol>
   </div>
