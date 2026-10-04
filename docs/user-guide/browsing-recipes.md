@@ -259,6 +259,9 @@ These are estimates computed from the ingredients. See
 Click **Download as PDF**, next to the summary chips, to get a printable PDF of the recipe. On
 small screens the button shows only a download icon.
 
+In the PDF steps, ingredient mentions are printed in bold, cookware is underlined and timers
+(e.g. **20 minutes**) are highlighted, so they stand out on paper like on the recipe page.
+
 ### Add to the planner
 
 Logged-in users see an **Add to planner** card below the recipe:
