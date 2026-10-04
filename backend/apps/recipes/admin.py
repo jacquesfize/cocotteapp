@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
+from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -18,7 +18,14 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = ["title", "author", "diet_type", "total_time_minutes", "is_public"]
     list_filter = ["diet_type", "is_public"]
     search_fields = ["title"]
+    filter_horizontal = ["cookware"]
     inlines = [RecipeIngredientInline, RecipeStepInline]
+
+
+@admin.register(Cookware)
+class CookwareAdmin(admin.ModelAdmin):
+    list_display = ["name", "emoji", "slug", "translations"]
+    search_fields = ["name"]
 
 
 admin.site.register(Tag)

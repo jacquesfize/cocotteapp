@@ -10,8 +10,8 @@ from rest_framework.test import APIClient
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 from apps.ingredients.models import Ingredient
-from apps.recipes.factories import RecipeFactory, RecipeIngredientFactory
-from apps.recipes.models import Recipe, RecipeStep, Tag
+from apps.recipes.factories import CookwareFactory, RecipeFactory, RecipeIngredientFactory
+from apps.recipes.models import Cookware, Recipe, RecipeStep, Tag
 
 
 def _client(user):
@@ -57,6 +57,7 @@ def test_round_trip_into_another_account(tmp_path, settings):
     source_user = UserFactory()
     recipe = RecipeFactory(author=source_user, title="Curry", diet_type="vegan")
     recipe.tags.add(Tag.objects.create(name="Épicé"))
+    recipe.cookware.add(CookwareFactory(name="Cocotte", translations={"en": "dutch oven"}))
     RecipeIngredientFactory(recipe=recipe, ingredient=IngredientFactory(name="Lentilles", calories_kcal=116))
     RecipeStep.objects.create(recipe=recipe, order=1, instruction="Cuire.")
     fork = RecipeFactory(author=source_user, title="Curry doux", root_recipe=recipe, version_label="Doux")
@@ -70,6 +71,7 @@ def test_round_trip_into_another_account(tmp_path, settings):
     Recipe.objects.all().delete()
     Ingredient.objects.all().delete()
     Tag.objects.all().delete()
+    Cookware.objects.all().delete()
     target_user = UserFactory()
     response = _client(target_user).post("/api/recipes/import-archive/", _upload(archive), format="multipart")
 
@@ -79,6 +81,7 @@ def test_round_trip_into_another_account(tmp_path, settings):
     assert imported.author == target_user
     assert imported.diet_type == "vegan"
     assert imported.tags.get().name == "Épicé"
+    assert (imported.cookware.get().name, imported.cookware.get().translations) == ("Cocotte", {"en": "dutch oven"})
     assert imported.steps.get().instruction == "Cuire."
     assert imported.recipe_ingredients.get().ingredient.calories_kcal == 116
     assert imported.image

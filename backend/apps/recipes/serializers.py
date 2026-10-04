@@ -7,7 +7,7 @@ from apps.ingredients.serializers import IngredientSerializer
 from apps.nutrition.services import compute_recipe_carbon_footprint
 
 from .image_credit import validate_image_credit
-from .models import ImageLicense, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
+from .models import Cookware, ImageLicense, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
 from .rating_utils import voter_hash_for_request
 from .youtube import extract_youtube_id
 
@@ -24,6 +24,42 @@ class RelativeImageField(serializers.ImageField):
 
     def to_representation(self, value):
         return value.url if value else None
+
+
+class CookwareSerializer(serializers.ModelSerializer):
+    image = RelativeImageField(read_only=True)
+
+    class Meta:
+        model = Cookware
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "emoji",
+            "image",
+            "image_license",
+            "image_credit_author",
+            "image_credit_source_url",
+            "image_credit_license_url",
+            "translations",
+        ]
+        # Le crédit ne change qu'avec la photo, via `PATCH /api/cookware/{id}/image/`.
+        read_only_fields = [
+            "slug",
+            "image_license",
+            "image_credit_author",
+            "image_credit_source_url",
+            "image_credit_license_url",
+        ]
+
+    def validate_name(self, value):
+        value = value.strip()
+        duplicate = Cookware.objects.filter(name__iexact=value)
+        if self.instance is not None:
+            duplicate = duplicate.exclude(pk=self.instance.pk)
+        if duplicate.exists():
+            raise serializers.ValidationError("Ce matériel existe déjà.")
+        return value
 
 
 class ThematicPageSerializer(serializers.ModelSerializer):
@@ -109,6 +145,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(source="recipe_ingredients", many=True, required=False)
     steps = RecipeStepSerializer(many=True, required=False)
     tags = TagSerializer(many=True, read_only=True)
+    cookware = CookwareSerializer(many=True, read_only=True)
+    cookware_ids = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Cookware.objects.all(), source="cookware", write_only=True, required=False
+    )
     author = serializers.ReadOnlyField(source="author.username")
     author_id = serializers.ReadOnlyField(source="author.id")
     youtube_id = serializers.SerializerMethodField()
@@ -159,6 +199,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             "ratings_count",
             "my_rating",
             "tags",
+            "cookware",
+            "cookware_ids",
             "ingredients",
             "allergens",
             "allergens_unverified",
@@ -243,7 +285,9 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", [])
         steps_data = validated_data.pop("steps", [])
+        cookware = validated_data.pop("cookware", [])
         recipe = Recipe.objects.create(**validated_data)
+        recipe.cookware.set(cookware)
         self._sync_children(recipe, ingredients_data, replace=False)
         self._sync_steps(recipe, steps_data)
         return recipe
@@ -251,6 +295,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         ingredients_data = validated_data.pop("recipe_ingredients", None)
         steps_data = validated_data.pop("steps", None)
+        cookware = validated_data.pop("cookware", None)
         if steps_data is not None:
             provided_ids = {data["id"] for data in steps_data if data.get("id")}
             unknown_ids = provided_ids - set(instance.steps.values_list("id", flat=True))
@@ -261,6 +306,8 @@ class RecipeSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+        if cookware is not None:
+            instance.cookware.set(cookware)
         if ingredients_data is not None:
             self._sync_children(instance, ingredients_data, replace=True)
         if steps_data is not None:
@@ -313,6 +360,20 @@ class RecipeImageUploadSerializer(serializers.Serializer):
         if value.size > max_size:
             raise serializers.ValidationError("L'image ne doit pas dépasser 8 Mo.")
         return value
+
+
+class CookwareImageUploadSerializer(RecipeImageUploadSerializer):
+    """Backs `PATCH /api/cookware/{id}/image/` : même validation de licence et de crédit que pour
+    une photo de recette, sans la note libre (inutile pour une photo de matériel)."""
+
+    image_credit_note = None
+
+    CREDIT_FIELDS = (
+        "image_license",
+        "image_credit_author",
+        "image_credit_source_url",
+        "image_credit_license_url",
+    )
 
 
 class RecipeStepImageUploadSerializer(RecipeImageUploadSerializer):

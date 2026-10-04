@@ -13,8 +13,9 @@ to what Cocotte needs (see `cooklang_import.py` for the mapping onto the data mo
 - **Legacy metadata** (`>> key: value`, Cooklang v1) is merged into the front-matter metadata.
 - **Tagged steps** are re-serialized in the syntax the frontend renders
   (`frontend/src/utils/cooklangMentions.ts` / `cooklangTimers.ts`): names can't contain spaces
-  there, so `@pasteuriseret æggeblomme{80%g}` becomes `@pasteuriseret_æggeblomme{80%g}`.
-  Cookware is flattened to its plain name.
+  there, so `@pasteuriseret æggeblomme{80%g}` becomes `@pasteuriseret_æggeblomme{80%g}`, and
+  `#fin sigte{}` becomes `#fin_sigte{}` (cookware always keeps its `{}`, so trailing
+  punctuation never sticks to the name).
 """
 import re
 from dataclasses import dataclass, field
@@ -68,8 +69,8 @@ class ParsedIngredient:
 class ParsedRecipe:
     metadata: Metadata = field(default_factory=lambda: Metadata({}))
     steps: list = field(default_factory=list)
-    # Même texte d'étape, mais avec les balises @ingrédient / ~{durée} conservées (le frontend les
-    # affiche en lien / minuteur). Seul le matériel #cookware est aplati.
+    # Même texte d'étape, mais avec les balises @ingrédient / #matériel / ~{durée} conservées (le
+    # frontend les affiche en lien / minuteur).
     tagged_steps: list = field(default_factory=list)
     ingredients: list = field(default_factory=list)
     cookware: list = field(default_factory=list)
@@ -104,7 +105,7 @@ def _render_step(step: Step) -> tuple[str, str]:
             tagged.append(f"@{_token_name(part.name)}{meta}{note}")
         elif isinstance(part, Cookware):
             plain.append(_display_name(part.name))
-            tagged.append(_display_name(part.name))
+            tagged.append(f"#{_token_name(part.name)}{{{part._quantity or ''}}}")
         elif isinstance(part, Timing):
             amount, unit = _split_quantity(part._quantity)
             plain.append(" ".join(filter(None, [amount, unit])) or _display_name(part.name))

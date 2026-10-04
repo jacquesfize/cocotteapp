@@ -17,6 +17,10 @@
 
 {% if recipe.description %}<p>{{ recipe.description }}</p>{% endif %}
 
+{% with cookware=recipe.cookware.all %}{% if cookware %}
+<p><strong>Matériel :</strong> {{ cookware|join:", " }}</p>
+{% endif %}{% endwith %}
+
 <div class="columns">
   <div>
     <h2>Ingrédients</h2>

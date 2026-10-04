@@ -13,11 +13,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from weasyprint import HTML
 
+from apps.ingredients.search import FuzzySearchFilter
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
 from .cooklang_import import CooklangParseError, build_cooklang_preview, create_recipe_from_cooklang
 from .filters import RecipeFilter
-from .models import Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
+from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
 from .pagination import RecipePagination
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
 from .rating_utils import voter_hash_for_request
@@ -25,6 +26,8 @@ from .serializers import (
     AdminThematicPageSerializer,
     CooklangImportSerializer,
     CooklangPreviewSerializer,
+    CookwareImageUploadSerializer,
+    CookwareSerializer,
     RecipeCommentSerializer,
     RecipeImageUploadSerializer,
     RecipeRatingSerializer,
@@ -40,7 +43,7 @@ from .transfer import ArchiveError, build_export_archive, import_archive
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
-        "recipe_ingredients__ingredient__allergens", "steps", "tags", "ratings"
+        "recipe_ingredients__ingredient__allergens", "steps", "tags", "cookware", "ratings"
     )
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
@@ -86,6 +89,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 version_label=version_label,
             )
             fork.tags.set(source.tags.all())
+            fork.cookware.set(source.cookware.all())
             for ingredient in source.recipe_ingredients.all():
                 RecipeIngredient.objects.create(
                     recipe=fork,
@@ -322,6 +326,49 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class CookwareViewSet(viewsets.ModelViewSet):
+    """Bibliothèque de matériel de cuisine. Liste courte (quelques dizaines d'entrées) : pas de
+    pagination, le formulaire de recette et les filtres chargent tout d'un coup. Comme pour les
+    ingrédients, la création est ouverte aux utilisateurs connectés (ajout à la volée depuis le
+    formulaire de recette) ; modification et suppression sont réservées au staff. Supprimer un
+    matériel le retire simplement des recettes qui l'utilisaient."""
+
+    queryset = Cookware.objects.all()
+    serializer_class = CookwareSerializer
+    filter_backends = [FuzzySearchFilter]
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.action in ("update", "partial_update", "destroy", "image"):
+            return [permissions.IsAdminUser()]
+        return [IsAuthenticatedOrReadOnly()]
+
+    def perform_destroy(self, instance):
+        if instance.image:
+            instance.image.delete(save=False)
+        instance.delete()
+
+    @action(detail=True, methods=["patch", "delete"], parser_classes=[MultiPartParser, FormParser])
+    def image(self, request, pk=None):
+        """Staff : `PATCH` (fichier `image` + licence et crédit, comme pour une photo de recette)
+        remplace la photo du matériel, `DELETE` la retire avec son crédit."""
+        cookware = self.get_object()
+        credit = {field: "" for field in CookwareImageUploadSerializer.CREDIT_FIELDS}
+        uploaded = None
+        if request.method == "PATCH":
+            serializer = CookwareImageUploadSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            uploaded = serializer.validated_data.pop("image")
+            credit.update(serializer.validated_data)
+        if cookware.image:
+            cookware.image.delete(save=False)
+        cookware.image = uploaded
+        for field, value in credit.items():
+            setattr(cookware, field, value)
+        cookware.save()
+        return Response(self.get_serializer(cookware).data)
 
 
 class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):
