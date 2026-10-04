@@ -7,7 +7,18 @@ from apps.ingredients.serializers import IngredientSerializer
 from apps.nutrition.services import compute_recipe_carbon_footprint
 
 from .image_credit import validate_image_credit
-from .models import Cookware, ImageLicense, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, Tag, ThematicPage
+from .models import (
+    Cookware,
+    ImageLicense,
+    PersonalTag,
+    Recipe,
+    RecipeComment,
+    RecipeIngredient,
+    RecipeRating,
+    RecipeStep,
+    Tag,
+    ThematicPage,
+)
 from .rating_utils import voter_hash_for_request
 from .youtube import extract_youtube_id
 
@@ -16,6 +27,52 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ["id", "name", "kind"]
+
+
+class PersonalTagSerializer(serializers.ModelSerializer):
+    """Étiquette personnelle de l'utilisateur connecté (`/api/personal-tags/`). `recipes_count`
+    vient de l'annotation du viewset, sinon (juste après une création) d'une requête."""
+
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PersonalTag
+        fields = ["id", "name", "emoji", "color", "recipes_count"]
+
+    def get_recipes_count(self, obj):
+        count = getattr(obj, "recipes_count", None)
+        return obj.recipes.count() if count is None else count
+
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Le nom de l'étiquette ne peut pas être vide.")
+        owner = self.instance.owner if self.instance is not None else self.context["request"].user
+        duplicate = PersonalTag.objects.filter(owner=owner, name__iexact=value)
+        if self.instance is not None:
+            duplicate = duplicate.exclude(pk=self.instance.pk)
+        if duplicate.exists():
+            raise serializers.ValidationError("Vous avez déjà une étiquette de ce nom.")
+        return value
+
+    def validate_emoji(self, value):
+        return value.strip()
+
+
+class RecipeMyTagsSerializer(serializers.Serializer):
+    """Input for `PUT /api/recipes/{id}/my-tags/`: the complete set of the caller's own tags to
+    put on the recipe. Another user's tag id is rejected as unknown."""
+
+    tag_ids = serializers.PrimaryKeyRelatedField(many=True, queryset=PersonalTag.objects.none())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context["request"].user
+        self.fields["tag_ids"].child_relation.queryset = PersonalTag.objects.filter(owner=user)
+
+
+def my_tags_data(tags):
+    return [{"id": tag.id, "name": tag.name, "emoji": tag.emoji, "color": tag.color} for tag in tags]
 
 
 class RelativeImageField(serializers.ImageField):
@@ -160,6 +217,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     ratings_count = serializers.SerializerMethodField()
     my_rating = serializers.SerializerMethodField()
+    my_tags = serializers.SerializerMethodField()
 
     # Champs retirés de la réponse par `to_representation` quand `content_restricted` est vrai
     # pour le visiteur : le contenu rédactionnel copié de la source (texte des étapes, description),
@@ -198,6 +256,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             "average_rating",
             "ratings_count",
             "my_rating",
+            "my_tags",
             "tags",
             "cookware",
             "cookware_ids",
@@ -254,6 +313,18 @@ class RecipeSerializer(serializers.ModelSerializer):
                 (r for r in obj.ratings.all() if r.user_id is None and r.voter_hash == voter_hash), None
             )
         return match.value if match else None
+
+    def get_my_tags(self, obj):
+        """The requester's own personal tags on this recipe (never anyone else's). Prefetched as
+        `my_personal_tags` by `RecipeViewSet.get_queryset`; queried otherwise."""
+        request = self.context.get("request")
+        user = getattr(request, "user", None) if request else None
+        if user is None or not user.is_authenticated:
+            return []
+        tags = getattr(obj, "my_personal_tags", None)
+        if tags is None:
+            tags = obj.personal_tags.filter(owner=user)
+        return my_tags_data(tags)
 
     def get_versions(self, obj):
         if obj.root_recipe_id is None and not obj.versions.exists():

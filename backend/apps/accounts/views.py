@@ -172,6 +172,7 @@ class ExportDataView(APIView):
         shares_received = PlanningShare.objects.filter(shared_with=user).select_related("owner")
         comments = user.recipe_comments.select_related("recipe")
         ratings = user.recipe_ratings.select_related("recipe")
+        personal_tags = user.personal_tags.prefetch_related("recipes")
         blog_posts = user.blog_posts.all()
         blog_comments = user.blog_comments.select_related("post")
 
@@ -202,6 +203,10 @@ class ExportDataView(APIView):
             "commentaires_blog.json": [
                 {"article": c.post.title, "nom_affiche": c.author_name, "texte": c.body, "date": c.created_at}
                 for c in blog_comments
+            ],
+            "etiquettes.json": [
+                {"nom": tag.name, "emoji": tag.emoji, "couleur": tag.color, "recettes": [r.title for r in tag.recipes.all()]}
+                for tag in personal_tags
             ],
             "notes.json": [
                 {"recette": r.recipe.title, "note": r.value, "date": r.updated_at} for r in ratings

@@ -2,6 +2,7 @@ import client from './client'
 import type { Paginated, RecipeListParams } from '../types/api'
 import type {
   CooklangPreview,
+  PersonalTag,
   Recipe,
   RecipeComment,
   RecipeCommentInput,
@@ -52,6 +53,11 @@ export function deleteRecipe(id: number | string) {
 
 export function listTags(): Promise<Paginated<Tag>> {
   return client.get('tags/').then((r) => r.data)
+}
+
+/** Remplace l'ensemble des étiquettes personnelles du visiteur sur cette recette. */
+export function setRecipeTags(id: number | string, tagIds: number[]): Promise<PersonalTag[]> {
+  return client.put(`recipes/${id}/my-tags/`, { tag_ids: tagIds }).then((r) => r.data)
 }
 
 export interface ImageCreditInput {

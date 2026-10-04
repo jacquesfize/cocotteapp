@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
+from .models import Cookware, PersonalTag, Recipe, RecipeComment, RecipeIngredient, RecipeStep, Tag, ThematicPage
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -29,6 +29,14 @@ class CookwareAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Tag)
+
+
+@admin.register(PersonalTag)
+class PersonalTagAdmin(admin.ModelAdmin):
+    list_display = ["name", "emoji", "color", "owner", "created_at"]
+    search_fields = ["name", "owner__email"]
+    raw_id_fields = ["owner"]
+    filter_horizontal = ["recipes"]
 
 
 @admin.register(RecipeComment)

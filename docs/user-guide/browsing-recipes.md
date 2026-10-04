@@ -67,6 +67,7 @@ time separately), servings, a leaf badge with its carbon footprint, and up to th
 also show:
 
 - the variant name (for example *Gluten-free*), if the recipe is a [variant](#versions-and-variants),
+- your own [tags](personal-tags.md), as colored pills (only you see them),
 - *imported by …* for recipes imported from a website, or *by …* for other people's recipes,
 - a padlock next to the title when the recipe's [content is restricted](#recipes-with-restricted-content),
 - badges for **your** allergens, if the recipe contains any.
@@ -93,6 +94,7 @@ ingredient or allergen) — click a pill's **×** to clear that filter without o
 | **Diet** | A list of choices: **All (flexitarian)**, **Vegetarian** or **Vegan**. A flexitarian eats everything, so there is no separate **Flexitarian** choice: it is the same as **All (flexitarian)**. |
 | **Ingredients** | Type in **Search an ingredient…** and pick ingredients from the list; each one becomes a pill (click its **×** to remove it). Shows recipes that contain **all** the chosen ingredients. To use a name that isn't in the list, type it and press Enter: it must match an ingredient's full name, but case and accents don't matter (`creme fraiche` finds *Crème fraîche*), and the English names of library ingredients work too. |
 | **Cookware** | Pick cookware in **Oven, air fryer...**; each one becomes a pill. Shows recipes that use **at least one** of the chosen items, for example every recipe made in the oven *or* the air fryer. |
+| **My tags** | Shown when you're logged in and have at least one [tag](personal-tags.md). Pick tags in **To try, Birthdays...**; each one becomes a pill. Shows recipes with **at least one** of the chosen tags. |
 | **Max prep time** | A slider, in steps of 5 minutes up to 3 h. All the way to the right means **No limit**. |
 | **Max cook time** | Same as **Max prep time**, for the cook time. |
 | **Carbon impact per serving** | A slider with four positions: **Any**, then **Low (≤ 0.5 kg CO₂e)** (green), **Medium (0.5 to 1.5 kg CO₂e)** (orange) and **High (> 1.5 kg CO₂e)** (red) — the same colours as the leaf badge on each recipe. See [Nutrition & carbon](nutrition-and-carbon.md#carbon-levels). |
@@ -261,6 +263,11 @@ small screens the button shows only a download icon.
 
 In the PDF steps, ingredient mentions are printed in bold, cookware is underlined and timers
 (e.g. **20 minutes**) are highlighted, so they stand out on paper like on the recipe page.
+
+### Tag the recipe
+
+Logged-in users see a **My tags** card below the recipe, to put their own tags on it (only they
+see them). See [My tags](personal-tags.md).
 
 ### Add to the planner
 

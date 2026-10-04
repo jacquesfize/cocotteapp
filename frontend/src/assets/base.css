@@ -377,3 +377,21 @@ input[type='checkbox'] {
 .blog-prose a {
   color: var(--color-primary-dark);
 }
+
+/* Étiquette personnelle (PersonalTagChip.vue) : `--tag-hue` vient de la couleur choisie
+   (utils/personalTags.ts) ; fond, bordure et texte sont dérivés des couleurs du thème, si bien
+   qu'une même teinte reste lisible en clair comme en sombre. */
+.personal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--tag-hue) 45%, var(--color-surface));
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--tag-hue) 16%, var(--color-surface));
+  color: color-mix(in srgb, var(--tag-hue) 45%, var(--color-text));
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}

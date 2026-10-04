@@ -8,6 +8,7 @@ import { formatDuration } from '../../utils/format'
 import { isImportedRecipe } from '../../utils/recipeOrigin'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
+import PersonalTagChip from './PersonalTagChip.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import type { Recipe } from '../../types/models'
 
@@ -64,6 +65,8 @@ const carbon = computed(() => {
   return { level, label: t('recipes.carbonPerServing', { kg: formatted }) }
 })
 
+// Étiquettes personnelles du visiteur : toutes affichées, elles ne comptent pas dans MAX_TAGS.
+const myTags = computed(() => props.recipe.my_tags ?? [])
 const visibleTags = computed(() => (props.recipe.tags ?? []).slice(0, MAX_TAGS))
 const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 0) - MAX_TAGS))
 </script>
@@ -143,8 +146,9 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
         <li v-if="authorLine" class="author"><Download v-if="isImported" :size="14" />{{ authorLine }}</li>
       </ul>
 
-      <ul v-if="!isTile && (visibleTags.length || recipe.version_label)" class="tags">
+      <ul v-if="!isTile && (visibleTags.length || recipe.version_label || myTags.length)" class="tags">
         <li v-if="recipe.version_label" class="tag version-tag">{{ recipe.version_label }}</li>
+        <li v-for="tag in myTags" :key="`mine-${tag.id}`"><PersonalTagChip :tag="tag" /></li>
         <li v-for="tag in visibleTags" :key="tag.id" class="tag">{{ tag.name }}</li>
         <li v-if="hiddenTagCount" class="tag more-tag">+{{ hiddenTagCount }}</li>
       </ul>

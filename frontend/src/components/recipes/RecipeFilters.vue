@@ -8,8 +8,11 @@ import '../../assets/multiselect.css'
 import { listAllergens } from '../../api/allergens'
 import { listCookware } from '../../api/cookware'
 import { listIngredients } from '../../api/ingredients'
+import { listPersonalTags } from '../../api/personalTags'
+import { useAuthStore } from '../../stores/auth'
 import { formatDuration } from '../../utils/format'
-import type { Allergen, Cookware } from '../../types/models'
+import type { Allergen, Cookware, PersonalTag } from '../../types/models'
+import PersonalTagChip from './PersonalTagChip.vue'
 
 const { t } = useI18n()
 
@@ -25,6 +28,8 @@ export interface RecipeFilterValues {
   exclude_allergens: string
   // Slugs de matériel séparés par des virgules : recettes qui en utilisent au moins un.
   cookware: string
+  // Identifiants d'étiquettes personnelles séparés par des virgules : recettes qui en portent au moins une.
+  personal_tags: string
 }
 
 // Les filtres sont édités en place (v-model sur les propriétés de l'objet) : la vue parente
@@ -150,6 +155,29 @@ const selectedCookware = computed<Pick<Cookware, 'slug' | 'name'>[]>({
   },
 })
 
+// --- Mes étiquettes (multi-select, visiteur connecté uniquement) ---------------------------
+const authStore = useAuthStore()
+const personalTagList = ref<PersonalTag[]>([])
+onMounted(async () => {
+  if (authStore.isAuthenticated) personalTagList.value = await listPersonalTags().catch(() => [])
+})
+
+const selectedPersonalTags = computed<PersonalTag[]>({
+  get: () =>
+    splitList(filters.value.personal_tags).map(
+      (id) =>
+        personalTagList.value.find((tag) => String(tag.id) === id) ?? {
+          id: Number(id),
+          name: `#${id}`,
+          emoji: '',
+          color: 'gray' as const,
+        },
+    ),
+  set: (tags) => {
+    filters.value.personal_tags = tags.map((tag) => tag.id).join(',')
+  },
+})
+
 // --- Temps max (sliders) -----------------------------------------------------------------
 // Le cran tout à droite (au-delà de TIME_MAX) signifie "sans limite" (filtre vide).
 const TIME_MIN = 5
@@ -243,6 +271,15 @@ const filterChips = computed<FilterChip[]>(() => {
       label: item.name,
       remove: () => {
         selectedCookware.value = selectedCookware.value.filter((c) => c.slug !== item.slug)
+      },
+    })
+  }
+  for (const tag of selectedPersonalTags.value) {
+    chips.push({
+      id: `personal-tag-${tag.id}`,
+      label: tag.emoji ? `${tag.emoji} ${tag.name}` : tag.name,
+      remove: () => {
+        selectedPersonalTags.value = selectedPersonalTags.value.filter((item) => item.id !== tag.id)
       },
     })
   }
@@ -435,6 +472,28 @@ const filterChips = computed<FilterChip[]>(() => {
           </template>
           <template #noResult>{{ $t('cookware.noOptions') }}</template>
           <template #noOptions>{{ $t('cookware.noOptions') }}</template>
+        </VueMultiselect>
+      </div>
+
+      <div v-if="personalTagList.length || filters.personal_tags" class="field">
+        <label for="personal_tags">{{ $t('personalTags.filter') }}</label>
+        <VueMultiselect
+          id="personal_tags"
+          v-model="selectedPersonalTags"
+          name="personal_tags"
+          :options="personalTagList"
+          :multiple="true"
+          track-by="id"
+          label="name"
+          :close-on-select="false"
+          :show-labels="false"
+          :placeholder="$t('personalTags.filterPlaceholder')"
+        >
+          <template #option="{ option }">
+            <PersonalTagChip :tag="option" />
+          </template>
+          <template #noResult>{{ $t('personalTags.noOptions') }}</template>
+          <template #noOptions>{{ $t('personalTags.noOptions') }}</template>
         </VueMultiselect>
       </div>
 

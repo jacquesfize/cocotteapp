@@ -19,6 +19,8 @@ export interface RecipeListParams {
   exclude_allergens?: string
   // Slugs de matériel séparés par des virgules : recettes qui en utilisent au moins un.
   cookware?: string
+  // Identifiants d'étiquettes personnelles séparés par des virgules : recettes qui en portent au moins une.
+  personal_tags?: string
   page?: number
   page_size?: number
 }

@@ -9,7 +9,7 @@ import { useAuthStore } from '../../src/stores/auth'
 function mountNavBar() {
   const router = createRouter({
     history: createMemoryHistory(),
-    routes: ['/', '/login', '/register', '/recipes', '/recipes/random', '/blog', '/planning', '/shopping-lists', '/account'].map(
+    routes: ['/', '/login', '/register', '/recipes', '/recipes/random', '/blog', '/planning', '/shopping-lists', '/account', '/tags'].map(
       (path) => ({ path, component: { template: '<div />' } }),
     ),
   })

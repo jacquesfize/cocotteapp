@@ -127,6 +127,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/account/AccountSettingsView.vue'),
   },
   {
+    path: '/tags',
+    name: 'personal-tags',
+    component: () => import('../views/account/PersonalTagsView.vue'),
+  },
+  {
     path: '/admin/users',
     name: 'admin-users',
     component: () => import('../views/admin/AdminUsersView.vue'),
