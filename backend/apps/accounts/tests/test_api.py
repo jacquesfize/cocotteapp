@@ -352,10 +352,31 @@ def test_password_reset_confirm_rejects_a_malformed_uid():
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("extra", [{}, {"health_data_consent": False}])
-def test_register_requires_health_data_consent(extra):
+def test_register_without_health_data_consent(extra):
     response = APIClient().post(
         "/api/auth/register/",
         {"username": "alice", "password": "s3cret-pass", "email": "alice@example.com", **extra},
+    )
+
+    assert response.status_code == 201
+    from apps.accounts.models import User
+
+    user = User.objects.get(email="alice@example.com")
+    assert user.health_data_consent_at is None
+    assert user.health_data_consent_version == ""
+
+
+@pytest.mark.django_db
+def test_register_refuses_health_data_without_consent():
+    response = APIClient().post(
+        "/api/auth/register/",
+        {
+            "username": "alice",
+            "password": "s3cret-pass",
+            "email": "alice@example.com",
+            "diet_type": "vegan",
+            "activity_level": "athlete",
+        },
     )
 
     assert response.status_code == 400

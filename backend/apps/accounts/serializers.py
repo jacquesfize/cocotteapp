@@ -18,7 +18,9 @@ User = get_user_model()
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     # Consentement explicite (RGPD art. 9) au traitement du régime, de l'activité et des allergies.
-    health_data_consent = serializers.BooleanField(write_only=True)
+    # Facultatif : sans lui, le compte est créé sans ces données, à renseigner plus tard depuis
+    # Mon compte après avoir consenti.
+    health_data_consent = serializers.BooleanField(write_only=True, required=False, default=False)
 
     class Meta:
         model = User
@@ -32,19 +34,23 @@ class RegisterSerializer(serializers.ModelSerializer):
             "health_data_consent",
         ]
 
-    def validate_health_data_consent(self, value):
-        if not value:
-            raise serializers.ValidationError("Le consentement est requis pour créer un compte.")
-        return value
+    def validate(self, attrs):
+        # Même règle que UserSerializer.validate : pas de donnée de santé sans consentement.
+        if not attrs.get("health_data_consent"):
+            sent = sorted(field for field in HEALTH_DATA_FIELDS if field in attrs)
+            if sent:
+                raise serializers.ValidationError(
+                    {"health_data_consent": f"Consentement requis pour renseigner : {', '.join(sent)}."}
+                )
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        validated_data.pop("health_data_consent")
-        user = User(
-            **validated_data,
-            health_data_consent_at=timezone.now(),
-            health_data_consent_version=settings.PRIVACY_POLICY_VERSION,
-        )
+        consent = validated_data.pop("health_data_consent")
+        user = User(**validated_data)
+        if consent:
+            user.health_data_consent_at = timezone.now()
+            user.health_data_consent_version = settings.PRIVACY_POLICY_VERSION
         user.set_password(password)
         user.save()
         return user

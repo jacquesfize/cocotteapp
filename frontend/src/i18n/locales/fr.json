@@ -87,8 +87,10 @@
     "loginTab": "Connexion",
     "registerTab": "Inscription",
     "tabsLabel": "Connexion ou inscription",
-    "healthConsent": "Je consens explicitement à ce que Cocotte traite mon régime alimentaire, mon niveau d'activité et mes allergies (données pouvant relever de la santé) pour personnaliser les recettes et les alertes nutritionnelles. Je peux retirer ce consentement à tout moment depuis Mon compte.",
-    "healthConsentRequired": "Le consentement est requis pour créer un compte.",
+    "healthConsent": "Personnaliser mes recettes selon mon régime, mon activité et mes allergies",
+    "healthConsentOptional": "Facultatif. Modifiable à tout moment dans Mon compte.",
+    "healthConsentWhy": "Pourquoi ?",
+    "healthConsentDetails": "Ces informations peuvent concerner votre santé : Cocotte ne les utilise qu'avec votre consentement explicite, pour écarter les recettes qui ne vous conviennent pas, signaler les allergènes dans votre agenda et calculer vos alertes nutritionnelles. Retirer votre consentement depuis Mon compte les efface.",
     "privacyNotice": "Consultez la {privacy} et les {legal}."
   },
   "recipes": {
@@ -772,7 +774,7 @@
     "purposesTitle": "Finalités et bases légales",
     "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage.",
     "healthTitle": "Données de santé",
-    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
+    "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription ou plus tard dans Mon compte, et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
     "retentionTitle": "Durée de conservation",
     "retentionText": "Vos données sont conservées tant que votre compte existe. La suppression du compte les efface définitivement.",
     "retentionInactive": "Les comptes sans connexion depuis {days} jours sont supprimés, après un e-mail de préavis.",

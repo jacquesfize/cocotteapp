@@ -87,6 +87,11 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Account page: without health-data consent, the diet, activity level and allergy fields are
   locked, with the consent button right next to them; the API also refuses those fields without
   consent. Deleting the account asks for confirmation in a dialog (**Delete permanently**).
+- Sign-up: the health-data consent is now optional and reads as one short line, **Personalise my
+  recipes using my diet, activity level and allergies**, with the details under **Why?**. Without
+  it, the account is created without diet, activity level or allergies (the **Diet** and
+  **Activity level** fields only appear once the box is ticked), and you can consent later from
+  **My account**.
 - Logged-in users no longer have to type a name to comment: the form shows **Posting as** and
   their username.
 - Numbers (nutrition values, carbon footprint) follow the interface language's format

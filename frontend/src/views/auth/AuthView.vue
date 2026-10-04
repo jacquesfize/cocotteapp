@@ -56,15 +56,20 @@ async function handleSubmit() {
     if (props.mode === 'login') {
       await authStore.login(loginForm.value.email, loginForm.value.password)
     } else {
-      await authStore.register(registerForm.value)
+      // Sans consentement, le régime et l'activité ne sont pas envoyés (l'API les refuserait) :
+      // ils se renseignent plus tard depuis Mon compte.
+      const { diet_type, activity_level, ...account } = registerForm.value
+      await authStore.register(
+        registerForm.value.health_data_consent ? { ...account, diet_type, activity_level } : account,
+      )
     }
     redirectAfterAuth()
   } catch (err) {
     if (props.mode === 'login') {
       error.value = t('auth.invalidCredentials')
     } else {
-      const data = getErrorData<{ username?: string[]; health_data_consent?: string[] }>(err)
-      error.value = data?.username?.[0] || (data?.health_data_consent ? t('auth.healthConsentRequired') : '') || t('auth.registerError')
+      const data = getErrorData<{ username?: string[] }>(err)
+      error.value = data?.username?.[0] || t('auth.registerError')
     }
   } finally {
     isSubmitting.value = false
@@ -168,7 +173,26 @@ async function handleSubmit() {
                 autocomplete="new-password"
               />
             </div>
-            <div class="profile-row">
+            <!-- Consentement RGPD (art. 9) : la case dit en une phrase à quoi on consent ; le détail
+                 (nature des données, usages, retrait) reste lisible avant de cocher, sous « Pourquoi ? »,
+                 hors du <label> pour qu'ouvrir le détail ne coche pas la case. -->
+            <div class="consent">
+              <label class="consent-choice">
+                <input
+                  id="health_data_consent"
+                  v-model="registerForm.health_data_consent"
+                  type="checkbox"
+                  aria-describedby="health-consent-hint"
+                />
+                <span>{{ $t('auth.healthConsent') }}</span>
+              </label>
+              <p id="health-consent-hint" class="muted consent-hint">{{ $t('auth.healthConsentOptional') }}</p>
+              <details class="consent-details">
+                <summary>{{ $t('auth.healthConsentWhy') }}</summary>
+                <p>{{ $t('auth.healthConsentDetails') }}</p>
+              </details>
+            </div>
+            <div v-if="registerForm.health_data_consent" class="profile-row">
               <div class="field">
                 <label for="diet_type">{{ $t('auth.dietType') }}</label>
                 <select id="diet_type" v-model="registerForm.diet_type">
@@ -186,15 +210,6 @@ async function handleSubmit() {
                 </select>
               </div>
             </div>
-            <label class="consent">
-              <input
-                id="health_data_consent"
-                v-model="registerForm.health_data_consent"
-                type="checkbox"
-                required
-              />
-              <span>{{ $t('auth.healthConsent') }}</span>
-            </label>
             <i18n-t keypath="auth.privacyNotice" tag="p" class="muted privacy-notice" scope="global">
               <template #privacy>
                 <RouterLink :to="{ name: 'privacy' }">{{ $t('legal.footerPrivacy') }}</RouterLink>
@@ -275,17 +290,44 @@ async function handleSubmit() {
 }
 
 .consent {
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-start;
-  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
   line-height: 1.4;
 }
 
-.consent input {
+.consent-choice {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  cursor: pointer;
+  /* Annule le style des libellés de champ (petits, gris) : c'est ici une vraie phrase. */
+  font-size: inherit;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.consent-choice input {
   width: auto;
   margin-top: 0.2rem;
   flex-shrink: 0;
+}
+
+/* Aligné sur le texte de la case, pas sur la case elle-même. */
+.consent-hint,
+.consent-details {
+  margin: 0.2rem 0 0 1.6rem;
+  font-size: 0.8rem;
+}
+
+.consent-details summary {
+  width: fit-content;
+  color: var(--color-primary-dark);
+  cursor: pointer;
+}
+
+.consent-details p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
 }
 
 .privacy-notice {

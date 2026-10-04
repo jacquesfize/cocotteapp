@@ -14,7 +14,7 @@ the **data controller**: the software helps, but some obligations are yours alon
 | Access and portability (art. 15, 20) | **Export my data** on the **My account** page (ZIP of JSON files). |
 | Rectification (art. 16) | Users edit their profile, diet and allergies. |
 | Erasure (art. 17) | **Delete my account** removes the account, planner and lists, and its recipes, unless the user chooses to keep their public recipes under an anonymous author. |
-| Explicit consent for health data (art. 9) | Required checkbox at sign-up; date and policy version stored; can be withdrawn from **My account** (this erases diet, activity level and allergies). |
+| Explicit consent for health data (art. 9) | Optional checkbox at sign-up (or later from **My account**), never required to create an account; without it, diet, activity level and allergies are not collected. Date and policy version stored; can be withdrawn from **My account** (this erases diet, activity level and allergies). |
 | Information (art. 13) | **Legal notice** and **Privacy policy** pages, linked in the footer and on the sign-up form. |
 | Storage limitation (art. 5) | `purge_inactive_users`, see [below](#inactive-accounts). |
 | Minimisation / no tracking | No analytics, advertising or third-party scripts; only strictly necessary browser storage (login tokens, language, appearance, offline cache), so no cookie banner is needed. |
