@@ -20,7 +20,7 @@
 		file_server
 	}
 
-	@backend path /api/* /django-admin/*
+	@backend path /api/* /django-admin /django-admin/*
 	handle @backend {
 		reverse_proxy backend:8000
 	}

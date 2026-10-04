@@ -416,7 +416,7 @@ cocotte.example.org {
 		file_server
 	}
 
-	@backend path /api/* /django-admin/*
+	@backend path /api/* /django-admin /django-admin/*
 	handle @backend {
 		reverse_proxy 127.0.0.1:8000
 	}
@@ -473,7 +473,7 @@ server {
         alias /opt/cocotte/app/backend/media/;
     }
 
-    location ~ ^/(api|django-admin)/ {
+    location ~ ^/(api/|django-admin(/|$)) {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
