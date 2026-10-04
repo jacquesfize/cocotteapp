@@ -27,6 +27,10 @@ const registerForm = ref<RegisterPayload>({
   health_data_consent: false,
 })
 const error = ref('')
+const passwordErrors = ref<string[]>([])
+const emailErrors = ref<string[]>([])
+const usernameErrors = ref<string[]>([])
+const PASSWORD_MIN_LENGTH = 8
 const isSubmitting = ref(false)
 
 // Les deux formulaires n'ont pas la même hauteur : on suit celle du contenu pour l'animer en CSS
@@ -51,6 +55,14 @@ function redirectAfterAuth() {
 
 async function handleSubmit() {
   error.value = ''
+  passwordErrors.value = []
+  emailErrors.value = []
+  usernameErrors.value = []
+  if (props.mode === 'register' && registerForm.value.password.length < PASSWORD_MIN_LENGTH) {
+    passwordErrors.value = [t('auth.passwordTooShort', { n: PASSWORD_MIN_LENGTH })]
+    document.getElementById('password')?.focus()
+    return
+  }
   isSubmitting.value = true
   try {
     if (props.mode === 'login') {
@@ -68,8 +80,21 @@ async function handleSubmit() {
     if (props.mode === 'login') {
       error.value = t('auth.invalidCredentials')
     } else {
-      const data = getErrorData<{ username?: string[] }>(err)
-      error.value = data?.username?.[0] || t('auth.registerError')
+      const data = getErrorData<{ username?: string[]; email?: string[]; password?: string[] }>(err)
+      usernameErrors.value = data?.username ?? []
+      emailErrors.value = data?.email ?? []
+      passwordErrors.value = data?.password ?? []
+      // Le focus va au premier champ en erreur, dans l'ordre d'affichage.
+      const firstInvalid = [
+        ['username', usernameErrors.value],
+        ['email', emailErrors.value],
+        ['password', passwordErrors.value],
+      ].find(([, msgs]) => msgs.length)
+      if (firstInvalid) {
+        document.getElementById(firstInvalid[0] as string)?.focus()
+      } else {
+        error.value = t('auth.registerError')
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -147,8 +172,13 @@ async function handleSubmit() {
                   :placeholder="$t('auth.username')"
                   required
                   autocomplete="username"
+                  :aria-invalid="usernameErrors.length > 0 || undefined"
+                  aria-describedby="username-errors"
                 />
               </div>
+              <ul id="username-errors" class="field-errors" aria-live="polite">
+                <li v-for="msg in usernameErrors" :key="msg">{{ msg }}</li>
+              </ul>
             </div>
             <div class="field">
               <label for="email" class="sr-only">{{ $t('auth.email') }}</label>
@@ -161,8 +191,13 @@ async function handleSubmit() {
                   :placeholder="$t('auth.email')"
                   required
                   autocomplete="email"
+                  :aria-invalid="emailErrors.length > 0 || undefined"
+                  aria-describedby="email-errors"
                 />
               </div>
+              <ul id="email-errors" class="field-errors" aria-live="polite">
+                <li v-for="msg in emailErrors" :key="msg">{{ msg }}</li>
+              </ul>
             </div>
             <div class="field">
               <label for="password" class="sr-only">{{ $t('auth.password') }}</label>
@@ -171,7 +206,15 @@ async function handleSubmit() {
                 v-model="registerForm.password"
                 :placeholder="$t('auth.password')"
                 autocomplete="new-password"
+                :invalid="passwordErrors.length > 0"
+                describedby="password-help"
               />
+              <div id="password-help" aria-live="polite">
+                <ul v-if="passwordErrors.length" class="field-errors">
+                  <li v-for="msg in passwordErrors" :key="msg">{{ msg }}</li>
+                </ul>
+                <p v-else class="muted field-hint">{{ $t('auth.passwordHint', { n: PASSWORD_MIN_LENGTH }) }}</p>
+              </div>
             </div>
             <!-- Consentement RGPD (art. 9) : la case dit en une phrase à quoi on consent ; le détail
                  (nature des données, usages, retrait) reste lisible avant de cocher, sous « Pourquoi ? »,
@@ -231,6 +274,19 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
+.field-hint,
+.field-errors {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+}
+
+.field-errors {
+  padding: 0;
+  list-style: none;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;

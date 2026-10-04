@@ -41,6 +41,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   **Merge into…** to fold a duplicate into the item to keep (its recipes and shopping lists move
   to that item).
 
+### 🐛 Fixed
+
+- **Sign-up** now shows why a field is refused (email already used or invalid, username taken, password rejected) under that field. For the password, the rules (8 characters minimum, not
+  too common, not only digits) show under the field, and the reason appears there when the
+  password is rejected, instead of a generic error.
+
 ### 🔄 Changed
 
 - **Paste Cooklang** no longer creates the recipe straight away: **Import** now opens the

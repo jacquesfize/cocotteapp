@@ -69,6 +69,8 @@
     "dietType": "Régime alimentaire",
     "activityLevel": "Niveau d'activité",
     "registerButton": "Créer mon compte",
+    "passwordHint": "Au moins {n} caractères, pas trop courant et pas uniquement des chiffres.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins {n} caractères.",
     "registerError": "Impossible de créer le compte.",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordTitle": "Mot de passe oublié",
