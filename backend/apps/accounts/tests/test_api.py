@@ -153,6 +153,7 @@ def test_export_data_returns_a_zip_scoped_to_the_user():
         "commentaires.json",
         "articles_blog.json",
         "commentaires_blog.json",
+        "etiquettes.json",
         "notes.json",
     }
     recettes_json = archive.read("recettes.json").decode("utf-8")
@@ -520,7 +521,7 @@ def test_deleting_account_removes_the_name_from_remaining_comments():
 @pytest.mark.django_db
 def test_export_includes_consent_shares_comments_and_ratings():
     from apps.planning.models import PlanningShare
-    from apps.recipes.models import RecipeComment, RecipeRating
+    from apps.recipes.models import PersonalTag, RecipeComment, RecipeRating
 
     user = UserFactory()
     user.grant_health_data_consent()
@@ -529,6 +530,8 @@ def test_export_includes_consent_shares_comments_and_ratings():
     recipe = RecipeFactory()
     RecipeComment.objects.create(recipe=recipe, author_name="me", user=user, body="Bon")
     RecipeRating.objects.create(recipe=recipe, user=user, value=4)
+    PersonalTag.objects.create(owner=user, name="À tester", emoji="🧪").recipes.add(recipe)
+    PersonalTag.objects.create(owner=other, name="Pas à moi")
     client = APIClient()
     client.force_authenticate(user)
 
@@ -542,6 +545,9 @@ def test_export_includes_consent_shares_comments_and_ratings():
     assert shares["donnes"][0]["avec"] == "friend@example.com"
     assert json.loads(archive.read("commentaires.json"))[0]["texte"] == "Bon"
     assert json.loads(archive.read("notes.json"))[0]["note"] == 4
+    assert json.loads(archive.read("etiquettes.json")) == [
+        {"nom": "À tester", "emoji": "🧪", "couleur": "gray", "recettes": [recipe.title]}
+    ]
 
 
 @pytest.mark.django_db

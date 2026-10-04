@@ -10,7 +10,7 @@ what needs one.
 
 ## The top bar
 
-![The buttons on the right of the top bar (dice, language flag, dark mode, account) with the account menu open, showing My account, the Administration section and Log out](../assets/screenshots/navbar-account-menu.png)
+![The buttons on the right of the top bar (dice, language flag, dark mode, account) with the account menu open, showing My account, My tags, the Administration section and Log out](../assets/screenshots/navbar-account-menu.png)
 
 From left to right:
 
@@ -34,6 +34,7 @@ When you are logged in, the person button opens a menu with:
 - your **username** at the top,
 - **My account**: your profile, allergies, appearance, password, data export, agenda sharing and
   account deletion. See [Your account](account.md).
+- **My tags**: your personal recipe tags (name, emoji, color). See [My tags](personal-tags.md).
 - **Administration** (staff accounts only): **Admin** (user management), **Thematic pages** and
   **Ingredients**. These pages are described in the [Admin guide](../admin-guide/users.md).
 - **Log out**.

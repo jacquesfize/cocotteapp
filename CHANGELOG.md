@@ -9,6 +9,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **My tags**: personal tags to sort recipes your own way (*🎂 Birthdays*, *To try*...), each
+  with a name, an optional emoji and a color. Put them on any recipe from its new **My tags**
+  card, or create one on the go by typing its name; before creating it, Cocotte shows your
+  similar existing tags (accents, plurals, typos) so you can reuse one. Only you see your tags.
+  Manage them (rename, emoji, color, delete) on the new **My tags** page in the account menu,
+  filter the recipe list and the random recipe with the new **My tags** filter, and see them as
+  colored pills on recipe cards. Your tags are included in **Export my data**.
 - **Cookware**: a recipe can list the cookware it needs (oven, frying pan, air fryer...), shown on
   the recipe page, in cook mode (where step mentions stand out with a 🍳) and in the PDF, so you know before starting whether you have it.
   Pick it in the new **Cookware** card of the recipe form, or create a missing item on the go by

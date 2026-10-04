@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Count, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -18,9 +19,21 @@ from apps.nutrition.services import compute_recipe_carbon_footprint, compute_rec
 
 from .cooklang_import import CooklangParseError, build_cooklang_preview, create_recipe_from_cooklang
 from .filters import RecipeFilter
-from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeRating, RecipeStep, SourceType, Tag, ThematicPage
+from .models import (
+    Cookware,
+    PersonalTag,
+    Recipe,
+    RecipeComment,
+    RecipeIngredient,
+    RecipeRating,
+    RecipeStep,
+    SourceType,
+    Tag,
+    ThematicPage,
+)
 from .pagination import RecipePagination
 from .permissions import IsAuthorOrReadOnly, IsRecipeAuthorOrStaff
+from .personal_tags import similar_tags
 from .rating_utils import voter_hash_for_request
 from .serializers import (
     AdminThematicPageSerializer,
@@ -28,14 +41,17 @@ from .serializers import (
     CooklangPreviewSerializer,
     CookwareImageUploadSerializer,
     CookwareSerializer,
+    PersonalTagSerializer,
     RecipeCommentSerializer,
     RecipeImageUploadSerializer,
+    RecipeMyTagsSerializer,
     RecipeRatingSerializer,
     RecipeSerializer,
     RecipeStepImageUploadSerializer,
     RecipeStepSerializer,
     TagSerializer,
     ThematicPageSerializer,
+    my_tags_data,
 )
 from .throttles import CommentCreateAnonThrottle, RatingCreateAnonThrottle
 from .transfer import ArchiveError, build_export_archive, import_archive
@@ -52,13 +68,40 @@ class RecipeViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "description"]
     pagination_class = RecipePagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        if user.is_authenticated:
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    "personal_tags",
+                    queryset=PersonalTag.objects.filter(owner=user),
+                    to_attr="my_personal_tags",
+                )
+            )
+        return queryset
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def get_permissions(self):
-        if self.action == "fork":
+        # Dupliquer une recette ou y poser ses étiquettes ne la modifie pas : ouvert à tout
+        # utilisateur connecté, pas seulement à l'auteur.
+        if self.action in ("fork", "my_tags"):
             return [IsAuthenticated()]
         return super().get_permissions()
+
+    @action(detail=True, methods=["put"], url_path="my-tags")
+    def my_tags(self, request, pk=None):
+        """Remplace l'ensemble des étiquettes personnelles de l'appelant sur cette recette ;
+        celles des autres utilisateurs ne sont ni visibles ni touchées."""
+        recipe = self.get_object()
+        serializer = RecipeMyTagsSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        tags = serializer.validated_data["tag_ids"]
+        recipe.personal_tags.remove(*request.user.personal_tags.exclude(pk__in=[tag.pk for tag in tags]))
+        recipe.personal_tags.add(*tags)
+        return Response(my_tags_data(recipe.personal_tags.filter(owner=request.user)))
 
     @action(detail=True, methods=["post"])
     def fork(self, request, pk=None):
@@ -326,6 +369,33 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class PersonalTagViewSet(viewsets.ModelViewSet):
+    """Étiquettes personnelles de l'utilisateur connecté, et uniquement les siennes. Liste courte,
+    non paginée ; supprimer une étiquette la retire simplement des recettes concernées."""
+
+    serializer_class = PersonalTagSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return self.request.user.personal_tags.annotate(recipes_count=Count("recipes"))
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @action(detail=False, methods=["get"])
+    def similar(self, request):
+        """`?name=` : étiquettes de l'utilisateur proches de ce nom, à montrer avant d'en créer
+        une nouvelle (doublon à un accent, un pluriel ou une faute de frappe près). `?exclude=`
+        écarte l'étiquette en cours de renommage."""
+        tags = self.get_queryset()
+        exclude = request.query_params.get("exclude", "")
+        if exclude.isdigit():
+            tags = tags.exclude(pk=exclude)
+        matches = similar_tags(tags, request.query_params.get("name", ""))
+        return Response(self.get_serializer(matches, many=True).data)
 
 
 class CookwareViewSet(viewsets.ModelViewSet):

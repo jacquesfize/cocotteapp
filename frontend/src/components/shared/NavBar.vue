@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Moon, Sun } from '@lucide/vue'
+import { Check, Moon, Sun, Tags } from '@lucide/vue'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -212,6 +212,10 @@ onBeforeUnmount(() => {
                   <path d="M4.5 20c1.5-4 5-5.5 7.5-5.5s6 1.5 7.5 5.5" />
                 </svg>
                 <span>{{ $t('nav.accountSettings') }}</span>
+              </RouterLink>
+              <RouterLink to="/tags" class="account-link" @click="closeMenu">
+                <Tags :size="18" :stroke-width="1.8" />
+                <span>{{ $t('nav.personalTags') }}</span>
               </RouterLink>
             </div>
 

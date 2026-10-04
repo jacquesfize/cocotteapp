@@ -54,6 +54,7 @@ class RecipeFilter(django_filters.FilterSet):
     max_carbon = django_filters.NumberFilter(method="filter_max_carbon")
     exclude_allergens = django_filters.CharFilter(method="filter_exclude_allergens")
     cookware = django_filters.CharFilter(method="filter_cookware")
+    personal_tags = django_filters.CharFilter(method="filter_personal_tags")
     carbon_level = django_filters.ChoiceFilter(
         method="filter_carbon_level",
         choices=[("low", "low"), ("medium", "medium"), ("high", "high")],
@@ -84,6 +85,20 @@ class RecipeFilter(django_filters.FilterSet):
         if not slugs:
             return queryset
         return queryset.filter(cookware__slug__in=slugs).distinct()
+
+    def filter_personal_tags(self, queryset, name, value):
+        # Identifiants d'étiquettes personnelles séparés par des virgules : recettes portant *au
+        # moins une* de ces étiquettes du visiteur. Les étiquettes d'un autre utilisateur ne
+        # correspondent à rien, et un visiteur anonyme n'en a aucune. Sous-requête plutôt que
+        # jointure + distinct(), incompatible avec le tirage au sort (`order_by("?")`) de /random/.
+        ids = [s.strip() for s in value.split(",") if s.strip().isdigit()]
+        if not ids:
+            return queryset
+        user = getattr(self.request, "user", None)
+        if user is None or not user.is_authenticated:
+            return queryset.none()
+        tagged = Recipe.objects.filter(personal_tags__owner=user, personal_tags__pk__in=ids).values("pk")
+        return queryset.filter(pk__in=tagged)
 
     def filter_exclude_allergens(self, queryset, name, value):
         # Seuls les allergènes *renseignés* excluent une recette : un ingrédient non

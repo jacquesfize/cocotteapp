@@ -103,6 +103,18 @@ export interface Tag {
   kind: TagKind
 }
 
+export type TagColor = 'gray' | 'red' | 'orange' | 'yellow' | 'green' | 'teal' | 'blue' | 'purple' | 'pink'
+
+// Étiquette personnelle : visible et modifiable par son seul propriétaire, posée sur n'importe
+// quelle recette (`Recipe.my_tags`). `recipes_count` n'est renvoyé que par /api/personal-tags/.
+export interface PersonalTag {
+  id: number
+  name: string
+  emoji: string
+  color: TagColor
+  recipes_count?: number
+}
+
 export interface ThematicPage {
   id: number
   title: string
@@ -246,6 +258,8 @@ export interface Recipe {
   average_rating: number | null
   ratings_count: number
   my_rating: number | null
+  // Étiquettes personnelles du visiteur connecté sur cette recette (vide si anonyme).
+  my_tags: PersonalTag[]
   tags: Tag[]
   cookware: Cookware[]
   ingredients: RecipeIngredient[]

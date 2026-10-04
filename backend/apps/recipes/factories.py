@@ -3,7 +3,7 @@ import factory
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 
-from .models import Cookware, Recipe, RecipeComment, RecipeIngredient, RecipeRating
+from .models import Cookware, PersonalTag, Recipe, RecipeComment, RecipeIngredient, RecipeRating
 
 
 class CookwareFactory(factory.django.DjangoModelFactory):
@@ -50,3 +50,11 @@ class RecipeRatingFactory(factory.django.DjangoModelFactory):
     recipe = factory.SubFactory(RecipeFactory)
     value = 5
     voter_hash = factory.Sequence(lambda n: f"anon-voter-hash-{n}")
+
+
+class PersonalTagFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PersonalTag
+
+    owner = factory.SubFactory(UserFactory)
+    name = factory.Sequence(lambda n: f"Étiquette {n}")

@@ -1,4 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, reactive } from 'vue'
 import { i18n } from '../../src/i18n'
@@ -17,6 +18,12 @@ vi.mock('../../src/api/cookware', () => ({
   ]),
   createCookware: vi.fn(),
 }))
+vi.mock('../../src/api/personalTags', () => ({
+  listPersonalTags: vi.fn().mockResolvedValue([
+    { id: 7, name: 'À tester', emoji: '🧪', color: 'blue' },
+    { id: 8, name: 'Anniversaires', emoji: '', color: 'pink' },
+  ]),
+}))
 vi.mock('../../src/api/ingredients', () => ({
   listIngredients: vi.fn().mockResolvedValue({
     results: [{ id: 1, name: 'Tomate' }, { id: 2, name: 'Oignon' }],
@@ -28,6 +35,8 @@ vi.mock('../../src/api/ingredients', () => ({
 
 import RecipeFilters, { type RecipeFilterValues } from '../../src/components/recipes/RecipeFilters.vue'
 import { listIngredients } from '../../src/api/ingredients'
+import { listPersonalTags } from '../../src/api/personalTags'
+import { useAuthStore } from '../../src/stores/auth'
 
 function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilterValues {
   return {
@@ -40,6 +49,7 @@ function emptyFilters(overrides: Partial<RecipeFilterValues> = {}): RecipeFilter
     carbon_level: '',
     exclude_allergens: '',
     cookware: '',
+    personal_tags: '',
     ...overrides,
   }
 }
@@ -57,6 +67,7 @@ async function mountFilters(overrides: Partial<RecipeFilterValues> = {}, myAller
 }
 
 beforeEach(() => {
+  setActivePinia(createPinia())
   i18n.global.locale.value = 'fr'
   vi.clearAllMocks()
 })
@@ -234,5 +245,23 @@ describe('RecipeFilters', () => {
     const chip = wrapper.findAll('.active-filters--mobile .filter-chip').find((c) => c.text() === 'Four')
     await chip!.trigger('click')
     expect(state.filters.cookware).toBe('')
+  })
+
+  it('hides the personal tags filter from anonymous visitors', async () => {
+    const { wrapper } = await mountFilters()
+    expect(listPersonalTags).not.toHaveBeenCalled()
+    expect(wrapper.find('#personal_tags').exists()).toBe(false)
+  })
+
+  it('filters by the signed-in user\'s personal tags, shown as removable chips', async () => {
+    useAuthStore().accessToken = 'token'
+    const { wrapper, state } = await mountFilters({ personal_tags: '7' })
+
+    const field = wrapper.find('#personal_tags').element.closest('.multiselect') as HTMLElement
+    expect([...field.querySelectorAll('.multiselect__tag')].map((tag) => tag.textContent?.trim())).toEqual(['À tester'])
+
+    const chip = wrapper.findAll('.active-filters--mobile .filter-chip').find((c) => c.text() === '🧪 À tester')
+    await chip!.trigger('click')
+    expect(state.filters.personal_tags).toBe('')
   })
 })

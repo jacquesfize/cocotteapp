@@ -165,7 +165,7 @@ the new password.
 
 Click **Download the archive** to get a ZIP file (`cocotte-donnees-YYYY-MM-DD.zip`) containing
 JSON files with your profile, your recipes, your planner entries, your shopping lists, your blog
-posts and your comments. Use it
+posts, your comments and your [tags](personal-tags.md) (with the recipes they're on). Use it
 as a personal backup or to see what Cocotte stores about you.
 
 ![The Export my data, Share or back up my recipes, Share my agenda and Danger zone cards, with the option to keep public recipes](../assets/screenshots/account-data.png)

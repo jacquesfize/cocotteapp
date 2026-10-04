@@ -42,6 +42,7 @@ function filtersFromQuery(query: LocationQuery): RecipeFilterValues {
     carbon_level: (query.carbon_level as string) || '',
     exclude_allergens: (query.exclude_allergens as string) || '',
     cookware: (query.cookware as string) || '',
+    personal_tags: (query.personal_tags as string) || '',
   }
 }
 

@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { useClickOutside } from '../../composables/useClickOutside'
 import AddToPlanForm from '../../components/planning/AddToPlanForm.vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
+import PersonalTagsEditor from '../../components/recipes/PersonalTagsEditor.vue'
 import RecipeComments from '../../components/recipes/RecipeComments.vue'
 import RecipeRestrictedNotice from '../../components/recipes/RecipeRestrictedNotice.vue'
 import RecipeSummary from '../../components/recipes/RecipeSummary.vue'
@@ -64,7 +65,10 @@ function closeActionsMenu() {
 useClickOutside(actionsEl, closeActionsMenu)
 
 async function load() {
-  recipe.value = await getRecipe(props.id)
+  const loaded = await getRecipe(props.id)
+  // Une réponse mise en cache hors ligne avant l'ajout des étiquettes personnelles n'a pas ce champ.
+  loaded.my_tags ??= []
+  recipe.value = loaded
 }
 
 onMounted(load)
@@ -176,6 +180,12 @@ async function handleFork() {
 
     <RecipeSummary v-if="!recipe.content_restricted" :recipe="recipe" @rated="handleRated" />
     <RecipeRestrictedNotice v-else :recipe="recipe" @rated="handleRated" />
+    <PersonalTagsEditor
+      v-if="authStore.isAuthenticated"
+      :key="recipe.id"
+      v-model="recipe.my_tags"
+      :recipe-id="recipe.id"
+    />
     <AddToPlanForm v-if="authStore.isAuthenticated" :key="recipe.id" :recipe="recipe" />
 
     <div v-if="recipe.versions.length" class="versions-section">

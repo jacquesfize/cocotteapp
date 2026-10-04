@@ -71,6 +71,7 @@ async function mountDetail(id: number | string = 1) {
       stubs: {
         RouterLink: { template: '<a><slot /></a>' },
         AddToPlanForm: true,
+        PersonalTagsEditor: true,
       },
     },
   })
@@ -82,6 +83,20 @@ beforeEach(() => {
   i18n.global.locale.value = 'fr'
   setActivePinia(createPinia())
   vi.clearAllMocks()
+})
+
+describe('RecipeDetailView personal tags', () => {
+  it('lets a signed-in visitor tag any recipe, but not an anonymous one', async () => {
+    vi.mocked(getRecipe).mockResolvedValue(baseRecipe({ my_tags: [] }))
+    const anonymous = await mountDetail()
+    expect(anonymous.wrapper.find('personal-tags-editor-stub').exists()).toBe(false)
+
+    const authStore = useAuthStore()
+    authStore.user = { id: 99, username: 'someoneelse' } as unknown as User
+    authStore.accessToken = 'test-token'
+    const { wrapper } = await mountDetail()
+    expect(wrapper.find('personal-tags-editor-stub').exists()).toBe(true)
+  })
 })
 
 describe('RecipeDetailView versioning', () => {

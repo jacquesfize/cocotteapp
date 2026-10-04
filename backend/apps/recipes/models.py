@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils.text import slugify
 
 from apps.accounts.models import DietType
@@ -183,6 +184,43 @@ class Recipe(models.Model):
                 slug = f"{base_slug}-{suffix}"
             self.slug = slug
         super().save(*args, **kwargs)
+
+
+class TagColor(models.TextChoices):
+    """Palette fermée plutôt qu'un code hexadécimal libre : le frontend décline chaque couleur en
+    thème clair et sombre, avec un contraste lisible garanti."""
+
+    GRAY = "gray", "Gris"
+    RED = "red", "Rouge"
+    ORANGE = "orange", "Orange"
+    YELLOW = "yellow", "Jaune"
+    GREEN = "green", "Vert"
+    TEAL = "teal", "Turquoise"
+    BLUE = "blue", "Bleu"
+    PURPLE = "purple", "Violet"
+    PINK = "pink", "Rose"
+
+
+class PersonalTag(models.Model):
+    """Étiquette personnelle (ex. « 🎂 Anniversaires », « À tester ») qu'un utilisateur pose sur
+    n'importe quelle recette qu'il peut voir, y compris celles des autres. Contrairement à `Tag`
+    (bibliothèque partagée), elle n'est visible et modifiable que par son propriétaire."""
+
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="personal_tags")
+    name = models.CharField(max_length=60)
+    emoji = models.CharField(max_length=8, blank=True, help_text="Un emoji facultatif, ex. 🎂")
+    color = models.CharField(max_length=10, choices=TagColor.choices, default=TagColor.GRAY)
+    recipes = models.ManyToManyField(Recipe, blank=True, related_name="personal_tags")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = [Lower("name")]
+        constraints = [
+            models.UniqueConstraint(Lower("name"), "owner", name="unique_personal_tag_name_per_owner"),
+        ]
+
+    def __str__(self):
+        return f"{self.emoji} {self.name}".strip()
 
 
 class ThematicPage(models.Model):
