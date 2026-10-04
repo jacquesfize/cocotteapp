@@ -108,6 +108,7 @@ nav:
       - Ingredient library: admin-guide/ingredients.md
       - Cookware library: admin-guide/cookware.md
       - Thematic pages: admin-guide/thematic-pages.md
+      - Announcements: admin-guide/announcements.md
       - Moderation: admin-guide/moderation.md
       - GDPR compliance: admin-guide/gdpr.md
       - Django admin: admin-guide/django-admin.md

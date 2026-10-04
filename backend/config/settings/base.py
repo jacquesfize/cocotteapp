@@ -26,6 +26,8 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.
 # sans que l'administrateur de l'instance ne les active explicitement.
 PLANNING_SNACK_ENABLED = env.bool("PLANNING_SNACK_ENABLED", default=False)
 NUTRITION_ALERTS_ENABLED = env.bool("NUTRITION_ALERTS_ENABLED", default=False)
+# Affiche un bandeau « instance de test, données supprimables » (voir apps.announcements).
+TEST_INSTANCE = env.bool("TEST_INSTANCE", default=False)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -47,6 +49,7 @@ INSTALLED_APPS = [
     "apps.shopping",
     "apps.importer",
     "apps.blog",
+    "apps.announcements",
 ]
 
 MIDDLEWARE = [

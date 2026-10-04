@@ -37,6 +37,7 @@ permissions:
 | Edit the ingredient library | The app's [Ingredient library](ingredients.md) page (it has the **Suggest values** pre-fill); the Django admin is handy to filter by allergens or review status |
 | Manage homepage thematic pages | The app's [Thematic pages](thematic-pages.md) page; the Django admin allows quick reordering from the list |
 | Hide or unhide a comment | The recipe page (see [Moderation](moderation.md#hide-and-unhide-comments)) |
+| Show a maintenance or update banner | Django admin, **Announcements** (see [Announcements](announcements.md)) |
 | **Delete** a comment | Django admin only |
 | Adjust nutrient thresholds | Django admin only |
 | Rename or add allergens | Django admin only |
@@ -146,6 +147,8 @@ the app's **Cookware** page (see [Cookware library](cookware.md)) for day-to-day
 
 **Tags**. Name and kind (meal type, cuisine, other). Note that any logged-in user can create and
 edit tags through the API, so the list may need occasional cleaning.
+
+**Announcements**. Banners shown on top of every page; see [Announcements](announcements.md).
 
 **Thematic pages**.
 
