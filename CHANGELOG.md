@@ -83,6 +83,8 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Recipe and week PDFs no longer show raw Cooklang markup in steps (`@Beurre`, `#Four`,
   `~{20%minutes}`): ingredients are printed in bold, cookware is underlined and timers are
   highlighted, as on the recipe page.
+- In production (Docker, standalone or behind a shared proxy), `/django-admin` without a trailing
+  slash now opens the Django admin instead of falling back to the app's recipe list.
 
 ## [0.2.0] "Lasagna" 🍝 - 2026-10-03
 
