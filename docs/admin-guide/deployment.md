@@ -546,6 +546,7 @@ allergens and the homepage shortcuts work, so load it before opening the site to
     ```bash
     docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_allergens
     docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
+    docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_cookware
     docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
     docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
     ```
@@ -557,6 +558,7 @@ allergens and the homepage shortcuts work, so load it before opening the site to
     ```bash
     docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod exec backend python manage.py seed_allergens
     docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod exec backend python manage.py seed_common_ingredients
+    docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod exec backend python manage.py seed_cookware
     docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod exec backend python manage.py seed_nutrient_requirements
     docker compose -f docker-compose.prod.yml -f docker-compose.prod.proxy.yml --env-file .env.prod exec backend python manage.py seed_thematic_pages
     ```
@@ -569,6 +571,7 @@ allergens and the homepage shortcuts work, so load it before opening the site to
     cd /opt/cocotte/app/backend
     sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py seed_allergens
     sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py seed_common_ingredients
+    sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py seed_cookware
     sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py seed_nutrient_requirements
     sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py seed_thematic_pages
     ```
@@ -579,6 +582,7 @@ allergens and the homepage shortcuts work, so load it before opening the site to
 |---|---|
 | `seed_allergens` | The reference allergen list (the 14 EU allergens plus lactose), used by user profiles and the ingredient form. |
 | `seed_common_ingredients` | About 170 common ingredients with nutrition values, carbon footprint, seasonality, English/German/Spanish names and reviewed allergens. It also runs `seed_allergens` itself, so the allergen list is guaranteed even if you skipped the first command. |
+| `seed_cookware` | About 60 common cookware items (oven, air fryer, pans, dishes, tools) with their English names, emojis and photos downloaded from Wikimedia Commons (needs Internet access; `--skip-images` to skip them), offered in the recipe form and the **Cookware** filter. |
 | `seed_nutrient_requirements` | Daily minimum intakes (protein, iron, vitamin B12, calcium, omega-3, zinc) for each diet type and activity level. Without them, the planner shows no deficiency alerts. |
 | `seed_thematic_pages` | Three homepage shortcuts: seasonal produce, vegan, and ready in 30 minutes, with their images. |
 

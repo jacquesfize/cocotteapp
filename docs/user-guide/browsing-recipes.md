@@ -92,6 +92,7 @@ ingredient or allergen) — click a pill's **×** to clear that filter without o
 | **In season** | A leaf button, crossed out while the filter is off; click it to switch it on (hover it to read *In-season ingredients only*). Hides recipes that use any ingredient that is out of season this month. Ingredients without a season are considered available all year. |
 | **Diet** | A list of choices: **All (flexitarian)**, **Vegetarian** or **Vegan**. A flexitarian eats everything, so there is no separate **Flexitarian** choice: it is the same as **All (flexitarian)**. |
 | **Ingredients** | Type in **Search an ingredient…** and pick ingredients from the list; each one becomes a pill (click its **×** to remove it). Shows recipes that contain **all** the chosen ingredients. To use a name that isn't in the list, type it and press Enter: it must match an ingredient's full name, but case and accents don't matter (`creme fraiche` finds *Crème fraîche*), and the English names of library ingredients work too. |
+| **Cookware** | Pick cookware in **Oven, air fryer...**; each one becomes a pill. Shows recipes that use **at least one** of the chosen items, for example every recipe made in the oven *or* the air fryer. |
 | **Max prep time** | A slider, in steps of 5 minutes up to 3 h. All the way to the right means **No limit**. |
 | **Max cook time** | Same as **Max prep time**, for the cook time. |
 | **Carbon impact per serving** | A slider with four positions: **Any**, then **Low (≤ 0.5 kg CO₂e)** (green), **Medium (0.5 to 1.5 kg CO₂e)** (orange) and **High (> 1.5 kg CO₂e)** (red) — the same colours as the leaf badge on each recipe. See [Nutrition & carbon](nutrition-and-carbon.md#carbon-levels). |
@@ -174,9 +175,19 @@ got one, or *Credit not specified* when there's truly no credit information at a
 The **Ingredients** card lists quantities and units. Ingredients may be grouped under
 sub-headings. Click an ingredient name to see other recipes that use it.
 
+When the author listed the cookware the recipe needs, it appears under **Cookware**, at the
+bottom of the same card, each item with its photo or emoji: check it before you start. Click an
+item to open its photo in a dialog, with the photo's credit (author, source and license) and a
+**See recipes using: …** link to the other recipes that use it.
+
+In cook mode, cookware mentioned in a step stands out as a pill with its emoji (🍳 by default),
+and the ingredients panel lists the recipe's cookware too; clicking either opens the same photo
+dialog (without the link, so you stay in cook mode). The PDF lists the cookware under the title.
+
 In the **Steps** card:
 
 - **highlighted ingredient names** are links to the ingredient in the list (handy on a phone),
+- **dotted-underlined cookware names** open the item's photo dialog,
 - **timer buttons** (for example ⏱ *10 min* or ⏱ *rest · 1 h*) start a countdown,
 - a small **photo icon** at the end of a step's text means that step has its own picture — click
   it to view it (with its credit) in a dialog.

@@ -130,6 +130,10 @@ access; users can also do this themselves from **My account**.
   [The "Private" flag](moderation.md#the-private-flag)), **Content publicly licensed** (see
   [Copyright-restricted imported recipes](moderation.md#copyright-restricted-imported-recipes)),
   the source type, the version family (`root recipe`, `version label`) and the raw Cooklang text.
+- **Cookware**: a two-list selector to add or remove the recipe's cookware.
+
+**Cookware**. The cookware library (`name`, `slug`, `translations`), searchable by name. Prefer
+the app's **Cookware** page (see [Cookware library](cookware.md)) for day-to-day edits.
 
 **Recipe comments**.
 

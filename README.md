@@ -64,6 +64,7 @@ docker compose exec backend python manage.py migrate
 docker compose exec backend python manage.py createsuperuser
 docker compose exec backend python manage.py seed_allergens
 docker compose exec backend python manage.py seed_common_ingredients
+docker compose exec backend python manage.py seed_cookware
 docker compose exec backend python manage.py seed_nutrient_requirements
 docker compose exec backend python manage.py seed_thematic_pages
 ```

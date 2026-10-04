@@ -105,6 +105,7 @@ nav:
       - Maintenance: admin-guide/maintenance.md
       - Users: admin-guide/users.md
       - Ingredient library: admin-guide/ingredients.md
+      - Cookware library: admin-guide/cookware.md
       - Thematic pages: admin-guide/thematic-pages.md
       - Moderation: admin-guide/moderation.md
       - GDPR compliance: admin-guide/gdpr.md

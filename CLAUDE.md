@@ -38,6 +38,7 @@ Seed commands (idempotent, run after the first migration):
 ```bash
 uv run python manage.py seed_nutrient_requirements   # reference nutrient thresholds
 uv run python manage.py seed_common_ingredients       # ingredient library with real nutrition data
+uv run python manage.py seed_cookware       # cookware library (oven, pans...)
 uv run python manage.py seed_thematic_pages           # homepage thematic shortcuts
 ```
 

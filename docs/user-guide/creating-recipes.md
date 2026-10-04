@@ -87,16 +87,27 @@ If the ingredient you need doesn't exist yet, the suggestion list ends with
 > delete them (see [Ingredient library](../admin-guide/ingredients.md)). Take a moment to get
 > the name and values right.
 
+### Cookware
+
+The **Cookware** card lists what the recipe needs (oven, frying pan, air fryer...), so readers
+know before they start whether they have it. Type in **Oven, frying pan...** and pick items from
+the shared cookware library; each one becomes a pill (click its **×** to remove it).
+
+If what you need isn't in the list, type its name and press Enter (*Press Enter to create this
+cookware*): it's added to the library and to the recipe at once. Only admins can rename or delete
+cookware afterwards (see [Cookware library](../admin-guide/cookware.md)).
+
 ### Steps
 
 Each step is a text box. Click **Add a step** to add one, and the bin button to remove one.
 Empty steps are ignored when saving.
 
-The two buttons next to each step insert special markup:
+The three buttons next to each step insert special markup:
 
 | Button | Inserts | Result on the recipe page |
 |---|---|---|
 | **Ingredient** | `@` and opens the ingredient suggestions | A highlighted link to the ingredient in the list |
+| **Cookware** | `#` and opens the cookware suggestions | A link to the item in the **Cookware** list |
 | **Duration** | `~{10%minutes}` with `10` selected, ready to overwrite | A timer button |
 
 #### Link an ingredient with `@`
@@ -128,6 +139,22 @@ Example:
 
 ```text
 Faire revenir l'@oignon dans l'@huile_olive, puis ajouter les @tomates.
+```
+
+#### Mention cookware with `#`
+
+Type `#` followed by the start of a cookware name, for example `#fo`, and pick a suggestion:
+Cocotte writes it as a mention (for example `#Four`) and **adds it to the recipe's Cookware card**
+if it isn't there yet. If nothing fits, **+ Create "…"** adds it to the library directly (a
+cookware item only has a name).
+
+The rules are those of ingredient mentions: multi-word names use underscores
+(`#Friteuse_à_air`), case doesn't matter, and a warning appears under the step when the name isn't
+in the recipe's cookware. A cookware mention also stops at punctuation (`#four.` refers to
+*four*), and `#` followed by a digit (`step #2`) stays plain text.
+
+```text
+Préchauffer le #four, puis verser dans le #plat_à_gratin.
 ```
 
 #### Add a timer with `~`
@@ -291,7 +318,7 @@ The syntax Cocotte understands:
 | `@oignon{1}`, `@sucre{1/2%cup}` | A quantity without unit; fractions work. |
 | `@café{30%g}(moulu)` | A preparation note, kept in the step text. |
 | `~{10%minutes}`, `~repos{1%heure}` | A timer. |
-| `#poêle{}`, `#poêle à frire{}` | Cookware. It's shown as plain text in the step. |
+| `#poêle`, `#poêle à frire{}` | Cookware. It's added to the recipe's **Cookware** card and kept as a mention in the step. |
 | `= Pâte` | A section title. The ingredients that follow are grouped under it. |
 | `> Astuce…` | A note. Notes are added to the recipe description, not to the steps. |
 | `-- …`, `[- … -]` | A comment, ignored. |
@@ -346,6 +373,10 @@ What happens on import:
   content is [restricted](browsing-recipes.md#recipes-with-restricted-content) like any import.
 - With unreadable metadata, you see *Unreadable Cooklang text.* and stay on the **Paste
   Cooklang** tab. A missing title is fine: type it in the form before saving.
+- Cookware is matched against the cookware library by name or English name, ignoring case and
+  accents (`#poele` finds *Poêle*, `#oven` finds *Four*), and pre-selected in the **Cookware**
+  card. Cookware that matches nothing is listed under *Cookware not found in the library*, with a
+  **+ Create "…"** button for each; ignore the ones you don't want.
 
 ## Edit or delete a recipe
 

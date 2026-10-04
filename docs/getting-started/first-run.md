@@ -72,6 +72,7 @@ Run these commands in this order:
 ```bash
 docker compose exec backend python manage.py seed_allergens
 docker compose exec backend python manage.py seed_common_ingredients
+docker compose exec backend python manage.py seed_cookware
 docker compose exec backend python manage.py seed_nutrient_requirements
 docker compose exec backend python manage.py seed_thematic_pages
 ```
@@ -83,6 +84,7 @@ docker compose exec backend python manage.py seed_thematic_pages
 ```bash
 uv run python manage.py seed_allergens
 uv run python manage.py seed_common_ingredients
+uv run python manage.py seed_cookware
 uv run python manage.py seed_nutrient_requirements
 uv run python manage.py seed_thematic_pages
 ```
@@ -93,6 +95,7 @@ uv run python manage.py seed_thematic_pages
 |---|---|---|
 | `seed_allergens` | The reference list of allergens: the 14 EU allergens plus lactose. | The **Allergies and intolerances** section of the profile and the allergen checkboxes of the ingredient form are empty. |
 | `seed_common_ingredients` | A library of common ingredients with nutrition values (per 100 g), carbon footprint (kg CO₂e/kg), seasonality, English names and **checked allergens**. | You would have to create every ingredient by hand, and recipes would show no nutrition or carbon data. |
+| `seed_cookware` | About 60 common cookware items (oven, air fryer, pans, dishes, tools) with their English names, emojis and photos downloaded from Wikimedia Commons (needs Internet access; `--skip-images` to skip them). | The cookware picker of the recipe form and the **Cookware** filter start empty; users create items as they go. |
 | `seed_nutrient_requirements` | Daily minimums for protein, iron, vitamin B12, calcium, omega-3 and zinc, for every diet type and activity level. | The planner never shows nutrition alerts. |
 | `seed_thematic_pages` | Three home page shortcuts: *Produits de saison* (in season), *Spécial végan* and *Prêt en 30 minutes* (30 minutes of prep or less), with their images. | The **Explore** section of the home page stays empty. |
 
