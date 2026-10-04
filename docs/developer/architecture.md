@@ -112,6 +112,7 @@ erDiagram
         json translations
         bool allergens_reviewed
         decimal carbon_kg_co2e_per_kg
+        bool is_verified
     }
     Recipe {
         string title
@@ -157,6 +158,17 @@ A few rules worth knowing:
 - Deleting a user cascades to their recipes, planner, shopping lists and shares. Ingredients are
   `PROTECT`ed: an ingredient used by a recipe or a shopping list cannot be deleted (the API
   returns `409`).
+- `Ingredient` and `Cookware` are shared libraries with the same review rules: a non-staff
+  `POST` records `created_by` and sets `is_verified = False` (only staff can write
+  `is_verified`). `can_be_edited_by(user)` on each model (backed by
+  `ingredients.models.can_edit_library_item`) is the single rule for update/delete: staff
+  always; otherwise only the creator of an unverified item that no other user's data uses
+  (`is_used_by_others`: recipes and shopping lists for ingredients, recipes for cookware). The
+  viewsets enforce it with `ingredients.permissions.CanEditLibraryItem`, expose it as `can_edit`
+  and precompute `used_by_others` with `Exists` subqueries on list endpoints. Both accept
+  `?is_verified=true|false`, and staff can `POST /api/{ingredients,cookware}/{id}/merge/` with
+  `{"into": <id>}` (`merge_ingredients` in `ingredients/services.py`, `merge_cookware` in
+  `recipes/services.py`) to fold a duplicate into another item.
 - Recipe allergens are **derived** from their ingredients (`Recipe.allergen_slugs()`). An
   ingredient with `allergens_reviewed = False` makes the recipe "unverified" rather than safe.
 - `Recipe.is_content_restricted(user)` is the single source of truth for copyright protection:
@@ -185,7 +197,8 @@ A few rules worth knowing:
   (`piece`, `pinch`) are rounded up.
 - **Permissions**: `IsAuthorOrReadOnly` (author or staff may write a recipe),
   `IsRecipeAuthorOrStaff` (comment moderation), DRF's `IsAdminUser` for everything under
-  `/api/admin/` and for ingredient update/delete. Anonymous comment creation is throttled
+  `/api/admin/` and for ingredient/cookware merge, `CanEditLibraryItem` for ingredient/cookware
+  update/delete (see above). Anonymous comment creation is throttled
   (`comment_create`, 10/hour).
 - **Planner sharing**: `MealPlanEntryViewSet` accepts an `?owner=` parameter resolved through a
   single helper that checks the `PlanningShare` permission; entries created through a write

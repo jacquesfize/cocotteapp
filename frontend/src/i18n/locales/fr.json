@@ -386,7 +386,8 @@
   },
   "ingredientPicker": {
     "placeholder": "Rechercher un ingrédient...",
-    "create": "+ Créer « {name} »"
+    "create": "+ Créer « {name} »",
+    "editLabel": "Modifier l'ingrédient « {name} »"
   },
   "ingredientCategory": {
     "vegetable": "Légume",
@@ -437,7 +438,8 @@
     },
     "allergensTitle": "Allergènes",
     "allergensHint": "Cochez les allergènes présents dans cet ingrédient.",
-    "allergensReviewed": "J'ai vérifié : cet ingrédient ne contient pas d'allergène de la liste"
+    "allergensReviewed": "J'ai vérifié : cet ingrédient ne contient pas d'allergène de la liste",
+    "delete": "Supprimer l'ingrédient"
   },
   "recipePicker": {
     "placeholder": "Rechercher une recette..."
@@ -793,7 +795,10 @@
     "importNotFound": "Matériel absent de la bibliothèque :",
     "seeRecipes": "Voir les recettes avec : {name}",
     "filter": "Matériel",
-    "filterPlaceholder": "Four, friteuse à air..."
+    "filterPlaceholder": "Four, friteuse à air...",
+    "editLabel": "Modifier le matériel « {name} »",
+    "delete": "Supprimer le matériel",
+    "deleteConfirm": "Supprimer définitivement le matériel « {name} » ?"
   },
   "personalTags": {
     "title": "Mes étiquettes",
@@ -857,6 +862,27 @@
     "emoji": "Emoji",
     "image": "Photo",
     "imageRemove": "Retirer la photo"
+  },
+  "libraryReview": {
+    "unverified": "Non vérifié",
+    "unverifiedTooltip": "Ajouté par un utilisateur : un administrateur va le vérifier. D'ici là, son auteur peut le modifier ou le supprimer.",
+    "addedBy": "ajouté par {username}",
+    "filterUnverified": "Non vérifiés",
+    "unverifiedCount": "{count} non vérifié(s)",
+    "nothingToReview": "Rien à vérifier.",
+    "verify": "Vérifier",
+    "verifyError": "Impossible de vérifier cet élément.",
+    "merge": "Fusionner dans…",
+    "mergeTitle": "Fusionner « {name} » dans…",
+    "mergeSubmit": "Fusionner",
+    "mergeSameItem": "Choisissez un autre élément dans lequel fusionner.",
+    "mergeError": "Fusion impossible : vérifiez la cible choisie.",
+    "mergeDone": "« {name} » a été fusionné dans « {target} ».",
+    "mergeIngredientTarget": "Ingrédient à conserver",
+    "mergeIngredientConfirm": "Les recettes et listes de courses qui utilisent « {name} » passeront sur « {target} », puis « {name} » sera supprimé. Cette action est irréversible.",
+    "mergeCookwareTarget": "Matériel à conserver",
+    "mergeCookwareConfirm": "Les recettes qui utilisent « {name} » passeront sur « {target} », puis « {name} » sera supprimé. Cette action est irréversible.",
+    "mergeCookwarePlaceholder": "Choisir un matériel…"
   },
   "notFound": {
     "title": "Page introuvable",

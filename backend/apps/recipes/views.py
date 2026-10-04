@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Exists, OuterRef, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -14,7 +14,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from weasyprint import HTML
 
+from apps.ingredients.permissions import CanEditLibraryItem
 from apps.ingredients.search import FuzzySearchFilter
+from apps.ingredients.serializers import MergeIntoSerializer
 from apps.nutrition.services import compute_recipe_carbon_footprint, compute_recipe_nutrition
 
 from .cooklang_import import CooklangParseError, build_cooklang_preview, create_recipe_from_cooklang
@@ -53,13 +55,19 @@ from .serializers import (
     ThematicPageSerializer,
     my_tags_data,
 )
+from .services import merge_cookware
 from .throttles import CommentCreateAnonThrottle, RatingCreateAnonThrottle
 from .transfer import ArchiveError, build_export_archive, import_archive
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
-        "recipe_ingredients__ingredient__allergens", "steps", "tags", "cookware", "ratings"
+        "recipe_ingredients__ingredient__allergens",
+        "recipe_ingredients__ingredient__created_by",
+        "steps",
+        "tags",
+        "cookware__created_by",
+        "ratings",
     )
     serializer_class = RecipeSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
@@ -402,18 +410,34 @@ class CookwareViewSet(viewsets.ModelViewSet):
     """Bibliothèque de matériel de cuisine. Liste courte (quelques dizaines d'entrées) : pas de
     pagination, le formulaire de recette et les filtres chargent tout d'un coup. Comme pour les
     ingrédients, la création est ouverte aux utilisateurs connectés (ajout à la volée depuis le
-    formulaire de recette) ; modification et suppression sont réservées au staff. Supprimer un
+    formulaire de recette) ; modification et suppression sont réservées au staff et au créateur
+    d'un matériel non vérifié qu'aucune recette d'un autre utilisateur n'utilise
+    (`Cookware.can_be_edited_by`) ; photo et fusion restent réservées au staff. Supprimer un
     matériel le retire simplement des recettes qui l'utilisaient."""
 
-    queryset = Cookware.objects.all()
+    queryset = Cookware.objects.select_related("created_by")
     serializer_class = CookwareSerializer
-    filter_backends = [FuzzySearchFilter]
+    filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
+    filterset_fields = ["is_verified"]
     pagination_class = None
 
     def get_permissions(self):
-        if self.action in ("update", "partial_update", "destroy", "image"):
+        if self.action in ("image", "merge"):
             return [permissions.IsAdminUser()]
+        if self.action in ("update", "partial_update", "destroy"):
+            return [CanEditLibraryItem()]
         return [IsAuthenticatedOrReadOnly()]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        if user.is_authenticated and not user.is_staff:
+            # Précalcule `Cookware.is_used_by_others` pour `can_edit`, sans requête par ligne.
+            used_by_others = Recipe.cookware.through.objects.filter(cookware=OuterRef("pk")).exclude(
+                recipe__author=user
+            )
+            queryset = queryset.annotate(used_by_others=Exists(used_by_others))
+        return queryset
 
     def perform_destroy(self, instance):
         if instance.image:
@@ -439,6 +463,16 @@ class CookwareViewSet(viewsets.ModelViewSet):
             setattr(cookware, field, value)
         cookware.save()
         return Response(self.get_serializer(cookware).data)
+
+    @action(detail=True, methods=["post"])
+    def merge(self, request, pk=None):
+        """Staff : fusionne ce matériel (doublon) dans `into`, puis le supprime. Renvoie le
+        matériel cible. Voir `merge_cookware`."""
+        source = self.get_object()
+        serializer = MergeIntoSerializer(data=request.data, context={"source": source})
+        serializer.is_valid(raise_exception=True)
+        target = merge_cookware(source, serializer.validated_data["into"])
+        return Response(self.get_serializer(target).data)
 
 
 class ThematicPageViewSet(viewsets.ReadOnlyModelViewSet):

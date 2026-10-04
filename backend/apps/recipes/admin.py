@@ -24,8 +24,10 @@ class RecipeAdmin(admin.ModelAdmin):
 
 @admin.register(Cookware)
 class CookwareAdmin(admin.ModelAdmin):
-    list_display = ["name", "emoji", "slug", "translations"]
+    list_display = ["name", "emoji", "slug", "translations", "is_verified", "created_by"]
+    list_filter = ["is_verified", ("created_by", admin.RelatedOnlyFieldListFilter)]
     search_fields = ["name"]
+    raw_id_fields = ["created_by"]
 
 
 admin.site.register(Tag)

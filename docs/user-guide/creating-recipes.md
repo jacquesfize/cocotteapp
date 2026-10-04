@@ -91,9 +91,9 @@ If the ingredient you need doesn't exist yet, the suggestion list ends with
 8. Click **Create ingredient**. It's added to the shared library and selected in your row.
 
 > [!IMPORTANT]
-> Ingredients are shared by everyone on the instance. Once created, only admins can edit or
-> delete them (see [Ingredient library](../admin-guide/ingredients.md)). Take a moment to get
-> the name and values right.
+> Ingredients are shared by everyone on the instance. Yours stays **Unverified** until an admin
+> reviews it (see [Unverified ingredients and cookware](#unverified-ingredients-and-cookware));
+> after that, only admins can edit or delete it. Take a moment to get the name and values right.
 
 ### Cookware
 
@@ -102,8 +102,33 @@ know before they start whether they have it. Type in **Oven, frying pan...** and
 the shared cookware library; each one becomes a pill (click its **×** to remove it).
 
 If what you need isn't in the list, type its name and press Enter (*Press Enter to create this
-cookware*): it's added to the library and to the recipe at once. Only admins can rename or delete
-cookware afterwards (see [Cookware library](../admin-guide/cookware.md)).
+cookware*): it's added to the library and to the recipe at once, marked **Unverified** until an
+admin reviews it (see [Unverified ingredients and cookware](#unverified-ingredients-and-cookware)).
+
+### Unverified ingredients and cookware
+
+Ingredients and cookware you create from the recipe form are added to the shared library
+straight away, so you can use them at once, but they carry an **Unverified** badge (in the
+suggestion lists, under the ingredient you picked and on cookware pills) until an admin reviews
+them. Hover the badge to read *Added by a user: an administrator will review it. Until then, its
+creator can edit or delete it.* The admin then verifies it, or merges it into an existing item
+if it was a duplicate (your recipe then simply points to that item).
+
+Until then, you can fix your own items without leaving the recipe:
+
+- **Ingredient**: click **Edit** under the ingredient you picked to open the **Edit ingredient**
+  form (name, English name, category, seasonality, nutrition, carbon footprint, allergens), then
+  **Save**. **Delete ingredient** removes it from the library and clears the row. If one of your
+  saved recipes or shopping lists still uses it, Cocotte refuses (*Cannot delete "…": it is used
+  by recipes or shopping lists. Remove it from them first.*).
+- **Cookware**: click the pencil on its pill (*Edit cookware "…"*) to change its **Name**,
+  **English name** or **Emoji**, then **Save**. **Delete cookware** removes it from the library
+  and from the recipe.
+
+The **Edit** button (or the pencil) disappears once the item is verified, or as soon as someone
+else uses it in their own recipes: from then on, only admins can change it (see
+[Ingredient library](../admin-guide/ingredients.md) and
+[Cookware library](../admin-guide/cookware.md)).
 
 ### Steps
 

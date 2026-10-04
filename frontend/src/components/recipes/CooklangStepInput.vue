@@ -3,6 +3,7 @@ import { AtSign, CookingPot, TriangleAlert, Timer } from '@lucide/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IngredientEditModal from './IngredientEditModal.vue'
+import UnverifiedBadge from '../shared/UnverifiedBadge.vue'
 import { useDebouncedSearch } from '../../composables/useDebouncedSearch'
 import { createCookware, listCookware } from '../../api/cookware'
 import { listIngredients } from '../../api/ingredients'
@@ -362,6 +363,7 @@ function closeCreateModal() {
         @mouseenter="activeIndex = index"
       >
         {{ item.name }}
+        <UnverifiedBadge v-if="item.is_verified === false" />
       </li>
       <li
         v-if="showCreateOption"

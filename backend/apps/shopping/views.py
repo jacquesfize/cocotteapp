@@ -17,7 +17,9 @@ class ShoppingListViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return ShoppingList.objects.filter(user=self.request.user).prefetch_related("items__ingredient")
+        return ShoppingList.objects.filter(user=self.request.user).prefetch_related(
+            "items__ingredient__created_by"
+        )
 
     def create(self, request, *args, **kwargs):
         entry_ids = request.data.get("meal_plan_entry_ids", [])

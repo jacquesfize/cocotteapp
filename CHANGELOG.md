@@ -33,6 +33,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   recipes, instead of silently showing the recipe list.
 - Each page now has its own browser tab title (for example *Recipes · Cocotte*, or the recipe's
   title on its page).
+- **Unverified** ingredients and cookware: an item you create from the recipe form (or that a
+  Cooklang or archive import creates for you) is marked **Unverified** until an administrator
+  reviews it. Until then, and as long as no other user's recipe or shopping list uses it, you can
+  fix it (**Edit**) or delete it yourself from the recipe form. Administrators get an
+  **Unverified** filter on the **Ingredients** and **Cookware** pages, a **Verify** button, and
+  **Merge into…** to fold a duplicate into the item to keep (its recipes and shopping lists move
+  to that item).
 
 ### 🔄 Changed
 

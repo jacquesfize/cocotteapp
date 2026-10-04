@@ -70,8 +70,8 @@ groups, useful if you want to give several non-superuser staff the same Django a
 
 **Ingredients**. The ingredient library.
 
-- List columns: name, category, default unit, season months.
-- List filters: category, **allergens reviewed**, allergens.
+- List columns: name, category, default unit, season months, verified, created by.
+- List filters: **verified**, category, **allergens reviewed**, allergens, created by.
 - Search: name.
 - The form also shows the raw `translations` JSON (for example
   `{"en": "garlic", "de": "Knoblauch", "es": "ajo"}`), where you can edit the German and Spanish
@@ -132,7 +132,8 @@ access; users can also do this themselves from **My account**.
   the source type, the version family (`root recipe`, `version label`) and the raw Cooklang text.
 - **Cookware**: a two-list selector to add or remove the recipe's cookware.
 
-**Cookware**. The cookware library (`name`, `slug`, `translations`), searchable by name. Prefer
+**Cookware**. The cookware library (`name`, `slug`, `translations`, verified, created by),
+searchable by name and filterable by **verified** and creator. Prefer
 the app's **Cookware** page (see [Cookware library](cookware.md)) for day-to-day edits.
 
 **Recipe comments**.

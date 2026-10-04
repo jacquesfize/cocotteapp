@@ -7,6 +7,7 @@ vi.mock('../../src/api/cookware', () => ({
   createCookware: vi.fn(),
   updateCookware: vi.fn(),
   deleteCookware: vi.fn(),
+  mergeCookware: vi.fn(),
   uploadCookwareImage: vi.fn(),
   removeCookwareImage: vi.fn(),
 }))
@@ -15,6 +16,7 @@ import {
   createCookware,
   deleteCookware,
   listCookware,
+  mergeCookware,
   removeCookwareImage,
   updateCookware,
   uploadCookwareImage,
@@ -23,6 +25,18 @@ import AdminCookwareView from '../../src/views/admin/AdminCookwareView.vue'
 
 const OVEN = { id: 1, name: 'Four', slug: 'four', emoji: '', image: '/media/cookware/four.jpg', translations: { en: 'oven', de: 'Ofen' } }
 const PAN = { id: 2, name: 'Poêle', slug: 'poele', emoji: '🍳', image: null, translations: {} }
+const WOK = {
+  id: 3,
+  name: 'Wok maison',
+  slug: 'wok-maison',
+  emoji: '',
+  image: null,
+  translations: {},
+  is_verified: false,
+  created_by: 7,
+  created_by_username: 'bob',
+  can_edit: true,
+}
 
 async function mountView() {
   const wrapper = mount(AdminCookwareView, { global: { plugins: [i18n] }, attachTo: document.body })
@@ -127,5 +141,80 @@ describe('AdminCookwareView', () => {
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
     expect(removeCookwareImage).toHaveBeenCalledWith(1)
+  })
+
+  describe('review queue', () => {
+    beforeEach(() => {
+      vi.mocked(listCookware).mockResolvedValue([OVEN, PAN, WOK])
+    })
+
+    it('counts, badges and filters unverified cookware', async () => {
+      const wrapper = await mountView()
+      expect(wrapper.get('.admin-filter-count').text()).toBe('1')
+      const rows = wrapper.findAll('tbody tr')
+      expect(rows[0].find('[data-testid="unverified-badge"]').exists()).toBe(false)
+      expect(rows[2].get('[data-testid="unverified-badge"]').text()).toContain('Non vérifié · ajouté par bob')
+
+      await wrapper.get('[data-testid="filter-unverified"]').trigger('click')
+      expect(wrapper.get('[data-testid="filter-unverified"]').attributes('aria-pressed')).toBe('true')
+      expect(wrapper.findAll('tbody tr').map((row) => row.find('.name').text())).toEqual([
+        expect.stringContaining('Wok maison'),
+      ])
+      wrapper.unmount()
+    })
+
+    it('verifies cookware and updates its row', async () => {
+      vi.mocked(updateCookware).mockResolvedValue({ ...WOK, is_verified: true })
+      const wrapper = await mountView()
+
+      await wrapper.get('[data-testid="verify"]').trigger('click')
+      await flushPromises()
+
+      expect(updateCookware).toHaveBeenCalledWith(3, { is_verified: true })
+      expect(wrapper.find('[data-testid="unverified-badge"]').exists()).toBe(false)
+      expect(wrapper.get('.admin-filter-count').text()).toBe('0')
+      wrapper.unmount()
+    })
+
+    it('merges cookware into another one picked from the list', async () => {
+      vi.mocked(mergeCookware).mockResolvedValue(PAN)
+      const wrapper = await mountView()
+
+      await wrapper.findAll('tbody tr')[2].get('[data-testid="merge"]').trigger('click')
+      const select = wrapper.get('#cookware-merge-target')
+      // Le matériel fusionné n'est pas proposé comme cible.
+      expect(select.findAll('option').map((o) => o.text())).toEqual([
+        'Choisir un matériel…',
+        'Four',
+        '🍳 Poêle',
+      ])
+      expect(wrapper.get('[role="dialog"] button[type="submit"]').attributes('disabled')).toBeDefined()
+
+      await select.setValue('2')
+      expect(wrapper.get('[data-testid="merge-confirm"]').text()).toContain(
+        'Les recettes qui utilisent « Wok maison » passeront sur « Poêle »',
+      )
+      await wrapper.get('[role="dialog"] form').trigger('submit.prevent')
+      await flushPromises()
+
+      expect(mergeCookware).toHaveBeenCalledWith(3, 2)
+      expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+      expect(listCookware).toHaveBeenCalledTimes(2)
+      expect(wrapper.get('[role="status"]').text()).toContain('« Wok maison » a été fusionné dans « Poêle »')
+      wrapper.unmount()
+    })
+
+    it('reports a failed merge', async () => {
+      vi.mocked(mergeCookware).mockRejectedValue({ response: { status: 400 } })
+      const wrapper = await mountView()
+
+      await wrapper.findAll('tbody tr')[2].get('[data-testid="merge"]').trigger('click')
+      await wrapper.get('#cookware-merge-target').setValue('1')
+      await wrapper.get('[role="dialog"] form').trigger('submit.prevent')
+      await flushPromises()
+
+      expect(wrapper.get('[role="dialog"] [role="alert"]').text()).toContain('Fusion impossible')
+      wrapper.unmount()
+    })
   })
 })

@@ -36,6 +36,8 @@ export interface IngredientListParams {
   in_season?: boolean
   search?: string
   page?: number
+  // `false` : file de revue des administrateurs (ingrédients créés par des utilisateurs).
+  is_verified?: boolean
 }
 
 export interface MealPlanEntryListParams {

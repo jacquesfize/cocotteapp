@@ -386,7 +386,8 @@
   },
   "ingredientPicker": {
     "placeholder": "Search an ingredient...",
-    "create": "+ Create \"{name}\""
+    "create": "+ Create \"{name}\"",
+    "editLabel": "Edit ingredient \"{name}\""
   },
   "ingredientCategory": {
     "vegetable": "Vegetable",
@@ -437,7 +438,8 @@
     },
     "allergensTitle": "Allergens",
     "allergensHint": "Tick the allergens this ingredient contains.",
-    "allergensReviewed": "I checked: this ingredient contains none of the listed allergens"
+    "allergensReviewed": "I checked: this ingredient contains none of the listed allergens",
+    "delete": "Delete ingredient"
   },
   "recipePicker": {
     "placeholder": "Search a recipe..."
@@ -793,7 +795,10 @@
     "importNotFound": "Cookware not found in the library:",
     "seeRecipes": "See recipes using: {name}",
     "filter": "Cookware",
-    "filterPlaceholder": "Oven, air fryer..."
+    "filterPlaceholder": "Oven, air fryer...",
+    "editLabel": "Edit cookware \"{name}\"",
+    "delete": "Delete cookware",
+    "deleteConfirm": "Permanently delete cookware \"{name}\"?"
   },
   "personalTags": {
     "title": "My tags",
@@ -857,6 +862,27 @@
     "emoji": "Emoji",
     "image": "Photo",
     "imageRemove": "Remove the photo"
+  },
+  "libraryReview": {
+    "unverified": "Unverified",
+    "unverifiedTooltip": "Added by a user: an administrator will review it. Until then, its creator can edit or delete it.",
+    "addedBy": "added by {username}",
+    "filterUnverified": "Unverified",
+    "unverifiedCount": "{count} unverified",
+    "nothingToReview": "Nothing to review.",
+    "verify": "Verify",
+    "verifyError": "Could not verify this item.",
+    "merge": "Merge into…",
+    "mergeTitle": "Merge \"{name}\" into…",
+    "mergeSubmit": "Merge",
+    "mergeSameItem": "Choose a different item to merge into.",
+    "mergeError": "Could not merge: check the chosen target.",
+    "mergeDone": "\"{name}\" was merged into \"{target}\".",
+    "mergeIngredientTarget": "Ingredient to keep",
+    "mergeIngredientConfirm": "Recipes and shopping lists using \"{name}\" will be moved to \"{target}\", then \"{name}\" will be deleted. This can't be undone.",
+    "mergeCookwareTarget": "Cookware to keep",
+    "mergeCookwareConfirm": "Recipes using \"{name}\" will be moved to \"{target}\", then \"{name}\" will be deleted. This can't be undone.",
+    "mergeCookwarePlaceholder": "Choose cookware…"
   },
   "notFound": {
     "title": "Page not found",

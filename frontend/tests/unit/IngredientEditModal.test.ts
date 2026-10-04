@@ -9,10 +9,12 @@ vi.mock('../../src/api/allergens', () => ({
 }))
 vi.mock('../../src/api/ingredients', () => ({
   createIngredient: vi.fn(),
+  updateIngredient: vi.fn(),
+  deleteIngredient: vi.fn(),
   suggestIngredientNutrition: vi.fn(),
 }))
 
-import { createIngredient, suggestIngredientNutrition } from '../../src/api/ingredients'
+import { createIngredient, deleteIngredient, suggestIngredientNutrition } from '../../src/api/ingredients'
 import IngredientEditModal from '../../src/components/recipes/IngredientEditModal.vue'
 import { i18n } from '../../src/i18n'
 import type { Ingredient } from '../../src/types/models'
@@ -152,5 +154,63 @@ describe('IngredientEditModal', () => {
     expect(createIngredient).toHaveBeenCalledWith(
       expect.objectContaining({ allergens: [], allergens_reviewed: true }),
     )
+  })
+
+  describe('editing an ingredient created by the user', () => {
+    const own = {
+      id: 12,
+      name: 'ail noir',
+      slug: 'ail-noir',
+      category: 'condiment',
+      default_unit: 'g',
+      available_months: [],
+      is_verified: false,
+      created_by: 3,
+      created_by_username: 'alice',
+      can_edit: true,
+    } as unknown as Ingredient
+
+    function mountEdit(ingredient: Ingredient, deletable = true) {
+      return mount(IngredientEditModal, { props: { ingredient, deletable }, global: { plugins: [i18n] } })
+    }
+
+    beforeEach(() => {
+      window.confirm = vi.fn(() => true)
+    })
+
+    it('shows the unverified badge and explanation', () => {
+      const wrapper = mountEdit(own)
+      expect(wrapper.find('[data-testid="unverified-badge"]').exists()).toBe(true)
+      expect(wrapper.text()).toContain('un administrateur va le vérifier')
+    })
+
+    it('does not show the badge on a verified ingredient', () => {
+      const wrapper = mountEdit({ ...own, is_verified: true })
+      expect(wrapper.find('[data-testid="unverified-badge"]').exists()).toBe(false)
+    })
+
+    it('offers deletion only when deletable and allowed by the API', () => {
+      expect(mountEdit(own).find('[data-testid="ingredient-modal-delete"]').exists()).toBe(true)
+      expect(mountEdit({ ...own, can_edit: false }).find('[data-testid="ingredient-modal-delete"]').exists()).toBe(false)
+      expect(mountEdit(own, false).find('[data-testid="ingredient-modal-delete"]').exists()).toBe(false)
+    })
+
+    it('deletes the ingredient after confirmation and emits it', async () => {
+      vi.mocked(deleteIngredient).mockResolvedValue(undefined as never)
+      const wrapper = mountEdit(own)
+      await wrapper.get('[data-testid="ingredient-modal-delete"]').trigger('click')
+      await flushPromises()
+      expect(deleteIngredient).toHaveBeenCalledWith(12)
+      expect(wrapper.emitted('deleted')?.[0]).toEqual([12])
+    })
+
+    it('explains when the ingredient is still used', async () => {
+      vi.mocked(deleteIngredient).mockRejectedValue({ response: { status: 409 } })
+      const wrapper = mountEdit(own)
+      await wrapper.get('[data-testid="ingredient-modal-delete"]').trigger('click')
+      await flushPromises()
+      expect(wrapper.get('[role="alert"]').text()).toContain('utilisé par des recettes')
+      expect(wrapper.emitted('deleted')).toBeUndefined()
+    })
   })
 })

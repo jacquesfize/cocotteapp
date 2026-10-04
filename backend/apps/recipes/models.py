@@ -5,7 +5,7 @@ from django.db.models.functions import Lower
 from django.utils.text import slugify
 
 from apps.accounts.models import DietType
-from apps.ingredients.models import Ingredient, Unit
+from apps.ingredients.models import Ingredient, Unit, can_edit_library_item
 
 
 class SourceType(models.TextChoices):
@@ -61,6 +61,18 @@ class Cookware(models.Model):
     # Les pages Commons aux noms non latins dépassent les 200 caractères une fois encodées.
     image_credit_source_url = models.URLField(max_length=500, blank=True)
     image_credit_license_url = models.URLField(blank=True)
+    # Mêmes règles que pour les ingrédients (voir `Ingredient.created_by`).
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_cookware",
+    )
+    is_verified = models.BooleanField(
+        default=True,
+        help_text="Validé par un administrateur. Faux = créé par un utilisateur, à relire.",
+    )
 
     class Meta:
         ordering = ["name"]
@@ -80,6 +92,17 @@ class Cookware(models.Model):
                 slug = f"{base_slug}-{suffix}"
             self.slug = slug
         super().save(*args, **kwargs)
+
+    def is_used_by_others(self, user):
+        """Vrai si une recette d'un autre utilisateur utilise ce matériel (valeur précalculée
+        `used_by_others` par `CookwareViewSet.get_queryset` quand elle est présente)."""
+        precomputed = getattr(self, "used_by_others", None)
+        if precomputed is not None:
+            return precomputed
+        return self.recipes.exclude(author=user).exists()
+
+    def can_be_edited_by(self, user):
+        return can_edit_library_item(self, user)
 
 
 class Recipe(models.Model):

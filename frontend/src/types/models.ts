@@ -59,7 +59,19 @@ export interface AdminUser {
   recipe_count: number
 }
 
-export interface Ingredient {
+// Champs communs aux bibliothèques partagées (ingrédients, matériel). Un élément créé par un
+// utilisateur non staff arrive « non vérifié » : son créateur peut le corriger ou le supprimer
+// tant qu'il n'est pas vérifié et que seules ses propres données l'utilisent (`can_edit`, calculé
+// par l'API — toujours vrai pour le staff), puis un administrateur le vérifie ou le fusionne.
+// Optionnels côté type : absents, on traite l'élément comme vérifié et non modifiable.
+export interface LibraryItemReview {
+  is_verified?: boolean
+  created_by?: number | null
+  created_by_username?: string | null
+  can_edit?: boolean
+}
+
+export interface Ingredient extends LibraryItemReview {
   id: number
   name: string
   slug: string
@@ -82,7 +94,7 @@ export interface Ingredient {
   carbon_kg_co2e_per_kg: number
 }
 
-export interface Cookware {
+export interface Cookware extends LibraryItemReview {
   id: number
   name: string
   slug: string

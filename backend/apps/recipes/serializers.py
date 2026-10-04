@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient
-from apps.ingredients.serializers import IngredientSerializer
+from apps.ingredients.serializers import IngredientSerializer, LibraryItemSerializerMixin
 from apps.nutrition.services import compute_recipe_carbon_footprint
 
 from .image_credit import validate_image_credit
@@ -83,7 +83,7 @@ class RelativeImageField(serializers.ImageField):
         return value.url if value else None
 
 
-class CookwareSerializer(serializers.ModelSerializer):
+class CookwareSerializer(LibraryItemSerializerMixin, serializers.ModelSerializer):
     image = RelativeImageField(read_only=True)
 
     class Meta:
@@ -99,10 +99,15 @@ class CookwareSerializer(serializers.ModelSerializer):
             "image_credit_source_url",
             "image_credit_license_url",
             "translations",
+            "is_verified",
+            "created_by",
+            "created_by_username",
+            "can_edit",
         ]
         # Le crédit ne change qu'avec la photo, via `PATCH /api/cookware/{id}/image/`.
         read_only_fields = [
             "slug",
+            "created_by",
             "image_license",
             "image_credit_author",
             "image_credit_source_url",
