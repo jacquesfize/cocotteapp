@@ -192,6 +192,7 @@
     "swapOriginal": "Original",
     "swapBackTo": "Revenir à {text}",
     "swapChipLabel": "{count} : {name}",
+    "swapInstead": "à la place de {name}",
     "step": "Étape {n}",
     "addStep": "Ajouter une étape",
     "stepPlaceholder": "Tapez \\@ pour lier un ingrédient, # pour du matériel",

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RecipeCookMode from '../../src/components/recipes/RecipeCookMode.vue'
+import { useIngredientSwaps } from '../../src/composables/useIngredientSwaps'
 import { i18n } from '../../src/i18n'
 import type { Recipe, RecipeStep } from '../../src/types/models'
 
@@ -346,5 +347,79 @@ describe('RecipeCookMode timer dock', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.base-modal').exists()).toBe(false)
     expect(wrapper.emitted('close')).toBeUndefined()
+  })
+})
+
+describe('RecipeCookMode alternatives', () => {
+  const oat = { id: 20, name: "lait d'avoine" }
+
+  function recipeWithAlternative() {
+    const recipe = baseRecipe()
+    recipe.ingredients[0].alternatives = [
+      { id: 7, ingredient: oat, quantity: 3, unit: 'pinch', tag: 'vegan', note: '', order: 0 },
+    ] as never
+    return recipe
+  }
+
+  function mountWithSwaps(recipe: Recipe) {
+    const swaps = useIngredientSwaps()
+    const wrapper = mount(RecipeCookMode, { props: { recipe, swaps }, global: { plugins: [i18n] } })
+    return { wrapper, swaps }
+  }
+
+  it('lets the cook pick an alternative from the ingredients panel, and shows the line as replaced', async () => {
+    const { wrapper } = mountWithSwaps(recipeWithAlternative())
+    const panel = wrapper.find('.cook-mode-ingredients')
+    expect(panel.find('.swap-chip').text()).toBe('1 alternative')
+    expect(panel.find('li.ingredient-row').classes()).not.toContain('swapped')
+
+    await panel.findAll('.swap-options button')[1].trigger('click')
+
+    const line = panel.find('li.ingredient-row')
+    expect(line.classes()).toContain('swapped')
+    expect(line.find('.ingredient-name').text()).toBe("lait d'avoine")
+    expect(line.find('.ingredient-qty').text()).toContain('3')
+    expect(line.find('.swap-reset').text()).toContain('sel')
+  })
+
+  it('shows a choice made on the recipe page, and names the alternative in the step text', async () => {
+    const recipe = recipeWithAlternative()
+    const { wrapper, swaps } = mountWithSwaps(recipe)
+    expect(wrapper.find('.cook-mode-step-text .ingredient-mention').text()).toBe('sel')
+
+    swaps.choose(recipe.ingredients[0], recipe.ingredients[0].alternatives![0])
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.cook-mode-ingredients li.ingredient-row').classes()).toContain('swapped')
+    expect(wrapper.find('.cook-mode-step-text .ingredient-mention').text()).toBe("lait d'avoine")
+  })
+
+  it('tells in the popover which ingredient the alternative replaces', async () => {
+    const recipe = recipeWithAlternative()
+    const { wrapper, swaps } = mountWithSwaps(recipe)
+    swaps.choose(recipe.ingredients[0], recipe.ingredients[0].alternatives![0])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.ingredient-mention').trigger('click')
+
+    expect(wrapper.find('.ingredient-popover').text()).toContain('à la place de sel')
+  })
+
+  it('goes back to the original ingredient from the struck-through line', async () => {
+    const recipe = recipeWithAlternative()
+    const { wrapper, swaps } = mountWithSwaps(recipe)
+    swaps.choose(recipe.ingredients[0], recipe.ingredients[0].alternatives![0])
+    await wrapper.vm.$nextTick()
+
+    await wrapper.find('.cook-mode-ingredients .swap-reset').trigger('click')
+
+    expect(wrapper.find('.cook-mode-ingredients li.ingredient-row').classes()).not.toContain('swapped')
+    expect(wrapper.find('.cook-mode-step-text .ingredient-mention').text()).toBe('sel')
+  })
+
+  it('shows no swap control without shared swaps, as before', () => {
+    const wrapper = mountCookMode(recipeWithAlternative())
+
+    expect(wrapper.find('.swap-chip').exists()).toBe(false)
   })
 })

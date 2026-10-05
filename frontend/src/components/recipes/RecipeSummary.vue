@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ChefHat, ChevronDown, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
+import { ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import CookwareModal from './CookwareModal.vue'
+import IngredientSwapControls from './IngredientSwapControls.vue'
 import BaseModal from '../shared/BaseModal.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import NutritionCard from '../nutrition/NutritionCard.vue'
@@ -17,12 +17,11 @@ import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
 import { downloadBlob } from '../../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import type { Cookware, IngredientAlternative, Recipe, RecipeIngredient } from '../../types/models'
+import type { Cookware, Recipe } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
 }>()
-const { t } = useI18n()
 
 const emit = defineEmits<{
   rated: [result: RecipeRatingResult]
@@ -50,35 +49,6 @@ function stepSegments(instruction: string) {
 // Remplacement d'un ingrédient par une alternative, le temps de la consultation : partagé avec le
 // mode cuisine, non enregistré.
 const swaps = useIngredientSwaps()
-
-function lineText(name: string, quantity: number | string, unit: RecipeIngredient['unit']) {
-  return `${formatQuantity(quantity, unit)} ${formatUnit(unit, quantity)} ${name}`.replace(/\s+/g, ' ').trim()
-}
-
-function originalText(item: RecipeIngredient) {
-  return lineText(item.ingredient.name, item.quantity, item.unit)
-}
-
-function alternativeText(item: RecipeIngredient, alternative: IngredientAlternative) {
-  return lineText(alternative.ingredient?.name ?? item.ingredient.name, alternative.quantity, alternative.unit)
-}
-
-// « 2 alternatives » : texte visible de la pastille, repris dans son nom accessible (avec
-// l'ingrédient concerné, pour qu'un lecteur d'écran distingue les lignes).
-function alternativesCountText(item: RecipeIngredient) {
-  const count = swaps.alternativesOf(item).length
-  return t('recipes.alternativesCount', { n: count }, count)
-}
-
-function swapChipLabel(item: RecipeIngredient) {
-  return t('recipes.swapChipLabel', { count: alternativesCountText(item), name: item.ingredient.name })
-}
-
-// Choisir une option referme la liste dépliée sous la ligne.
-function pickAlternative(item: RecipeIngredient, alternative: IngredientAlternative | null, event: Event) {
-  swaps.choose(item, alternative)
-  ;(event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open')
-}
 
 function rowIndex(item: Recipe['ingredients'][number]) {
   return props.recipe.ingredients.indexOf(item)
@@ -188,43 +158,7 @@ async function handleDownloadPdf() {
                 >
                   {{ swaps.display(item).name }}
                 </RouterLink>
-                <button
-                  v-if="swaps.display(item).swapped"
-                  type="button"
-                  class="swap-reset"
-                  :aria-label="$t('recipes.swapBackTo', { text: originalText(item) })"
-                  @click="swaps.choose(item, null)"
-                >
-                  <s>{{ originalText(item) }}</s>
-                </button>
-                <details v-if="swaps.alternativesOf(item).length" class="swap">
-                  <summary class="swap-chip" :aria-label="swapChipLabel(item)">
-                    {{ alternativesCountText(item) }}
-                    <ChevronDown :size="14" class="swap-chevron" aria-hidden="true" />
-                  </summary>
-                  <ul class="swap-options">
-                    <li>
-                      <button
-                        type="button"
-                        :aria-pressed="!swaps.display(item).swapped"
-                        @click="pickAlternative(item, null, $event)"
-                      >
-                        <span class="swap-option-text">{{ $t('recipes.swapOriginal') }} · {{ originalText(item) }}</span>
-                      </button>
-                    </li>
-                    <li v-for="alternative in swaps.alternativesOf(item)" :key="alternative.id">
-                      <button
-                        type="button"
-                        :aria-pressed="swaps.display(item).swapped?.id === alternative.id"
-                        @click="pickAlternative(item, alternative, $event)"
-                      >
-                        <span class="swap-option-text">{{ alternativeText(item, alternative) }}</span>
-                        <span class="swap-option-tag" :data-tag="alternative.tag">{{ $t(`alternativeTag.${alternative.tag}`) }}</span>
-                        <span v-if="alternative.note" class="swap-option-note">{{ alternative.note }}</span>
-                      </button>
-                    </li>
-                  </ul>
-                </details>
+                <IngredientSwapControls :item="item" :swaps="swaps" />
               </div>
             </li>
           </ul>
@@ -471,117 +405,6 @@ async function handleDownloadPdf() {
 .ingredient-row.swapped {
   padding-left: 0.6rem;
   border-left: 3px solid var(--color-primary);
-}
-
-.swap-reset {
-  padding: 0;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  color: var(--color-muted);
-  font-size: 0.85rem;
-  font-weight: 400;
-  cursor: pointer;
-}
-
-.swap-reset:hover,
-.swap-reset:focus-visible {
-  color: var(--color-primary-dark);
-}
-
-.swap {
-  flex-basis: auto;
-}
-
-.swap[open] {
-  flex-basis: 100%;
-}
-
-.swap-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary-dark);
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  list-style: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .swap-chevron {
-    transition: transform 0.15s ease;
-  }
-}
-
-.swap[open] .swap-chevron {
-  transform: rotate(180deg);
-}
-
-.swap-chip::-webkit-details-marker {
-  display: none;
-}
-
-.swap-chip:focus-visible,
-.swap-options button:focus-visible {
-  outline: 2px solid var(--color-primary-dark);
-  outline-offset: 2px;
-}
-
-.swap-options {
-  list-style: none;
-  margin: 0.4rem 0 0;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.swap-options li {
-  border-bottom: 1px solid var(--color-border);
-}
-
-.swap-options li:last-child {
-  border-bottom: 0;
-}
-
-.swap-options button {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: baseline;
-  gap: 0.1rem 0.6rem;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  color: var(--color-text);
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-}
-
-.swap-options button[aria-pressed='true'] {
-  background: var(--color-primary-soft);
-  font-weight: 600;
-}
-
-.swap-option-tag {
-  font-size: 0.8rem;
-  color: var(--color-primary-dark);
-}
-
-.swap-option-note {
-  flex-basis: 100%;
-  font-size: 0.85rem;
-  font-weight: 400;
-  color: var(--color-muted);
 }
 
 .ingredient-qty {

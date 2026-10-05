@@ -192,6 +192,7 @@
     "swapOriginal": "Original",
     "swapBackTo": "Back to {text}",
     "swapChipLabel": "{count}: {name}",
+    "swapInstead": "instead of {name}",
     "step": "Step {n}",
     "addStep": "Add a step",
     "stepPlaceholder": "Type \\@ to link an ingredient, # for cookware",

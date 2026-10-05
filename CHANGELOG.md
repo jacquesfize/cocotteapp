@@ -20,8 +20,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   gluten-free, lactose-free, *If you don't have it*, or a smaller quantity of the same
   ingredient), each with its own quantity and an optional note, added from the ingredient's window
   with **Add an alternative**. On the recipe page, a pill next to the ingredient unfolds the
-  options; choosing one replaces the ingredient on that line, in the page and in cook mode,
-  until you leave the recipe. Alternatives are not counted in the shopping list, the planner or
+  options; choosing one replaces the ingredient on that line until you leave the recipe. The
+  choice is shared with cook mode, where you can also make it from the ingredients panel; the
+  steps then name the alternative and the quantity popover says what it replaces. Alternatives are not counted in the shopping list, the planner or
   the nutrition and carbon estimates. They are copied by versions and included in recipe
   archives.
 - **Announcements**: a banner at the top of every page, for a maintenance, an update or any

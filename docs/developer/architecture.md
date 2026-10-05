@@ -330,9 +330,11 @@ If you change the tag syntax stored in step text, update **both** sides and thei
   covers it). They are written nested in `RecipeIngredientSerializer` (recreated on update),
   copied by the fork action and the archive import/export, repointed by the ingredient merge,
   and counted by `Ingredient.is_used_by_others`.
-- **Swapping** on the recipe page is client state only (`composables/useIngredientSwaps.ts`,
-  shared by `RecipeSummary.vue` and `RecipeCookMode.vue`): nothing is saved, so planning and
-  shopping keep using the recipe's own lines.
+- **Swapping** is client state only (`composables/useIngredientSwaps.ts`): nothing is saved, so
+  planning and shopping keep using the recipe's own lines. `RecipeSummary.vue` owns the state and
+  hands it to `RecipeCookMode.vue` as a prop; both render the same pill and option list through
+  `IngredientSwapControls.vue`. Cook mode also swaps the ingredient name shown in step mentions
+  (via `StepSegment.ingredientIndex`) and its popover.
 
 ### PDF export
 

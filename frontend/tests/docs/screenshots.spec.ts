@@ -468,6 +468,37 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
     await expect(cookMode).toBeHidden()
   })
 
+  await test.step('cook mode alternatives', async () => {
+    // Le gratin a des alternatives (voir demoData.ts) : on remplace le lait par la boisson d'avoine
+    // depuis le panneau des ingrédients ; l'étape 2, qui cite le lait, parle alors de l'avoine.
+    await page.goto(`/recipes/${data.recipes.gratin}`)
+    await expect(page.locator('.recipe-photo-frame img')).toBeVisible()
+    await page.getByRole('button', { name: 'Cook mode' }).click()
+    const cookMode = page.locator('.cook-mode')
+    await expect(cookMode).toBeVisible()
+    await cookMode.locator('.cook-mode-nav.next').click()
+    await page.waitForTimeout(500) // let the out-in step transition settle
+    await cookMode.getByRole('button', { name: 'Show ingredients' }).click()
+    const panel = cookMode.locator('.cook-mode-ingredients')
+    await expect(panel).toHaveClass(/open/)
+    await panel.locator('li.ingredient-row', { hasText: 'Lait entier' }).locator('.swap-chip').click()
+    await panel.getByRole('button', { name: /Boisson avoine enrichie/ }).click()
+    await expect(panel.locator('li.ingredient-row.swapped')).toHaveCount(1)
+    await shotElement(cookMode, 'mobile-cookmode-alternatives')
+
+    // Panneau refermé : l'étape nomme l'alternative, et sa bulle dit ce qu'elle remplace.
+    await page.keyboard.press('Escape')
+    await expect(panel).not.toHaveClass(/open/)
+    await cookMode.locator('.ingredient-mention', { hasText: 'Boisson avoine enrichie' }).click()
+    await expect(cookMode.locator('.ingredient-popover')).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-alternatives-step')
+
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(cookMode).toBeHidden()
+  })
+
   await page.goto(`/shopping-lists/${data.shoppingListId}`)
   await expect(page.locator('.item-row').first()).toBeVisible()
   await settle(page)

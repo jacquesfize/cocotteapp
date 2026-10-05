@@ -192,8 +192,8 @@ An ingredient the author gave alternatives for shows a small pill reading, for e
 alternative*, with a chevron that turns when the list is open. Click it to unfold the list: **Original** and each alternative, with its quantity,
 its type (*Vegan*, *If you don't have it*, *Less*...) and the author's note. Choosing one replaces
 the ingredient on that line, marked by an orange bar, and the original stays visible, struck
-through: click it to go back. The choice only lasts while you read the recipe, in the recipe page
-and in cook mode; it doesn't change the shopping list, the planner or the nutrition figures.
+through: click it to go back. The choice only lasts while you read the recipe, and it is shared between the recipe page
+and [cook mode](#cook-mode); it doesn't change the shopping list, the planner or the nutrition figures.
 
 ![The Ingredients card: milk replaced by oat drink with the original struck through, and the options for the Comté unfolded](../assets/screenshots/recipe-alternatives.png)
 
@@ -234,7 +234,15 @@ while cooking:
   grows taller for longer instructions.
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
-  by tapping outside it.
+  by tapping outside it. An ingredient with [alternatives](#ingredients-and-steps) has the same
+  *alternative* pill there: you can choose a replacement without leaving cook mode, and a choice
+  made on the recipe page is already applied. A replaced ingredient is marked by an orange bar,
+  with the original struck through to go back.
+- Once you've replaced an ingredient, the steps follow: its highlighted name in a step reads as the
+  alternative (for example *oat drink* instead of *milk*), and its popover gives the quantity of the
+  alternative and the line *instead of milk*.
+
+  ![A step naming the oat drink, with its popover saying it is instead of the whole milk](../assets/screenshots/mobile-cookmode-alternatives-step.png)
 - Hovering or tapping a highlighted ingredient name in a step shows its quantity in a small
   popover next to it, without leaving the step. On a mouse, it also appears just by pointing at
   the name. Tap/click it again, click elsewhere, or press **Escape** to dismiss it.
@@ -251,6 +259,8 @@ while cooking:
 ![A running timer, shown both inline in the step and pinned to the dock at the bottom](../assets/screenshots/mobile-cookmode-timer-dock.png)
 
 ![The ingredients panel open over a step, with a dimmed backdrop behind it](../assets/screenshots/mobile-cookmode-ingredients.png)
+
+![Cook mode after replacing the milk with an oat drink: the step and the ingredients panel both show the alternative](../assets/screenshots/mobile-cookmode-alternatives.png)
 
 ### Use a step timer
 
