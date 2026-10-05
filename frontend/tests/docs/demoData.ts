@@ -28,6 +28,17 @@ interface Crop {
 
 type Unit = 'g' | 'kg' | 'ml' | 'l' | 'piece' | 'tbsp' | 'tsp' | 'pinch'
 
+interface DemoAlternative {
+  tag: 'vegan' | 'vegetarian' | 'gluten_free' | 'lactose_free' | 'missing' | 'less'
+  // Ingrédient de remplacement ; absent pour `less` (même ingrédient, quantité réduite).
+  name?: string
+  quantity: number
+  unit: Unit
+  note?: string
+}
+
+const altKey = (name: string, section = '') => `${name}|${section}`
+
 interface DemoRecipe {
   key: string
   title: string
@@ -36,7 +47,11 @@ interface DemoRecipe {
   prep: number
   cook: number
   diet: 'omnivore' | 'vegetarian' | 'vegan'
-  ingredients: Array<[string, number, Unit]>
+  // [nom, quantité, unité, section]. La section (facultative) regroupe les lignes consécutives ;
+  // le même ingrédient peut figurer dans plusieurs sections.
+  ingredients: Array<[string, number, Unit] | [string, number, Unit, string]>
+  // Alternatives par ligne, indexées par `altKey(nom, section)`.
+  alternatives?: Record<string, DemoAlternative[]>
   steps: string[]
   image: Crop
 }
@@ -54,16 +69,35 @@ export const RECIPES: DemoRecipe[] = [
     cook: 50,
     diet: 'vegetarian',
     ingredients: [
-      ['Patate douce', 900, 'g'],
-      ['Lait entier', 400, 'ml'],
-      ['Crème fraîche', 150, 'g'],
-      ['Farine de blé', 25, 'g'],
-      ['Beurre', 25, 'g'],
-      ['Comté', 80, 'g'],
-      ['Ail', 5, 'g'],
-      ['Noix de muscade', 1, 'pinch'],
-      ['Sel', 1, 'pinch'],
+      ['Lait entier', 400, 'ml', 'Béchamel'],
+      ['Crème fraîche', 150, 'g', 'Béchamel'],
+      ['Farine de blé', 25, 'g', 'Béchamel'],
+      ['Beurre', 25, 'g', 'Béchamel'],
+      ['Noix de muscade', 1, 'pinch', 'Béchamel'],
+      ['Sel', 1, 'pinch', 'Béchamel'],
+      ['Patate douce', 900, 'g', 'Gratin'],
+      ['Comté', 80, 'g', 'Gratin'],
+      ['Ail', 5, 'g', 'Gratin'],
+      // Le même beurre sert deux fois : dans la béchamel, puis pour le plat.
+      ['Beurre', 10, 'g', 'Gratin'],
     ],
+    alternatives: {
+      [altKey('Lait entier', 'Béchamel')]: [
+        { tag: 'vegan', name: 'Boisson avoine enrichie', quantity: 400, unit: 'ml', note: 'Take an unsweetened oat drink.' },
+      ],
+      [altKey('Crème fraîche', 'Béchamel')]: [
+        { tag: 'vegan', name: 'Yaourt de soja nature', quantity: 150, unit: 'g', note: 'Stir it in off the heat so it does not split.' },
+      ],
+      [altKey('Farine de blé', 'Béchamel')]: [
+        { tag: 'gluten_free', name: 'Fécule de maïs', quantity: 20, unit: 'g', note: 'Whisk it into the cold milk first.' },
+      ],
+      [altKey('Beurre', 'Béchamel')]: [
+        { tag: 'missing', name: 'Margarine', quantity: 25, unit: 'g' },
+      ],
+      [altKey('Comté', 'Gratin')]: [
+        { tag: 'less', quantity: 50, unit: 'g', note: 'It still turns golden with a little less.' },
+      ],
+    },
     steps: [
       'Preheat the oven to 180 °C and rub the dish with the @Ail.',
       'Melt the @Beurre, stir in the @Farine_de_blé, then whisk in the @Lait_entier and cook for ~{5%minutes} until thick.',
@@ -353,6 +387,11 @@ export async function seedDemoData(page: Page): Promise<DemoData> {
   const ingredientIds = new Map<string, number>()
   const names = new Set(RECIPES.flatMap((recipe) => recipe.ingredients.map(([name]) => name)))
   names.add('Fécule de maïs')
+  for (const recipe of RECIPES) {
+    for (const alternatives of Object.values(recipe.alternatives ?? {})) {
+      for (const alternative of alternatives) if (alternative.name) names.add(alternative.name)
+    }
+  }
   for (const name of names) {
     const data = await ok<{ results: Array<{ id: number; name: string }> }>(
       api.get('/api/ingredients/', { params: { search: name } }),
@@ -363,12 +402,21 @@ export async function seedDemoData(page: Page): Promise<DemoData> {
     ingredientIds.set(name, match.id)
   }
 
-  const toPayload = (ingredients: DemoRecipe['ingredients']) =>
-    ingredients.map(([name, quantity, unit], index) => ({
+  const toPayload = (ingredients: DemoRecipe['ingredients'], alternatives: DemoRecipe['alternatives'] = {}) =>
+    ingredients.map(([name, quantity, unit, section], index) => ({
       ingredient_id: ingredientIds.get(name),
       quantity,
       unit,
+      group_name: section ?? '',
       order: index + 1,
+      alternatives: (alternatives[altKey(name, section)] ?? []).map((alternative, position) => ({
+        ingredient_id: alternative.name ? ingredientIds.get(alternative.name) : null,
+        quantity: alternative.quantity,
+        unit: alternative.unit,
+        tag: alternative.tag,
+        note: alternative.note ?? '',
+        order: position,
+      })),
     }))
 
   const imageCache = new Map<DemoRecipe['image'], Buffer>()
@@ -405,8 +453,13 @@ export async function seedDemoData(page: Page): Promise<DemoData> {
           description: 'The same gratin, with a cornflour béchamel so it is safe for gluten-free guests.',
           ingredients: toPayload(
             gratin.ingredients.map(
-              ([name, qty, unit]) =>
-                (name === 'Farine de blé' ? ['Fécule de maïs', 20, 'g'] : [name, qty, unit]) as [string, number, Unit],
+              ([name, qty, unit, section]) =>
+                (name === 'Farine de blé' ? ['Fécule de maïs', 20, 'g', section] : [name, qty, unit, section]) as [
+                  string,
+                  number,
+                  Unit,
+                  string,
+                ],
             ),
           ),
           steps: gratin.steps
@@ -434,7 +487,7 @@ export async function seedDemoData(page: Page): Promise<DemoData> {
           cook_time_minutes: recipe.cook,
           diet_type: recipe.diet,
           is_public: true,
-          ingredients: toPayload(recipe.ingredients),
+          ingredients: toPayload(recipe.ingredients, recipe.alternatives),
           steps: recipe.steps.map((instruction, index) => ({
             order: index + 1,
             instruction: closeMentions(instruction),

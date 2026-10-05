@@ -181,7 +181,8 @@ This card moves recipes between Cocotte instances, for example from a friend's s
 
 - **Export my recipes** downloads a ZIP (`cocotte-recettes-YYYY-MM-DD.zip`) with all the recipes
   you authored and their uploaded images. The full data of each ingredient (nutrition,
-  seasonality and so on) is included so another instance can recreate it.
+  seasonality and so on) is included so another instance can recreate it, along with the
+  sections of your ingredient lists and the alternatives of each ingredient.
 - **Import recipes** asks for such a ZIP file and adds its recipes to **your** account. When it's
   done, you see a summary: *N imported, N skipped, N failed*.
     - Recipes whose **title already exists in your account** are skipped.

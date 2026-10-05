@@ -100,6 +100,13 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await shotPage(page, 'recipe-detail')
 
     await shotElement(page.locator('.ingredients-steps-row'), 'recipe-detail-steps')
+
+    // Alternatives : le lait est remplacé par la boisson d'avoine, et celles du comté sont dépliées.
+    const ingredientsCard = page.locator('.ingredients-steps-row .card').first()
+    await ingredientsCard.locator('li.ingredient-row', { hasText: 'Lait entier' }).locator('.swap-chip').click()
+    await ingredientsCard.getByRole('button', { name: /Boisson avoine enrichie/ }).click()
+    await ingredientsCard.locator('li.ingredient-row', { hasText: 'Comté' }).locator('.swap-chip').click()
+    await shotElement(ingredientsCard, 'recipe-alternatives')
     const nutrition = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Nutrition facts' }) })
     await expect(nutrition).toBeVisible()
     await shotElement(nutrition, 'recipe-detail-nutrition')
@@ -157,6 +164,20 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await page.locator('input.section-name').nth(1).fill('Stuffing')
     await addIngredient(1, 'Tomate', '200')
     await addIngredient(1, 'Feta', '100')
+
+    // Alternative d'un ingrédient : modale d'édition de la ligne, capturée avant de l'enregistrer.
+    await page.locator('section.ingredient-section').nth(1).getByRole('button', { name: 'Edit Feta' }).click()
+    const rowDialog = page.getByRole('dialog', { name: 'Edit ingredient' })
+    await rowDialog.getByRole('button', { name: 'Add an alternative' }).click()
+    await rowDialog.locator('#row-modal-alt-ingredient-0').fill('Tofu nature')
+    await page
+      .locator('.picker .suggestions-dropdown li', { hasText: /^\s*Tofu nature\s*$/ })
+      .first()
+      .click()
+    await rowDialog.locator('#row-modal-alt-note-0').fill('Crumbled, with lemon.')
+    await shotElement(rowDialog, 'recipe-ingredient-alternatives')
+    await rowDialog.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(rowDialog).toBeHidden()
 
     const step1 = page.locator('#step-0')
     await step1.fill('Halve the @Courgette and scoop out the flesh. Bake for ~{10%minutes}.')

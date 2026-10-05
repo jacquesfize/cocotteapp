@@ -195,6 +195,8 @@ the ingredient on that line, marked by an orange bar, and the original stays vis
 through: click it to go back. The choice only lasts while you read the recipe, in the recipe page
 and in cook mode; it doesn't change the shopping list, the planner or the nutrition figures.
 
+![The Ingredients card: milk replaced by oat drink with the original struck through, and the options for the Comté unfolded](../assets/screenshots/recipe-alternatives.png)
+
 When the author listed the cookware the recipe needs, it appears under **Cookware**, at the
 bottom of the same card, each item with its photo or emoji: check it before you start. Click an
 item to open its photo in a dialog, with the photo's credit (author, source and license) and a
@@ -279,6 +281,9 @@ These are estimates computed from the ingredients. See
 Click **Download as PDF**, next to the summary chips, to get a printable PDF of the recipe. On
 small screens the button shows only a download icon.
 
+The ingredients are listed under a heading for each section of the recipe. The alternatives are
+not printed.
+
 In the PDF steps, ingredient mentions are printed in bold, cookware is underlined and timers
 (e.g. **20 minutes**) are highlighted, so they stand out on paper like on the recipe page.
 
@@ -324,7 +329,8 @@ To create one:
 
 ![The variant name field under the recipe title](../assets/screenshots/recipe-fork-dialog.png)
 
-Cocotte copies the recipe (ingredients, steps, servings, times, diet and tags) into a new
+Cocotte copies the recipe (ingredients with their sections and alternatives, steps, servings,
+times, diet and tags) into a new
 recipe that belongs to you, titled *Original title (Variant name)*. It then opens the edit
 form so you can make your changes. The picture, video and source link are not copied.
 

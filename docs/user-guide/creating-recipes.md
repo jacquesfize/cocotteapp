@@ -87,6 +87,8 @@ button) and click **Add an alternative**. For each alternative, choose:
 - a **Quantity** and **Unit**, which can differ from the original line,
 - an optional **Note**, for example *Soy milk works too.*
 
+![An ingredient's window with an alternative: a vegan replacement for the feta](../assets/screenshots/recipe-ingredient-alternatives.png)
+
 The ingredient line then shows how many alternatives it has. The bin button next to an
 alternative removes it. Alternatives are only suggestions for the person reading the recipe: the
 shopping list, the planner and the nutrition and carbon estimates always use the ingredients
