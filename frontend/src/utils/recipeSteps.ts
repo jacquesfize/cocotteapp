@@ -8,6 +8,9 @@ import type { Cookware, RecipeIngredient } from '../types/models'
 export interface StepSegment {
   text: string
   ingredientId?: number
+  // Position de la ligne d'ingrédient visée dans `ingredients` : un même ingrédient pouvant figurer
+  // dans plusieurs parties, l'id seul ne désigne pas une ligne (ancre `ingredient-row-<index>`).
+  ingredientIndex?: number
   // Présent (éventuellement `undefined` si le matériel n'est pas dans la recette) pour un #matériel.
   cookware?: { id?: number }
   timerSeconds?: number
@@ -37,15 +40,18 @@ export function buildStepSegments(
       segments.push({ text: instruction.slice(cursor, range.start) })
     }
     if (range.kind === 'mention') {
-      const match = ingredients.find(
+      // Plusieurs lignes pour le même ingrédient (une par partie) : la mention pointe vers la
+      // première ; le détail de toutes les quantités est affiché par `ingredientRowsFor`.
+      const matchIndex = ingredients.findIndex(
         (item) => item.ingredient.name.toLowerCase() === range.displayName.toLowerCase(),
       )
+      const match = matchIndex >= 0 ? ingredients[matchIndex] : undefined
       // Mention qui ne correspond à aucun ingrédient de la recette (ex. "@len" laissé tel quel) :
       // on garde le texte tapé, "@" compris, plutôt que de le réduire silencieusement à "len" —
       // l'éditeur l'avertit déjà, l'affichage ne doit pas masquer la mention.
       segments.push(
         match
-          ? { text: range.displayName, ingredientId: match.ingredient.id }
+          ? { text: range.displayName, ingredientId: match.ingredient.id, ingredientIndex: matchIndex }
           : { text: instruction.slice(range.start, range.end) },
       )
     } else if (range.kind === 'cookware') {
@@ -64,6 +70,11 @@ export function buildStepSegments(
     segments.push({ text: instruction.slice(cursor) })
   }
   return segments
+}
+
+// Toutes les lignes d'un même ingrédient (une par partie où il sert), dans l'ordre de la recette.
+export function ingredientRowsFor(ingredients: RecipeIngredient[], ingredientId: number): RecipeIngredient[] {
+  return ingredients.filter((item) => item.ingredient.id === ingredientId)
 }
 
 export interface IngredientGroup {

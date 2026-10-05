@@ -143,6 +143,20 @@ export interface AdminThematicPage extends ThematicPage {
   created_at: string
 }
 
+export type AlternativeTag = 'vegan' | 'vegetarian' | 'gluten_free' | 'lactose_free' | 'missing' | 'less'
+
+// Façon de remplacer une ligne de recette : un autre ingrédient (`ingredient`), ou — tag `less` —
+// une quantité réduite du même ingrédient (`ingredient` est alors null).
+export interface IngredientAlternative {
+  id: number
+  ingredient: Ingredient | null
+  quantity: number
+  unit: Unit
+  tag: AlternativeTag
+  note: string
+  order: number
+}
+
 export interface RecipeIngredient {
   id: number
   ingredient: Ingredient
@@ -150,6 +164,7 @@ export interface RecipeIngredient {
   unit: Unit
   group_name: string
   order: number
+  alternatives?: IngredientAlternative[]
 }
 
 export interface RecipeStep {
@@ -287,12 +302,22 @@ export interface Recipe {
   updated_at: string
 }
 
+export interface IngredientAlternativeInput {
+  ingredient_id: number | null
+  quantity: number | string
+  unit: Unit
+  tag: AlternativeTag
+  note: string
+  order: number
+}
+
 export interface RecipeIngredientInput {
   ingredient_id: number
   quantity: number | string
   unit: Unit
   group_name: string
   order: number
+  alternatives?: IngredientAlternativeInput[]
 }
 
 export interface RecipeStepInput {

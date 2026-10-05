@@ -7,12 +7,18 @@ import CookwareModal from './CookwareModal.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../../utils/format'
-import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
+import type { IngredientSwaps } from '../../composables/useIngredientSwaps'
+import IngredientSwapControls from './IngredientSwapControls.vue'
+import { buildStepSegments, groupIngredients, ingredientRowsFor } from '../../utils/recipeSteps'
+import type { StepSegment } from '../../utils/recipeSteps'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { Cookware, Recipe, RecipeIngredient } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
+  // Remplacements choisis sur la page de la recette (voir RecipeSummary.vue) : appliqués à la
+  // liste des ingrédients et aux quantités des mentions.
+  swaps?: IngredientSwaps
 }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
@@ -119,8 +125,27 @@ function goToStep(index: number) {
   currentIndex.value = index
 }
 
-function findIngredient(ingredientId: number): RecipeIngredient | undefined {
-  return props.recipe.ingredients.find((item) => item.ingredient.id === ingredientId)
+// Quantité et nom affichés d'une ligne : ceux de l'alternative choisie, sinon ceux de la recette.
+function shown(item: RecipeIngredient) {
+  return props.swaps
+    ? props.swaps.display(item)
+    : { name: item.ingredient.name, quantity: item.quantity, unit: item.unit, swapped: null }
+}
+
+// Ligne de recette visée par une mention d'étape, et texte à afficher : si l'utilisateur a remplacé
+// l'ingrédient par une alternative, l'étape parle de l'alternative.
+function mentionRow(segment: StepSegment): RecipeIngredient | undefined {
+  return segment.ingredientIndex === undefined ? undefined : props.recipe.ingredients[segment.ingredientIndex]
+}
+
+function mentionText(segment: StepSegment): string {
+  const row = mentionRow(segment)
+  return row && shown(row).swapped ? shown(row).name : segment.text
+}
+
+// Une ligne par partie où l'ingrédient sert (beurre de la pâte, beurre de la garniture...).
+function findIngredientRows(ingredientId: number): RecipeIngredient[] {
+  return ingredientRowsFor(props.recipe.ingredients, ingredientId)
 }
 
 function isIngredientPopoverOpen(ingredientId: number) {
@@ -275,16 +300,18 @@ onBeforeUnmount(() => {
                   @click.stop="toggleIngredientPopover(segment.ingredientId)"
                   @focus="showIngredientPopover(segment.ingredientId)"
                   @blur="hideIngredientPopover(segment.ingredientId)"
-                >{{ segment.text }}</button>
+                >{{ mentionText(segment) }}</button>
                 <div
                   v-if="isIngredientPopoverOpen(segment.ingredientId)"
                   :id="`cook-mode-ingredient-popover-${currentIndex}-${index}`"
                   class="ingredient-popover"
                   role="tooltip"
                 >
-                  <p class="ingredient-popover-qty">
-                    {{ formatQuantity(findIngredient(segment.ingredientId)?.quantity, findIngredient(segment.ingredientId)?.unit) }}
-                    {{ formatUnit(findIngredient(segment.ingredientId)?.unit, findIngredient(segment.ingredientId)?.quantity) }}
+                  <p v-for="row in findIngredientRows(segment.ingredientId)" :key="row.id" class="ingredient-popover-qty">
+                    {{ formatQuantity(shown(row).quantity, shown(row).unit) }}
+                    {{ formatUnit(shown(row).unit, shown(row).quantity) }}
+                    <template v-if="row.group_name">({{ row.group_name }})</template>
+                    <span v-if="shown(row).swapped" class="ingredient-popover-instead">{{ t('recipes.swapInstead', { name: row.ingredient.name }) }}</span>
                   </p>
                 </div>
               </span>
@@ -387,9 +414,12 @@ onBeforeUnmount(() => {
       <template v-for="(group, index) in ingredientGroups" :key="index">
         <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
         <ul class="ingredient-list">
-          <li v-for="item in group.items" :key="item.id" class="ingredient-row">
-            <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
-            <span class="ingredient-name">{{ item.ingredient.name }}</span>
+          <li v-for="item in group.items" :key="item.id" class="ingredient-row" :class="{ swapped: shown(item).swapped }">
+            <span class="ingredient-qty">{{ formatQuantity(shown(item).quantity, shown(item).unit) }} {{ formatUnit(shown(item).unit, shown(item).quantity) }}</span>
+            <div class="ingredient-main">
+              <span class="ingredient-name">{{ shown(item).name }}</span>
+              <IngredientSwapControls v-if="swaps" :item="item" :swaps="swaps" />
+            </div>
           </li>
         </ul>
       </template>
@@ -753,6 +783,13 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
+.ingredient-popover-instead {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
 .cook-mode-backdrop {
   position: fixed;
   inset: 0;
@@ -876,6 +913,21 @@ onBeforeUnmount(() => {
 
 .ingredient-row:last-child {
   border-bottom: none;
+}
+
+.ingredient-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+}
+
+/* Ligne dont l'ingrédient a été remplacé : même filet que sur la page de la recette. */
+.ingredient-row.swapped {
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--color-primary);
 }
 
 .ingredient-qty {

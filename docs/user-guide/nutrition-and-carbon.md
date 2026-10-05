@@ -62,6 +62,11 @@ carbs, fat, iron, vitamin B12, calcium, omega-3 and zinc.
 > whether it's an egg, a lemon or a pumpkin. For accurate figures, enter quantities in grams
 > where you can.
 
+Every ingredient line counts, so an ingredient used in two sections of a recipe is counted twice,
+once per line. The [alternatives](creating-recipes.md#alternatives) an author suggests for an
+ingredient (vegan milk instead of milk, for example) are **not** included: the figures always
+describe the recipe as written.
+
 ## Carbon footprint
 
 The carbon footprint of a recipe is the sum over its ingredients of:

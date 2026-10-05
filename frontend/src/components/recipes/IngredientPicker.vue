@@ -127,6 +127,12 @@ function handleIngredientDeleted() {
   query.value = ''
   emit('update:modelValue', null)
 }
+
+// Pastille « Non vérifié » et/ou bouton Modifier : affichés *dans* le champ (à droite), pour que
+// la ligne d'ingrédient du formulaire de recette reste sur une seule ligne.
+const hasMeta = computed(
+  () => !!selected.value && (selected.value.is_verified === false || (selected.value.can_edit && !props.selectOnly)),
+)
 </script>
 
 <template>
@@ -134,6 +140,7 @@ function handleIngredientDeleted() {
     <input
       :id="id"
       v-model="query"
+      :class="{ 'has-meta': hasMeta }"
       type="text"
       :placeholder="t('ingredientPicker.placeholder')"
       autocomplete="off"
@@ -155,20 +162,18 @@ function handleIngredientDeleted() {
       </li>
     </ul>
 
-    <div
-      v-if="selected && (selected.is_verified === false || (selected.can_edit && !selectOnly))"
-      class="picker-meta"
-    >
+    <div v-if="hasMeta" class="picker-meta">
       <UnverifiedBadge v-if="selected.is_verified === false" />
       <button
         v-if="selected.can_edit && !selectOnly"
         type="button"
-        class="secondary btn-sm"
+        class="secondary btn-sm picker-edit"
+        :title="t('common.edit')"
         data-testid="ingredient-picker-edit"
         :aria-label="t('ingredientPicker.editLabel', { name: selected.name })"
         @click="showEditModal = true"
       >
-        <Pencil :size="12" aria-hidden="true" />{{ t('common.edit') }}
+        <Pencil :size="14" aria-hidden="true" />
       </button>
     </div>
 
@@ -194,11 +199,32 @@ function handleIngredientDeleted() {
   position: relative;
 }
 
+.picker input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .picker-meta {
+  position: absolute;
+  top: 50%;
+  right: 0.4rem;
+  transform: translateY(-50%);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
+  gap: 0.35rem;
+}
+
+/* Réserve la place de la pastille / du bouton pour que le texte du champ ne passe pas dessous. */
+input.has-meta {
+  padding-right: 3rem;
+}
+
+.picker-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
 }
 </style>

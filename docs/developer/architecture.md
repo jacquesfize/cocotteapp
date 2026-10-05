@@ -78,6 +78,8 @@ erDiagram
     Ingredient }o--o{ Allergen : "contains"
     Recipe ||--o{ RecipeIngredient : "has"
     Ingredient ||--o{ RecipeIngredient : "used in (PROTECT)"
+    RecipeIngredient ||--o{ IngredientAlternative : "can be replaced by"
+    Ingredient |o--o{ IngredientAlternative : "replacement (PROTECT)"
     Recipe ||--o{ RecipeStep : "has"
     Recipe }o--o{ Tag : "tagged"
     Recipe |o--o{ Recipe : "root_recipe (versions)"
@@ -126,7 +128,13 @@ erDiagram
     RecipeIngredient {
         decimal quantity
         string unit
-        string group_name
+        string group_name "section name"
+    }
+    IngredientAlternative {
+        decimal quantity
+        string unit
+        string tag "vegan | vegetarian | gluten_free | lactose_free | missing | less"
+        string note
     }
     MealPlanEntry {
         date date
@@ -301,6 +309,33 @@ names with braces, or joined with an underscore as in `@huile_olive{2%cs}`), `#c
 If you change the tag syntax stored in step text, update **both** sides and their tests
 (`backend/apps/recipes/tests/test_cooklang*.py`, `frontend/tests/unit/cooklang*.test.ts`).
 
+### Ingredient sections and alternatives
+
+- **Sections** have no table of their own: a section is the `RecipeIngredient.group_name` shared
+  by its lines (`''` is the unnamed section). The same `Ingredient` can appear on several lines of
+  a recipe, one per section; shopping lists, nutrition and carbon add the lines up. The recipe
+  form (`components/recipes/IngredientSections.vue`) keeps a flat list of rows and keeps them
+  grouped by section with `utils/ingredientSections.ts`, whose `orderRowsBySection` also gives the
+  `order` sent to the API: the recipe page groups *consecutive* lines under a heading, so the
+  stored order must follow the sections.
+- **Step mentions** (`@butter`) match an ingredient by name only, so with several lines for the
+  same ingredient they point at the first one (`buildStepSegments`), and anchors are per line
+  (`ingredient-row-<index>`), never per ingredient id.
+- **Alternatives** (`IngredientAlternative`, `apps/recipes/models.py`) belong to a recipe line.
+  A replacement carries its own ingredient, quantity and unit; the `less` tag keeps the line's
+  ingredient (`ingredient` is null), which a check constraint and
+  `IngredientAlternativeSerializer.validate` both enforce. They are a table of their own, not
+  extra `RecipeIngredient` rows, because nutrition, carbon and shopping sum every
+  `RecipeIngredient`: alternatives are deliberately **not** counted there (a regression test
+  covers it). They are written nested in `RecipeIngredientSerializer` (recreated on update),
+  copied by the fork action and the archive import/export, repointed by the ingredient merge,
+  and counted by `Ingredient.is_used_by_others`.
+- **Swapping** is client state only (`composables/useIngredientSwaps.ts`): nothing is saved, so
+  planning and shopping keep using the recipe's own lines. `RecipeSummary.vue` owns the state and
+  hands it to `RecipeCookMode.vue` as a prop; both render the same pill and option list through
+  `IngredientSwapControls.vue`. Cook mode also swaps the ingredient name shown in step mentions
+  (via `StepSegment.ingredientIndex`) and its popover.
+
 ### PDF export
 
 PDFs are rendered **server-side** with [WeasyPrint](https://weasyprint.org/) from Django
@@ -309,6 +344,9 @@ templates, not by a client-side library:
 - `GET /api/recipes/{id}/pdf/` renders `apps/recipes/templates/pdf/recipe.html`;
 - `GET /api/meal-plan-entries/week-pdf/?date_after=…&date_before=…` renders
   `apps/planning/templates/pdf/week.html` (week grid, then every recipe of the week).
+
+Both print a heading per ingredient section (`{% ifchanged %}` on `group_name`). Alternatives are
+not printed.
 
 The templates are in French and use the `unit_labels` template tags for unit labels. WeasyPrint
 needs Pango/HarfBuzz/fontconfig at runtime (installed in the backend image).

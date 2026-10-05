@@ -185,7 +185,17 @@ got one, or *Credit not specified* when there's truly no credit information at a
 ### Ingredients and steps
 
 The **Ingredients** card lists quantities and units. Ingredients may be grouped under
-sub-headings. Click an ingredient name to see other recipes that use it.
+sub-headings (the recipe's sections), and the same ingredient can appear in several of them with a
+different quantity each. Click an ingredient name to see other recipes that use it.
+
+An ingredient the author gave alternatives for shows a small pill reading, for example, *1
+alternative*, with a chevron that turns when the list is open. Click it to unfold the list: **Original** and each alternative, with its quantity,
+its type (*Vegan*, *If you don't have it*, *Less*...) and the author's note. Choosing one replaces
+the ingredient on that line, marked by an orange bar, and the original stays visible, struck
+through: click it to go back. The choice only lasts while you read the recipe, and it is shared between the recipe page
+and [cook mode](#cook-mode); it doesn't change the shopping list, the planner or the nutrition figures.
+
+![The Ingredients card: milk replaced by oat drink with the original struck through, and the options for the Comté unfolded](../assets/screenshots/recipe-alternatives.png)
 
 When the author listed the cookware the recipe needs, it appears under **Cookware**, at the
 bottom of the same card, each item with its photo or emoji: check it before you start. Click an
@@ -224,7 +234,15 @@ while cooking:
   grows taller for longer instructions.
 - The **ingredients** button (top right) slides up a panel with every ingredient and its
   quantity, without leaving the step you're on. It closes on the same button, on **Escape**, or
-  by tapping outside it.
+  by tapping outside it. An ingredient with [alternatives](#ingredients-and-steps) has the same
+  *alternative* pill there: you can choose a replacement without leaving cook mode, and a choice
+  made on the recipe page is already applied. A replaced ingredient is marked by an orange bar,
+  with the original struck through to go back.
+- Once you've replaced an ingredient, the steps follow: its highlighted name in a step reads as the
+  alternative (for example *oat drink* instead of *milk*), and its popover gives the quantity of the
+  alternative and the line *instead of milk*.
+
+  ![A step naming the oat drink, with its popover saying it is instead of the whole milk](../assets/screenshots/mobile-cookmode-alternatives-step.png)
 - Hovering or tapping a highlighted ingredient name in a step shows its quantity in a small
   popover next to it, without leaving the step. On a mouse, it also appears just by pointing at
   the name. Tap/click it again, click elsewhere, or press **Escape** to dismiss it.
@@ -241,6 +259,8 @@ while cooking:
 ![A running timer, shown both inline in the step and pinned to the dock at the bottom](../assets/screenshots/mobile-cookmode-timer-dock.png)
 
 ![The ingredients panel open over a step, with a dimmed backdrop behind it](../assets/screenshots/mobile-cookmode-ingredients.png)
+
+![Cook mode after replacing the milk with an oat drink: the step and the ingredients panel both show the alternative](../assets/screenshots/mobile-cookmode-alternatives.png)
 
 ### Use a step timer
 
@@ -270,6 +290,9 @@ These are estimates computed from the ingredients. See
 
 Click **Download as PDF**, next to the summary chips, to get a printable PDF of the recipe. On
 small screens the button shows only a download icon.
+
+The ingredients are listed under a heading for each section of the recipe. The alternatives are
+not printed.
 
 In the PDF steps, ingredient mentions are printed in bold, cookware is underlined and timers
 (e.g. **20 minutes**) are highlighted, so they stand out on paper like on the recipe page.
@@ -316,7 +339,8 @@ To create one:
 
 ![The variant name field under the recipe title](../assets/screenshots/recipe-fork-dialog.png)
 
-Cocotte copies the recipe (ingredients, steps, servings, times, diet and tags) into a new
+Cocotte copies the recipe (ingredients with their sections and alternatives, steps, servings,
+times, diet and tags) into a new
 recipe that belongs to you, titled *Original title (Variant name)*. It then opens the edit
 form so you can make your changes. The picture, video and source link are not copied.
 

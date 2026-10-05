@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
 test('register, create a recipe, plan it and generate a shopping list', async ({ page }) => {
   const suffix = Date.now()
@@ -27,11 +28,7 @@ test('register, create a recipe, plan it and generate a shopping list', async ({
   await page.getByRole('button', { name: 'Nouvelle recette' }).click()
   await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
-  await page.getByText(`+ Créer « ${ingredientName} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('250')
+  await addNewIngredient(page, ingredientName, '250')
   await page.getByLabel('Étape 1').fill('Faire revenir les épices puis ajouter les lentilles.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
 

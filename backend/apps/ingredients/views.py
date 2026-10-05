@@ -42,18 +42,21 @@ class IngredientViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_authenticated and not user.is_staff:
             # Précalcule `Ingredient.is_used_by_others` pour `can_edit`, sans requête par ligne.
-            from apps.recipes.models import RecipeIngredient
+            from apps.recipes.models import IngredientAlternative, RecipeIngredient
             from apps.shopping.models import ShoppingListItem
 
             used_in_recipes = RecipeIngredient.objects.filter(ingredient=OuterRef("pk")).exclude(
                 recipe__author=user
+            )
+            used_as_alternative = IngredientAlternative.objects.filter(ingredient=OuterRef("pk")).exclude(
+                recipe_ingredient__recipe__author=user
             )
             used_in_lists = ShoppingListItem.objects.filter(ingredient=OuterRef("pk")).exclude(
                 shopping_list__user=user
             )
             queryset = queryset.annotate(
                 used_by_others=ExpressionWrapper(
-                    Exists(used_in_recipes) | Exists(used_in_lists), output_field=BooleanField()
+                    Exists(used_in_recipes) | Exists(used_as_alternative) | Exists(used_in_lists), output_field=BooleanField()
                 )
             )
         return queryset

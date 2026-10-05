@@ -3,6 +3,7 @@ import { ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2,
 import { computed, ref } from 'vue'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import CookwareModal from './CookwareModal.vue'
+import IngredientSwapControls from './IngredientSwapControls.vue'
 import BaseModal from '../shared/BaseModal.vue'
 import ImageWithCredit from '../shared/ImageWithCredit.vue'
 import NutritionCard from '../nutrition/NutritionCard.vue'
@@ -11,6 +12,7 @@ import RecipeRating from './RecipeRating.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../../api/recipes'
 import type { RecipeRatingResult } from '../../api/recipes'
+import { useIngredientSwaps } from '../../composables/useIngredientSwaps'
 import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
 import { downloadBlob } from '../../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../../utils/format'
@@ -42,6 +44,14 @@ const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredient
 
 function stepSegments(instruction: string) {
   return buildStepSegments(instruction, props.recipe.ingredients, props.recipe.cookware ?? [])
+}
+
+// Remplacement d'un ingrédient par une alternative, le temps de la consultation : partagé avec le
+// mode cuisine, non enregistré.
+const swaps = useIngredientSwaps()
+
+function rowIndex(item: Recipe['ingredients'][number]) {
+  return props.recipe.ingredients.indexOf(item)
 }
 
 async function handleDownloadPdf() {
@@ -133,14 +143,23 @@ async function handleDownloadPdf() {
         <template v-for="(group, index) in ingredientGroups" :key="index">
           <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
           <ul class="ingredient-list">
-            <li v-for="item in group.items" :key="item.id" :id="`ingredient-${item.ingredient.id}`" class="ingredient-row">
-              <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
-              <RouterLink
-                :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
-                class="ingredient-name"
-              >
-                {{ item.ingredient.name }}
-              </RouterLink>
+            <li
+              v-for="item in group.items"
+              :key="item.id"
+              :id="`ingredient-row-${rowIndex(item)}`"
+              class="ingredient-row"
+              :class="{ swapped: swaps.display(item).swapped }"
+            >
+              <span class="ingredient-qty">{{ formatQuantity(swaps.display(item).quantity, swaps.display(item).unit) }} {{ formatUnit(swaps.display(item).unit, swaps.display(item).quantity) }}</span>
+              <div class="ingredient-main">
+                <RouterLink
+                  :to="{ name: 'recipes', query: { ingredients: swaps.display(item).name } }"
+                  class="ingredient-name"
+                >
+                  {{ swaps.display(item).name }}
+                </RouterLink>
+                <IngredientSwapControls :item="item" :swaps="swaps" />
+              </div>
             </li>
           </ul>
         </template>
@@ -164,7 +183,7 @@ async function handleDownloadPdf() {
         <ol>
           <li v-for="step in recipe.steps" :key="step.id">
             <template v-for="(segment, index) in stepSegments(step.instruction)" :key="index">
-              <a v-if="segment.ingredientId" :href="`#ingredient-${segment.ingredientId}`" class="ingredient-mention">{{
+              <a v-if="segment.ingredientId" :href="`#ingredient-row-${segment.ingredientIndex}`" class="ingredient-mention">{{
                 segment.text
               }}</a>
               <button
@@ -214,7 +233,7 @@ async function handleDownloadPdf() {
 
     <CookwareModal v-if="openCookware" :cookware="openCookware" show-recipes-link @close="openCookware = null" />
 
-    <RecipeCookMode v-if="showCookMode" :recipe="recipe" @close="showCookMode = false" />
+    <RecipeCookMode v-if="showCookMode" :recipe="recipe" :swaps="swaps" @close="showCookMode = false" />
   </div>
 </template>
 
@@ -371,6 +390,21 @@ async function handleDownloadPdf() {
 
 .ingredient-row:last-child {
   border-bottom: none;
+}
+
+.ingredient-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+}
+
+/* Ligne dont l'ingrédient a été remplacé : un filet à gauche, couleur de l'application. */
+.ingredient-row.swapped {
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--color-primary);
 }
 
 .ingredient-qty {

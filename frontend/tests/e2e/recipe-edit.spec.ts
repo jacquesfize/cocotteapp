@@ -1,6 +1,7 @@
 import { expect, test } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
-test('editing a recipe pre-fills every ingredient picker, not just the last one', async ({ page }) => {
+test('editing a recipe lists every ingredient it was saved with, not just the last one', async ({ page }) => {
   const suffix = Date.now()
   const username = `e2e-edit-${suffix}`
   const recipeTitle = `Velouté ${suffix}`
@@ -17,17 +18,8 @@ test('editing a recipe pre-fills every ingredient picker, not just the last one'
 
   await page.goto('/recipes/new')
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientA)
-  await page.getByText(`+ Créer « ${ingredientA} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('2')
-  await page.getByRole('button', { name: 'Ajouter un ingrédient' }).click()
-  await page.getByPlaceholder('Rechercher un ingrédient...').nth(1).fill(ingredientB)
-  await page.getByText(`+ Créer « ${ingredientB} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').nth(1).fill('100')
+  await addNewIngredient(page, ingredientA, '2')
+  await addNewIngredient(page, ingredientB, '100')
   await page.getByLabel('Étape 1').fill('Éplucher les légumes.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
@@ -36,7 +28,10 @@ test('editing a recipe pre-fills every ingredient picker, not just the last one'
   await page.getByRole('link', { name: 'Modifier' }).click()
   await page.waitForURL(/\/recipes\/\d+\/edit$/)
 
-  const ingredientInputs = page.getByPlaceholder('Rechercher un ingrédient...')
-  await expect(ingredientInputs.nth(0)).toHaveValue(ingredientA)
-  await expect(ingredientInputs.nth(1)).toHaveValue(ingredientB)
+  const items = page.locator('.ingredient-item')
+  await expect(items).toHaveCount(2)
+  await expect(items.nth(0)).toContainText(ingredientA)
+  await expect(items.nth(0)).toContainText('2')
+  await expect(items.nth(1)).toContainText(ingredientB)
+  await expect(items.nth(1)).toContainText('100')
 })

@@ -19,7 +19,10 @@ generate a new list.
 ## How quantities are calculated
 
 For each planned meal, Cocotte takes the recipe's ingredients and multiplies them by
-*planned servings ÷ recipe servings*. It then adds up the same ingredient across all the meals.
+*planned servings ÷ recipe servings*. It then adds up the same ingredient across all the meals, and across the sections of a recipe that
+uses it more than once (butter in the dough and in the filling, say). The list is always built
+from the recipe's own ingredients: the [alternatives](creating-recipes.md#alternatives) an author
+suggests are not added to it.
 
 | | Recipe servings | Planned servings | Recipe quantity | On the list |
 |---|---|---|---|---|

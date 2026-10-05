@@ -170,7 +170,8 @@ importing user is recorded as their creator. Ingredients created by staff, loade
 feature are **verified**.
 
 While an ingredient is unverified, its creator can fix or delete it themselves (a typo in the
-name, a wrong category...), as long as it is only used by their own recipes and shopping lists.
+name, a wrong category...), as long as it is only used by their own recipes (as an ingredient or as an alternative to one)
+and shopping lists.
 It becomes **locked** for them, and only staff can change it, as soon as either:
 
 - a staff member verifies it, or
@@ -195,7 +196,7 @@ ingredient (the one on whose row you click) by the correct
 one you pick, then deletes the duplicate:
 
 - every recipe line using the duplicate now uses the chosen ingredient, with the same quantity
-  and unit;
+  and unit, and so does every alternative that suggests the duplicate;
 - every shopping-list item does too. When the chosen ingredient is already on the same list with
   the same unit, the two quantities are added up in a single item, which stays marked as owned or
   checked only if both were;
@@ -214,11 +215,11 @@ rewritten.
 Click the bin icon on the ingredient's row and confirm ("Permanently delete ingredient "…"?").
 
 An ingredient that is still used cannot be deleted: the database protects ingredients referenced
-by a recipe or by a shopping-list item. The page then shows "Cannot delete "…": it is used by
+by a recipe (as a line or as an alternative) or by a shopping-list item. The page then shows "Cannot delete "…": it is used by
 recipes or shopping lists. Remove it from them first."
 
 To get rid of a duplicate or misspelled ingredient that is in use, don't delete it: use
-[**Merge into…**](#merge-a-duplicate), which moves its recipes and shopping-list items to the
+[**Merge into…**](#merge-a-duplicate), which moves its recipes (and alternatives) and shopping-list items to the
 correct ingredient first.
 
 ## Seeded data

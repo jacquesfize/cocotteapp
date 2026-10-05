@@ -99,3 +99,19 @@ def test_recipe_serializer_exposes_youtube_id():
     response = client.get(f"/api/recipes/{recipe.id}/")
 
     assert response.data["youtube_id"] == "dQw4w9WgXcQ"
+
+
+@pytest.mark.django_db
+def test_recipe_pdf_template_titles_each_ingredient_part():
+    from django.template.loader import render_to_string
+
+    recipe = RecipeFactory()
+    butter = IngredientFactory(name="Beurre")
+    RecipeIngredientFactory(recipe=recipe, ingredient=butter, group_name="Pâte", order=1)
+    RecipeIngredientFactory(recipe=recipe, ingredient=butter, group_name="Garniture", order=2)
+    RecipeIngredientFactory(recipe=recipe, ingredient=IngredientFactory(name="Sucre"), group_name="Garniture", order=3)
+
+    html = render_to_string("pdf/recipe.html", {"recipe": recipe, "image_src": None})
+
+    assert html.count('class="ingredient-part"') == 2
+    assert html.index("Pâte") < html.index("Garniture")

@@ -100,6 +100,13 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await shotPage(page, 'recipe-detail')
 
     await shotElement(page.locator('.ingredients-steps-row'), 'recipe-detail-steps')
+
+    // Alternatives : le lait est remplacé par la boisson d'avoine, et celles du comté sont dépliées.
+    const ingredientsCard = page.locator('.ingredients-steps-row .card').first()
+    await ingredientsCard.locator('li.ingredient-row', { hasText: 'Lait entier' }).locator('.swap-chip').click()
+    await ingredientsCard.getByRole('button', { name: /Boisson avoine enrichie/ }).click()
+    await ingredientsCard.locator('li.ingredient-row', { hasText: 'Comté' }).locator('.swap-chip').click()
+    await shotElement(ingredientsCard, 'recipe-alternatives')
     const nutrition = page.locator('.card').filter({ has: page.getByRole('heading', { name: 'Nutrition facts' }) })
     await expect(nutrition).toBeVisible()
     await shotElement(nutrition, 'recipe-detail-nutrition')
@@ -140,19 +147,37 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await page.getByLabel('Cook time (min)').fill('35')
     await page.getByLabel('Diet').selectOption('vegetarian')
 
-    const addIngredient = async (index: number, name: string, quantity: string) => {
-      if (index > 0) await page.getByRole('button', { name: 'Add an ingredient' }).click()
-      const picker = page.locator(`#ingredient-${index}`)
-      await picker.fill(name)
+    // Les ingrédients s'ajoutent par la modale d'une section ; la seconde section est nommée.
+    const addIngredient = async (sectionIndex: number, name: string, quantity: string) => {
+      await page.locator('section.ingredient-section').nth(sectionIndex).getByRole('button', { name: 'Add an ingredient' }).click()
+      await page.locator('#row-modal-ingredient').fill(name)
       await page
         .locator('.picker .suggestions-dropdown li', { hasText: new RegExp(`^\\s*${name}\\s*$`) })
         .first()
         .click()
-      await page.locator(`#quantity-${index}`).fill(quantity)
+      await page.locator('#row-modal-quantity').fill(quantity)
+      await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click()
+      await expect(page.getByRole('dialog')).toBeHidden()
     }
     await addIngredient(0, 'Courgette', '600')
+    await page.getByRole('button', { name: 'Add a section' }).click()
+    await page.locator('input.section-name').nth(1).fill('Stuffing')
     await addIngredient(1, 'Tomate', '200')
-    await addIngredient(2, 'Feta', '100')
+    await addIngredient(1, 'Feta', '100')
+
+    // Alternative d'un ingrédient : modale d'édition de la ligne, capturée avant de l'enregistrer.
+    await page.locator('section.ingredient-section').nth(1).getByRole('button', { name: 'Edit Feta' }).click()
+    const rowDialog = page.getByRole('dialog', { name: 'Edit ingredient' })
+    await rowDialog.getByRole('button', { name: 'Add an alternative' }).click()
+    await rowDialog.locator('#row-modal-alt-ingredient-0').fill('Tofu nature')
+    await page
+      .locator('.picker .suggestions-dropdown li', { hasText: /^\s*Tofu nature\s*$/ })
+      .first()
+      .click()
+    await rowDialog.locator('#row-modal-alt-note-0').fill('Crumbled, with lemon.')
+    await shotElement(rowDialog, 'recipe-ingredient-alternatives')
+    await rowDialog.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(rowDialog).toBeHidden()
 
     const step1 = page.locator('#step-0')
     await step1.fill('Halve the @Courgette and scoop out the flesh. Bake for ~{10%minutes}.')
@@ -438,6 +463,37 @@ test('mobile documentation screenshots', async ({ page }, testInfo) => {
     await expect(cookMode.locator('.cook-mode-ingredients')).toHaveClass(/open/)
     await shotElement(cookMode, 'mobile-cookmode-ingredients')
 
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
+    await expect(cookMode).toBeHidden()
+  })
+
+  await test.step('cook mode alternatives', async () => {
+    // Le gratin a des alternatives (voir demoData.ts) : on remplace le lait par la boisson d'avoine
+    // depuis le panneau des ingrédients ; l'étape 2, qui cite le lait, parle alors de l'avoine.
+    await page.goto(`/recipes/${data.recipes.gratin}`)
+    await expect(page.locator('.recipe-photo-frame img')).toBeVisible()
+    await page.getByRole('button', { name: 'Cook mode' }).click()
+    const cookMode = page.locator('.cook-mode')
+    await expect(cookMode).toBeVisible()
+    await cookMode.locator('.cook-mode-nav.next').click()
+    await page.waitForTimeout(500) // let the out-in step transition settle
+    await cookMode.getByRole('button', { name: 'Show ingredients' }).click()
+    const panel = cookMode.locator('.cook-mode-ingredients')
+    await expect(panel).toHaveClass(/open/)
+    await panel.locator('li.ingredient-row', { hasText: 'Lait entier' }).locator('.swap-chip').click()
+    await panel.getByRole('button', { name: /Boisson avoine enrichie/ }).click()
+    await expect(panel.locator('li.ingredient-row.swapped')).toHaveCount(1)
+    await shotElement(cookMode, 'mobile-cookmode-alternatives')
+
+    // Panneau refermé : l'étape nomme l'alternative, et sa bulle dit ce qu'elle remplace.
+    await page.keyboard.press('Escape')
+    await expect(panel).not.toHaveClass(/open/)
+    await cookMode.locator('.ingredient-mention', { hasText: 'Boisson avoine enrichie' }).click()
+    await expect(cookMode.locator('.ingredient-popover')).toBeVisible()
+    await shotElement(cookMode, 'mobile-cookmode-alternatives-step')
+
+    await page.keyboard.press('Escape')
     await page.keyboard.press('Escape')
     await page.keyboard.press('Escape')
     await expect(cookMode).toBeHidden()

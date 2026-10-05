@@ -7,7 +7,7 @@ import CooklangStepInput from '../../components/recipes/CooklangStepInput.vue'
 import CookwarePicker from '../../components/recipes/CookwarePicker.vue'
 import FreeImageSuggestions from '../../components/recipes/FreeImageSuggestions.vue'
 import ImageUploadWithCredit from '../../components/shared/ImageUploadWithCredit.vue'
-import IngredientPicker from '../../components/recipes/IngredientPicker.vue'
+import IngredientSections from '../../components/recipes/IngredientSections.vue'
 import PageHeader from '../../components/shared/PageHeader.vue'
 import {
   createRecipe,
@@ -17,10 +17,11 @@ import {
   uploadRecipeImage,
   uploadStepImage,
 } from '../../api/recipes'
-import { formatUnit } from '../../utils/format'
+import { orderRowsBySection } from '../../utils/ingredientSections'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { FreeImageSuggestion, RecipeInput } from '../../types/models'
-import type { Cookware, DietType, Ingredient, Unit } from '../../types/models'
+import type { Cookware, DietType, Ingredient } from '../../types/models'
+import type { IngredientFormRow } from '../../types/recipeForm'
 import { takePendingImportDraft, type PendingImportDraft } from '../../utils/pendingImportDraft'
 
 const props = defineProps<{
@@ -134,20 +135,6 @@ function applyFreeImage(suggestion: FreeImageSuggestion) {
   showFreeImages.value = false
 }
 
-interface IngredientRow {
-  ingredient: Ingredient | null
-  quantity: string | number
-  unit: Unit
-  group_name: string
-  order: number
-  // Ligne importée depuis une recette scrapée dont l'ingrédient n'a pas pu être rapproché
-  // automatiquement du catalogue (voir apps/importer/services.py::find_matching_ingredient) :
-  // affiche un badge (+ le texte d'origine pour aider) tant qu'aucun ingrédient n'a été
-  // choisi/créé ici.
-  unmatched?: boolean
-  raw_line?: string
-}
-
 interface StepRow {
   id?: number
   instruction: string
@@ -206,9 +193,7 @@ function handleMentionCookware(cookware: Cookware) {
   }
 }
 
-const ingredientRows = ref<IngredientRow[]>([
-  { ingredient: null, quantity: '', unit: 'g', group_name: '', order: 1 },
-])
+const ingredientRows = ref<IngredientFormRow[]>([])
 const stepRows = ref<StepRow[]>([emptyStepRow(1)])
 
 // Noms des ingrédients déjà ajoutés à la recette : utilisés pour l'auto-complétion
@@ -229,8 +214,6 @@ const stepImageRefs = ref<(ImageUploadWithCreditInstance | null)[]>([])
 function setStepImageRef(el: unknown, index: number) {
   stepImageRefs.value[index] = el as ImageUploadWithCreditInstance | null
 }
-
-const UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
 
 onMounted(async () => {
   if (isEditing && props.id) {
@@ -262,6 +245,13 @@ onMounted(async () => {
       unit: item.unit,
       group_name: item.group_name,
       order: item.order,
+      alternatives: (item.alternatives ?? []).map((alternative) => ({
+        ingredient: alternative.ingredient,
+        quantity: alternative.quantity,
+        unit: alternative.unit,
+        tag: alternative.tag,
+        note: alternative.note,
+      })),
     }))
     stepRows.value = recipe.steps.map((step) => ({
       id: step.id,
@@ -316,27 +306,18 @@ function applyImportDraft(draft: PendingImportDraft) {
     group_name: item.group_name ?? '',
     order: index + 1,
   }))
-  if (!ingredientRows.value.length) addIngredientRow()
   selectedCookware.value = (draft.cookware ?? []).flatMap((item) => (item.cookware ? [item.cookware] : []))
   unmatchedCookwareNames.value = (draft.cookware ?? []).filter((item) => !item.cookware).map((item) => item.name)
   stepRows.value = draft.steps.map((step) => ({ ...emptyStepRow(step.order), instruction: step.instruction }))
   if (!stepRows.value.length) stepRows.value = [emptyStepRow(1)]
 }
 
-function addIngredientRow() {
-  ingredientRows.value.push({
-    ingredient: null,
-    quantity: '',
-    unit: 'g',
-    group_name: '',
-    order: ingredientRows.value.length + 1,
-  })
-}
-
 // Une mention "@ingrédient" dans une étape peut désigner un ingrédient qui existe déjà en
 // base mais pas encore dans cette recette : on l'ajoute alors automatiquement à la liste
 // (voir CooklangStepInput.vue), pour éviter à l'utilisateur de le rechercher deux fois.
 function handleMentionIngredient(ingredient: Ingredient) {
+  // Un même ingrédient peut servir dans plusieurs parties (beurre de la pâte et de la garniture) :
+  // on n'ajoute une ligne que s'il n'y en a aucune, les suivantes se créent depuis la liste.
   const alreadyAdded = ingredientRows.value.some((row) => row.ingredient?.id === ingredient.id)
   if (alreadyAdded) return
   ingredientRows.value.push({
@@ -346,10 +327,6 @@ function handleMentionIngredient(ingredient: Ingredient) {
     group_name: '',
     order: ingredientRows.value.length + 1,
   })
-}
-
-function removeIngredientRow(index: number) {
-  ingredientRows.value.splice(index, 1)
 }
 
 function addStepRow() {
@@ -458,12 +435,22 @@ async function handleSubmit() {
   const payload: RecipeInput = {
     ...form.value,
     cookware_ids: selectedCookware.value.map((item) => item.id),
-    ingredients: ingredientRows.value.map((row, index) => ({
+    // Les lignes ajoutées par une mention dans une étape arrivent en fin de liste, hors section :
+    // on regroupe par section pour que l'ordre enregistré soit celui qu'on voit à l'écran.
+    ingredients: orderRowsBySection(ingredientRows.value).map((row) => ({
       ingredient_id: (row.ingredient as Ingredient).id,
       quantity: row.quantity,
       unit: row.unit,
       group_name: row.group_name,
-      order: index + 1,
+      order: row.order,
+      alternatives: (row.alternatives ?? []).map((alternative, index) => ({
+        ingredient_id: alternative.ingredient?.id ?? null,
+        quantity: alternative.quantity,
+        unit: alternative.unit,
+        tag: alternative.tag,
+        note: alternative.note,
+        order: index,
+      })),
     })),
     steps: submittedStepRows.map((step, index) => ({
       id: step.id,
@@ -653,66 +640,7 @@ function handleCancel() {
 
       <div class="card" style="margin-top: 1rem">
         <h2>{{ $t('recipes.ingredients') }}</h2>
-        <template v-for="(row, index) in ingredientRows" :key="index">
-        <div class="row ingredient-row">
-          <div class="field" style="flex: 2; min-width: 220px">
-            <label :for="`ingredient-${index}`">{{ $t('recipes.ingredient') }}</label>
-            <IngredientPicker
-              :id="`ingredient-${index}`"
-              v-model="row.ingredient"
-              :class="{ invalid: fieldErrors[`ingredient-${index}`] }"
-            />
-          </div>
-          <div class="field" style="width: 100px">
-            <label :for="`quantity-${index}`">{{ $t('recipes.quantity') }}</label>
-            <input
-              :id="`quantity-${index}`"
-              v-model="row.quantity"
-              type="number"
-              step="any"
-              min="0"
-              required
-              :aria-invalid="fieldErrors[`quantity-${index}`] ? 'true' : undefined"
-              :aria-describedby="fieldErrors[`quantity-${index}`] ? fieldErrorId(`quantity-${index}`) : undefined"
-            />
-          </div>
-          <div class="field" style="width: 110px">
-            <label :for="`unit-${index}`">{{ $t('recipes.unit') }}</label>
-            <select :id="`unit-${index}`" v-model="row.unit">
-              <option v-for="unit in UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
-            </select>
-          </div>
-          <button
-            type="button"
-            class="secondary icon-btn ingredient-remove"
-            :aria-label="$t('common.remove')"
-            @click="removeIngredientRow(index)"
-          >
-            <Trash2 :size="16" />
-          </button>
-        </div>
-        <p
-          v-if="fieldErrors[`ingredient-${index}`]"
-          :id="fieldErrorId(`ingredient-${index}`)"
-          class="field-error"
-        >
-          {{ fieldErrors[`ingredient-${index}`] }}
-        </p>
-        <p
-          v-if="fieldErrors[`quantity-${index}`]"
-          :id="fieldErrorId(`quantity-${index}`)"
-          class="field-error"
-        >
-          {{ fieldErrors[`quantity-${index}`] }}
-        </p>
-        <span v-if="row.unmatched && !row.ingredient" class="not-found-badge">
-          {{ $t('recipes.importNotFound') }}
-          <template v-if="row.raw_line">— « {{ row.raw_line }} »</template>
-        </span>
-        </template>
-        <button type="button" class="secondary" @click="addIngredientRow">
-          <Plus :size="16" />{{ $t('recipes.addIngredient') }}
-        </button>
+        <IngredientSections v-model="ingredientRows" :field-errors="fieldErrors" />
       </div>
 
       <div class="card" style="margin-top: 1rem">
@@ -871,10 +799,6 @@ function handleCancel() {
   font-size: 0.85rem;
 }
 
-.ingredient-row {
-  align-items: flex-end;
-}
-
 .step-row:not(:last-child) {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
@@ -883,13 +807,6 @@ function handleCancel() {
 
 .step-image-field {
   margin-top: 0.5rem;
-}
-
-/* Les .field ont un margin-bottom (0.85rem) que le bouton n'a pas : on le compense pour que le
-   bouton soit sur la même ligne que les inputs. */
-.ingredient-remove {
-  margin-bottom: 0.85rem;
-  flex-shrink: 0;
 }
 
 .free-images-button {
