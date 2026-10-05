@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
 test('anonymous visitors can browse the homepage, the recipe list and a recipe page, but cannot manage it or reach account-only pages', async ({
   page,
@@ -20,11 +21,7 @@ test('anonymous visitors can browse the homepage, the recipe list and a recipe p
   await page.getByRole('button', { name: 'Nouvelle recette' }).click()
   await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
-  await page.getByText(`+ Créer « ${ingredientName} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('150')
+  await addNewIngredient(page, ingredientName, '150')
   await page.getByLabel('Étape 1').fill('Faire revenir.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)

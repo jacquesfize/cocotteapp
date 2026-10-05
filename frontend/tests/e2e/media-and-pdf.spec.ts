@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
 test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async ({ page }) => {
   const suffix = Date.now()
@@ -17,11 +18,7 @@ test('shows an image, embeds a YouTube video, and downloads a recipe PDF', async
   await page.getByRole('button', { name: 'Nouvelle recette' }).click()
   await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
-  await page.getByText(`+ Créer « ${ingredientName} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('200')
+  await addNewIngredient(page, ingredientName, '200')
   await page.getByLabel('Étape 1').fill('Faire mijoter les légumes.')
   await page.getByLabel("URL de l'image").fill('https://example.com/ratatouille.jpg')
   await page.getByLabel("Licence de l'image").selectOption('public_domain')
@@ -80,11 +77,7 @@ test('downloads a PDF of the current week from the planner', async ({ page }) =>
   await page.getByRole('button', { name: 'Nouvelle recette' }).click()
   await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
-  await page.getByText(`+ Créer « ${ingredientName} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('100')
+  await addNewIngredient(page, ingredientName, '100')
   await page.getByLabel('Étape 1').fill('Mixer le tout.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
 async function registerAndBuildShoppingList(page: Page, suffix: number) {
   const username = `e2e-offline-${suffix}`
@@ -17,11 +18,7 @@ async function registerAndBuildShoppingList(page: Page, suffix: number) {
   await page.getByRole('button', { name: 'Nouvelle recette' }).click()
   await page.getByRole('link', { name: 'Créer manuellement' }).click()
   await page.getByLabel('Titre').fill(recipeTitle)
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(ingredientName)
-  await page.getByText(`+ Créer « ${ingredientName} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('200')
+  await addNewIngredient(page, ingredientName, '200')
   await page.getByLabel('Étape 1').fill('Faire revenir les épinards.')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
 
