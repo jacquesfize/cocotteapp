@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ArrowLeftRight, ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
+import { ChefHat, ChevronDown, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import CookwareModal from './CookwareModal.vue'
 import BaseModal from '../shared/BaseModal.vue'
@@ -21,6 +22,7 @@ import type { Cookware, IngredientAlternative, Recipe, RecipeIngredient } from '
 const props = defineProps<{
   recipe: Recipe
 }>()
+const { t } = useI18n()
 
 const emit = defineEmits<{
   rated: [result: RecipeRatingResult]
@@ -59,6 +61,17 @@ function originalText(item: RecipeIngredient) {
 
 function alternativeText(item: RecipeIngredient, alternative: IngredientAlternative) {
   return lineText(alternative.ingredient?.name ?? item.ingredient.name, alternative.quantity, alternative.unit)
+}
+
+// « 2 alternatives » : texte visible de la pastille, repris dans son nom accessible (avec
+// l'ingrédient concerné, pour qu'un lecteur d'écran distingue les lignes).
+function alternativesCountText(item: RecipeIngredient) {
+  const count = swaps.alternativesOf(item).length
+  return t('recipes.alternativesCount', { n: count }, count)
+}
+
+function swapChipLabel(item: RecipeIngredient) {
+  return t('recipes.swapChipLabel', { count: alternativesCountText(item), name: item.ingredient.name })
 }
 
 // Choisir une option referme la liste dépliée sous la ligne.
@@ -185,8 +198,9 @@ async function handleDownloadPdf() {
                   <s>{{ originalText(item) }}</s>
                 </button>
                 <details v-if="swaps.alternativesOf(item).length" class="swap">
-                  <summary class="swap-chip" :aria-label="$t('recipes.swapOptions', { name: item.ingredient.name })">
-                    <ArrowLeftRight :size="13" aria-hidden="true" />{{ swaps.alternativesOf(item).length }}
+                  <summary class="swap-chip" :aria-label="swapChipLabel(item)">
+                    {{ alternativesCountText(item) }}
+                    <ChevronDown :size="14" class="swap-chevron" aria-hidden="true" />
                   </summary>
                   <ul class="swap-options">
                     <li>
@@ -487,14 +501,25 @@ async function handleDownloadPdf() {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.1rem 0.5rem;
+  padding: 0.15rem 0.55rem;
   border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 0.8rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   list-style: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .swap-chevron {
+    transition: transform 0.15s ease;
+  }
+}
+
+.swap[open] .swap-chevron {
+  transform: rotate(180deg);
 }
 
 .swap-chip::-webkit-details-marker {

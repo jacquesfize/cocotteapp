@@ -37,7 +37,7 @@ test('an ingredient alternative added in the form can be swapped in on the recip
   await page.waitForURL(/\/recipes\/\d+$/)
 
   const line = page.locator('li.ingredient-row').filter({ hasText: milk })
-  await expect(line.locator('.swap-chip')).toHaveText('1')
+  await expect(line.locator('.swap-chip')).toHaveText('1 alternative')
   await line.locator('.swap-chip').click()
   await line.getByRole('button', { name: new RegExp(oatMilk) }).click()
   await expect(line.locator('.ingredient-name')).toHaveText(oatMilk)

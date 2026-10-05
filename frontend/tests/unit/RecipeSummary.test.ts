@@ -200,7 +200,9 @@ describe('RecipeSummary alternatives', () => {
 
   it('lists the alternatives with their tag and note, and swaps the line when one is chosen', async () => {
     const wrapper = mountSummary(recipeWithAlternatives())
-    expect(wrapper.find('.swap-chip').text()).toBe('2')
+    expect(wrapper.find('.swap-chip').text()).toBe('2 alternatives')
+    // Le nom accessible reprend le texte visible et nomme l'ingrédient (plusieurs pastilles par page).
+    expect(wrapper.find('.swap-chip').attributes('aria-label')).toBe('2 alternatives : sel')
 
     const options = wrapper.findAll('.swap-options button')
     expect(options).toHaveLength(3) // l'original + 2 alternatives

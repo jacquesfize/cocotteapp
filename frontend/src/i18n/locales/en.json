@@ -191,7 +191,7 @@
     "swapIngredient": "Replace {name}",
     "swapOriginal": "Original",
     "swapBackTo": "Back to {text}",
-    "swapOptions": "Alternatives for {name}",
+    "swapChipLabel": "{count}: {name}",
     "step": "Step {n}",
     "addStep": "Add a step",
     "stepPlaceholder": "Type \\@ to link an ingredient, # for cookware",
