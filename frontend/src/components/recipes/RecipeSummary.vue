@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
+import { ArrowLeftRight, ChefHat, Clock, CookingPot, Download, Flame, Image as ImageIcon, Link2, Users, Utensils } from '@lucide/vue'
 import { computed, ref } from 'vue'
 import AllergenBadges from '../nutrition/AllergenBadges.vue'
 import CookwareModal from './CookwareModal.vue'
@@ -11,11 +11,12 @@ import RecipeRating from './RecipeRating.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { downloadRecipePdf } from '../../api/recipes'
 import type { RecipeRatingResult } from '../../api/recipes'
+import { useIngredientSwaps } from '../../composables/useIngredientSwaps'
 import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
 import { downloadBlob } from '../../utils/download'
 import { formatDuration, formatQuantity, formatUnit } from '../../utils/format'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
-import type { Cookware, Recipe } from '../../types/models'
+import type { Cookware, IngredientAlternative, Recipe, RecipeIngredient } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
@@ -42,6 +43,28 @@ const ingredientGroups = computed(() => groupIngredients(props.recipe.ingredient
 
 function stepSegments(instruction: string) {
   return buildStepSegments(instruction, props.recipe.ingredients, props.recipe.cookware ?? [])
+}
+
+// Remplacement d'un ingrédient par une alternative, le temps de la consultation : partagé avec le
+// mode cuisine, non enregistré.
+const swaps = useIngredientSwaps()
+
+function lineText(name: string, quantity: number | string, unit: RecipeIngredient['unit']) {
+  return `${formatQuantity(quantity, unit)} ${formatUnit(unit, quantity)} ${name}`.replace(/\s+/g, ' ').trim()
+}
+
+function originalText(item: RecipeIngredient) {
+  return lineText(item.ingredient.name, item.quantity, item.unit)
+}
+
+function alternativeText(item: RecipeIngredient, alternative: IngredientAlternative) {
+  return lineText(alternative.ingredient?.name ?? item.ingredient.name, alternative.quantity, alternative.unit)
+}
+
+// Choisir une option referme la liste dépliée sous la ligne.
+function pickAlternative(item: RecipeIngredient, alternative: IngredientAlternative | null, event: Event) {
+  swaps.choose(item, alternative)
+  ;(event.currentTarget as HTMLElement).closest('details')?.removeAttribute('open')
 }
 
 function rowIndex(item: Recipe['ingredients'][number]) {
@@ -137,14 +160,58 @@ async function handleDownloadPdf() {
         <template v-for="(group, index) in ingredientGroups" :key="index">
           <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
           <ul class="ingredient-list">
-            <li v-for="item in group.items" :key="item.id" :id="`ingredient-row-${rowIndex(item)}`" class="ingredient-row">
-              <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
-              <RouterLink
-                :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
-                class="ingredient-name"
-              >
-                {{ item.ingredient.name }}
-              </RouterLink>
+            <li
+              v-for="item in group.items"
+              :key="item.id"
+              :id="`ingredient-row-${rowIndex(item)}`"
+              class="ingredient-row"
+              :class="{ swapped: swaps.display(item).swapped }"
+            >
+              <span class="ingredient-qty">{{ formatQuantity(swaps.display(item).quantity, swaps.display(item).unit) }} {{ formatUnit(swaps.display(item).unit, swaps.display(item).quantity) }}</span>
+              <div class="ingredient-main">
+                <RouterLink
+                  :to="{ name: 'recipes', query: { ingredients: swaps.display(item).name } }"
+                  class="ingredient-name"
+                >
+                  {{ swaps.display(item).name }}
+                </RouterLink>
+                <button
+                  v-if="swaps.display(item).swapped"
+                  type="button"
+                  class="swap-reset"
+                  :aria-label="$t('recipes.swapBackTo', { text: originalText(item) })"
+                  @click="swaps.choose(item, null)"
+                >
+                  <s>{{ originalText(item) }}</s>
+                </button>
+                <details v-if="swaps.alternativesOf(item).length" class="swap">
+                  <summary class="swap-chip" :aria-label="$t('recipes.swapOptions', { name: item.ingredient.name })">
+                    <ArrowLeftRight :size="13" aria-hidden="true" />{{ swaps.alternativesOf(item).length }}
+                  </summary>
+                  <ul class="swap-options">
+                    <li>
+                      <button
+                        type="button"
+                        :aria-pressed="!swaps.display(item).swapped"
+                        @click="pickAlternative(item, null, $event)"
+                      >
+                        <span class="swap-option-text">{{ $t('recipes.swapOriginal') }} · {{ originalText(item) }}</span>
+                      </button>
+                    </li>
+                    <li v-for="alternative in swaps.alternativesOf(item)" :key="alternative.id">
+                      <button
+                        type="button"
+                        :aria-pressed="swaps.display(item).swapped?.id === alternative.id"
+                        @click="pickAlternative(item, alternative, $event)"
+                      >
+                        <span class="swap-option-text">{{ alternativeText(item, alternative) }}</span>
+                        <span class="swap-option-tag" :data-tag="alternative.tag">{{ $t(`alternativeTag.${alternative.tag}`) }}</span>
+                        <span v-if="alternative.note" class="swap-option-note">{{ alternative.note }}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </details>
+              </div>
             </li>
           </ul>
         </template>
@@ -218,7 +285,7 @@ async function handleDownloadPdf() {
 
     <CookwareModal v-if="openCookware" :cookware="openCookware" show-recipes-link @close="openCookware = null" />
 
-    <RecipeCookMode v-if="showCookMode" :recipe="recipe" @close="showCookMode = false" />
+    <RecipeCookMode v-if="showCookMode" :recipe="recipe" :swaps="swaps" @close="showCookMode = false" />
   </div>
 </template>
 
@@ -375,6 +442,121 @@ async function handleDownloadPdf() {
 
 .ingredient-row:last-child {
   border-bottom: none;
+}
+
+.ingredient-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+}
+
+/* Ligne dont l'ingrédient a été remplacé : un filet à gauche, couleur de l'application. */
+.ingredient-row.swapped {
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--color-primary);
+}
+
+.swap-reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.swap-reset:hover,
+.swap-reset:focus-visible {
+  color: var(--color-primary-dark);
+}
+
+.swap {
+  flex-basis: auto;
+}
+
+.swap[open] {
+  flex-basis: 100%;
+}
+
+.swap-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.swap-chip::-webkit-details-marker {
+  display: none;
+}
+
+.swap-chip:focus-visible,
+.swap-options button:focus-visible {
+  outline: 2px solid var(--color-primary-dark);
+  outline-offset: 2px;
+}
+
+.swap-options {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.swap-options li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.swap-options li:last-child {
+  border-bottom: 0;
+}
+
+.swap-options button {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 0.1rem 0.6rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-text);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.swap-options button[aria-pressed='true'] {
+  background: var(--color-primary-soft);
+  font-weight: 600;
+}
+
+.swap-option-tag {
+  font-size: 0.8rem;
+  color: var(--color-primary-dark);
+}
+
+.swap-option-note {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--color-muted);
 }
 
 .ingredient-qty {

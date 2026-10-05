@@ -6,8 +6,8 @@ import BaseModal from '../shared/BaseModal.vue'
 import IngredientPicker from './IngredientPicker.vue'
 import { formatQuantity, formatUnit } from '../../utils/format'
 import { orderRowsBySection, sectionNamesOf } from '../../utils/ingredientSections'
-import { INGREDIENT_UNITS } from '../../types/recipeForm'
-import type { IngredientFormRow } from '../../types/recipeForm'
+import { ALTERNATIVE_TAGS, INGREDIENT_UNITS } from '../../types/recipeForm'
+import type { AlternativeFormRow, IngredientFormRow } from '../../types/recipeForm'
 import type { Ingredient, Unit } from '../../types/models'
 
 // Ingrédients d'une recette, rangés en sections (blocs bordés). Chaque ingrédient s'ajoute ou se
@@ -139,11 +139,14 @@ interface Draft {
   quantity: string | number
   unit: Unit
   sectionKey: number
+  alternatives: AlternativeFormRow[]
 }
 
 const modal = ref<{ mode: 'add' | 'edit'; index: number } | null>(null)
-const draft = ref<Draft>({ ingredient: null, quantity: '', unit: 'g', sectionKey: 0 })
+const draft = ref<Draft>({ ingredient: null, quantity: '', unit: 'g', sectionKey: 0, alternatives: [] })
 const modalErrors = ref<{ ingredient?: string; quantity?: string }>({})
+// Erreurs des alternatives, par position dans `draft.alternatives`.
+const altErrors = ref<Record<number, { ingredient?: string; quantity?: string }>>({})
 let trigger: HTMLElement | null = null
 
 function sectionByKey(key: number) {
@@ -152,8 +155,9 @@ function sectionByKey(key: number) {
 
 async function openAdd(section: Section) {
   trigger = document.activeElement as HTMLElement | null
-  draft.value = { ingredient: null, quantity: '', unit: 'g', sectionKey: section.key }
+  draft.value = { ingredient: null, quantity: '', unit: 'g', sectionKey: section.key, alternatives: [] }
   modalErrors.value = {}
+  altErrors.value = {}
   modal.value = { mode: 'add', index: -1 }
   await focusPicker()
 }
@@ -167,8 +171,11 @@ async function openEdit(index: number) {
     quantity: row.quantity === null ? '' : String(row.quantity),
     unit: row.unit,
     sectionKey: section.key,
+    // Copie : annuler la modale ne doit pas modifier la ligne.
+    alternatives: (row.alternatives ?? []).map((alternative) => ({ ...alternative })),
   }
   modalErrors.value = {}
+  altErrors.value = {}
   modal.value = { mode: 'edit', index }
   await focusPicker()
 }
@@ -203,9 +210,52 @@ function validateDraft(): boolean {
     errors.quantity = t('recipes.invalidQuantity')
   }
   modalErrors.value = errors
+
+  const alternativeErrors: Record<number, { ingredient?: string; quantity?: string }> = {}
+  draft.value.alternatives.forEach((alternative, index) => {
+    const found: { ingredient?: string; quantity?: string } = {}
+    if (alternative.tag !== 'less' && !alternative.ingredient) found.ingredient = t('recipes.missingIngredient')
+    const alternativeQuantity = Number(alternative.quantity)
+    if (String(alternative.quantity).trim() === '' || !Number.isFinite(alternativeQuantity) || alternativeQuantity < 0) {
+      found.quantity = t('recipes.invalidQuantity')
+    }
+    if (found.ingredient || found.quantity) alternativeErrors[index] = found
+  })
+  altErrors.value = alternativeErrors
+
   if (errors.ingredient) document.getElementById('row-modal-ingredient')?.focus()
   else if (errors.quantity) document.getElementById('row-modal-quantity')?.focus()
-  return !errors.ingredient && !errors.quantity
+  else {
+    const [first] = Object.keys(alternativeErrors)
+    if (first !== undefined) {
+      const id = alternativeErrors[Number(first)].ingredient ? 'alt-ingredient' : 'alt-quantity'
+      document.getElementById(`row-modal-${id}-${first}`)?.focus()
+    }
+  }
+  return !errors.ingredient && !errors.quantity && !Object.keys(alternativeErrors).length
+}
+
+function addAlternative() {
+  draft.value.alternatives.push({
+    ingredient: null,
+    quantity: draft.value.quantity,
+    unit: draft.value.unit,
+    tag: 'vegan',
+    note: '',
+  })
+  const index = draft.value.alternatives.length - 1
+  nextTick(() => document.getElementById(`row-modal-alt-ingredient-${index}`)?.focus())
+}
+
+function removeAlternative(index: number) {
+  draft.value.alternatives.splice(index, 1)
+  altErrors.value = {}
+}
+
+// `less` garde l'ingrédient de la ligne : un éventuel ingrédient de remplacement choisi avant est
+// écarté plutôt que de rester caché dans le formulaire.
+function onTagChange(alternative: AlternativeFormRow) {
+  if (alternative.tag === 'less') alternative.ingredient = null
 }
 
 async function confirmModal(keepOpen: boolean) {
@@ -216,6 +266,11 @@ async function confirmModal(keepOpen: boolean) {
     quantity: draft.value.quantity,
     unit: draft.value.unit,
     group_name: section.name ?? '',
+    alternatives: draft.value.alternatives.map((alternative) => ({
+      ...alternative,
+      ingredient: alternative.tag === 'less' ? null : alternative.ingredient,
+      note: alternative.note.trim(),
+    })),
   }
   if (modal.value.mode === 'edit') {
     const index = modal.value.index
@@ -230,8 +285,9 @@ async function confirmModal(keepOpen: boolean) {
   }
   commit([...props.modelValue, { ...base, order: props.modelValue.length + 1 }])
   if (keepOpen) {
-    draft.value = { ingredient: null, quantity: '', unit: draft.value.unit, sectionKey: section.key }
+    draft.value = { ingredient: null, quantity: '', unit: draft.value.unit, sectionKey: section.key, alternatives: [] }
     modalErrors.value = {}
+    altErrors.value = {}
     await focusPicker()
   } else {
     closeModal()
@@ -310,6 +366,9 @@ function errorIds(index: number) {
               <span class="not-found-badge">{{ $t('recipes.importNotFound') }}</span>
               <template v-if="entry.row.raw_line"> « {{ entry.row.raw_line }} »</template>
             </template>
+            <span v-if="entry.row.alternatives?.length" class="alternatives-badge">
+              {{ $t('recipes.alternativesCount', { n: entry.row.alternatives.length }, entry.row.alternatives.length) }}
+            </span>
           </span>
           <button
             :id="`ingredient-${entry.index}`"
@@ -398,6 +457,64 @@ function errorIds(index: number) {
           </select>
         </div>
       </div>
+      <fieldset v-if="draft.alternatives.length" class="alternatives">
+        <legend>{{ $t('recipes.alternatives') }}</legend>
+        <div v-for="(alternative, index) in draft.alternatives" :key="index" class="alternative">
+          <div class="alternative-head">
+            <div class="field">
+              <label :for="`row-modal-alt-tag-${index}`">{{ $t('recipes.alternativeType') }}</label>
+              <select :id="`row-modal-alt-tag-${index}`" v-model="alternative.tag" @change="onTagChange(alternative)">
+                <option v-for="tag in ALTERNATIVE_TAGS" :key="tag" :value="tag">{{ $t(`alternativeTag.${tag}`) }}</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              class="secondary icon-btn"
+              :aria-label="$t('recipes.removeAlternative', { n: index + 1 })"
+              @click="removeAlternative(index)"
+            >
+              <Trash2 :size="16" />
+            </button>
+          </div>
+          <div v-if="alternative.tag !== 'less'" class="field">
+            <label :for="`row-modal-alt-ingredient-${index}`">{{ $t('recipes.alternativeIngredient') }}</label>
+            <IngredientPicker
+              :id="`row-modal-alt-ingredient-${index}`"
+              v-model="alternative.ingredient"
+              :class="{ invalid: altErrors[index]?.ingredient }"
+            />
+            <p v-if="altErrors[index]?.ingredient" class="field-error">{{ altErrors[index].ingredient }}</p>
+          </div>
+          <p v-else class="muted alternative-same">{{ $t('recipes.alternativeSameIngredient') }}</p>
+          <div class="alternative-line">
+            <div class="field alternative-quantity">
+              <label :for="`row-modal-alt-quantity-${index}`">{{ $t('recipes.quantity') }}</label>
+              <input
+                :id="`row-modal-alt-quantity-${index}`"
+                v-model="alternative.quantity"
+                type="number"
+                step="any"
+                min="0"
+                :aria-invalid="altErrors[index]?.quantity ? 'true' : undefined"
+              />
+            </div>
+            <div class="field alternative-unit">
+              <label :for="`row-modal-alt-unit-${index}`">{{ $t('recipes.unit') }}</label>
+              <select :id="`row-modal-alt-unit-${index}`" v-model="alternative.unit">
+                <option v-for="unit in INGREDIENT_UNITS" :key="unit" :value="unit">{{ formatUnit(unit) }}</option>
+              </select>
+            </div>
+            <div class="field alternative-note">
+              <label :for="`row-modal-alt-note-${index}`">{{ $t('recipes.alternativeNote') }}</label>
+              <input :id="`row-modal-alt-note-${index}`" v-model="alternative.note" type="text" maxlength="200" />
+            </div>
+          </div>
+          <p v-if="altErrors[index]?.quantity" class="field-error">{{ altErrors[index].quantity }}</p>
+        </div>
+      </fieldset>
+      <button type="button" class="secondary add-alternative" @click="addAlternative">
+        <Plus :size="16" />{{ $t('recipes.addAlternative') }}
+      </button>
       <div v-if="sections.length > 1" class="field">
         <label for="row-modal-section">{{ $t('recipes.sectionLabel') }}</label>
         <select id="row-modal-section" v-model="draft.sectionKey">
@@ -516,6 +633,79 @@ function errorIds(index: number) {
 .modal-quantity-row > .field {
   flex: 1;
   min-width: 120px;
+}
+
+.alternatives-badge {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.alternatives {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+.alternatives legend {
+  padding: 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.alternative {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.alternative-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.alternative-head .field {
+  flex: 1;
+}
+
+.alternative-head .icon-btn {
+  margin-bottom: 0.85rem;
+}
+
+.alternative-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+}
+
+.alternative-quantity {
+  width: 6.75rem;
+}
+
+.alternative-unit {
+  width: 6.5rem;
+}
+
+.alternative-note {
+  flex: 1;
+  min-width: 9rem;
+}
+
+.alternative-same {
+  margin: 0 0 0.75rem;
+}
+
+.add-alternative {
+  margin-bottom: 0.85rem;
 }
 
 .modal-actions {

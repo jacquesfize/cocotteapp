@@ -185,7 +185,15 @@ got one, or *Credit not specified* when there's truly no credit information at a
 ### Ingredients and steps
 
 The **Ingredients** card lists quantities and units. Ingredients may be grouped under
-sub-headings. Click an ingredient name to see other recipes that use it.
+sub-headings (the recipe's sections), and the same ingredient can appear in several of them with a
+different quantity each. Click an ingredient name to see other recipes that use it.
+
+An ingredient the author gave alternatives for shows a small pill with the number of
+alternatives. Click it to unfold the list: **Original** and each alternative, with its quantity,
+its type (*Vegan*, *If you don't have it*, *Less*...) and the author's note. Choosing one replaces
+the ingredient on that line, marked by an orange bar, and the original stays visible, struck
+through: click it to go back. The choice only lasts while you read the recipe, in the recipe page
+and in cook mode; it doesn't change the shopping list, the planner or the nutrition figures.
 
 When the author listed the cookware the recipe needs, it appears under **Cookware**, at the
 bottom of the same card, each item with its photo or emoji: check it before you start. Click an

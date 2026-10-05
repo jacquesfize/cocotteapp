@@ -16,6 +16,14 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   sections with a different quantity each, which the shopping list, nutrition and carbon
   estimates add up. The recipe page and PDF exports show a heading per section, and mentions in
   steps no longer clash when an ingredient appears twice.
+- **Ingredient alternatives**: an ingredient can carry alternatives (vegan, vegetarian,
+  gluten-free, lactose-free, *If you don't have it*, or a smaller quantity of the same
+  ingredient), each with its own quantity and an optional note, added from the ingredient's window
+  with **Add an alternative**. On the recipe page, a pill next to the ingredient unfolds the
+  options; choosing one replaces the ingredient on that line, in the page and in cook mode,
+  until you leave the recipe. Alternatives are not counted in the shopping list, the planner or
+  the nutrition and carbon estimates. They are copied by versions and included in recipe
+  archives.
 - **Announcements**: a banner at the top of every page, for a maintenance, an update or any
   message to your users. Admins create it in the Django admin (**Announcements**) with a level
   (information, warning, critical), a French and English text, an optional link and an optional

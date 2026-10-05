@@ -180,6 +180,18 @@
     "addAndContinue": "Add and continue",
     "sectionLabel": "Section",
     "quantityToFill": "quantity to fill in",
+    "alternatives": "Alternatives",
+    "addAlternative": "Add an alternative",
+    "removeAlternative": "Remove alternative {n}",
+    "alternativeType": "Type",
+    "alternativeIngredient": "Replace with",
+    "alternativeNote": "Note (optional)",
+    "alternativesCount": "{n} alternative | {n} alternatives",
+    "alternativeSameIngredient": "Same ingredient, smaller quantity",
+    "swapIngredient": "Replace {name}",
+    "swapOriginal": "Original",
+    "swapBackTo": "Back to {text}",
+    "swapOptions": "Alternatives for {name}",
     "step": "Step {n}",
     "addStep": "Add a step",
     "stepPlaceholder": "Type \\@ to link an ingredient, # for cookware",
@@ -943,5 +955,13 @@
     "legal": "Legal notice",
     "privacy": "Privacy",
     "notFound": "Page not found"
+  },
+  "alternativeTag": {
+    "vegan": "Vegan",
+    "vegetarian": "Vegetarian",
+    "gluten_free": "Gluten-free",
+    "lactose_free": "Lactose-free",
+    "missing": "If you don't have it",
+    "less": "Less"
   }
 }

@@ -185,4 +185,91 @@ describe('IngredientSections', () => {
 
     confirmSpy.mockRestore()
   })
+
+  describe('alternatives', () => {
+    const oatMilk = { id: 3, name: "Lait d'avoine", default_unit: 'ml' } as Ingredient
+
+    // Plusieurs sélecteurs dans la modale (ingrédient + alternatives) : on les atteint par position.
+    function pickerAt(wrapper: ReturnType<typeof mountSections>['wrapper'], position: number) {
+      return wrapper.findAllComponents(IngredientPickerStub)[position]
+    }
+
+    async function openFirstRow(wrapper: ReturnType<typeof mountSections>['wrapper']) {
+      await wrapper.find('#ingredient-0').trigger('click')
+    }
+
+    it('shows how many alternatives a line has', () => {
+      const withAlternatives = {
+        ...formRow(butter, 80),
+        alternatives: [
+          { ingredient: oatMilk, quantity: 80, unit: 'g' as const, tag: 'vegan' as const, note: '' },
+          { ingredient: null, quantity: 40, unit: 'g' as const, tag: 'less' as const, note: '' },
+        ],
+      }
+      const { wrapper } = mountSections([withAlternatives, formRow(flour, 200, '', 2)])
+
+      const badges = wrapper.findAll('.alternatives-badge')
+      expect(badges).toHaveLength(1)
+      expect(badges[0].text()).toBe('2 alternatives')
+    })
+
+    it('adds an alternative to a line, with its tag, quantity and note', async () => {
+      const { wrapper, emitted } = mountSections([formRow(butter, 80, '', 1)])
+
+      await openFirstRow(wrapper)
+      await wrapper.find('button.add-alternative').trigger('click')
+      pickerAt(wrapper, 1).vm.$emit('update:modelValue', oatMilk)
+      await wrapper.find('#row-modal-alt-quantity-0').setValue('60')
+      await wrapper.find('#row-modal-alt-note-0').setValue('  Au choix ')
+      await wrapper.find('#row-modal-quantity').trigger('keydown.enter')
+
+      expect(emitted.at(-1)![0].alternatives).toEqual([
+        { ingredient: oatMilk, quantity: 60, unit: 'g', tag: 'vegan', note: 'Au choix' },
+      ])
+    })
+
+    it('needs an ingredient for a replacement, but not for a reduced quantity', async () => {
+      const { wrapper, emitted } = mountSections([formRow(butter, 80, '', 1)])
+
+      await openFirstRow(wrapper)
+      await wrapper.find('button.add-alternative').trigger('click')
+      await wrapper.find('#row-modal-quantity').trigger('keydown.enter')
+      expect(emitted).toHaveLength(0)
+      expect(wrapper.find('.alternative .field-error').text()).toContain('ingrédient')
+
+      await wrapper.find('#row-modal-alt-tag-0').setValue('less')
+      expect(wrapper.find('#row-modal-alt-ingredient-0').exists()).toBe(false)
+      await wrapper.find('#row-modal-quantity').trigger('keydown.enter')
+      expect(emitted.at(-1)![0].alternatives).toMatchObject([{ ingredient: null, tag: 'less' }])
+    })
+
+    it('drops the replacement ingredient when the tag becomes "less"', async () => {
+      const { wrapper, emitted } = mountSections([formRow(butter, 80, '', 1)])
+
+      await openFirstRow(wrapper)
+      await wrapper.find('button.add-alternative').trigger('click')
+      pickerAt(wrapper, 1).vm.$emit('update:modelValue', oatMilk)
+      await wrapper.find('#row-modal-alt-tag-0').setValue('less')
+      await wrapper.find('#row-modal-quantity').trigger('keydown.enter')
+
+      expect(emitted.at(-1)![0].alternatives![0]).toMatchObject({ ingredient: null, tag: 'less' })
+    })
+
+    it('does not change the line when the modal is cancelled after editing its alternatives', async () => {
+      const row = {
+        ...formRow(butter, 80),
+        alternatives: [{ ingredient: oatMilk, quantity: 80, unit: 'g' as const, tag: 'vegan' as const, note: '' }],
+      }
+      const { wrapper, emitted } = mountSections([row])
+
+      await openFirstRow(wrapper)
+      await wrapper.find('#row-modal-alt-quantity-0').setValue('5')
+      await wrapper.find('button[aria-label="Retirer l\'alternative 1"]').trigger('click')
+      await wrapper.findAll('.modal-actions button')[0].trigger('click')
+
+      expect(emitted).toHaveLength(0)
+      expect(row.alternatives).toHaveLength(1)
+      expect(row.alternatives[0].quantity).toBe(80)
+    })
+  })
 })

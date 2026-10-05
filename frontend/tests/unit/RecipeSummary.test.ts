@@ -179,3 +179,53 @@ describe('RecipeSummary cookware', () => {
     expect(wrapper.text()).toContain('Cuire au wok, étape #2.')
   })
 })
+
+describe('RecipeSummary alternatives', () => {
+  const oat = { id: 20, name: "lait d'avoine" }
+
+  function recipeWithAlternatives() {
+    const recipe = baseRecipe()
+    recipe.ingredients[0].alternatives = [
+      { id: 1, ingredient: oat, quantity: 2, unit: 'pinch', tag: 'vegan', note: 'Au goût', order: 0 },
+      { id: 2, ingredient: null, quantity: 0.5, unit: 'pinch', tag: 'less', note: '', order: 1 },
+    ] as never
+    return recipe
+  }
+
+  it('shows no swap control for an ingredient without alternatives', () => {
+    const wrapper = mountSummary(baseRecipe())
+
+    expect(wrapper.find('.swap').exists()).toBe(false)
+  })
+
+  it('lists the alternatives with their tag and note, and swaps the line when one is chosen', async () => {
+    const wrapper = mountSummary(recipeWithAlternatives())
+    expect(wrapper.find('.swap-chip').text()).toBe('2')
+
+    const options = wrapper.findAll('.swap-options button')
+    expect(options).toHaveLength(3) // l'original + 2 alternatives
+    expect(options[1].text()).toContain("lait d'avoine")
+    expect(options[1].text()).toContain('Végan')
+    expect(options[1].text()).toContain('Au goût')
+    expect(options[0].attributes('aria-pressed')).toBe('true')
+
+    await options[1].trigger('click')
+
+    const line = wrapper.find('li.ingredient-row')
+    expect(line.classes()).toContain('swapped')
+    expect(line.find('.ingredient-name').text()).toBe("lait d'avoine")
+    expect(line.find('.swap-reset').text()).toContain('sel')
+    expect(wrapper.findAll('.swap-options button')[1].attributes('aria-pressed')).toBe('true')
+  })
+
+  it('keeps the same ingredient name for a reduced quantity, and goes back to the original', async () => {
+    const wrapper = mountSummary(recipeWithAlternatives())
+
+    await wrapper.findAll('.swap-options button')[2].trigger('click')
+    expect(wrapper.find('li.ingredient-row .ingredient-name').text()).toBe('sel')
+    expect(wrapper.find('li.ingredient-row').classes()).toContain('swapped')
+
+    await wrapper.find('.swap-reset').trigger('click')
+    expect(wrapper.find('li.ingredient-row').classes()).not.toContain('swapped')
+  })
+})

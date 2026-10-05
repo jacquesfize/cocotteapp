@@ -74,6 +74,24 @@ PDF show a heading per section. The shopping list and the nutrition and carbon e
 lines up. In the cook mode, mentioning the ingredient in a step shows every quantity with its
 section.
 
+#### Alternatives
+
+An ingredient can come with **alternatives**: what to use instead when someone follows a diet,
+when you don't have it at home, or when a smaller quantity is enough. Open an ingredient (pencil
+button) and click **Add an alternative**. For each alternative, choose:
+
+- a **Type**: **Vegan**, **Vegetarian**, **Gluten-free**, **Lactose-free**, **If you don't have
+  it** or **Less**,
+- **Replace with**: the other ingredient (not asked for **Less**, which keeps the ingredient of the
+  line in a smaller quantity),
+- a **Quantity** and **Unit**, which can differ from the original line,
+- an optional **Note**, for example *Soy milk works too.*
+
+The ingredient line then shows how many alternatives it has. The bin button next to an
+alternative removes it. Alternatives are only suggestions for the person reading the recipe: the
+shopping list, the planner and the nutrition and carbon estimates always use the ingredients
+listed in the recipe.
+
 An ingredient line coming from a URL import may not have an ingredient from the list yet: the
 line shows a *not found* badge, and saving fails with *Select an ingredient for each row (or
 remove the row).* until you edit it and pick one.

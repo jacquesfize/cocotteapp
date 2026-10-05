@@ -245,6 +245,13 @@ onMounted(async () => {
       unit: item.unit,
       group_name: item.group_name,
       order: item.order,
+      alternatives: (item.alternatives ?? []).map((alternative) => ({
+        ingredient: alternative.ingredient,
+        quantity: alternative.quantity,
+        unit: alternative.unit,
+        tag: alternative.tag,
+        note: alternative.note,
+      })),
     }))
     stepRows.value = recipe.steps.map((step) => ({
       id: step.id,
@@ -299,21 +306,10 @@ function applyImportDraft(draft: PendingImportDraft) {
     group_name: item.group_name ?? '',
     order: index + 1,
   }))
-  if (!ingredientRows.value.length) addIngredientFormRow()
   selectedCookware.value = (draft.cookware ?? []).flatMap((item) => (item.cookware ? [item.cookware] : []))
   unmatchedCookwareNames.value = (draft.cookware ?? []).filter((item) => !item.cookware).map((item) => item.name)
   stepRows.value = draft.steps.map((step) => ({ ...emptyStepRow(step.order), instruction: step.instruction }))
   if (!stepRows.value.length) stepRows.value = [emptyStepRow(1)]
-}
-
-function addIngredientFormRow() {
-  ingredientRows.value.push({
-    ingredient: null,
-    quantity: '',
-    unit: 'g',
-    group_name: '',
-    order: ingredientRows.value.length + 1,
-  })
 }
 
 // Une mention "@ingrédient" dans une étape peut désigner un ingrédient qui existe déjà en
@@ -331,10 +327,6 @@ function handleMentionIngredient(ingredient: Ingredient) {
     group_name: '',
     order: ingredientRows.value.length + 1,
   })
-}
-
-function removeIngredientFormRow(index: number) {
-  ingredientRows.value.splice(index, 1)
 }
 
 function addStepRow() {
@@ -451,6 +443,14 @@ async function handleSubmit() {
       unit: row.unit,
       group_name: row.group_name,
       order: row.order,
+      alternatives: (row.alternatives ?? []).map((alternative, index) => ({
+        ingredient_id: alternative.ingredient?.id ?? null,
+        quantity: alternative.quantity,
+        unit: alternative.unit,
+        tag: alternative.tag,
+        note: alternative.note,
+        order: index,
+      })),
     })),
     steps: submittedStepRows.map((step, index) => ({
       id: step.id,

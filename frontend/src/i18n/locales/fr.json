@@ -180,6 +180,18 @@
     "addAndContinue": "Ajouter et continuer",
     "sectionLabel": "Section",
     "quantityToFill": "quantité à saisir",
+    "alternatives": "Alternatives",
+    "addAlternative": "Ajouter une alternative",
+    "removeAlternative": "Retirer l'alternative {n}",
+    "alternativeType": "Type",
+    "alternativeIngredient": "Remplacer par",
+    "alternativeNote": "Note (facultatif)",
+    "alternativesCount": "{n} alternative | {n} alternatives",
+    "alternativeSameIngredient": "Même ingrédient, quantité réduite",
+    "swapIngredient": "Remplacer {name}",
+    "swapOriginal": "Original",
+    "swapBackTo": "Revenir à {text}",
+    "swapOptions": "Alternatives pour {name}",
     "step": "Étape {n}",
     "addStep": "Ajouter une étape",
     "stepPlaceholder": "Tapez \\@ pour lier un ingrédient, # pour du matériel",
@@ -943,5 +955,13 @@
     "legal": "Mentions légales",
     "privacy": "Confidentialité",
     "notFound": "Page introuvable"
+  },
+  "alternativeTag": {
+    "vegan": "Végan",
+    "vegetarian": "Végétarien",
+    "gluten_free": "Sans gluten",
+    "lactose_free": "Sans lactose",
+    "missing": "Si vous n'en avez pas",
+    "less": "En plus petite quantité"
   }
 }

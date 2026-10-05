@@ -7,12 +7,16 @@ import CookwareModal from './CookwareModal.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../../utils/format'
+import type { IngredientSwaps } from '../../composables/useIngredientSwaps'
 import { buildStepSegments, groupIngredients, ingredientRowsFor } from '../../utils/recipeSteps'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { Cookware, Recipe, RecipeIngredient } from '../../types/models'
 
 const props = defineProps<{
   recipe: Recipe
+  // Remplacements choisis sur la page de la recette (voir RecipeSummary.vue) : appliqués à la
+  // liste des ingrédients et aux quantités des mentions.
+  swaps?: IngredientSwaps
 }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
@@ -117,6 +121,13 @@ function goNext() {
 function goToStep(index: number) {
   direction.value = index > currentIndex.value ? 'next' : 'prev'
   currentIndex.value = index
+}
+
+// Quantité et nom affichés d'une ligne : ceux de l'alternative choisie, sinon ceux de la recette.
+function shown(item: RecipeIngredient) {
+  return props.swaps
+    ? props.swaps.display(item)
+    : { name: item.ingredient.name, quantity: item.quantity, unit: item.unit, swapped: null }
 }
 
 // Une ligne par partie où l'ingrédient sert (beurre de la pâte, beurre de la garniture...).
@@ -284,8 +295,8 @@ onBeforeUnmount(() => {
                   role="tooltip"
                 >
                   <p v-for="row in findIngredientRows(segment.ingredientId)" :key="row.id" class="ingredient-popover-qty">
-                    {{ formatQuantity(row.quantity, row.unit) }}
-                    {{ formatUnit(row.unit, row.quantity) }}
+                    {{ formatQuantity(shown(row).quantity, shown(row).unit) }}
+                    {{ formatUnit(shown(row).unit, shown(row).quantity) }}
                     <template v-if="row.group_name">({{ row.group_name }})</template>
                   </p>
                 </div>
@@ -390,8 +401,8 @@ onBeforeUnmount(() => {
         <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
         <ul class="ingredient-list">
           <li v-for="item in group.items" :key="item.id" class="ingredient-row">
-            <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
-            <span class="ingredient-name">{{ item.ingredient.name }}</span>
+            <span class="ingredient-qty">{{ formatQuantity(shown(item).quantity, shown(item).unit) }} {{ formatUnit(shown(item).unit, shown(item).quantity) }}</span>
+            <span class="ingredient-name">{{ shown(item).name }}</span>
           </li>
         </ul>
       </template>

@@ -1,4 +1,13 @@
-import type { Ingredient, Unit } from './models'
+import type { AlternativeTag, Ingredient, Unit } from './models'
+
+// Alternative en cours d'édition d'une ligne (voir IngredientSections.vue).
+export interface AlternativeFormRow {
+  ingredient: Ingredient | null
+  quantity: string | number
+  unit: Unit
+  tag: AlternativeTag
+  note: string
+}
 
 // Une ligne d'ingrédient du formulaire de recette. `group_name` est le nom de la section où elle
 // se trouve ('' = section sans nom, toujours affichée en premier).
@@ -14,6 +23,9 @@ export interface IngredientFormRow {
   // choisi/créé ici.
   unmatched?: boolean
   raw_line?: string
+  alternatives?: AlternativeFormRow[]
 }
 
 export const INGREDIENT_UNITS: Unit[] = ['g', 'kg', 'ml', 'l', 'piece', 'tbsp', 'tsp', 'pinch']
+
+export const ALTERNATIVE_TAGS: AlternativeTag[] = ['vegan', 'vegetarian', 'gluten_free', 'lactose_free', 'missing', 'less']
