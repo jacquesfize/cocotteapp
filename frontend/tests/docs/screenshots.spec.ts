@@ -140,19 +140,23 @@ test('desktop documentation screenshots', async ({ page, context }, testInfo) =>
     await page.getByLabel('Cook time (min)').fill('35')
     await page.getByLabel('Diet').selectOption('vegetarian')
 
-    const addIngredient = async (index: number, name: string, quantity: string) => {
-      if (index > 0) await page.getByRole('button', { name: 'Add an ingredient' }).click()
-      const picker = page.locator(`#ingredient-${index}`)
-      await picker.fill(name)
+    // Les ingrédients s'ajoutent par la modale d'une section ; la seconde section est nommée.
+    const addIngredient = async (sectionIndex: number, name: string, quantity: string) => {
+      await page.locator('section.ingredient-section').nth(sectionIndex).getByRole('button', { name: 'Add an ingredient' }).click()
+      await page.locator('#row-modal-ingredient').fill(name)
       await page
         .locator('.picker .suggestions-dropdown li', { hasText: new RegExp(`^\\s*${name}\\s*$`) })
         .first()
         .click()
-      await page.locator(`#quantity-${index}`).fill(quantity)
+      await page.locator('#row-modal-quantity').fill(quantity)
+      await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click()
+      await expect(page.getByRole('dialog')).toBeHidden()
     }
     await addIngredient(0, 'Courgette', '600')
+    await page.getByRole('button', { name: 'Add a section' }).click()
+    await page.locator('input.section-name').nth(1).fill('Stuffing')
     await addIngredient(1, 'Tomate', '200')
-    await addIngredient(2, 'Feta', '100')
+    await addIngredient(1, 'Feta', '100')
 
     const step1 = page.locator('#step-0')
     await step1.fill('Halve the @Courgette and scoop out the flesh. Bake for ~{10%minutes}.')

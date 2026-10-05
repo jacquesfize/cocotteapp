@@ -100,7 +100,7 @@ describe('RecipeSummary steps', () => {
     const link = wrapper.find('a.ingredient-mention')
     expect(link.exists()).toBe(true)
     expect(link.text()).toBe('sel')
-    expect(link.attributes('href')).toBe('#ingredient-10')
+    expect(link.attributes('href')).toMatch(/^#ingredient-row-\d+$/)
 
     const timerButton = wrapper.findComponent(StepTimerButton)
     expect(timerButton.exists()).toBe(true)

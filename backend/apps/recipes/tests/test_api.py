@@ -829,3 +829,34 @@ def test_update_rejects_step_id_belonging_to_another_recipe():
 
     assert response.status_code == 400
     assert RecipeStep.objects.filter(id=foreign_step.id, recipe=other_recipe).exists()
+
+
+@pytest.mark.django_db
+def test_same_ingredient_can_be_used_in_several_parts_of_a_recipe():
+    user = UserFactory()
+    butter = IngredientFactory(name="Beurre")
+    client = APIClient()
+    client.force_authenticate(user)
+
+    payload = {
+        "title": "Brioche à la cannelle",
+        "servings": 8,
+        "prep_time_minutes": 30,
+        "cook_time_minutes": 25,
+        "diet_type": "vegetarian",
+        "ingredients": [
+            {"ingredient_id": butter.id, "quantity": "80", "unit": "g", "group_name": "Pâte", "order": 1},
+            {"ingredient_id": butter.id, "quantity": "50", "unit": "g", "group_name": "Garniture", "order": 2},
+        ],
+        "steps": [{"order": 1, "instruction": "Étaler le @beurre."}],
+    }
+    response = client.post("/api/recipes/", payload, format="json")
+
+    assert response.status_code == 201
+    ingredients = response.data["ingredients"]
+    assert [(i["group_name"], i["quantity"]) for i in ingredients] == [("Pâte", "80.00"), ("Garniture", "50.00")]
+
+    # Les lignes survivent à une mise à jour de la recette (le serializer les recrée).
+    update = client.patch(f"/api/recipes/{response.data['id']}/", {"ingredients": payload["ingredients"]}, format="json")
+    assert update.status_code == 200
+    assert len(update.data["ingredients"]) == 2

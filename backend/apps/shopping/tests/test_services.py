@@ -53,3 +53,21 @@ def test_export_excludes_owned_items():
     mark_owned(shopping_list, [ingredient.id])
 
     assert "Sel" not in export_as_text(shopping_list)
+
+
+@pytest.mark.django_db
+def test_build_shopping_list_sums_same_ingredient_used_in_several_parts():
+    user = UserFactory()
+    butter = IngredientFactory(name="Beurre")
+    recipe = RecipeFactory(servings=2)
+    RecipeIngredientFactory(
+        recipe=recipe, ingredient=butter, quantity=Decimal("80"), unit="g", group_name="Pâte"
+    )
+    RecipeIngredientFactory(
+        recipe=recipe, ingredient=butter, quantity=Decimal("50"), unit="g", group_name="Garniture"
+    )
+    entry = MealPlanEntry.objects.create(user=user, recipe=recipe, date="2026-01-01", servings=2)
+
+    shopping_list = build_shopping_list(user, [entry])
+
+    assert shopping_list.items.get(ingredient=butter).quantity == Decimal("130.00")

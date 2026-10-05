@@ -45,7 +45,8 @@ message disappears as soon as the field is corrected.
 
 ### Ingredients
 
-Each row has three fields:
+Ingredients are listed in bordered blocks called **sections**. A new recipe starts with a single
+section: click **Add an ingredient** in it to open a window with three fields.
 
 - **Ingredient**: start typing and pick an ingredient from the suggestions. You can use the
   arrow keys and Enter. The search ignores case and accents, tolerates typos and also finds
@@ -54,10 +55,28 @@ Each row has three fields:
   `0.5` for half a camembert).
 - **Unit**: **g**, **kg**, **ml**, **l**, **piece**, **tbsp**, **tsp** or **pinch**.
 
-Click **Add an ingredient** for another row, and the bin button to remove a row.
+Press Enter in the **Quantity** field, or click **Add**, to add the ingredient; **Add and
+continue** keeps the window open for the next one. Each ingredient then appears as a line
+(quantity, unit, name) with a pencil button to edit it in the same window and a bin button to
+remove it.
 
-Every row must have an ingredient picked from the list. Otherwise saving fails with *Select an
-ingredient for each row (or remove the row).*
+#### Sections
+
+Click **Add a section** to split the ingredients into parts, such as *Dough* and *Filling*. As
+soon as there are two sections, each one shows its name in an editable field, **including the
+first one**, which can also stay unnamed (it then reads *No section*). Section names must be
+different from each other. The bin button next to a name removes the section and, after a
+confirmation, the ingredients in it.
+
+The same ingredient can be used in several sections: add it once per section, each with its own
+quantity (for example butter in the *Dough* and again in the *Filling*). The recipe page and the
+PDF show a heading per section. The shopping list and the nutrition and carbon estimates add the
+lines up. In the cook mode, mentioning the ingredient in a step shows every quantity with its
+section.
+
+An ingredient line coming from a URL import may not have an ingredient from the list yet: the
+line shows a *not found* badge, and saving fails with *Select an ingredient for each row (or
+remove the row).* until you edit it and pick one.
 
 > [!TIP]
 > Units affect the nutrition and carbon estimates: Cocotte converts 1 piece to 100 g, 1 tbsp to

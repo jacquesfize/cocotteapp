@@ -44,6 +44,10 @@ function stepSegments(instruction: string) {
   return buildStepSegments(instruction, props.recipe.ingredients, props.recipe.cookware ?? [])
 }
 
+function rowIndex(item: Recipe['ingredients'][number]) {
+  return props.recipe.ingredients.indexOf(item)
+}
+
 async function handleDownloadPdf() {
   const blob = await downloadRecipePdf(props.recipe.id)
   downloadBlob(blob, `${props.recipe.slug}.pdf`)
@@ -133,7 +137,7 @@ async function handleDownloadPdf() {
         <template v-for="(group, index) in ingredientGroups" :key="index">
           <h3 v-if="group.name" class="ingredient-group-label">{{ group.name }}</h3>
           <ul class="ingredient-list">
-            <li v-for="item in group.items" :key="item.id" :id="`ingredient-${item.ingredient.id}`" class="ingredient-row">
+            <li v-for="item in group.items" :key="item.id" :id="`ingredient-row-${rowIndex(item)}`" class="ingredient-row">
               <span class="ingredient-qty">{{ formatQuantity(item.quantity, item.unit) }} {{ formatUnit(item.unit, item.quantity) }}</span>
               <RouterLink
                 :to="{ name: 'recipes', query: { ingredients: item.ingredient.name } }"
@@ -164,7 +168,7 @@ async function handleDownloadPdf() {
         <ol>
           <li v-for="step in recipe.steps" :key="step.id">
             <template v-for="(segment, index) in stepSegments(step.instruction)" :key="index">
-              <a v-if="segment.ingredientId" :href="`#ingredient-${segment.ingredientId}`" class="ingredient-mention">{{
+              <a v-if="segment.ingredientId" :href="`#ingredient-row-${segment.ingredientIndex}`" class="ingredient-mention">{{
                 segment.text
               }}</a>
               <button

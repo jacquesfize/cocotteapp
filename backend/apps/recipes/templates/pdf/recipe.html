@@ -26,6 +26,7 @@
     <h2>Ingrédients</h2>
     <ul>
       {% for item in recipe.recipe_ingredients.all %}
+      {% ifchanged item.group_name %}{% if item.group_name %}<li class="ingredient-part"><strong>{{ item.group_name }}</strong></li>{% endif %}{% endifchanged %}
       <li>{{ item.quantity|quantity:item.unit }} {{ item.unit|unit_label:item.quantity }} — {{ item.ingredient.name }}</li>
       {% endfor %}
     </ul>

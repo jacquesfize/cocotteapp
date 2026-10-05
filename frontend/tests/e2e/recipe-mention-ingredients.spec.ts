@@ -1,4 +1,5 @@
 import { expect, test } from './fixtures'
+import { addNewIngredient } from './recipe-form'
 
 test('mentioning an ingredient not yet in the recipe adds it automatically, and creating a brand new one works too', async ({
   page,
@@ -20,22 +21,14 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   // être dans la liste de la recette qu'on va tester ensuite.
   await page.goto('/recipes/new')
   await page.getByLabel('Titre').fill('Recette temporaire')
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(existingElsewhere)
-  await page.getByText(`+ Créer « ${existingElsewhere} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('1')
+  await addNewIngredient(page, existingElsewhere, '1')
   await page.getByLabel('Étape 1').fill('x')
   await page.getByRole('button', { name: 'Enregistrer' }).click()
   await page.waitForURL(/\/recipes\/\d+$/)
 
   await page.goto('/recipes/new')
   await page.getByLabel('Titre').fill('Velouté de légumes')
-  await page.getByPlaceholder('Rechercher un ingrédient...').fill(`poireau-${suffix}`)
-  await page.getByText(`+ Créer « poireau-${suffix} »`).click()
-  await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await page.locator('input[id^="quantity-"]').fill('2')
+  await addNewIngredient(page, `poireau-${suffix}`, '2')
 
   const step1 = page.locator('#step-0')
 
@@ -45,9 +38,9 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   await page.locator('.cooklang-input .suggestions-dropdown li').first().waitFor()
   await page.locator('.cooklang-input .suggestions-dropdown li').first().click()
 
-  const ingredientInputs = page.getByPlaceholder('Rechercher un ingrédient...')
-  await expect(ingredientInputs).toHaveCount(2)
-  await expect(ingredientInputs.nth(1)).toHaveValue(existingElsewhere)
+  const items = page.locator('.ingredient-item')
+  await expect(items).toHaveCount(2)
+  await expect(items.nth(1)).toContainText(existingElsewhere)
   await expect(step1).toHaveValue(new RegExp(`@${existingElsewhere} $`))
 
   // Mentionner un ingrédient qui n'existe nulle part propose de le créer ; une fois créé
@@ -66,7 +59,7 @@ test('mentioning an ingredient not yet in the recipe adds it automatically, and 
   await page.locator('#ingredient-modal-category').selectOption('vegetable')
   await page.getByRole('button', { name: "Créer l'ingrédient" }).click()
   await expect(page.getByRole('dialog')).toBeHidden()
-  await expect(ingredientInputs).toHaveCount(3)
-  await expect(ingredientInputs.nth(2)).toHaveValue(brandNew)
+  await expect(items).toHaveCount(3)
+  await expect(items.nth(2)).toContainText(brandNew)
   await expect(page.locator('.mention-warning')).toHaveCount(0)
 })

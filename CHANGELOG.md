@@ -9,6 +9,13 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **Ingredient sections**: ingredients are now listed in bordered sections (*Dough*, *Filling*...)
+  that you create with **Add a section** and name yourself, the first one included. Each
+  ingredient is added or edited in a window opened by the **Add an ingredient** button of its
+  section, and listed compactly (quantity, unit, name). The same ingredient can be used in several
+  sections with a different quantity each, which the shopping list, nutrition and carbon
+  estimates add up. The recipe page and PDF exports show a heading per section, and mentions in
+  steps no longer clash when an ingredient appears twice.
 - **Announcements**: a banner at the top of every page, for a maintenance, an update or any
   message to your users. Admins create it in the Django admin (**Announcements**) with a level
   (information, warning, critical), a French and English text, an optional link and an optional

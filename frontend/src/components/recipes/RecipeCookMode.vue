@@ -7,7 +7,7 @@ import CookwareModal from './CookwareModal.vue'
 import StepTimerButton from './StepTimerButton.vue'
 import { useStepTimer, type StepTimerHandle } from '../../composables/useStepTimer'
 import { formatQuantity, formatUnit } from '../../utils/format'
-import { buildStepSegments, groupIngredients } from '../../utils/recipeSteps'
+import { buildStepSegments, groupIngredients, ingredientRowsFor } from '../../utils/recipeSteps'
 import { recipeImageUrl } from '../../utils/recipeImageUrl'
 import type { Cookware, Recipe, RecipeIngredient } from '../../types/models'
 
@@ -119,8 +119,9 @@ function goToStep(index: number) {
   currentIndex.value = index
 }
 
-function findIngredient(ingredientId: number): RecipeIngredient | undefined {
-  return props.recipe.ingredients.find((item) => item.ingredient.id === ingredientId)
+// Une ligne par partie où l'ingrédient sert (beurre de la pâte, beurre de la garniture...).
+function findIngredientRows(ingredientId: number): RecipeIngredient[] {
+  return ingredientRowsFor(props.recipe.ingredients, ingredientId)
 }
 
 function isIngredientPopoverOpen(ingredientId: number) {
@@ -282,9 +283,10 @@ onBeforeUnmount(() => {
                   class="ingredient-popover"
                   role="tooltip"
                 >
-                  <p class="ingredient-popover-qty">
-                    {{ formatQuantity(findIngredient(segment.ingredientId)?.quantity, findIngredient(segment.ingredientId)?.unit) }}
-                    {{ formatUnit(findIngredient(segment.ingredientId)?.unit, findIngredient(segment.ingredientId)?.quantity) }}
+                  <p v-for="row in findIngredientRows(segment.ingredientId)" :key="row.id" class="ingredient-popover-qty">
+                    {{ formatQuantity(row.quantity, row.unit) }}
+                    {{ formatUnit(row.unit, row.quantity) }}
+                    <template v-if="row.group_name">({{ row.group_name }})</template>
                   </p>
                 </div>
               </span>
