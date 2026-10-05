@@ -19,7 +19,17 @@ from django.db.models import Q
 from apps.accounts.models import DietType
 from apps.ingredients.models import Ingredient, IngredientCategory, Unit
 
-from .models import Cookware, Recipe, RecipeIngredient, RecipeStep, SourceType, Tag, TagKind
+from .models import (
+    AlternativeTag,
+    Cookware,
+    IngredientAlternative,
+    Recipe,
+    RecipeIngredient,
+    RecipeStep,
+    SourceType,
+    Tag,
+    TagKind,
+)
 
 FORMAT_NAME = "cocotte-recipes"
 FORMAT_VERSION = 1
@@ -69,7 +79,7 @@ def _serialize_ingredient(ingredient):
 def build_export_archive(recipes):
     """Renvoie les octets d'une archive ZIP contenant `recipes` (un queryset de Recipe)."""
     recipes = list(
-        recipes.select_related("author").prefetch_related("recipe_ingredients__ingredient", "steps", "tags", "cookware").order_by("id")
+        recipes.select_related("author").prefetch_related("recipe_ingredients__ingredient", "recipe_ingredients__alternatives__ingredient", "steps", "tags", "cookware").order_by("id")
     )
     refs = {recipe.pk: f"r{index}" for index, recipe in enumerate(recipes, start=1)}
 
@@ -119,6 +129,17 @@ def build_export_archive(recipes):
                         "unit": line.unit,
                         "group_name": line.group_name,
                         "order": line.order,
+                        "alternatives": [
+                            {
+                                "ingredient": _serialize_ingredient(alternative.ingredient) if alternative.ingredient else None,
+                                "quantity": str(alternative.quantity),
+                                "unit": alternative.unit,
+                                "tag": alternative.tag,
+                                "note": alternative.note,
+                                "order": alternative.order,
+                            }
+                            for alternative in line.alternatives.all()
+                        ],
                     }
                     for line in recipe.recipe_ingredients.all()
                 ],
@@ -267,7 +288,7 @@ def _import_recipe(data, author, archive):
         recipe.cookware.add(_get_or_create_cookware(cookware_data, author))
 
     for index, line in enumerate(data.get("ingredients", [])):
-        RecipeIngredient.objects.create(
+        recipe_line = RecipeIngredient.objects.create(
             recipe=recipe,
             ingredient=_get_or_create_ingredient(line["ingredient"], author),
             quantity=line["quantity"],
@@ -275,6 +296,22 @@ def _import_recipe(data, author, archive):
             group_name=str(line.get("group_name", ""))[:60],
             order=int(line.get("order", index)),
         )
+        # Absentes des archives produites avant l'ajout des alternatives : simplement ignorées.
+        for alt_index, alternative in enumerate(line.get("alternatives", [])):
+            tag = _choice(alternative.get("tag"), AlternativeTag, None)
+            replacement = alternative.get("ingredient")
+            # Même règle que la contrainte en base : un remplacement a un ingrédient, sauf `less`.
+            if tag is None or (tag == AlternativeTag.LESS) == bool(replacement):
+                continue
+            IngredientAlternative.objects.create(
+                recipe_ingredient=recipe_line,
+                ingredient=_get_or_create_ingredient(replacement, author) if replacement else None,
+                quantity=alternative["quantity"],
+                unit=_choice(alternative.get("unit"), Unit, Unit.GRAM),
+                tag=tag,
+                note=str(alternative.get("note", ""))[:200],
+                order=int(alternative.get("order", alt_index)),
+            )
 
     for index, step in enumerate(data.get("steps", [])):
         RecipeStep.objects.create(

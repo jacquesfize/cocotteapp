@@ -298,6 +298,50 @@ class RecipeIngredient(models.Model):
         return f"{self.quantity}{self.unit} {self.ingredient.name}"
 
 
+class AlternativeTag(models.TextChoices):
+    VEGAN = "vegan", "Végan"
+    VEGETARIAN = "vegetarian", "Végétarien"
+    GLUTEN_FREE = "gluten_free", "Sans gluten"
+    LACTOSE_FREE = "lactose_free", "Sans lactose"
+    MISSING = "missing", "Si on n'en a pas"
+    LESS = "less", "Quantité réduite"
+
+
+class IngredientAlternative(models.Model):
+    """Une façon de remplacer une ligne de recette (`RecipeIngredient`) : par un autre ingrédient
+    (régime, ingrédient manquant) ou, avec le tag `less`, en réduisant la quantité du *même*
+    ingrédient (`ingredient` reste alors vide).
+
+    Les alternatives vivent dans leur propre table, pas comme des lignes de recette
+    supplémentaires : nutrition, empreinte carbone et listes de courses additionnent toutes les
+    `RecipeIngredient` et compteraient sinon deux fois la même ligne."""
+
+    recipe_ingredient = models.ForeignKey(RecipeIngredient, on_delete=models.CASCADE, related_name="alternatives")
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.PROTECT, null=True, blank=True, related_name="alternative_uses"
+    )
+    quantity = models.DecimalField(max_digits=8, decimal_places=2)
+    unit = models.CharField(max_length=10, choices=Unit.choices)
+    tag = models.CharField(max_length=20, choices=AlternativeTag.choices)
+    note = models.CharField(max_length=200, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+        constraints = [
+            # Seule la réduction de quantité peut se passer d'ingrédient de remplacement.
+            models.CheckConstraint(
+                check=models.Q(tag="less", ingredient__isnull=True)
+                | (~models.Q(tag="less") & models.Q(ingredient__isnull=False)),
+                name="alternative_ingredient_matches_tag",
+            )
+        ]
+
+    def __str__(self):
+        target = self.ingredient.name if self.ingredient_id else self.recipe_ingredient.ingredient.name
+        return f"{self.quantity}{self.unit} {target} ({self.tag})"
+
+
 class RecipeStep(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="steps")
     order = models.PositiveSmallIntegerField(default=0)

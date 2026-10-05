@@ -3,7 +3,15 @@ import factory
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 
-from .models import Cookware, PersonalTag, Recipe, RecipeComment, RecipeIngredient, RecipeRating
+from .models import (
+    Cookware,
+    IngredientAlternative,
+    PersonalTag,
+    Recipe,
+    RecipeComment,
+    RecipeIngredient,
+    RecipeRating,
+)
 
 
 class CookwareFactory(factory.django.DjangoModelFactory):
@@ -32,6 +40,17 @@ class RecipeIngredientFactory(factory.django.DjangoModelFactory):
     ingredient = factory.SubFactory(IngredientFactory)
     quantity = 100
     unit = "g"
+
+
+class IngredientAlternativeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = IngredientAlternative
+
+    recipe_ingredient = factory.SubFactory(RecipeIngredientFactory)
+    ingredient = factory.SubFactory(IngredientFactory)
+    quantity = 100
+    unit = "g"
+    tag = "vegan"
 
 
 class RecipeCommentFactory(factory.django.DjangoModelFactory):

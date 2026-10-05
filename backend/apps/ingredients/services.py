@@ -93,7 +93,7 @@ def _as_float(value) -> float | None:
 def merge_ingredients(source, target):
     """Fusionne le doublon `source` dans `target`, puis supprime `source`.
 
-    - les lignes de recettes pointent désormais vers `target` ;
+    - les lignes de recettes (et leurs alternatives) pointent désormais vers `target` ;
     - les articles de listes de courses aussi, sauf si `target` figure déjà sur la même liste
       avec la même unité (contrainte d'unicité) : les quantités sont alors additionnées dans
       l'article existant, qui ne reste « déjà en stock » / « coché » que si les deux l'étaient
@@ -102,10 +102,11 @@ def merge_ingredients(source, target):
       `source` ajoutés à `target`.
 
     Le texte des étapes (`@nom`) n'est pas réécrit."""
-    from apps.recipes.models import RecipeIngredient
+    from apps.recipes.models import IngredientAlternative, RecipeIngredient
     from apps.shopping.models import ShoppingListItem
 
     RecipeIngredient.objects.filter(ingredient=source).update(ingredient=target)
+    IngredientAlternative.objects.filter(ingredient=source).update(ingredient=target)
 
     for item in ShoppingListItem.objects.select_for_update().filter(ingredient=source):
         existing = (

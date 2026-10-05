@@ -147,6 +147,7 @@ class Ingredient(models.Model):
             return precomputed
         return (
             self.recipe_ingredients.exclude(recipe__author=user).exists()
+            or self.alternative_uses.exclude(recipe_ingredient__recipe__author=user).exists()
             or self.shopping_list_items.exclude(shopping_list__user=user).exists()
         )
 

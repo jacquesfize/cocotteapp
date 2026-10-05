@@ -26,6 +26,7 @@ from .models import (
     PersonalTag,
     Recipe,
     RecipeComment,
+    IngredientAlternative,
     RecipeIngredient,
     RecipeRating,
     RecipeStep,
@@ -64,6 +65,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
         "recipe_ingredients__ingredient__allergens",
         "recipe_ingredients__ingredient__created_by",
+        "recipe_ingredients__alternatives__ingredient",
         "steps",
         "tags",
         "cookware__created_by",
@@ -142,7 +144,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             fork.tags.set(source.tags.all())
             fork.cookware.set(source.cookware.all())
             for ingredient in source.recipe_ingredients.all():
-                RecipeIngredient.objects.create(
+                line = RecipeIngredient.objects.create(
                     recipe=fork,
                     ingredient=ingredient.ingredient,
                     quantity=ingredient.quantity,
@@ -150,6 +152,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     group_name=ingredient.group_name,
                     order=ingredient.order,
                 )
+                for alternative in ingredient.alternatives.all():
+                    IngredientAlternative.objects.create(
+                        recipe_ingredient=line,
+                        ingredient=alternative.ingredient,
+                        quantity=alternative.quantity,
+                        unit=alternative.unit,
+                        tag=alternative.tag,
+                        note=alternative.note,
+                        order=alternative.order,
+                    )
             for step in source.steps.all():
                 RecipeStep.objects.create(recipe=fork, order=step.order, instruction=step.instruction)
 

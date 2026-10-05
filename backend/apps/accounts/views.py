@@ -163,7 +163,7 @@ class ExportDataView(APIView):
     def get(self, request):
         user = request.user
         recipes = Recipe.objects.filter(author=user).select_related("author").prefetch_related(
-            "recipe_ingredients__ingredient", "steps", "tags"
+            "recipe_ingredients__ingredient", "recipe_ingredients__alternatives__ingredient", "steps", "tags"
         )
         meal_plan_entries = MealPlanEntry.objects.filter(user=user).select_related("recipe")
         shopping_lists = ShoppingList.objects.filter(user=user).prefetch_related("items__ingredient")

@@ -8,8 +8,10 @@ from apps.nutrition.services import compute_recipe_carbon_footprint
 
 from .image_credit import validate_image_credit
 from .models import (
+    AlternativeTag,
     Cookware,
     ImageLicense,
+    IngredientAlternative,
     PersonalTag,
     Recipe,
     RecipeComment,
@@ -157,15 +159,40 @@ class AdminThematicPageSerializer(serializers.ModelSerializer):
         read_only_fields = ["slug", "image", "created_at"]
 
 
+class IngredientAlternativeSerializer(serializers.ModelSerializer):
+    ingredient = IngredientSerializer(read_only=True)
+    ingredient_id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(), source="ingredient", write_only=True, required=False, allow_null=True
+    )
+
+    class Meta:
+        model = IngredientAlternative
+        fields = ["id", "ingredient", "ingredient_id", "quantity", "unit", "tag", "note", "order"]
+
+    def validate(self, attrs):
+        # Même règle que la contrainte en base (alternative_ingredient_matches_tag), avec un
+        # message exploitable par le formulaire plutôt qu'une IntegrityError.
+        has_ingredient = attrs.get("ingredient") is not None
+        if attrs.get("tag") == AlternativeTag.LESS:
+            if has_ingredient:
+                raise serializers.ValidationError(
+                    {"ingredient_id": "Une quantité réduite concerne l'ingrédient de la ligne : ne pas en préciser un autre."}
+                )
+        elif not has_ingredient:
+            raise serializers.ValidationError({"ingredient_id": "Choisissez l'ingrédient de remplacement."})
+        return attrs
+
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     ingredient = IngredientSerializer(read_only=True)
     ingredient_id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all(), source="ingredient", write_only=True
     )
+    alternatives = IngredientAlternativeSerializer(many=True, required=False)
 
     class Meta:
         model = RecipeIngredient
-        fields = ["id", "ingredient", "ingredient_id", "quantity", "unit", "group_name", "order"]
+        fields = ["id", "ingredient", "ingredient_id", "quantity", "unit", "group_name", "order", "alternatives"]
 
 
 class RecipeStepSerializer(serializers.ModelSerializer):
@@ -410,7 +437,11 @@ class RecipeSerializer(serializers.ModelSerializer):
         if replace:
             recipe.recipe_ingredients.all().delete()
         for data in ingredients_data:
-            RecipeIngredient.objects.create(recipe=recipe, **data)
+            alternatives = data.pop("alternatives", [])
+            line = RecipeIngredient.objects.create(recipe=recipe, **data)
+            for index, alternative in enumerate(alternatives):
+                alternative.setdefault("order", index)
+                IngredientAlternative.objects.create(recipe_ingredient=line, **alternative)
 
     @staticmethod
     def _sync_steps(recipe, steps_data):
