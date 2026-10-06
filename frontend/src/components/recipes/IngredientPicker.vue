@@ -162,7 +162,7 @@ const hasMeta = computed(
       </li>
     </ul>
 
-    <div v-if="hasMeta" class="picker-meta">
+    <div v-if="hasMeta && selected" class="picker-meta">
       <UnverifiedBadge v-if="selected.is_verified === false" />
       <button
         v-if="selected.can_edit && !selectOnly"
