@@ -32,17 +32,36 @@ weekly planner rolls both up so you can see, at a glance, what a week of meals c
 
 #### 💫 Main features
 
-- **Recipe management** — manual entry or import from a URL (image fetched automatically when the source page has one), recipe image/video/source link, PDF export.
-- **Recipe versioning** — fork a recipe into a variation (e.g. "gluten-free", "spicier") that stays linked to the original.
-- **Search & filters** — by ingredient, season, diet, total time; shareable/bookmarkable filtered URLs; a homepage with themed  shortcuts (seasonal produce, vegan, ready in 30 minutes).
-- **Weekly meal planning** — a week grid with per-day and weekly totals for nutrition and carbon footprint, exportable as a single PDF (the week plus every recipe in it).
-- **Allergies & intolerances** — declare them in your profile (the 14 EU allergens plus lactose, each tagged as *allergy* or *intolerance*); recipes show their allergens, the list hides matching recipes by default, and the planner warns when you schedule one. Allergens come from the ingredients; an ingredient without verified allergen data is flagged as such (never silently treated as safe). Indicative only — always check product labels.
-- **Nutrition tracking** — per-serving macronutrients plus iron, B12, calcium, omega-3 and zinc, with deficiency alerts tuned to your diet type and activity level.
-- **Carbon footprint** — every ingredient carries a kg CO2e/kg estimate; recipes and the weekly plan show the cumulative impact.
-- **Shopping lists** — generated from your planned meals, ingredients aggregated and scaled to servings.
-- **Cooklang-style step links** — reference an ingredient from a recipe step (`@ingredient`) with autocomplete, plus inline cooking timers (`~{10%minutes}`).
-- **Accounts & admin** — email-based login, password reset by email, full data export, account deletion, and a staff-only user administration page.
-- **Bilingual PWA** — French/English UI, installable, mobile-first, with offline reading and offline shopping-list check-off.
+<table>
+  <tr>
+    <td valign="top">🍳 <b>Recipe management</b> — manual entry, import from a URL (image fetched when the source page has one), or paste Cooklang; ingredients grouped in named sections (<em>Dough</em>, <em>Filling</em>…) with alternatives (vegan, gluten-free, “if you don’t have it”); photo, video and source link; PDF export; ZIP export/import of your library.</td>
+    <td valign="top">🔀 <b>Recipe versioning</b> — fork a recipe into a variation (e.g. “gluten-free”, “spicier”) that stays linked to the original.</td>
+  </tr>
+  <tr>
+    <td valign="top">🔍 <b>Search & filters</b> — by ingredient, season, diet, time, carbon footprint, cookware and your own tags; shareable/bookmarkable URLs; a “Surprise me” random recipe; a homepage with themed shortcuts (seasonal produce, vegan, ready in 30 minutes).</td>
+    <td valign="top">📅 <b>Weekly meal planning</b> — a week grid with per-day and weekly totals for nutrition and carbon footprint; share your planner with someone (read-only or read-write); export the week as a PDF or an <code>.ics</code> calendar.</td>
+  </tr>
+  <tr>
+    <td valign="top">🤧 <b>Allergies & intolerances</b> — declare the 14 EU allergens plus lactose in your profile; recipes show their allergens, the list hides matching ones by default and the planner warns you. Ingredients without verified allergen data are flagged, never treated as safe. Indicative only — always check labels.</td>
+    <td valign="top">🥦 <b>Nutrition tracking</b> — per-serving macronutrients plus iron, B12, calcium, omega-3 and zinc, with deficiency alerts tuned to your diet type and activity level.</td>
+  </tr>
+  <tr>
+    <td valign="top">🌱 <b>Carbon footprint</b> — every ingredient carries a kg CO2e/kg estimate; recipes and the weekly plan show the cumulative impact.</td>
+    <td valign="top">🛒 <b>Shopping lists</b> — generated from your planned meals, ingredients aggregated and scaled to servings; items can be checked off offline.</td>
+  </tr>
+  <tr>
+    <td valign="top">⏱️ <b>Cook mode & Cooklang links</b> — a full-screen, swipeable step-by-step view; reference an ingredient (<code>@ingredient</code>) or a cookware item (<code>#cookware</code>) from a step, with autocomplete, plus inline countdown timers (<code>~{10%minutes}</code>).</td>
+    <td valign="top">🍴 <b>Cookware</b> — list the oven, air fryer or pans a recipe needs, see it before you start, and filter recipes by the equipment you own.</td>
+  </tr>
+  <tr>
+    <td valign="top">🏷️ <b>My tags</b> — private tags with a name, emoji and color (<em>🎂 Birthdays</em>, <em>To try</em>…) to sort recipes your own way.</td>
+    <td valign="top">💬 <b>Community</b> — a blog with embedded recipes, plus comments and 1–5 star ratings on any recipe, with no account needed.</td>
+  </tr>
+  <tr>
+    <td valign="top">👤 <b>Accounts & admin</b> — email login, password reset, full data export and account deletion; for staff: user management, editing any recipe, announcement banners and a moderation audit log.</td>
+    <td valign="top">📱 <b>Bilingual PWA</b> — French/English UI, light/dark theme, installable, mobile-first, with offline reading and offline shopping-list check-off.</td>
+  </tr>
+</table>
 
 ## 🌍 Why this project?
 
