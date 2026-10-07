@@ -92,7 +92,7 @@ class UserAllergen(models.Model):
 
 
 class AuditLog(models.Model):
-    """Trace d'une action de modération faite par un compte staff sur le contenu d'autrui
+    """Trace d'une action de modération faite par un compte staff
     (modification/suppression d'une recette, d'un article, d'un compte, fusion de doublons,
     masquage d'un commentaire...). Les libellés sont figés à l'écriture : la ligne reste lisible
     quand l'objet ou l'acteur est supprimé."""

@@ -92,7 +92,7 @@ Daily cron entry:
 
 ## Moderation log
 
-Staff actions on other people's content are recorded in a [moderation log](moderation.md#moderation-log).
+Staff actions on content (their own or other people's) are recorded in a [moderation log](moderation.md#moderation-log).
 It holds the staff member's email (an identifier, so personal data) and the id and name of the
 object they changed. The legal basis is your **legitimate interest** in the security of the site
 and in being able to answer for what an administrator did. The privacy policy page shipped with

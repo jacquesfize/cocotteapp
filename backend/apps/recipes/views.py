@@ -74,7 +74,6 @@ class RecipeViewSet(StaffAuditMixin, viewsets.ModelViewSet):
         "ratings",
     )
     serializer_class = RecipeSerializer
-    audit_owner_field = "author"
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = RecipeFilter
@@ -357,7 +356,6 @@ class RecipeCommentHideView(APIView):
             request,
             AuditLog.Action.HIDE_COMMENT if comment.is_hidden else AuditLog.Action.UNHIDE_COMMENT,
             comment,
-            owner_field="user",
         )
         serializer = RecipeCommentSerializer(comment, context={"request": request, "recipe": comment.recipe})
         return Response(serializer.data)
@@ -437,7 +435,6 @@ class CookwareViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     matériel le retire simplement des recettes qui l'utilisaient."""
 
     queryset = Cookware.objects.select_related("created_by")
-    audit_owner_field = "created_by"
     serializer_class = CookwareSerializer
     filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
     filterset_fields = ["is_verified"]

@@ -3,17 +3,14 @@ from .models import AuditLog
 ERASED_LABEL = "compte supprimé"
 
 
-def record_staff_action(request, action, obj, *, details=None, owner_field=None, pk=None, label=None):
-    """Journalise une action d'un compte staff sur `obj`. Ne fait rien pour un utilisateur non
-    staff, ni quand `obj` appartient à l'acteur (`owner_field` : nom de la FK vers l'auteur ;
-    `None` = toujours journaliser, pour les objets sans propriétaire comme les comptes).
+def record_staff_action(request, action, obj, *, details=None, pk=None, label=None):
+    """Journalise une action d'un compte staff sur `obj`, y compris sur son propre contenu.
+    Ne fait rien pour un utilisateur non staff.
 
     `pk` et `label` servent aux suppressions, où `obj` a déjà perdu son identité. Un compte
     n'est jamais désigné par son e-mail ou son nom (donnée personnelle) mais par son id."""
     user = request.user
     if not (user and user.is_authenticated and user.is_staff):
-        return None
-    if owner_field and getattr(obj, f"{owner_field}_id", None) == user.id:
         return None
     pk = obj.pk if pk is None else pk
     if obj._meta.label == "accounts.User":
@@ -38,10 +35,7 @@ def erase_actor(user):
 
 
 class StaffAuditMixin:
-    """Mixin de ModelViewSet : journalise les modifications et suppressions faites par le staff.
-    `audit_owner_field` : FK vers le propriétaire (voir `record_staff_action`)."""
-
-    audit_owner_field = None
+    """Mixin de ModelViewSet : journalise les modifications et suppressions faites par le staff."""
 
     def perform_update(self, serializer):
         super().perform_update(serializer)
@@ -50,7 +44,6 @@ class StaffAuditMixin:
             AuditLog.Action.UPDATE,
             serializer.instance,
             details={"fields": sorted(serializer.validated_data.keys())},
-            owner_field=self.audit_owner_field,
         )
 
     def perform_destroy(self, instance):
@@ -61,7 +54,6 @@ class StaffAuditMixin:
             self.request,
             AuditLog.Action.DELETE,
             instance,
-            owner_field=self.audit_owner_field,
             pk=pk,
             label=label,
         )

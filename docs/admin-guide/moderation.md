@@ -75,9 +75,9 @@ the recipe list, not only on your own. Use them to correct or remove another use
 
 ## Moderation log
 
-Every action a staff account takes on content that isn't theirs is recorded: editing or deleting
+Every action a staff account takes is recorded, on its own content as well as on other people's: editing or deleting
 a recipe, a blog post, an ingredient, a piece of cookware or a user account, merging duplicates,
-and hiding or showing a comment. Your own content is not logged.
+and hiding or showing a comment. Edits by a regular user to their own content are not logged.
 
 ### Find the log
 

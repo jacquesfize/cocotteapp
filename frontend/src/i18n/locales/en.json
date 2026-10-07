@@ -808,7 +808,7 @@
       "Preferences: diet, activity level, allergies and intolerances (see health data below).",
       "Content you create: recipes, comments, ratings, meal plans, shopping lists, shares.",
       "Technical data: last login date, used to apply the retention period below.",
-      "Moderation log: when an administrator edits or deletes content that is not theirs (including yours), their email address, the date, the action and the content concerned (name, identifier, fields changed) are recorded."
+      "Moderation log: when an administrator edits or deletes content (yours or anyone else's), their email address, the date, the action and the content concerned (name, identifier, fields changed) are recorded."
     ],
     "purposesTitle": "Purposes and legal bases",
     "purposesText": "Your data is used only to run the service: authentication and account management (contract), recipes, planning, shopping lists and nutrition features (contract), and personalisation based on diet, activity and allergies (your explicit consent). It is neither sold nor used for advertising or profiling. The moderation log relies on the administrator's legitimate interest in keeping the service secure and being able to account for administrators' actions.",

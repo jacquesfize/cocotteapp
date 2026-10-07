@@ -9,7 +9,7 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
-- **Moderation log**: actions staff take on other people's content (edit or delete a recipe, blog
+- **Moderation log**: actions staff take (edit or delete a recipe, blog
   post, ingredient, cookware or account, merge duplicates, hide a comment) are recorded and
   listed, read-only, in the Django admin under **Audit logs**. Lines are kept 365 days
   (`AUDIT_LOG_RETENTION_DAYS`, purged by the new `purge_audit_logs` command) and a deleted staff

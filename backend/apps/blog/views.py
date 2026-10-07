@@ -36,7 +36,6 @@ class BlogPostViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     the title, the content and the author's username."""
 
     queryset = BlogPost.objects.select_related("author")
-    audit_owner_field = "author"
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["author"]
@@ -138,7 +137,6 @@ class BlogPostCommentHideView(APIView):
             request,
             AuditLog.Action.HIDE_COMMENT if comment.is_hidden else AuditLog.Action.UNHIDE_COMMENT,
             comment,
-            owner_field="user",
         )
         serializer = BlogPostCommentSerializer(comment, context={"request": request, "can_moderate": True})
         return Response(serializer.data)

@@ -25,7 +25,6 @@ class AllergenViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class IngredientViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     queryset = Ingredient.objects.prefetch_related("allergens")
-    audit_owner_field = "created_by"
     serializer_class = IngredientSerializer
     filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
     filterset_class = IngredientFilter

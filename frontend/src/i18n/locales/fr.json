@@ -808,7 +808,7 @@
       "Préférences : régime alimentaire, niveau d'activité, allergies et intolérances (voir données de santé ci-dessous).",
       "Contenus que vous créez : recettes, commentaires, notes, agenda, listes de courses, partages.",
       "Données techniques : date de dernière connexion, utilisée pour appliquer la durée de conservation ci-dessous.",
-      "Journal de modération : lorsqu'un administrateur modifie ou supprime un contenu qui n'est pas le sien (y compris le vôtre), son adresse e-mail, la date, l'action et le contenu concerné (nom, identifiant, champs modifiés) sont enregistrés."
+      "Journal de modération : lorsqu'un administrateur modifie ou supprime un contenu (le vôtre ou celui d'un autre), son adresse e-mail, la date, l'action et le contenu concerné (nom, identifiant, champs modifiés) sont enregistrés."
     ],
     "purposesTitle": "Finalités et bases légales",
     "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage. Le journal de modération repose sur l'intérêt légitime de l'administrateur à assurer la sécurité du service et à pouvoir rendre compte des actions des administrateurs.",

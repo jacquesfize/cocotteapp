@@ -41,17 +41,18 @@ def test_staff_delete_is_logged_with_label_after_object_is_gone():
 
 
 @pytest.mark.django_db
-def test_author_and_own_staff_edits_are_not_logged():
+def test_staff_edit_of_own_recipe_is_logged_but_author_edit_is_not():
     author = UserFactory()
-    staff_recipe = RecipeFactory(author=UserFactory(is_staff=True))
-    recipe = RecipeFactory(author=author)
+    staff = UserFactory(is_staff=True)
+    own = RecipeFactory(author=author)
+    staff_own = RecipeFactory(author=staff)
 
-    _client(author).patch(f"/api/recipes/{recipe.id}/", {"title": "Mienne"}, format="json")
-    _client(staff_recipe.author).patch(
-        f"/api/recipes/{staff_recipe.id}/", {"title": "Aussi la mienne"}, format="json"
-    )
-
+    _client(author).patch(f"/api/recipes/{own.id}/", {"title": "Mienne"}, format="json")
     assert not AuditLog.objects.exists()
+
+    _client(staff).patch(f"/api/recipes/{staff_own.id}/", {"title": "Aussi la mienne"}, format="json")
+    entry = AuditLog.objects.get()
+    assert (entry.actor, entry.target_id) == (staff, str(staff_own.id))
 
 
 @pytest.mark.django_db
