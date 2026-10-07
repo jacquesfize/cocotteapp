@@ -68,6 +68,9 @@ const orFallback = (value?: string) => value || t('legal.notConfigured')
       <p v-if="info.inactive_retention_days > 0">
         {{ $t('legal.retentionInactive', { days: info.inactive_retention_days }) }}
       </p>
+      <p v-if="info.audit_log_retention_days > 0">
+        {{ $t('legal.retentionAudit', { days: info.audit_log_retention_days }) }}
+      </p>
       <h2>{{ $t('legal.recipientsTitle') }}</h2>
       <p>{{ $t('legal.recipientsText') }}</p>
       <h2>{{ $t('legal.rightsTitle') }}</h2>

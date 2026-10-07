@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 
+from .audit import erase_actor
+
 ANONYMOUS_EMAIL = "deleted-user@cocotte.invalid"
 ANONYMOUS_NAME = "Utilisateur supprimé"
 
@@ -31,6 +33,8 @@ def delete_account(user, keep_recipes=False):
     d'être supprimées (les recettes privées, elles, le sont toujours), et les commentaires
     laissés par l'utilisateur perdent son nom. Sans, tout ce qu'il a écrit disparaît avec lui.
     """
+    # Efface l'e-mail de ce compte du journal de modération avant que la FK ne soit annulée.
+    erase_actor(user)
     if keep_recipes:
         anonymous = get_anonymous_user()
         user.recipes.filter(is_public=True).update(author=anonymous)

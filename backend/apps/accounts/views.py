@@ -31,6 +31,8 @@ from .serializers import (
     RegisterSerializer,
     UserSerializer,
 )
+from .audit import record_staff_action
+from .models import AuditLog
 from .services import delete_account
 
 
@@ -151,6 +153,7 @@ class LegalInfoView(APIView):
                 "host_address": settings.LEGAL_HOST_ADDRESS,
                 "privacy_contact_email": settings.PRIVACY_CONTACT_EMAIL,
                 "inactive_retention_days": settings.INACTIVE_ACCOUNT_RETENTION_DAYS,
+                "audit_log_retention_days": settings.AUDIT_LOG_RETENTION_DAYS,
                 "planning_snack_enabled": settings.PLANNING_SNACK_ENABLED,
                 "nutrition_alerts_enabled": settings.NUTRITION_ALERTS_ENABLED,
             }
@@ -249,8 +252,23 @@ class AdminUserViewSet(ModelViewSet):
     def perform_update(self, serializer):
         self._guard_against_self(serializer.instance)
         serializer.save()
+        record_staff_action(
+            self.request,
+            AuditLog.Action.UPDATE,
+            serializer.instance,
+            details={"fields": sorted(serializer.validated_data.keys())},
+        )
 
     def perform_destroy(self, instance):
         self._guard_against_self(instance)
         keep_recipes = self.request.query_params.get("keep_recipes", "").lower() in ("1", "true")
+        pk, label = instance.pk, str(instance)
         delete_account(instance, keep_recipes=keep_recipes)
+        record_staff_action(
+            self.request,
+            AuditLog.Action.DELETE,
+            instance,
+            details={"keep_recipes": keep_recipes},
+            pk=pk,
+            label=label,
+        )

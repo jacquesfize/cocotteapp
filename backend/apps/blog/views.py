@@ -9,6 +9,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.audit import StaffAuditMixin, record_staff_action
+from apps.accounts.models import AuditLog
 from apps.recipes.permissions import IsAuthorOrReadOnly
 from apps.recipes.throttles import CommentCreateAnonThrottle
 
@@ -28,12 +30,13 @@ def _can_moderate(user, post):
     return bool(user and user.is_authenticated and (user.is_staff or post.author_id == user.id))
 
 
-class BlogPostViewSet(viewsets.ModelViewSet):
+class BlogPostViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     """`/api/blog/posts/` — anyone can read, any logged-in user can write a post, only its author
     (or staff) can edit or delete it. `?author=<id>` lists one user's posts, `?search=` looks in
     the title, the content and the author's username."""
 
     queryset = BlogPost.objects.select_related("author")
+    audit_owner_field = "author"
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_fields = ["author"]
@@ -131,6 +134,12 @@ class BlogPostCommentHideView(APIView):
         self.check_object_permissions(request, comment)
         comment.is_hidden = not comment.is_hidden
         comment.save(update_fields=["is_hidden"])
+        record_staff_action(
+            request,
+            AuditLog.Action.HIDE_COMMENT if comment.is_hidden else AuditLog.Action.UNHIDE_COMMENT,
+            comment,
+            owner_field="user",
+        )
         serializer = BlogPostCommentSerializer(comment, context={"request": request, "can_moderate": True})
         return Response(serializer.data)
 

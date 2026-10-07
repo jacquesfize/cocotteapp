@@ -586,8 +586,9 @@ allergens and the homepage shortcuts work, so load it before opening the site to
 | `seed_nutrient_requirements` | Daily minimum intakes (protein, iron, vitamin B12, calcium, omega-3, zinc) for each diet type and activity level. Without them, the planner shows no deficiency alerts. |
 | `seed_thematic_pages` | Three homepage shortcuts: seasonal produce, vegan, and ready in 30 minutes, with their images. |
 
-Besides seeding, one command should run on a schedule: `purge_inactive_users` (see
-[GDPR compliance](gdpr.md#inactive-accounts)).
+Besides seeding, two commands should run on a schedule: `purge_inactive_users` (see
+[GDPR compliance](gdpr.md#inactive-accounts)) and `purge_audit_logs` (see
+[Moderation log](gdpr.md#moderation-log)).
 
 All seed commands are idempotent: running them again never creates duplicates. They do, however,
 reset the records they manage to their seeded values; see

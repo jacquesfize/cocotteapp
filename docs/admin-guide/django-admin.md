@@ -64,6 +64,9 @@ Users' allergies and intolerances are not editable here; users manage them from
 > password, not the email address that Cocotte uses for logins. Users should sign up in the app;
 > use `createsuperuser` for administrators.
 
+**Audit logs**. Read-only journal of staff moderation actions, see
+[Moderation log](moderation.md#moderation-log).
+
 The *Authentification et autorisation* > *Groupes* section is Django's standard permission
 groups, useful if you want to give several non-superuser staff the same Django admin rights.
 

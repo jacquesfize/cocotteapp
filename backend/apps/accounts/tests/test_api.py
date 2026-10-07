@@ -451,6 +451,15 @@ def test_health_data_consent_requires_a_boolean():
 
 
 @pytest.mark.django_db
+def test_legal_info_exposes_audit_log_retention(settings):
+    settings.AUDIT_LOG_RETENTION_DAYS = 90
+
+    response = APIClient().get("/api/auth/legal/")
+
+    assert response.json()["audit_log_retention_days"] == 90
+
+
+@pytest.mark.django_db
 def test_legal_info_is_public_and_reflects_settings(settings):
     settings.LEGAL_PUBLISHER_NAME = "Association Cocotte"
     settings.PRIVACY_CONTACT_EMAIL = "privacy@example.org"

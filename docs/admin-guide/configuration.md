@@ -185,6 +185,7 @@ purge. See [GDPR compliance](gdpr.md) for the full checklist.
 | `PRIVACY_POLICY_VERSION` | `1` | Stored with each user's consent. Increase it when the policy changes significantly. |
 | `INACTIVE_ACCOUNT_RETENTION_DAYS` | `730` | Accounts with no login for this many days are deleted by `purge_inactive_users`. `0` disables the purge. |
 | `INACTIVE_ACCOUNT_WARNING_DAYS` | `30` | How many days before deletion the warning email is sent. |
+| `AUDIT_LOG_RETENTION_DAYS` | `365` | Moderation-log lines older than this are deleted by `purge_audit_logs`. `0` keeps them forever. See [Moderation log](gdpr.md#moderation-log). |
 
 Fields left empty appear as "Not provided by the instance administrator." on the public pages.
 

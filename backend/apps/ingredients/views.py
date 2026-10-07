@@ -5,6 +5,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from apps.accounts.audit import StaffAuditMixin, record_staff_action
+from apps.accounts.models import AuditLog
+
 from .filters import IngredientFilter
 from .search import FuzzySearchFilter
 from .models import Allergen, Ingredient
@@ -20,8 +23,9 @@ class AllergenViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     pagination_class = None
 
 
-class IngredientViewSet(viewsets.ModelViewSet):
+class IngredientViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     queryset = Ingredient.objects.prefetch_related("allergens")
+    audit_owner_field = "created_by"
     serializer_class = IngredientSerializer
     filter_backends = [DjangoFilterBackend, FuzzySearchFilter]
     filterset_class = IngredientFilter
@@ -78,6 +82,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
         serializer = MergeIntoSerializer(data=request.data, context={"source": source})
         serializer.is_valid(raise_exception=True)
         target = merge_ingredients(source, serializer.validated_data["into"])
+        record_staff_action(request, AuditLog.Action.MERGE, source, details={"into": target.pk})
         return Response(self.get_serializer(self.get_queryset().get(pk=target.pk)).data)
 
     @action(detail=False, methods=["get"], url_path="nutrition-suggestion")

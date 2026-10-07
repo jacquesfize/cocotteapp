@@ -40,6 +40,7 @@ const MAX_TAGS = 3
 const isRow = computed(() => !props.variant || props.variant === 'row')
 const isTile = computed(() => props.variant === 'tile')
 const isOwner = computed(() => Boolean(authStore.user) && props.recipe.author_id === authStore.user?.id)
+const canManage = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
 const isImported = computed(() => isImportedRecipe(props.recipe))
 // "importé par X" toujours affiché (même pour ses propres recettes) ; "par X" seulement pour
 // les recettes des autres.
@@ -48,7 +49,7 @@ const authorLine = computed(() => {
   if (isImported.value) return t('recipes.importedBy', { author: props.recipe.author })
   return isOwner.value ? null : t('recipes.byAuthor', { author: props.recipe.author })
 })
-const showActions = computed(() => isRow.value && props.manageable && isOwner.value)
+const showActions = computed(() => isRow.value && props.manageable && canManage.value)
 
 const timeDetail = computed(() => {
   const { prep_time_minutes: prep, cook_time_minutes: cook } = props.recipe

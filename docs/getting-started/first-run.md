@@ -100,7 +100,7 @@ uv run python manage.py seed_thematic_pages
 | `seed_thematic_pages` | Three home page shortcuts: *Produits de saison* (in season), *Spécial végan* and *Prêt en 30 minutes* (30 minutes of prep or less), with their images. | The **Explore** section of the home page stays empty. |
 
 > [!TIP]
-> Running a public instance? Fill in the `LEGAL_*` variables and schedule `purge_inactive_users`:
+> Running a public instance? Fill in the `LEGAL_*` variables and schedule `purge_inactive_users` and `purge_audit_logs`:
 > see [GDPR compliance](../admin-guide/gdpr.md).
 
 > [!NOTE]

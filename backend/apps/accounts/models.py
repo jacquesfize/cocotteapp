@@ -89,3 +89,34 @@ class UserAllergen(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["user", "allergen"], name="unique_user_allergen")
         ]
+
+
+class AuditLog(models.Model):
+    """Trace d'une action de modération faite par un compte staff sur le contenu d'autrui
+    (modification/suppression d'une recette, d'un article, d'un compte, fusion de doublons,
+    masquage d'un commentaire...). Les libellés sont figés à l'écriture : la ligne reste lisible
+    quand l'objet ou l'acteur est supprimé."""
+
+    class Action(models.TextChoices):
+        UPDATE = "update", "Modification"
+        DELETE = "delete", "Suppression"
+        MERGE = "merge", "Fusion"
+        HIDE_COMMENT = "hide_comment", "Commentaire masqué"
+        UNHIDE_COMMENT = "unhide_comment", "Commentaire réaffiché"
+
+    actor = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="audit_logs"
+    )
+    actor_label = models.CharField(max_length=254)
+    action = models.CharField(max_length=20, choices=Action.choices)
+    target_type = models.CharField(max_length=100)
+    target_id = models.CharField(max_length=50, blank=True)
+    target_label = models.CharField(max_length=255, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.actor_label} — {self.action} — {self.target_type} {self.target_label}"
