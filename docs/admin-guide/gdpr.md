@@ -16,7 +16,7 @@ the **data controller**: the software helps, but some obligations are yours alon
 | Erasure (art. 17) | **Delete my account** removes the account, planner and lists, and its recipes, unless the user chooses to keep their public recipes under an anonymous author. |
 | Explicit consent for health data (art. 9) | Optional checkbox at sign-up (or later from **My account**), never required to create an account; without it, diet, activity level and allergies are not collected. Date and policy version stored; can be withdrawn from **My account** (this erases diet, activity level and allergies). |
 | Information (art. 13) | **Legal notice** and **Privacy policy** pages, linked in the footer and on the sign-up form. |
-| Storage limitation (art. 5) | `purge_inactive_users`, see [below](#inactive-accounts). |
+| Storage limitation (art. 5) | `purge_inactive_users`, see [below](#inactive-accounts), and `purge_audit_logs` for the [moderation log](#moderation-log). |
 | Minimisation / no tracking | No analytics, advertising or third-party scripts; only strictly necessary browser storage (login tokens, language, appearance, offline cache), so no cookie banner is needed. |
 
 ## Fill in the legal pages
@@ -89,6 +89,51 @@ Daily cron entry:
 > [!NOTE]
 > Users who already had an account before this feature count from their last login (or sign-up
 > date). They have no recorded consent: **My account** invites them to give it.
+
+## Moderation log
+
+Staff actions on content (their own or other people's) are recorded in a [moderation log](moderation.md#moderation-log).
+It holds the staff member's email (an identifier, so personal data) and the id and name of the
+object they changed. The legal basis is your **legitimate interest** in the security of the site
+and in being able to answer for what an administrator did. The privacy policy page shipped with
+Cocotte already says so, and states the retention period from `AUDIT_LOG_RETENTION_DAYS`; if you
+use your own policy text, add the same information.
+
+- **Retention**: `AUDIT_LOG_RETENTION_DAYS` (default `365`, `0` = no expiry, which is not
+  recommended). `purge_audit_logs` deletes older lines and must be scheduled, like
+  `purge_inactive_users`.
+- **Erasure**: deleting a staff account replaces its email in the log with "compte supprimé"; the
+  line itself stays, anonymised. Accounts that staff edited or deleted appear as `user #id` only.
+- **What is not stored**: no old or new values, so no recipe text, health data or password.
+
+/// tab | Docker
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec backend python manage.py purge_audit_logs --dry-run
+```
+
+```cron
+30 3 * * * cd /opt/cocotte && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py purge_audit_logs
+```
+
+///
+
+/// tab | Classic
+
+```bash
+cd /opt/cocotte/app/backend
+sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py purge_audit_logs --dry-run
+```
+
+```cron
+30 3 * * * cd /opt/cocotte/app/backend && sudo -u cocotte env DJANGO_SETTINGS_MODULE=config.settings.prod .venv/bin/python manage.py purge_audit_logs
+```
+
+///
+
+> [!NOTE]
+> Backups contain the log too: keep them for a bounded time (see
+> [Maintenance](maintenance.md)).
 
 ## Account deletion and anonymous recipes
 

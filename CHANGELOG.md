@@ -9,6 +9,12 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **Moderation log**: actions staff take (edit or delete a recipe, blog
+  post, ingredient, cookware or account, merge duplicates, hide a comment) are recorded and
+  listed, read-only, in the Django admin under **Audit logs**. Lines are kept 365 days
+  (`AUDIT_LOG_RETENTION_DAYS`, purged by the new `purge_audit_logs` command) and a deleted staff
+  account's email is erased from them.
+  The **Privacy policy** page now describes the log and its retention period.
 - **Ingredient sections**: ingredients are now listed in bordered sections (*Dough*, *Filling*...)
   that you create with **Add a section** and name yourself, the first one included. Each
   ingredient is added or edited in a window opened by the **Add an ingredient** button of its
@@ -65,6 +71,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### 🐛 Fixed
 
+- **Admins can edit and delete any recipe** from the recipe page and the recipe list: the
+  **Edit** and **Delete** actions were only shown to the recipe's author, although the API
+  already allowed staff.
 - **Sign-up** now shows why a field is refused (email already used or invalid, username taken, password rejected) under that field. For the password, the rules (8 characters minimum, not
   too common, not only digits) show under the field, and the reason appears there when the
   password is rejected, instead of a generic error.

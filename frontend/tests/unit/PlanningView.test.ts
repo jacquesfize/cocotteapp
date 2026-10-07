@@ -66,6 +66,7 @@ function legalInfo(overrides?: Partial<LegalInfo>): LegalInfo {
     host_address: '',
     privacy_contact_email: '',
     inactive_retention_days: 730,
+    audit_log_retention_days: 365,
     planning_snack_enabled: false,
     nutrition_alerts_enabled: false,
     ...overrides,

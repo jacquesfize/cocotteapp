@@ -807,14 +807,16 @@
       "Compte : nom d'utilisateur, adresse e-mail, mot de passe (stocké haché).",
       "Préférences : régime alimentaire, niveau d'activité, allergies et intolérances (voir données de santé ci-dessous).",
       "Contenus que vous créez : recettes, commentaires, notes, agenda, listes de courses, partages.",
-      "Données techniques : date de dernière connexion, utilisée pour appliquer la durée de conservation ci-dessous."
+      "Données techniques : date de dernière connexion, utilisée pour appliquer la durée de conservation ci-dessous.",
+      "Journal de modération : lorsqu'un administrateur modifie ou supprime un contenu (le vôtre ou celui d'un autre), son adresse e-mail, la date, l'action et le contenu concerné (nom, identifiant, champs modifiés) sont enregistrés."
     ],
     "purposesTitle": "Finalités et bases légales",
-    "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage.",
+    "purposesText": "Vos données servent uniquement au fonctionnement du service : authentification et gestion du compte (contrat), recettes, agenda, listes de courses et fonctions nutritionnelles (contrat), et personnalisation selon le régime, l'activité et les allergies (votre consentement explicite). Elles ne sont ni vendues, ni utilisées pour de la publicité ou du profilage. Le journal de modération repose sur l'intérêt légitime de l'administrateur à assurer la sécurité du service et à pouvoir rendre compte des actions des administrateurs.",
     "healthTitle": "Données de santé",
     "healthText": "Les allergies, intolérances, le régime et le niveau d'activité peuvent révéler des informations sur votre santé ou vos convictions. Ils ne sont traités qu'avec votre consentement explicite, donné à l'inscription ou plus tard dans Mon compte, et enregistré avec sa date, et ne servent qu'à personnaliser votre usage de Cocotte : écarter les recettes qui ne vous conviennent pas dans la recherche, vous avertir si une recette ajoutée à votre agenda contient un allergène, et calculer vos alertes nutritionnelles. Vous pouvez retirer ce consentement à tout moment dans Mon compte ; ces données sont alors effacées.",
     "retentionTitle": "Durée de conservation",
     "retentionText": "Vos données sont conservées tant que votre compte existe. La suppression du compte les efface définitivement.",
+    "retentionAudit": "Le journal de modération est conservé {days} jours, puis supprimé. Si le compte d'un administrateur est supprimé, son adresse e-mail est effacée du journal.",
     "retentionInactive": "Les comptes sans connexion depuis {days} jours sont supprimés, après un e-mail de préavis.",
     "recipientsTitle": "Destinataires et hébergement",
     "recipientsText": "Les données ne sont accessibles qu'aux administrateurs de l'instance et à l'hébergeur indiqué dans les mentions légales. Les recettes que vous publiez sont visibles des autres utilisateurs et des visiteurs. Aucune donnée n'est envoyée à des services publicitaires ou d'analyse.",

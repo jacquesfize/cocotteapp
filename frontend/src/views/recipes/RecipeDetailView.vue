@@ -42,6 +42,8 @@ const actionsEl = ref<HTMLElement | null>(null)
 const isOwner = computed(
   () => Boolean(authStore.user) && recipe.value?.author_id === authStore.user?.id,
 )
+// Le staff peut modifier/supprimer n'importe quelle recette (l'API l'autorise déjà).
+const canManage = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
 const isImported = computed(() => Boolean(recipe.value) && isImportedRecipe(recipe.value!))
 const authorLine = computed(() => {
   if (!recipe.value?.author) return null
@@ -50,9 +52,9 @@ const authorLine = computed(() => {
 })
 const canModerateComments = computed(() => isOwner.value || Boolean(authStore.user?.is_staff))
 const canFork = computed(
-  () => Boolean(recipe.value) && (!recipe.value?.content_restricted || isOwner.value),
+  () => Boolean(recipe.value) && (!recipe.value?.content_restricted || canManage.value),
 )
-const hasActions = computed(() => isOwner.value || canFork.value)
+const hasActions = computed(() => canManage.value || canFork.value)
 
 function handleRated(result: RecipeRatingResult) {
   if (!recipe.value) return
@@ -132,7 +134,7 @@ async function handleFork() {
         </button>
 
         <div id="recipe-actions-panel" class="actions-panel" :class="{ 'is-open': showActionsMenu }">
-          <template v-if="isOwner">
+          <template v-if="canManage">
             <RouterLink
               :to="{ name: 'recipe-edit', params: { id: recipe.id } }"
               class="actions-link"

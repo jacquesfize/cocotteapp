@@ -68,6 +68,43 @@ using them is. Cover images (`media/blog/covers/`) belong to their post: replace
 **Edit** on the post, and the file is deleted with the post (also from the Django admin or when the
 author's account is deleted).
 
+## Editing any recipe
+
+As an admin you see **Edit** and **Delete** on every recipe, in the recipe's actions menu and in
+the recipe list, not only on your own. Use them to correct or remove another user's recipe.
+
+## Moderation log
+
+Every action a staff account takes is recorded, on its own content as well as on other people's: editing or deleting
+a recipe, a blog post, an ingredient, a piece of cookware or a user account, merging duplicates,
+and hiding or showing a comment. Edits by a regular user to their own content are not logged.
+
+### Find the log
+
+1. Log in to the Django admin at `https://cocotte.example.org/django-admin/` (see
+   [Django admin](django-admin.md#log-in)). You need a **superuser** account, or a staff account
+   that a superuser granted the *Can view audit log* permission.
+2. Open **Accounts** > **Audit logs** (*Journaux d'audit* may appear in French).
+3. Narrow the list: the **Action** and **Type** filters on the right, the search box (staff email,
+   object name or id) and the date breadcrumbs above the list.
+
+Each line gives the date, the staff email, the action (*Modification*, *Suppression*, *Fusion*,
+*Commentaire masqué*, *Commentaire réaffiché*), the type of object (for example `recipes.Recipe`),
+its id and name, and, for edits, the **fields** that changed. Open a line to see the details. The
+log is read-only: nobody can add, change or delete a line from the admin.
+
+### How long it is kept
+
+Lines are kept **365 days**, then deleted by the `purge_audit_logs` command. Change the period
+with `AUDIT_LOG_RETENTION_DAYS` (`0` keeps them forever) and schedule the command: see
+[GDPR compliance](gdpr.md#moderation-log). Deleting a staff account replaces its email in the log
+with "compte supprimé"; a user account that staff edited or deleted appears as `user #id`, never
+with their email.
+
+> [!NOTE]
+> Recipe photo uploads are not logged, and the log stores which fields changed, not their old or
+> new values.
+
 ## Recipe visibility
 
 ### Copyright-restricted imported recipes

@@ -45,6 +45,7 @@ export interface LegalInfo {
   host_address: string
   privacy_contact_email: string
   inactive_retention_days: number
+  audit_log_retention_days: number
   planning_snack_enabled: boolean
   nutrition_alerts_enabled: boolean
 }

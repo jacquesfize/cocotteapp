@@ -16,6 +16,7 @@ const info = {
   host_address: '',
   privacy_contact_email: 'privacy@example.org',
   inactive_retention_days: 730,
+  audit_log_retention_days: 365,
   planning_snack_enabled: false,
   nutrition_alerts_enabled: false,
 }
@@ -48,6 +49,22 @@ describe('LegalView', () => {
     expect(wrapper.text()).toContain('730 days')
     expect(wrapper.text()).toContain('Policy version 2')
     expect(wrapper.findAll('li').length).toBeGreaterThan(0)
+  })
+
+  it('mentions the moderation log and its retention', async () => {
+    const wrapper = mountPage('privacy')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('moderation log is kept for 365 days')
+  })
+
+  it('omits the moderation log retention sentence when it is kept forever', async () => {
+    vi.mocked(fetchLegalInfo).mockResolvedValue({ ...info, audit_log_retention_days: 0 })
+
+    const wrapper = mountPage('privacy')
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('moderation log is kept for')
   })
 
   it('omits the inactivity sentence when purging is disabled', async () => {

@@ -14,6 +14,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from weasyprint import HTML
 
+from apps.accounts.audit import StaffAuditMixin, record_staff_action
+from apps.accounts.models import AuditLog
 from apps.ingredients.permissions import CanEditLibraryItem
 from apps.ingredients.search import FuzzySearchFilter
 from apps.ingredients.serializers import MergeIntoSerializer
@@ -61,7 +63,7 @@ from .throttles import CommentCreateAnonThrottle, RatingCreateAnonThrottle
 from .transfer import ArchiveError, build_export_archive, import_archive
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     queryset = Recipe.objects.select_related("author").prefetch_related(
         "recipe_ingredients__ingredient__allergens",
         "recipe_ingredients__ingredient__created_by",
@@ -350,6 +352,11 @@ class RecipeCommentHideView(APIView):
         self.check_object_permissions(request, comment)
         comment.is_hidden = not comment.is_hidden
         comment.save(update_fields=["is_hidden"])
+        record_staff_action(
+            request,
+            AuditLog.Action.HIDE_COMMENT if comment.is_hidden else AuditLog.Action.UNHIDE_COMMENT,
+            comment,
+        )
         serializer = RecipeCommentSerializer(comment, context={"request": request, "recipe": comment.recipe})
         return Response(serializer.data)
 
@@ -418,7 +425,7 @@ class PersonalTagViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(matches, many=True).data)
 
 
-class CookwareViewSet(viewsets.ModelViewSet):
+class CookwareViewSet(StaffAuditMixin, viewsets.ModelViewSet):
     """Bibliothèque de matériel de cuisine. Liste courte (quelques dizaines d'entrées) : pas de
     pagination, le formulaire de recette et les filtres chargent tout d'un coup. Comme pour les
     ingrédients, la création est ouverte aux utilisateurs connectés (ajout à la volée depuis le
@@ -484,6 +491,7 @@ class CookwareViewSet(viewsets.ModelViewSet):
         serializer = MergeIntoSerializer(data=request.data, context={"source": source})
         serializer.is_valid(raise_exception=True)
         target = merge_cookware(source, serializer.validated_data["into"])
+        record_staff_action(request, AuditLog.Action.MERGE, source, details={"into": target.pk})
         return Response(self.get_serializer(target).data)
 
 

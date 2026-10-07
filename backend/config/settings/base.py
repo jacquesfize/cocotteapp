@@ -161,3 +161,5 @@ PRIVACY_CONTACT_EMAIL = env("PRIVACY_CONTACT_EMAIL", default="") or LEGAL_CONTAC
 # de préavis N_WARNING jours avant. Appliquée par `manage.py purge_inactive_users`.
 INACTIVE_ACCOUNT_RETENTION_DAYS = env.int("INACTIVE_ACCOUNT_RETENTION_DAYS", default=730)
 INACTIVE_ACCOUNT_WARNING_DAYS = env.int("INACTIVE_ACCOUNT_WARNING_DAYS", default=30)
+# Durée de conservation du journal de modération (apps.accounts.AuditLog) ; 0 = illimitée.
+AUDIT_LOG_RETENTION_DAYS = env.int("AUDIT_LOG_RETENTION_DAYS", default=365)
