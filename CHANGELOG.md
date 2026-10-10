@@ -9,6 +9,9 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **Flat theme**: in **My account > Appearance**, the new **Shape** setting (**Rounded** or **Flat**)
+  removes every rounded corner from the interface. Like the accent colour, it is stored on this
+  device.
 - **Moderation log**: actions staff take (edit or delete a recipe, blog
   post, ingredient, cookware or account, merge duplicates, hide a comment) are recorded and
   listed, read-only, in the Django admin under **Audit logs**. Lines are kept 365 days

@@ -13,7 +13,15 @@ import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResul
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../../api/planning'
 import { useAuthStore } from '../../stores/auth'
 import { allergenEmoji } from '../../utils/allergens'
-import { ACCENT_PRESETS, accentColor, DEFAULT_ACCENT, resetAccentColor, setAccentColor } from '../../utils/theme'
+import {
+  ACCENT_PRESETS,
+  accentColor,
+  DEFAULT_ACCENT,
+  resetAccentColor,
+  setAccentColor,
+  setThemeShape,
+  themeShape,
+} from '../../utils/theme'
 import { downloadBlob } from '../../utils/download'
 import type { ActivityLevel, Allergen, DietType, PlanningPermission, PlanningShare, User as UserModel } from '../../types/models'
 
@@ -289,6 +297,20 @@ async function handleDeleteAccount() {
           @click="resetAccentColor"
         >
           {{ $t('theme.reset') }}
+        </button>
+      </div>
+      <p class="muted shape-help">{{ $t('theme.shapeHelp') }}</p>
+      <div class="accent-row" role="group" :aria-label="$t('theme.shape')">
+        <button
+          v-for="shape in (['rounded', 'flat'] as const)"
+          :key="shape"
+          type="button"
+          :class="themeShape === shape ? '' : 'secondary'"
+          :aria-pressed="themeShape === shape"
+          :data-testid="`shape-${shape}`"
+          @click="setThemeShape(shape)"
+        >
+          {{ $t(`theme.shape_${shape}`) }}
         </button>
       </div>
     </div>
@@ -620,6 +642,10 @@ async function handleDeleteAccount() {
 
 .allergen-option input {
   width: auto;
+}
+
+.shape-help {
+  margin-top: 1.25rem;
 }
 
 .accent-row {

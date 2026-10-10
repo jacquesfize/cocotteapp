@@ -755,6 +755,10 @@
     "accent": "Accent color",
     "accentHelp": "Pick the accent color of the app. Stored on this device.",
     "customAccent": "Custom",
+    "shape": "Shape",
+    "shapeHelp": "Rounded or flat corners for buttons, cards and fields. Stored on this device.",
+    "shape_rounded": "Rounded",
+    "shape_flat": "Flat",
     "reset": "Default",
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode"

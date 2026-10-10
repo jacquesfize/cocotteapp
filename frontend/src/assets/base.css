@@ -55,6 +55,13 @@
   box-sizing: border-box;
 }
 
+/* Thème « plat » (Compte > Apparence) : supprime tous les arrondis, quel que soit le composant. */
+:root[data-shape='flat'] *,
+:root[data-shape='flat'] *::before,
+:root[data-shape='flat'] *::after {
+  border-radius: 0 !important;
+}
+
 html {
   scroll-behavior: smooth;
 }

@@ -6,7 +6,9 @@ import {
   resetAccentColor,
   setAccentColor,
   setThemeMode,
+  setThemeShape,
   themeMode,
+  themeShape,
   toggleThemeMode,
 } from '../../src/utils/theme'
 
@@ -15,6 +17,7 @@ describe('theme', () => {
     localStorage.clear()
     resetAccentColor()
     setThemeMode('light')
+    setThemeShape('rounded')
   })
 
   it('toggles data-theme and persists the mode', () => {
@@ -33,6 +36,16 @@ describe('theme', () => {
     resetAccentColor()
     expect(accentColor.value).toBe(DEFAULT_ACCENT)
     expect(localStorage.getItem('theme-accent')).toBeNull()
+  })
+
+  it('toggles data-shape and only persists the flat style', () => {
+    expect(document.documentElement.getAttribute('data-shape')).toBe('rounded')
+    setThemeShape('flat')
+    expect(themeShape.value).toBe('flat')
+    expect(document.documentElement.getAttribute('data-shape')).toBe('flat')
+    expect(localStorage.getItem('theme-shape')).toBe('flat')
+    setThemeShape('rounded')
+    expect(localStorage.getItem('theme-shape')).toBeNull()
   })
 
   it('picks a readable text color', () => {

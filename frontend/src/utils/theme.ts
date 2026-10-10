@@ -1,12 +1,14 @@
 import { ref } from 'vue'
 
 export type ThemeMode = 'light' | 'dark'
+export type ThemeShape = 'rounded' | 'flat'
 
 export const DEFAULT_ACCENT = '#ff6a3d'
 export const ACCENT_PRESETS = ['#ff6a3d', '#e5484d', '#d6409f', '#7c5cff', '#2f80ed', '#12a594', '#3e9b4f', '#c98a00']
 
 const MODE_KEY = 'theme-mode'
 const ACCENT_KEY = 'theme-accent'
+const SHAPE_KEY = 'theme-shape'
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
 function read(key: string): string | null {
@@ -39,8 +41,13 @@ function initialAccent(): string {
   return stored && HEX_RE.test(stored) ? stored.toLowerCase() : DEFAULT_ACCENT
 }
 
+function initialShape(): ThemeShape {
+  return read(SHAPE_KEY) === 'flat' ? 'flat' : 'rounded'
+}
+
 export const themeMode = ref<ThemeMode>(initialMode())
 export const accentColor = ref<string>(initialAccent())
+export const themeShape = ref<ThemeShape>(initialShape())
 
 /** Noir ou blanc selon la luminance du fond, pour garder le texte lisible sur l'accent choisi. */
 export function readableTextOn(hex: string): string {
@@ -55,6 +62,7 @@ export function readableTextOn(hex: string): string {
 export function applyTheme() {
   const root = document.documentElement
   root.setAttribute('data-theme', themeMode.value)
+  root.setAttribute('data-shape', themeShape.value)
   root.style.setProperty('--color-primary', accentColor.value)
   root.style.setProperty('--color-on-primary', readableTextOn(accentColor.value))
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', accentColor.value)
@@ -80,5 +88,12 @@ export function setAccentColor(hex: string) {
 export function resetAccentColor() {
   accentColor.value = DEFAULT_ACCENT
   write(ACCENT_KEY, null)
+  applyTheme()
+}
+
+export function setThemeShape(shape: ThemeShape) {
+  themeShape.value = shape === 'flat' ? 'flat' : 'rounded'
+  // « rounded » est le défaut : on ne stocke que le choix explicite d'un style plat
+  write(SHAPE_KEY, themeShape.value === 'flat' ? 'flat' : null)
   applyTheme()
 }
