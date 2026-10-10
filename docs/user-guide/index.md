@@ -64,7 +64,7 @@ the button, your choice is saved on this device.
 ![The home page in dark mode](../assets/screenshots/dark-mode-home.png)
 
 You can also change the **accent colour** of the app in **My account** → **Appearance**. See
-[Your account](account.md#appearance-accent-colour).
+[Your account](account.md#appearance-accent-colour-and-shape).
 
 ## On a phone
 

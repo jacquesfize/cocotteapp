@@ -78,7 +78,7 @@ expired.* Ask for a new one.
 Open the account menu (person icon) and click **My account**. The page is made of cards,
 described below from top to bottom.
 
-### Appearance (accent colour)
+### Appearance (accent colour and shape)
 
 ![The Appearance card with the accent colour swatches](../assets/screenshots/account-theme.png)
 
@@ -88,7 +88,10 @@ The **Appearance** card changes the app's main colour (buttons, links and highli
 - click **Custom** to pick any colour, or
 - click **Default** to go back to the original orange.
 
-The accent colour is **stored on this device** only (it doesn't follow your account to other
+Below the swatches, **Shape** switches between **Rounded** (the default) and **Flat**, which
+removes every rounded corner (buttons, cards, fields, badges, avatars) for a squarer look.
+
+The accent colour and the shape are **stored on this device** only (they don't follow your account to other
 devices). Text on buttons automatically switches between black and white to stay readable.
 
 Dark mode is toggled from the moon/sun button in the top bar. See

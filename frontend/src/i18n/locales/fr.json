@@ -755,6 +755,10 @@
     "accent": "Couleur d'accent",
     "accentHelp": "Choisissez la couleur d'accent de l'application. Enregistré sur cet appareil.",
     "customAccent": "Personnalisée",
+    "shape": "Forme",
+    "shapeHelp": "Angles arrondis ou droits pour les boutons, cartes et champs. Enregistré sur cet appareil.",
+    "shape_rounded": "Arrondie",
+    "shape_flat": "Plate",
     "reset": "Par défaut",
     "switchToDark": "Passer en mode sombre",
     "switchToLight": "Passer en mode clair"
