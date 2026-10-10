@@ -9,7 +9,7 @@ import AsyncState from '../../components/shared/AsyncState.vue'
 import BaseModal from '../../components/shared/BaseModal.vue'
 import { changePassword, exportMyData } from '../../api/auth'
 import { getErrorData, getErrorDetail } from '../../utils/apiError'
-import { exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../../api/recipes'
+import { deleteAllRecipes, exportRecipeLibrary, importRecipeLibrary, type RecipeArchiveImportResult } from '../../api/recipes'
 import { createOrUpdatePlanningShare, deletePlanningShare, listPlanningShares } from '../../api/planning'
 import { useAuthStore } from '../../stores/auth'
 import { allergenEmoji } from '../../utils/allergens'
@@ -173,6 +173,25 @@ async function handleRecipesExport(scope: 'mine' | 'all') {
     downloadBlob(blob, `${name}-${new Date().toISOString().slice(0, 10)}.zip`)
   } finally {
     isExportingRecipes.value = false
+  }
+}
+
+const isDeletingAllRecipes = ref(false)
+const deleteAllRecipesMessage = ref('')
+const deleteAllRecipesError = ref('')
+
+async function handleDeleteAllRecipes() {
+  if (!window.confirm(t('account.recipesDeleteAllConfirm'))) return
+  deleteAllRecipesMessage.value = ''
+  deleteAllRecipesError.value = ''
+  isDeletingAllRecipes.value = true
+  try {
+    const { deleted } = await deleteAllRecipes()
+    deleteAllRecipesMessage.value = t('account.recipesDeleteAllResult', { count: deleted })
+  } catch {
+    deleteAllRecipesError.value = t('account.recipesDeleteAllError')
+  } finally {
+    isDeletingAllRecipes.value = false
   }
 }
 
@@ -453,6 +472,15 @@ async function handleDeleteAccount() {
         >
           <Download :size="16" />{{ $t('account.recipesExportAllButton') }}
         </button>
+        <button
+          v-if="authStore.user?.is_staff"
+          class="danger"
+          :disabled="isDeletingAllRecipes"
+          data-testid="recipes-delete-all"
+          @click="handleDeleteAllRecipes"
+        >
+          <Trash2 :size="16" />{{ $t('account.recipesDeleteAllButton') }}
+        </button>
         <button class="secondary" :disabled="isImportingRecipes" @click="recipesFileInput?.click()">
           <Upload :size="16" />{{ $t('account.recipesImportButton') }}
         </button>
@@ -478,6 +506,10 @@ async function handleDeleteAccount() {
         <li v-for="e in recipesImportResult.errors" :key="e.title">{{ e.title }} — {{ e.detail }}</li>
       </ul>
       <p v-if="recipesImportError" class="error">{{ recipesImportError }}</p>
+      <p v-if="deleteAllRecipesMessage" class="muted" data-testid="recipes-delete-all-result">
+        {{ deleteAllRecipesMessage }}
+      </p>
+      <p v-if="deleteAllRecipesError" class="error">{{ deleteAllRecipesError }}</p>
     </div>
 
     <div class="card" style="margin-bottom: 1rem">

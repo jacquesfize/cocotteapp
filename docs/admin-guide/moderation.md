@@ -218,3 +218,21 @@ planner, shopping lists, allergies and planner shares are deleted immediately.
 
 Deleted data remains in your database backups until they expire. Mention this retention in your
 answer to the user, and in your privacy policy if you publish one.
+
+## Delete all recipes
+
+Staff can wipe the whole recipe base, for example before re-importing an archive.
+
+1. Open **My account** from the account menu.
+2. In **Share or back up my recipes**, click **Delete all recipes (admin)** and confirm. The
+   button is only shown to staff.
+
+> [!CAUTION]
+> This permanently deletes the recipes of **every** author, along with the planner entries,
+> comments and ratings attached to them. It cannot be undone: click **Export the whole database
+> (admin)** first, and take a database backup (see
+> [Back up and restore](maintenance.md#back-up-and-restore)) if in doubt.
+
+The action is recorded as a single line in the moderation log, with the number of recipes deleted.
+Through the API it is `DELETE /api/recipes/delete-all/?confirm=true`, refused with `403` to
+non-staff accounts and with `400` without `confirm=true`.

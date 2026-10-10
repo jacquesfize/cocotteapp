@@ -147,3 +147,7 @@ export function importRecipeLibrary(file: File): Promise<RecipeArchiveImportResu
   body.append('file', file)
   return client.post('recipes/import-archive/', body).then((r) => r.data)
 }
+
+export function deleteAllRecipes(): Promise<{ deleted: number }> {
+  return client.delete('recipes/delete-all/', { params: { confirm: true } }).then((r) => r.data)
+}
