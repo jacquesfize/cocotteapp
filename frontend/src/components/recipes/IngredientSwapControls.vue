@@ -114,7 +114,7 @@ function pickAlternative(item: RecipeIngredient, alternative: IngredientAlternat
   align-items: center;
   gap: 0.25rem;
   padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 0.8rem;
@@ -149,7 +149,7 @@ function pickAlternative(item: RecipeIngredient, alternative: IngredientAlternat
   margin: 0.4rem 0 0;
   padding: 0;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
 }
 

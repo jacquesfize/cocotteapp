@@ -538,7 +538,7 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--color-surface-muted);
 }
 
@@ -624,7 +624,7 @@ onBeforeUnmount(() => {
   z-index: 1;
   width: 3rem;
   height: 3rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
@@ -652,7 +652,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
 }
@@ -686,7 +686,7 @@ onBeforeUnmount(() => {
   height: 1.75rem;
   min-height: auto;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   color: inherit;
   flex-shrink: 0;
@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
   height: 0.55rem;
   min-height: auto;
   padding: 0;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-surface-muted);
 }
 
@@ -738,7 +738,7 @@ onBeforeUnmount(() => {
   background: none;
   padding: 0;
   min-height: auto;
-  border-radius: 4px;
+  border-radius: 0;
   color: var(--color-primary-dark);
   font-weight: 700;
   text-decoration: underline;
@@ -759,7 +759,7 @@ onBeforeUnmount(() => {
   max-width: 220px;
   background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 10px;
+  border-radius: 0;
   box-shadow: var(--shadow-card);
   padding: 0.6rem 0.8rem;
   text-align: center;
@@ -806,7 +806,7 @@ onBeforeUnmount(() => {
   max-height: 70vh;
   overflow-y: auto;
   background: var(--color-surface);
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
   box-shadow: var(--shadow-card);
   padding: 1.25rem;
   padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
@@ -845,7 +845,7 @@ onBeforeUnmount(() => {
   gap: 0.35rem;
   padding: 0.1rem 0.6rem 0.1rem 0.5rem;
   font-size: 0.85em;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-surface-muted);
   color: var(--color-text);
   font-weight: 700;
@@ -862,7 +862,7 @@ onBeforeUnmount(() => {
   width: 1.5rem;
   height: 1.5rem;
   margin-right: 0.4rem;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: cover;
   vertical-align: middle;
 }
@@ -872,7 +872,7 @@ onBeforeUnmount(() => {
   width: 1.4em;
   height: 1.4em;
   margin-left: -0.3rem;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: cover;
   flex-shrink: 0;
 }

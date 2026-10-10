@@ -254,7 +254,7 @@ const days = computed(() =>
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.75rem;
-  border-radius: 999px;
+  border-radius: 0;
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 600;
@@ -314,7 +314,7 @@ const days = computed(() =>
   gap: 0.5rem;
   width: 100%;
   padding: 1.25rem 1rem;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
@@ -341,7 +341,7 @@ const days = computed(() =>
   right: 0;
   min-width: 220px;
   background: var(--color-surface);
-  border-radius: 16px;
+  border-radius: 0;
   box-shadow: var(--shadow-card);
   padding: 0.6rem;
   flex-direction: column;
@@ -360,7 +360,7 @@ const days = computed(() =>
   gap: 0.6rem;
   margin: 0;
   padding: 0.55rem 0.6rem;
-  border-radius: 10px;
+  border-radius: 0;
   color: var(--color-text);
   font-weight: 600;
   font-size: 0.9rem;
@@ -394,7 +394,7 @@ const days = computed(() =>
   justify-content: center;
   gap: 0.5rem;
   padding: 1.25rem 1rem;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-card);
@@ -434,7 +434,7 @@ const days = computed(() =>
   position: relative;
   display: block;
   height: 4.5rem;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   text-decoration: none;
   color: var(--color-on-primary);
@@ -518,7 +518,7 @@ const days = computed(() =>
 
 .skeleton {
   height: 10rem;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--color-surface-muted);
 }
 

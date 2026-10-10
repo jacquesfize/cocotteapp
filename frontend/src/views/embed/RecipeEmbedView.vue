@@ -79,7 +79,7 @@ onBeforeUnmount(() => observer?.disconnect())
   padding: 0.75rem;
   margin: 0;
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--color-surface);
   color: var(--color-text);
   text-decoration: none;
@@ -94,7 +94,7 @@ onBeforeUnmount(() => observer?.disconnect())
   height: 110px;
   flex-shrink: 0;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .embed-image-placeholder {

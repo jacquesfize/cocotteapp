@@ -52,7 +52,7 @@ import PageHeader from '../components/shared/PageHeader.vue'
   gap: 0.45rem;
   min-height: 2.75rem;
   padding: 0.65rem 1.25rem;
-  border-radius: 999px;
+  border-radius: 0;
   font-weight: 600;
   text-decoration: none;
   background: var(--color-primary-soft);

@@ -68,7 +68,7 @@ const progress = computed(() => shoppingListProgress(props.list))
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
 }

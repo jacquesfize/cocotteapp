@@ -362,7 +362,7 @@ async function handleImport() {
   gap: 0.2rem;
   padding: 0.6rem;
   background: var(--color-surface);
-  border-radius: 16px;
+  border-radius: 0;
   box-shadow: var(--shadow-card);
   z-index: 20;
 }
@@ -373,7 +373,7 @@ async function handleImport() {
   gap: 0.6rem;
   margin: 0;
   padding: 0.55rem 0.6rem;
-  border-radius: 10px;
+  border-radius: 0;
   color: var(--color-text);
   font-weight: 600;
   font-size: 0.9rem;
@@ -418,7 +418,7 @@ async function handleImport() {
 .recipe-tile {
   min-width: 0;
   background: var(--color-surface);
-  border-radius: var(--radius-card);
+  border-radius: 0;
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }

@@ -373,7 +373,7 @@ async function handleImport() {
 .hero-card {
   padding: 1.5rem 1.5rem 2.75rem;
   margin-bottom: 1.5rem;
-  border-radius: 24px;
+  border-radius: 0;
   background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-muted) 100%);
 }
 
@@ -467,7 +467,7 @@ async function handleImport() {
 
 .hero-diet {
   padding: 0.1rem 0.6rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   font-weight: 600;
   font-size: 0.8rem;
   background: var(--color-surface-muted);
@@ -510,7 +510,7 @@ async function handleImport() {
 .hero-deck-back {
   position: absolute;
   inset: 0;
-  border-radius: 24px;
+  border-radius: 0;
 }
 
 .hero-deck-back-1 {
@@ -528,7 +528,7 @@ async function handleImport() {
   inset: 0;
   display: block;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: 0;
   text-decoration: none;
   box-shadow: 0 20px 40px rgba(36, 31, 29, 0.18);
 }
@@ -602,7 +602,7 @@ async function handleImport() {
   min-height: 0;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-border);
   transition: background 0.2s ease;
 }
@@ -635,7 +635,7 @@ async function handleImport() {
 .hero-skeleton-copy {
   flex: 1 1 360px;
   height: 220px;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--color-surface-muted);
 }
 
@@ -643,7 +643,7 @@ async function handleImport() {
   flex: 0 0 340px;
   width: 340px;
   aspect-ratio: 1;
-  border-radius: 24px;
+  border-radius: 0;
   background: var(--color-surface-muted);
 }
 
@@ -655,7 +655,7 @@ async function handleImport() {
     position: relative;
     display: block;
     min-height: 26rem;
-    border-radius: 24px;
+    border-radius: 0;
     overflow: hidden;
   }
 
@@ -788,7 +788,7 @@ async function handleImport() {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary);
   font-size: 1.4rem;
@@ -847,7 +847,7 @@ async function handleImport() {
   justify-content: center;
   width: 100px;
   height: 100px;
-  border-radius: 999px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--color-primary-soft);
   border: 3px solid var(--color-surface);

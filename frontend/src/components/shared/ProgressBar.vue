@@ -32,14 +32,14 @@ withDefaults(
 <style scoped>
 .progress-bar-track {
   width: 100%;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
   background: var(--color-primary);
-  border-radius: var(--radius-pill);
+  border-radius: 0;
 }
 
 .progress-bar-fill--animated {

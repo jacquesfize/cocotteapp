@@ -122,7 +122,7 @@ onMounted(search)
   width: 100%;
   padding: 0;
   border: 1.5px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   background: var(--color-surface);
   color: inherit;

@@ -581,7 +581,7 @@ const filterChips = computed<FilterChip[]>(() => {
   min-width: 1.35rem;
   height: 1.35rem;
   padding: 0 0.35rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-size: 0.75rem;
@@ -610,7 +610,7 @@ const filterChips = computed<FilterChip[]>(() => {
   gap: 0.35rem;
   min-height: auto;
   padding: 0.3rem 0.6rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 0.8rem;
@@ -725,7 +725,7 @@ const filterChips = computed<FilterChip[]>(() => {
   top: 50%;
   width: 130%;
   height: 2px;
-  border-radius: 2px;
+  border-radius: 0;
   background: currentColor;
   box-shadow: 0 0 0 1.5px var(--color-surface-muted);
   transform: translate(-50%, -50%) rotate(-45deg);
@@ -757,16 +757,16 @@ const filterChips = computed<FilterChip[]>(() => {
 .range:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 .range::-webkit-slider-runnable-track {
   height: 0.4rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--track);
 }
 .range::-moz-range-track {
   height: 0.4rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: var(--track);
 }
 .range::-webkit-slider-thumb {
@@ -774,7 +774,7 @@ const filterChips = computed<FilterChip[]>(() => {
   width: 1.15rem;
   height: 1.15rem;
   margin-top: -0.375rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-surface);
   border: 3px solid var(--thumb);
   box-shadow: 0 1px 3px rgba(36, 31, 29, 0.25);
@@ -782,7 +782,7 @@ const filterChips = computed<FilterChip[]>(() => {
 .range::-moz-range-thumb {
   width: 0.95rem;
   height: 0.95rem;
-  border-radius: 50%;
+  border-radius: 0;
   background: var(--color-surface);
   border: 3px solid var(--thumb);
   box-shadow: 0 1px 3px rgba(36, 31, 29, 0.25);

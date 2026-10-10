@@ -132,7 +132,7 @@ defineExpose({ create })
 .cookware-tag-edit {
   padding: 0.15rem;
   min-height: auto;
-  border-radius: var(--radius-pill);
+  border-radius: 0;
   background: transparent;
   color: inherit;
 }

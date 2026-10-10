@@ -274,7 +274,7 @@ async function handleExport() {
   width: 2rem;
   height: 2rem;
   flex-shrink: 0;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
 }
@@ -301,7 +301,7 @@ async function handleExport() {
   gap: 0.75rem;
   padding: 0.6rem 0;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 0;
   transition: background-color 0.15s ease;
 }
 
@@ -325,7 +325,7 @@ async function handleExport() {
   display: inline-block;
   margin-right: 0.4rem;
   padding: 0.1rem 0.5rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-surface-muted);
   color: var(--color-muted);
   font-size: 0.8rem;

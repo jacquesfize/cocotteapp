@@ -40,7 +40,7 @@ defineProps<{ title: string }>()
   grid-template-columns: 1fr 1fr;
   min-height: min(720px, calc(100vh - 8rem));
   background: var(--color-surface);
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: var(--shadow-card);
 }
@@ -106,7 +106,7 @@ defineProps<{ title: string }>()
   gap: 0.6rem;
   min-height: 2.75rem;
   border: 1.5px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--color-text);
   text-decoration: none;
   font-weight: 600;

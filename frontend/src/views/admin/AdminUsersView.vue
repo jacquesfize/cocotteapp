@@ -197,7 +197,7 @@ async function handleDelete(user: AdminUser) {
 .status-toggle-dot {
   width: 0.55rem;
   height: 0.55rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-muted);
 }
 

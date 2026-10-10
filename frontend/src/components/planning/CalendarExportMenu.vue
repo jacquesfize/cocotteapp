@@ -108,7 +108,7 @@ async function handleRegenerate() {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border-radius: 999px;
+  border-radius: 0;
   padding: 0.7rem 1.25rem;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -133,7 +133,7 @@ async function handleRegenerate() {
   padding: 0.4rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 0;
   box-shadow: 0 10px 28px rgb(60 20 15 / 18%);
 }
 
@@ -146,7 +146,7 @@ async function handleRegenerate() {
   color: var(--color-text);
   font-weight: 500;
   padding: 0.6rem 0.75rem;
-  border-radius: 9px;
+  border-radius: 0;
   min-height: auto;
 }
 
@@ -182,7 +182,7 @@ async function handleRegenerate() {
   background: #fff;
   color: #3c4043;
   border: 1px solid #dadce0;
-  border-radius: 4px;
+  border-radius: 0;
   font-family: 'Google Sans', Roboto, Arial, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;

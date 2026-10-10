@@ -113,7 +113,7 @@ const emit = defineEmits<{
 }
 
 .hero-photo-wrapper {
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -138,7 +138,7 @@ const emit = defineEmits<{
   width: 100%;
   aspect-ratio: 16 / 9;
   max-height: 360px;
-  border-radius: 20px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -159,7 +159,7 @@ const emit = defineEmits<{
   margin: 0;
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--color-surface-muted);
   color: var(--color-text);
   font-size: 0.9rem;

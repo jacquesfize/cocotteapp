@@ -72,7 +72,7 @@ async function handleDelete(id: number) {
   gap: 0.45rem;
   min-height: 2.75rem;
   padding: 0.65rem 1.25rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-weight: 600;

@@ -35,7 +35,7 @@ const emit = defineEmits<{ pick: [tag: PersonalTag] }>()
 .similar-tags {
   margin-top: 0.5rem;
   padding: 0.6rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--color-surface-muted);
   font-size: 0.9rem;
 }

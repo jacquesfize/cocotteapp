@@ -69,7 +69,7 @@ const { phase, durationLabel, clockLabel, start, pause, reset } = timer
   min-height: auto;
   font-size: 0.85rem;
   font-weight: 600;
-  border-radius: 999px;
+  border-radius: 0;
   vertical-align: middle;
   margin: 0 0.15rem;
   white-space: nowrap;
@@ -93,7 +93,7 @@ const { phase, durationLabel, clockLabel, start, pause, reset } = timer
   width: 1.35rem;
   min-height: 1.35rem;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   color: inherit;
 }

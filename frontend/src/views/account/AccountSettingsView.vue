@@ -584,7 +584,7 @@ async function handleDeleteAccount() {
   gap: 0.5rem 1rem;
   margin: 0.5rem 0 1rem;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--color-primary-soft);
 }
 
@@ -595,7 +595,7 @@ async function handleDeleteAccount() {
 
 .allergen-fieldset {
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 0;
   margin: 1rem 0;
   padding: 0.75rem 1rem;
 }
@@ -634,7 +634,7 @@ async function handleDeleteAccount() {
   height: 2rem;
   min-height: auto;
   padding: 0;
-  border-radius: 999px;
+  border-radius: 0;
   border: 2px solid var(--color-surface);
   box-shadow: 0 0 0 1px var(--color-border);
 }
