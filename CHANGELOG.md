@@ -9,6 +9,10 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### ✨ Added
 
+- **Delete all recipes (admin)**: staff get a **Delete all recipes (admin)** button in
+  **Share or back up my recipes** on the My account page. After a confirmation, it permanently
+  deletes every recipe of every author (`DELETE /api/recipes/delete-all/?confirm=true`) and
+  records the action in the moderation log.
 - **Moderation log**: actions staff take (edit or delete a recipe, blog
   post, ingredient, cookware or account, merge duplicates, hide a comment) are recorded and
   listed, read-only, in the Django admin under **Audit logs**. Lines are kept 365 days

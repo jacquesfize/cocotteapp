@@ -5,7 +5,8 @@ from rest_framework.test import APIClient
 from apps.accounts.factories import UserFactory
 from apps.ingredients.factories import IngredientFactory
 from apps.recipes.factories import RecipeFactory, RecipeIngredientFactory
-from apps.recipes.models import RecipeStep, SourceType, Tag
+from apps.accounts.models import AuditLog
+from apps.recipes.models import Recipe, RecipeStep, SourceType, Tag
 
 GIF_BYTES = (
     b"GIF87a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff,"
@@ -860,3 +861,42 @@ def test_same_ingredient_can_be_used_in_several_parts_of_a_recipe():
     update = client.patch(f"/api/recipes/{response.data['id']}/", {"ingredients": payload["ingredients"]}, format="json")
     assert update.status_code == 200
     assert len(update.data["ingredients"]) == 2
+
+
+@pytest.mark.django_db
+def test_staff_can_delete_all_recipes():
+    RecipeFactory.create_batch(3)
+    staff = UserFactory(is_staff=True)
+    client = APIClient()
+    client.force_authenticate(staff)
+
+    response = client.delete("/api/recipes/delete-all/?confirm=true")
+
+    assert response.status_code == 200
+    assert response.json() == {"deleted": 3}
+    assert Recipe.objects.count() == 0
+    log = AuditLog.objects.get(action=AuditLog.Action.DELETE, target_type="recipes.Recipe")
+    assert log.details == {"count": 3}
+
+
+@pytest.mark.django_db
+def test_delete_all_recipes_requires_confirmation():
+    RecipeFactory()
+    client = APIClient()
+    client.force_authenticate(UserFactory(is_staff=True))
+
+    response = client.delete("/api/recipes/delete-all/")
+
+    assert response.status_code == 400
+    assert Recipe.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_non_staff_cannot_delete_all_recipes():
+    recipe = RecipeFactory()
+    client = APIClient()
+    client.force_authenticate(recipe.author)
+
+    assert client.delete("/api/recipes/delete-all/?confirm=true").status_code == 403
+    assert APIClient().delete("/api/recipes/delete-all/?confirm=true").status_code in (401, 403)
+    assert Recipe.objects.count() == 1

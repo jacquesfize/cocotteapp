@@ -272,6 +272,35 @@ class RecipeViewSet(StaffAuditMixin, viewsets.ModelViewSet):
 
     @action(
         detail=False,
+        methods=["delete"],
+        url_path="delete-all",
+        permission_classes=[permissions.IsAdminUser],
+    )
+    def delete_all(self, request):
+        """Staff : supprime toutes les recettes de l'instance, de tous les auteurs. Exige
+        `?confirm=true` pour éviter qu'un appel accidentel ne vide la base."""
+        if request.query_params.get("confirm", "").lower() not in ("1", "true"):
+            return Response(
+                {"detail": "Ajoutez ?confirm=true pour confirmer la suppression de toutes les recettes."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        with transaction.atomic():
+            # Une par une : les signaux de suppression (fichiers, cascades) restent déclenchés.
+            count = Recipe.objects.count()
+            for recipe in Recipe.objects.all().iterator():
+                recipe.delete()
+            AuditLog.objects.create(
+                actor=request.user,
+                actor_label=request.user.email,
+                action=AuditLog.Action.DELETE,
+                target_type=Recipe._meta.label,
+                target_label="toutes les recettes",
+                details={"count": count},
+            )
+        return Response({"deleted": count})
+
+    @action(
+        detail=False,
         methods=["post"],
         url_path="import-archive",
         permission_classes=[IsAuthenticated],
