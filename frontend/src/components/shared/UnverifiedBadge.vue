@@ -30,7 +30,7 @@ const tooltip = computed(() => t('libraryReview.unverifiedTooltip'))
   gap: 0.25rem;
   padding: 0.05rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--color-carbon-medium) 45%, var(--color-surface));
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--color-carbon-medium) 14%, var(--color-surface));
   color: color-mix(in srgb, var(--color-carbon-medium) 55%, var(--color-text));
   font-size: 0.75rem;

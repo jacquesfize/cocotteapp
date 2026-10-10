@@ -200,7 +200,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   width: 88px;
   height: 88px;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -212,7 +212,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 .thumb {
   width: 88px;
   height: 88px;
-  border-radius: 0;
+  border-radius: 12px;
   flex-shrink: 0;
 }
 
@@ -274,7 +274,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
 .diet-badge {
   padding: 0.1rem 0.55rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: 0.78rem;
   background: var(--color-surface-muted);
@@ -319,7 +319,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
 
 .tag {
   padding: 0.1rem 0.5rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
   font-size: 0.75rem;
 }
@@ -362,7 +362,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   width: 2.25rem;
   height: 2.25rem;
   padding: 0;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text);
   border: none;
@@ -387,7 +387,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   right: 0;
   min-width: 160px;
   background: var(--color-surface);
-  border-radius: 0;
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
   padding: 0.4rem;
   flex-direction: column;
@@ -406,7 +406,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   gap: 0.5rem;
   margin: 0;
   padding: 0.5rem 0.6rem;
-  border-radius: 0;
+  border-radius: 8px;
   color: var(--color-text);
   font-weight: 500;
   font-size: 0.85rem;
@@ -461,7 +461,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   height: 26rem;
   padding: 0;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 16px;
   border-bottom: 0;
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
@@ -518,7 +518,7 @@ const hiddenTagCount = computed(() => Math.max(0, (props.recipe.tags?.length ?? 
   aspect-ratio: 1;
   padding: 0;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 16px;
   border-bottom: 0;
   color: var(--color-on-primary);
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));

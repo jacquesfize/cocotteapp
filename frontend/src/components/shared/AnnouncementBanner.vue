@@ -177,7 +177,7 @@ onMounted(async () => {
   border: 0;
   background: transparent;
   color: var(--color-muted);
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
 

@@ -188,7 +188,7 @@ const filterChips = computed<FilterChip[]>(() => {
   min-width: 1.35rem;
   height: 1.35rem;
   padding: 0 0.35rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-primary);
   color: var(--color-on-primary);
   font-size: 0.75rem;
@@ -217,7 +217,7 @@ const filterChips = computed<FilterChip[]>(() => {
   gap: 0.35rem;
   min-height: auto;
   padding: 0.3rem 0.6rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 0.8rem;

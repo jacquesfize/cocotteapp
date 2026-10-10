@@ -198,7 +198,7 @@ async function handleAdd() {
   border: 0;
   background: transparent;
   padding: 0.5rem;
-  border-radius: 0;
+  border-radius: 8px;
   min-height: auto;
   color: inherit;
 }
@@ -211,7 +211,7 @@ async function handleAdd() {
   flex: none;
   width: 24px;
   height: 24px;
-  border-radius: 0;
+  border-radius: 7px;
   background: var(--color-surface);
   overflow: hidden;
   display: grid;

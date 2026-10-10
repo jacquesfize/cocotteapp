@@ -378,7 +378,7 @@ async function handleDelete(page: AdminThematicPage) {
   width: 48px;
   height: 48px;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 10px;
 }
 
 .checkbox-field {

@@ -245,7 +245,7 @@ async function handleFork() {
   gap: 0.5rem;
   margin: 0 auto 1.5rem;
   padding: 0.75rem 1.75rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 1rem;
@@ -280,7 +280,7 @@ async function handleFork() {
   right: 0;
   min-width: 200px;
   background: var(--color-surface);
-  border-radius: 0;
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
   padding: 0.6rem;
   flex-direction: column;
@@ -299,7 +299,7 @@ async function handleFork() {
   gap: 0.6rem;
   margin: 0;
   padding: 0.55rem 0.6rem;
-  border-radius: 0;
+  border-radius: 10px;
   color: var(--color-text);
   font-weight: 600;
   font-size: 0.9rem;

@@ -47,7 +47,7 @@ const { t } = useI18n()
 .cookware-modal-photo :deep(img) {
   width: 100%;
   max-height: 60vh;
-  border-radius: 0;
+  border-radius: 12px;
   object-fit: contain;
 }
 

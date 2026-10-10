@@ -139,7 +139,7 @@ defineExpose({ validate })
   flex-direction: column;
   gap: 0.5rem;
   border: 1.5px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 12px;
   padding: 1rem;
 }
 
@@ -151,7 +151,7 @@ defineExpose({ validate })
   max-width: 220px;
   max-height: 140px;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 14px;
   margin: 0.25rem 0 1rem;
 }
 

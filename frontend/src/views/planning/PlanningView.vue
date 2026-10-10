@@ -536,7 +536,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 .seg {
   display: inline-flex;
   background: var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 999px;
   padding: 3px;
   margin-bottom: 1rem;
 }
@@ -544,7 +544,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 .view-btn {
   border: 0;
   background: transparent;
-  border-radius: 0;
+  border-radius: 999px;
   padding: 7px 18px;
   min-height: auto;
   font-weight: 600;
@@ -589,7 +589,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   min-height: auto;
   flex: none;
   border: 0;
-  border-radius: 0;
+  border-radius: 50%;
   padding: 0;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
@@ -606,7 +606,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 0;
+  border-radius: 999px;
   padding: 5px 13px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -633,7 +633,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   gap: 2px;
   padding: 8px 0;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 12px;
   background: var(--color-surface);
   font-size: 0.75rem;
   font-weight: 400;
@@ -672,7 +672,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   gap: 1px;
   background: var(--color-border);
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 16px;
   overflow: hidden;
 }
 
@@ -758,7 +758,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   min-height: auto;
   padding: 0 4px;
   border: 0;
-  border-radius: 0;
+  border-radius: 50%;
   background: transparent;
   color: var(--color-text);
   display: grid;
@@ -787,7 +787,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
 
 .month-item {
   background: var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 8px;
   cursor: grab;
 }
 
@@ -880,7 +880,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  border-radius: 0;
+  border-radius: 999px;
   padding: 0.7rem 1.25rem;
   font-weight: 600;
 }
@@ -928,7 +928,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   align-items: center;
   gap: 16px;
   padding: 12px 18px;
-  border-radius: 0;
+  border-radius: 14px;
   background: #2b201e;
   color: #fff;
   box-shadow: 0 10px 28px rgba(60, 20, 15, 0.18);
@@ -998,7 +998,7 @@ onBeforeUnmount(() => clearTimeout(toastTimer))
   .month-dots i {
     width: 6px;
     height: 6px;
-    border-radius: 0;
+    border-radius: 50%;
     background: var(--color-primary);
   }
 

@@ -17,9 +17,9 @@
   --color-danger-soft-hover: #fbd9d8;
   --color-overlay: rgba(36, 31, 29, 0.35);
   --shadow-card: 0 1px 2px rgba(36, 31, 29, 0.04), 0 8px 20px rgba(36, 31, 29, 0.06);
-  --radius-pill: 0;
-  --radius-card: 0;
-  --radius-sheet: 0;
+  --radius-pill: 999px;
+  --radius-card: 20px;
+  --radius-sheet: 16px;
   /* Couleurs sémantiques des badges régime/carbone (RecipeCard, HomeView hero). */
   --color-vegetarian: #3fa34d;
   --color-vegan: #2f8f5b;
@@ -111,7 +111,7 @@ button {
   border: none;
   background: var(--color-primary);
   color: var(--color-on-primary);
-  border-radius: 0;
+  border-radius: 999px;
   padding: 0.65rem 1.25rem;
   min-height: 2.75rem;
   font-weight: 600;
@@ -184,7 +184,7 @@ input,
 select,
 textarea {
   border: 1.5px solid var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 8px;
   padding: 0.55rem 0.8rem;
   background: var(--color-surface);
   color: var(--color-text);
@@ -210,7 +210,7 @@ input[type='checkbox'] {
 
 .card {
   background: var(--color-surface);
-  border-radius: 0;
+  border-radius: 20px;
   padding: 1.25rem;
   box-shadow: var(--shadow-card);
 }
@@ -255,7 +255,7 @@ input[type='checkbox'] {
   padding: 0.35rem;
   list-style: none;
   background: var(--color-surface);
-  border-radius: 0;
+  border-radius: var(--radius-sheet);
   box-shadow: var(--shadow-card);
   max-height: 220px;
   overflow-y: auto;
@@ -263,7 +263,7 @@ input[type='checkbox'] {
 
 .suggestions-dropdown li {
   padding: 0.5rem 0.7rem;
-  border-radius: 0;
+  border-radius: 10px;
   cursor: pointer;
 }
 
@@ -334,7 +334,7 @@ input[type='checkbox'] {
 .admin-filter-count {
   min-width: 1.4rem;
   padding: 0 0.4rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-muted);
   font-size: 0.75rem;
@@ -350,7 +350,7 @@ input[type='checkbox'] {
 
 .merge-warning {
   padding: 0.6rem 0.8rem;
-  border-radius: 0;
+  border-radius: 8px;
   background: var(--color-danger-soft);
   color: var(--color-danger);
   font-size: 0.9rem;
@@ -367,7 +367,7 @@ input[type='checkbox'] {
   align-items: center;
   gap: 0.5rem;
   padding: 0.85rem 2rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-surface);
   color: var(--color-primary-dark);
   font-size: 1.05rem;
@@ -394,7 +394,7 @@ input[type='checkbox'] {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 0;
+  border-radius: inherit;
 }
 
 .card-link:focus-visible {
@@ -418,7 +418,7 @@ input[type='checkbox'] {
   max-width: 100%;
   height: auto;
   margin: 1rem auto;
-  border-radius: 0;
+  border-radius: 14px;
 }
 
 .blog-prose iframe[data-cocotte-recipe] {
@@ -428,7 +428,7 @@ input[type='checkbox'] {
   height: 140px;
   margin: 1rem auto;
   border: none;
-  border-radius: 0;
+  border-radius: 16px;
 }
 
 .blog-prose blockquote {
@@ -451,7 +451,7 @@ input[type='checkbox'] {
   gap: 0.25rem;
   padding: 0.1rem 0.55rem;
   border: 1px solid color-mix(in srgb, var(--tag-hue) 45%, var(--color-surface));
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--tag-hue) 16%, var(--color-surface));
   color: color-mix(in srgb, var(--tag-hue) 45%, var(--color-text));
   font-size: 0.8rem;

@@ -76,7 +76,7 @@ const canManage = computed(
   height: 120px;
   flex-shrink: 0;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 14px;
 }
 
 .blog-card-placeholder {
@@ -125,7 +125,7 @@ const canManage = computed(
   gap: 0.35rem;
   min-height: 2.25rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-surface-muted);
   color: var(--color-text);
   font-size: 0.85rem;

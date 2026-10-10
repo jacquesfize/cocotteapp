@@ -282,7 +282,7 @@ async function handleDownloadPdf() {
   align-items: center;
   gap: 0.4rem;
   padding: 0.4rem 0.75rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text);
   font-size: 0.82rem;
@@ -305,7 +305,7 @@ async function handleDownloadPdf() {
   height: 2.75rem;
   min-height: auto;
   padding: 0;
-  border-radius: 0;
+  border-radius: 999px;
   justify-content: center;
 }
 
@@ -329,7 +329,7 @@ async function handleDownloadPdf() {
   width: 100%;
   height: 320px;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 20px;
 }
 
 
@@ -340,7 +340,7 @@ async function handleDownloadPdf() {
   width: 100%;
   aspect-ratio: 16 / 9;
   max-height: 320px;
-  border-radius: 0;
+  border-radius: 20px;
   overflow: hidden;
 }
 
@@ -457,7 +457,7 @@ async function handleDownloadPdf() {
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-text);
   font-size: 0.85rem;
@@ -469,7 +469,7 @@ async function handleDownloadPdf() {
   width: 1.6rem;
   height: 1.6rem;
   margin-left: -0.45rem;
-  border-radius: 0;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -503,7 +503,7 @@ async function handleDownloadPdf() {
   min-height: 1.7rem;
   padding: 0;
   margin: 0 0 0.1rem 0.4rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-surface-muted);
   color: var(--color-primary-dark);
   vertical-align: middle;
@@ -517,7 +517,7 @@ async function handleDownloadPdf() {
   display: block;
   width: 100%;
   max-height: 60vh;
-  border-radius: 0;
+  border-radius: 12px;
   object-fit: contain;
 }
 </style>

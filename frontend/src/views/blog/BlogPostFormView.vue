@@ -174,7 +174,7 @@ async function handleSubmit() {
 .guidelines {
   padding: 0.85rem 1rem;
   border: 1px solid var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 14px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
 }
@@ -203,7 +203,7 @@ async function handleSubmit() {
   width: 100%;
   max-height: 260px;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 14px;
 }
 
 .cover-actions {

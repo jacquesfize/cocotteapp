@@ -822,7 +822,7 @@ function handleCancel() {
   /* Gris neutre (les jetons --color-surface-muted/--color-border sont teintés chauds), dérivé de la
      surface pour rester lisible en thème sombre. */
   border: 1px solid color-mix(in srgb, #808080 22%, var(--color-surface));
-  border-radius: 0;
+  border-radius: 14px;
   background: color-mix(in srgb, #808080 9%, var(--color-surface));
   color: var(--color-muted);
 }
@@ -840,7 +840,7 @@ function handleCancel() {
   margin-top: 0.5rem;
   padding: 0.85rem 1rem;
   border: 1px solid var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 14px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
 }
@@ -888,7 +888,7 @@ function handleCancel() {
   margin: 1rem 0 0;
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 16px;
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
 }
@@ -919,7 +919,7 @@ function handleCancel() {
   display: inline-block;
   margin-top: 0.35rem;
   padding: 0.2rem 0.55rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: var(--color-danger-soft);
   color: var(--color-danger);
   font-size: 0.75rem;

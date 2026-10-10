@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
 .brand-badge {
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0;
+  border-radius: 8px;
   background: var(--color-primary);
   display: inline-flex;
   align-items: center;
@@ -401,7 +401,7 @@ onBeforeUnmount(() => {
 .dice-button {
   background: var(--color-surface-muted);
   color: var(--color-text);
-  border-radius: 0;
+  border-radius: 999px;
   width: 2.75rem;
   height: 2.75rem;
   display: inline-flex;
@@ -431,7 +431,7 @@ onBeforeUnmount(() => {
 .account-button {
   background: var(--color-surface-muted);
   color: var(--color-text);
-  border-radius: 0;
+  border-radius: 999px;
   width: 2.75rem;
   height: 2.75rem;
   min-height: auto;
@@ -449,7 +449,7 @@ onBeforeUnmount(() => {
 .locale-flag {
   width: 22px;
   height: 22px;
-  border-radius: 0;
+  border-radius: 999px;
   box-shadow: 0 0 0 1px var(--color-border);
 }
 
@@ -471,7 +471,7 @@ onBeforeUnmount(() => {
   right: 0;
   min-width: 200px;
   background: var(--color-surface);
-  border-radius: 0;
+  border-radius: 16px;
   box-shadow: var(--shadow-card);
   padding: 1rem;
   flex-direction: column;
@@ -544,7 +544,7 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   background: none;
   color: var(--color-text);
-  border-radius: 0;
+  border-radius: 10px;
   min-height: 2.25rem;
   padding: 0.4rem 0.6rem;
   font-weight: 500;
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
 .locale-option-flag {
   width: 22px;
   height: 15px;
-  border-radius: 0;
+  border-radius: 3px;
   box-shadow: 0 0 0 1px var(--color-border);
   flex-shrink: 0;
 }
@@ -634,7 +634,7 @@ onBeforeUnmount(() => {
     font-size: 0.7rem;
     font-weight: 600;
     padding: 0.3rem 0.15rem;
-    border-radius: 0;
+    border-radius: 12px;
     flex: 1;
     min-width: 0;
     white-space: nowrap;

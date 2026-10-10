@@ -406,14 +406,14 @@ async function handleDelete(item: Cookware) {
   display: block;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0;
+  border-radius: 8px;
   object-fit: cover;
 }
 
 .image-preview {
   width: 4rem;
   height: 4rem;
-  border-radius: 0;
+  border-radius: 10px;
   object-fit: cover;
 }
 

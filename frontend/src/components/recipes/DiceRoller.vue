@@ -189,7 +189,7 @@ onBeforeUnmount(stopLoop)
   justify-content: center;
   padding: 0;
   border: none;
-  border-radius: 0;
+  border-radius: 24px;
   background: none;
   cursor: pointer;
   transition: transform 0.15s ease;

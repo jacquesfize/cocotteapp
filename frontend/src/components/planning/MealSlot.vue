@@ -135,7 +135,7 @@ async function handleRemove(entry: MealPlanEntry) {
   display: flex;
   flex-wrap: wrap;
   background: var(--color-primary-soft);
-  border-radius: 0;
+  border-radius: 10px;
   padding: 5px;
   cursor: grab;
 }
@@ -162,7 +162,7 @@ async function handleRemove(entry: MealPlanEntry) {
   flex: none;
   width: 24px;
   height: 24px;
-  border-radius: 0;
+  border-radius: 7px;
   background: var(--color-surface);
   overflow: hidden;
   display: grid;
@@ -202,7 +202,7 @@ async function handleRemove(entry: MealPlanEntry) {
   height: 22px;
   min-height: auto;
   border: 0;
-  border-radius: 0;
+  border-radius: 50%;
   background: var(--color-surface);
   color: var(--color-primary-dark);
   display: grid;
@@ -232,7 +232,7 @@ async function handleRemove(entry: MealPlanEntry) {
   border: 0;
   background: transparent;
   color: var(--color-border);
-  border-radius: 0;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   padding: 0;

@@ -171,7 +171,7 @@ defineExpose({ requestCreate })
   margin-left: 0.15rem;
   padding: 0.1rem;
   border: 0;
-  border-radius: 0;
+  border-radius: 50%;
   background: transparent;
   color: inherit;
   cursor: pointer;

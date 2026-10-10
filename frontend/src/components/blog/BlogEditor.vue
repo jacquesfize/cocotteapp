@@ -300,7 +300,7 @@ function closeRecipePicker() {
   gap: 0.3rem;
   padding: 0.4rem;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 12px;
   background: var(--color-surface-muted);
 }
 
@@ -330,7 +330,7 @@ function closeRecipePicker() {
   min-height: 16rem;
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 12px;
   background: var(--color-surface);
   outline: none;
 }

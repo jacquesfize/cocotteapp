@@ -561,7 +561,7 @@ function errorIds(index: number) {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 14px;
 }
 
 .ingredient-section-header {
@@ -638,7 +638,7 @@ function errorIds(index: number) {
 .alternatives-badge {
   margin-left: 0.5rem;
   padding: 0.1rem 0.5rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-primary-soft);
   color: var(--color-primary-dark);
   font-size: 0.8rem;
@@ -664,7 +664,7 @@ function errorIds(index: number) {
   margin-bottom: 0.75rem;
   padding: 0.75rem;
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: 12px;
 }
 
 .alternative-head {

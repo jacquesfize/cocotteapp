@@ -294,13 +294,13 @@ async function handleSubmit() {
   padding: 0.25rem;
   margin-bottom: 1.5rem;
   background: var(--color-surface-muted);
-  border-radius: 0;
+  border-radius: 999px;
 }
 
 .auth-tabs a {
   text-align: center;
   padding: 0.55rem 0.75rem;
-  border-radius: 0;
+  border-radius: 999px;
   text-decoration: none;
   font-weight: 600;
   color: var(--color-muted);

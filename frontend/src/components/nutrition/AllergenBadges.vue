@@ -58,7 +58,7 @@ const badges = computed(() =>
   align-items: center;
   gap: 0.25rem;
   padding: 0.2rem 0.6rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   font-size: 0.75rem;
   font-weight: 600;
   background: var(--color-surface-muted);

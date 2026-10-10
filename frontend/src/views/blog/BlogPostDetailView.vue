@@ -104,7 +104,7 @@ async function handleDelete() {
   max-height: 360px;
   margin: -1.25rem -1.25rem 1rem;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: 20px 20px 0 0;
 }
 
 .blog-post-meta {

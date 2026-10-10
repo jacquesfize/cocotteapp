@@ -43,7 +43,7 @@ defineProps<{
   height: 1.9rem;
   margin: 0;
   border: 2px solid transparent;
-  border-radius: 0;
+  border-radius: 50%;
   background: var(--tag-hue);
   color: #fff;
   cursor: pointer;

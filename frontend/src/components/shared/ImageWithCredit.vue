@@ -138,7 +138,7 @@ useClickOutside(infoEl, () => {
 .credit-badge {
   position: absolute;
   padding: 0.25rem 0.65rem;
-  border-radius: 0;
+  border-radius: var(--radius-pill);
   background: rgba(0, 0, 0, 0.55);
   color: var(--color-on-primary);
   font-size: 0.7rem;
@@ -193,7 +193,7 @@ useClickOutside(infoEl, () => {
   min-height: 1.4rem;
   height: 1.4rem;
   padding: 0;
-  border-radius: 0;
+  border-radius: 50%;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   opacity: 0.85;
@@ -222,7 +222,7 @@ useClickOutside(infoEl, () => {
   width: max-content;
   max-width: var(--credit-popover-max-width, 15rem);
   padding: 0.3rem 0.6rem;
-  border-radius: 0;
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.82);
   color: #fff;
   font-size: 0.72rem;
